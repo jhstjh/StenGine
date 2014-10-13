@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "StenGine.h"
 #include "D3D11Renderer.h"
+#include "EffectsManager.h"
 
 #define MAX_LOADSTRING 100
 
@@ -17,7 +18,6 @@ HWND hMainWnd;
 ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE hInstance, int nCmdShow, HWND &hMainWnd);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -27,8 +27,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	MSG msg;
-	HACCEL hAccelTable;
+	MSG msg = { 0 };
 
 	// Initialize global strings
 	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -47,18 +46,19 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
  		return FALSE;
  	}
 
+	EffectsManager::Instance();
 
-	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_STENGINE));
-
-	// Main message loop:
-	while (GetMessage(&msg, NULL, 0, 0))
-	{
-		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-		{
+	while (msg.message != WM_QUIT) {
+		// If there are Window messages then process them.
+		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-		D3D11Renderer::Instance()->Draw();
+		// Otherwise, do animation/game stuff.
+		else
+		{
+			D3D11Renderer::Instance()->Draw();
+		}
 	}
 
 	return (int) msg.wParam;
@@ -127,7 +127,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow, HWND &hMainWnd)
 //
 //  PURPOSE:  Processes messages for the main window.
 //
-//  WM_COMMAND	- process the application menu
 //  WM_PAINT	- Paint the main window
 //  WM_DESTROY	- post a quit message and return
 //
@@ -152,24 +151,4 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 	return 0;
-}
-
-// Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	UNREFERENCED_PARAMETER(lParam);
-	switch (message)
-	{
-	case WM_INITDIALOG:
-		return (INT_PTR)TRUE;
-
-	case WM_COMMAND:
-		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-		{
-			EndDialog(hDlg, LOWORD(wParam));
-			return (INT_PTR)TRUE;
-		}
-		break;
-	}
-	return (INT_PTR)FALSE;
 }

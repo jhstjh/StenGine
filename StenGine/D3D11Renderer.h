@@ -2,6 +2,7 @@
 #define __D3D11_RENDERER__
 
 #include "stdafx.h"
+#include "MeshRenderer.h"
 
 class D3D11Renderer {
 public:
@@ -10,9 +11,8 @@ public:
 	static D3D11Renderer* Instance() { return _instance; }
 	bool Init();
 	void Draw();
-
-private:
-	
+	ID3D11Device* GetD3DDevice() { return m_d3d11Device; }
+	ID3D11DeviceContext* GetD3DContext() { return m_d3d11DeviceContext; }
 
 private:
 	static D3D11Renderer* _instance;
@@ -35,20 +35,7 @@ private:
 	int m_clientWidth;
 	int m_clientHeight;
 	bool m_enable4xMsaa;
+
+	MeshRenderer* mesh;
 };
-
-namespace Colors
-{
-	XMGLOBALCONST XMVECTORF32 White = { 1.0f, 1.0f, 1.0f, 1.0f };
-	XMGLOBALCONST XMVECTORF32 Black = { 0.0f, 0.0f, 0.0f, 1.0f };
-	XMGLOBALCONST XMVECTORF32 Red = { 1.0f, 0.0f, 0.0f, 1.0f };
-	XMGLOBALCONST XMVECTORF32 Green = { 0.0f, 1.0f, 0.0f, 1.0f };
-	XMGLOBALCONST XMVECTORF32 Blue = { 0.0f, 0.0f, 1.0f, 1.0f };
-	XMGLOBALCONST XMVECTORF32 Yellow = { 1.0f, 1.0f, 0.0f, 1.0f };
-	XMGLOBALCONST XMVECTORF32 Cyan = { 0.0f, 1.0f, 1.0f, 1.0f };
-	XMGLOBALCONST XMVECTORF32 Magenta = { 1.0f, 0.0f, 1.0f, 1.0f };
-
-	XMGLOBALCONST XMVECTORF32 Silver = { 0.75f, 0.75f, 0.75f, 1.0f };
-	XMGLOBALCONST XMVECTORF32 LightSteelBlue = { 0.69f, 0.77f, 0.87f, 1.0f };
-}
 #endif

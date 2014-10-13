@@ -1,0 +1,46 @@
+#ifndef __EFFECTS_MANAGER__
+#define __EFFECTS_MANAGER__
+#include "D3DIncludes.h"
+
+class Effect {
+protected:
+	ID3DX11Effect* m_fx;
+	ID3D11InputLayout* m_inputLayout;
+	std::vector<D3D11_INPUT_ELEMENT_DESC> m_vertexDesc;
+
+public:
+	Effect(const std::wstring& filename);
+	virtual ~Effect();
+	//D3D11_INPUT_ELEMENT_DESC* GetInputElementDesc() { return &(m_vertexDesc[0]); }
+	ID3D11InputLayout* GetInputLayout() { return m_inputLayout; }
+};
+
+class PosColorEffect : public Effect {
+public:
+	PosColorEffect(const std::wstring& filename);
+	~PosColorEffect();
+
+	ID3DX11EffectTechnique* PosColorTech;
+	ID3DX11EffectMatrixVariable* WorldViewProj;
+};
+
+class EffectsManager {
+private:
+	static EffectsManager* _instance;
+
+
+public:
+	static EffectsManager* Instance() { 
+		if (!_instance) { 
+			_instance = new EffectsManager(); 
+		} 
+		return _instance; 
+	}
+
+	EffectsManager();
+	~EffectsManager();
+
+	std::vector<Effect*> m_effects;
+};
+
+#endif

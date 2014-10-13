@@ -1,0 +1,36 @@
+#ifndef __MESH_RENDERER__
+#define __MESH_RENDERER__
+#include <vector>
+#include "D3DIncludes.h"
+
+namespace Vertex {
+	struct Pos_Color_Vertex {
+		XMFLOAT3 Pos;
+		XMFLOAT4 Color;
+	};
+}
+
+class MeshRenderer {
+private:
+	std::vector<UINT> m_indexBufferCPU;
+	std::vector<XMFLOAT3> m_positionBufferCPU;
+	std::vector<XMFLOAT3> m_normalBufferCPU;
+	std::vector<XMFLOAT3> m_texUVBufferCPU;
+	std::vector<XMFLOAT4> m_colorBufferCPU;
+
+	ID3D11Buffer* m_indexBufferGPU;
+	ID3D11Buffer* m_positionBufferGPU;
+	ID3D11Buffer* m_colorBufferGPU;
+	ID3D11Buffer* m_Pos_Color_VertexBufferGPU;
+	
+
+	void CreateBoxPrimitive();
+
+public:
+	MeshRenderer();
+	~MeshRenderer();
+	void Draw(ID3DX11EffectTechnique* tech);
+
+};
+
+#endif // !__MESH_RENDERER__
