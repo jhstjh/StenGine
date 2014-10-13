@@ -5,6 +5,7 @@
 #include "StenGine.h"
 #include "D3D11Renderer.h"
 #include "EffectsManager.h"
+#include "Timer.h"
 
 #define MAX_LOADSTRING 100
 
@@ -13,6 +14,8 @@ HINSTANCE hInst;								// current instance
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 HWND hMainWnd;
+std::wstring mMainWndCaption;
+float FPS;
 
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
@@ -47,7 +50,10 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
  	}
 
 	EffectsManager::Instance();
+	Timer::Init();
 
+	float elapsedTime = 0;
+	UINT elaspedFrame = 0;
 	while (msg.message != WM_QUIT) {
 		// If there are Window messages then process them.
 		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
@@ -57,7 +63,21 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 		// Otherwise, do animation/game stuff.
 		else
 		{
+			Timer::Update();
+			elapsedTime += Timer::GetDeltaTime();
+			if (elapsedTime >= 1) {
+				elapsedTime -= 1;
+				FPS = elaspedFrame;
+				
+				std::wostringstream outs;
+				outs.precision(6);
+				outs << L"StenGine    "
+					<< L"FPS: " << FPS << L"    ";
+				SetWindowText(hMainWnd, outs.str().c_str());
+				elaspedFrame = 0;
+			}
 			D3D11Renderer::Instance()->Draw();
+			elaspedFrame++;
 		}
 	}
 
