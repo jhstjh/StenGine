@@ -41,6 +41,8 @@ PosColorEffect::PosColorEffect(const std::wstring& filename)
 	PosColorTech->GetPassByIndex(0)->GetDesc(&passDesc);
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 2, passDesc.pIAInputSignature,
 	passDesc.IAInputSignatureSize, &m_inputLayout));
+
+	m_activeTech = PosColorTech;
 }
 
 PosColorEffect::~PosColorEffect()

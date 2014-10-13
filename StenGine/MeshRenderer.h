@@ -2,6 +2,9 @@
 #define __MESH_RENDERER__
 #include <vector>
 #include "D3DIncludes.h"
+#include "EffectsManager.h"
+
+class Effect;
 
 namespace Vertex {
 	struct Pos_Color_Vertex {
@@ -22,14 +25,15 @@ private:
 	ID3D11Buffer* m_positionBufferGPU;
 	ID3D11Buffer* m_colorBufferGPU;
 	ID3D11Buffer* m_Pos_Color_VertexBufferGPU;
-	
+	Effect* m_associatedEffect;
 
 	void CreateBoxPrimitive();
+	void PrepareGPUBuffer();
 
 public:
 	MeshRenderer();
 	~MeshRenderer();
-	void Draw(ID3DX11EffectTechnique* tech);
+	void Draw();
 
 };
 

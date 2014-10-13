@@ -1,18 +1,23 @@
 #ifndef __EFFECTS_MANAGER__
 #define __EFFECTS_MANAGER__
 #include "D3DIncludes.h"
+#include "MeshRenderer.h"
+
+class MeshRenderer;
 
 class Effect {
 protected:
 	ID3DX11Effect* m_fx;
 	ID3D11InputLayout* m_inputLayout;
+	ID3DX11EffectTechnique* m_activeTech;
 	std::vector<D3D11_INPUT_ELEMENT_DESC> m_vertexDesc;
-
 public:
 	Effect(const std::wstring& filename);
 	virtual ~Effect();
 	//D3D11_INPUT_ELEMENT_DESC* GetInputElementDesc() { return &(m_vertexDesc[0]); }
 	ID3D11InputLayout* GetInputLayout() { return m_inputLayout; }
+	ID3DX11EffectTechnique* GetActiveTech() { return m_activeTech; }
+	std::vector<MeshRenderer*> m_associatedMeshes;
 };
 
 class PosColorEffect : public Effect {

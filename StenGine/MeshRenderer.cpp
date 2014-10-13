@@ -2,14 +2,21 @@
 #include "D3D11Renderer.h"
 #include "EffectsManager.h"
 
-MeshRenderer::MeshRenderer() {
+MeshRenderer::MeshRenderer():
+m_colorBufferGPU(0),
+m_indexBufferCPU(0),
+m_positionBufferGPU(0),
+m_Pos_Color_VertexBufferGPU(0)
+{
 	CreateBoxPrimitive();
+	PrepareGPUBuffer();
 }
 
 MeshRenderer::~MeshRenderer() {
 	ReleaseCOM(m_indexBufferGPU);
 	ReleaseCOM(m_Pos_Color_VertexBufferGPU);
-	//ReleaseCOM(m_colorBufferGPU);
+	ReleaseCOM(m_colorBufferGPU);
+	ReleaseCOM(m_positionBufferGPU);
 }
 
 void MeshRenderer::CreateBoxPrimitive() {
@@ -37,37 +44,6 @@ void MeshRenderer::CreateBoxPrimitive() {
 		(const float*)&Colors::Magenta,
 	};
 
-
-	std::vector<Vertex::Pos_Color_Vertex> vertices(8);
-	UINT k = 0;
-	for (size_t i = 0; i < 8; ++i, ++k)
-	{
-		vertices[k].Pos = m_positionBufferCPU[i];
-		vertices[k].Color = m_colorBufferCPU[i];
-	}
-
-	D3D11_BUFFER_DESC vbd;
-	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex::Pos_Color_Vertex) * 8;
-	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vbd.CPUAccessFlags = 0;
-	vbd.MiscFlags = 0;
-	//vbd.StructureByteStride = 0;
-	D3D11_SUBRESOURCE_DATA vinitData;
-	vinitData.pSysMem = &vertices[0];
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&vbd, &vinitData, &m_Pos_Color_VertexBufferGPU));
-
-// 	D3D11_BUFFER_DESC cbd;
-// 	cbd.Usage = D3D11_USAGE_IMMUTABLE;
-// 	cbd.ByteWidth = sizeof(XMFLOAT4) * 8;
-// 	cbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-// 	cbd.CPUAccessFlags = 0;
-// 	cbd.MiscFlags = 0;
-// 	cbd.StructureByteStride = 0;
-// 	D3D11_SUBRESOURCE_DATA cinitData;
-// 	cinitData.pSysMem = &m_colorBufferCPU;
-// 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbd, &cinitData, &m_colorBufferGPU));
-
 	m_indexBufferCPU.resize(36);
 	m_indexBufferCPU = {
 		// front face
@@ -94,10 +70,32 @@ void MeshRenderer::CreateBoxPrimitive() {
 		4, 0, 3,
 		4, 3, 7
 	};
+}
+
+void MeshRenderer::PrepareGPUBuffer() {
+
+	std::vector<Vertex::Pos_Color_Vertex> vertices(m_positionBufferCPU.size());
+	UINT k = 0;
+	for (size_t i = 0; i < m_positionBufferCPU.size(); ++i, ++k)
+	{
+		vertices[k].Pos = m_positionBufferCPU[i];
+		vertices[k].Color = m_colorBufferCPU[i];
+	}
+
+	D3D11_BUFFER_DESC vbd;
+	vbd.Usage = D3D11_USAGE_IMMUTABLE;
+	vbd.ByteWidth = sizeof(Vertex::Pos_Color_Vertex) * m_positionBufferCPU.size();
+	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vbd.CPUAccessFlags = 0;
+	vbd.MiscFlags = 0;
+	//vbd.StructureByteStride = 0;
+	D3D11_SUBRESOURCE_DATA vinitData;
+	vinitData.pSysMem = &vertices[0];
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&vbd, &vinitData, &m_Pos_Color_VertexBufferGPU));
 
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = sizeof(UINT) * 36;
+	ibd.ByteWidth = sizeof(UINT) * m_indexBufferCPU.size();
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	ibd.CPUAccessFlags = 0;
 	ibd.MiscFlags = 0;
@@ -106,9 +104,13 @@ void MeshRenderer::CreateBoxPrimitive() {
 	iinitData.pSysMem = &m_indexBufferCPU[0];
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&ibd, &iinitData, &m_indexBufferGPU));
 
+	m_associatedEffect = EffectsManager::Instance()->m_effects[0];
+	m_associatedEffect->m_associatedMeshes.push_back(this);
 }
 
-void MeshRenderer::Draw(ID3DX11EffectTechnique* tech) {
+void MeshRenderer::Draw() {
+	ID3DX11EffectTechnique* tech = m_associatedEffect->GetActiveTech();
+
 	UINT stride = sizeof(Vertex::Pos_Color_Vertex);
 	UINT offset = 0;
 	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_Pos_Color_VertexBufferGPU, &stride, &offset);
@@ -123,5 +125,4 @@ void MeshRenderer::Draw(ID3DX11EffectTechnique* tech) {
 		// 36 indices for the box.
 		D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
 	}
-
 }

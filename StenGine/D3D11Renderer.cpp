@@ -198,8 +198,11 @@ void D3D11Renderer::Draw() {
 
 		activeFX->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
 
-		
-		mesh->Draw(activeFX->PosColorTech);
+		for (int iMesh = 0; iMesh < activeFX->m_associatedMeshes.size(); iMesh++ ) {
+			activeFX->m_associatedMeshes[iMesh]->Draw();
+		}
+
+		//mesh->Draw(activeFX->PosColorTech);
 			
 	
 
