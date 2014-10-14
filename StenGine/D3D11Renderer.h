@@ -36,6 +36,10 @@ private:
 	int m_clientHeight;
 	bool m_enable4xMsaa;
 
+	XMFLOAT4X4 mWorld;
+	XMFLOAT4X4 mView;
+	XMFLOAT4X4 mProj;
+
 	MeshRenderer* mesh;
 };
 #endif

@@ -1,9 +1,3 @@
-//***************************************************************************************
-// color.fx by Frank Luna (C) 2011 All Rights Reserved.
-//
-// Transforms and colors geometry.
-//***************************************************************************************
-
 cbuffer cbPerObject
 {
 	float4x4 gWorldViewProj; 
@@ -21,7 +15,7 @@ struct VertexOut
     float4 Color : COLOR;
 };
 
-VertexOut VS(VertexIn vin)
+VertexOut VertShader(VertexIn vin)
 {
 	VertexOut vout;
 	
@@ -34,17 +28,17 @@ VertexOut VS(VertexIn vin)
     return vout;
 }
 
-float4 PS(VertexOut pin) : SV_Target
+float4 PixShader(VertexOut pin) : SV_Target
 {
     return pin.Color;
 }
 
-technique11 ColorTech
+technique11 StdMeshTech
 {
     pass P0
     {
-        SetVertexShader( CompileShader( vs_5_0, VS() ) );
+		SetVertexShader(CompileShader(vs_5_0, VertShader()));
 		SetGeometryShader( NULL );
-        SetPixelShader( CompileShader( ps_5_0, PS() ) );
+		SetPixelShader(CompileShader(ps_5_0, PixShader()));
     }
 }

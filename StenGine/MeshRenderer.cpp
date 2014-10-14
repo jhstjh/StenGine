@@ -74,7 +74,7 @@ void MeshRenderer::CreateBoxPrimitive() {
 
 void MeshRenderer::PrepareGPUBuffer() {
 
-	std::vector<Vertex::Pos_Color_Vertex> vertices(m_positionBufferCPU.size());
+	std::vector<Vertex::StdMeshVertex> vertices(m_positionBufferCPU.size());
 	UINT k = 0;
 	for (size_t i = 0; i < m_positionBufferCPU.size(); ++i, ++k)
 	{
@@ -84,7 +84,7 @@ void MeshRenderer::PrepareGPUBuffer() {
 
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex::Pos_Color_Vertex) * m_positionBufferCPU.size();
+	vbd.ByteWidth = sizeof(Vertex::StdMeshVertex) * m_positionBufferCPU.size();
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
@@ -111,7 +111,7 @@ void MeshRenderer::PrepareGPUBuffer() {
 void MeshRenderer::Draw() {
 	ID3DX11EffectTechnique* tech = m_associatedEffect->GetActiveTech();
 
-	UINT stride = sizeof(Vertex::Pos_Color_Vertex);
+	UINT stride = sizeof(Vertex::StdMeshVertex);
 	UINT offset = 0;
 	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_Pos_Color_VertexBufferGPU, &stride, &offset);
 	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);

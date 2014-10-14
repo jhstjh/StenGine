@@ -23,10 +23,10 @@ Effect::~Effect()
 	ReleaseCOM(m_fx);
 }
 
-PosColorEffect::PosColorEffect(const std::wstring& filename)
+StdMeshEffect::StdMeshEffect(const std::wstring& filename)
 	: Effect(filename)
 {
-	PosColorTech = m_fx->GetTechniqueByName("ColorTech");
+	StdMeshTech = m_fx->GetTechniqueByName("StdMeshTech");
 	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
 
 	//m_vertexDesc.resize(2);
@@ -38,21 +38,21 @@ PosColorEffect::PosColorEffect(const std::wstring& filename)
 	};
 
 	D3DX11_PASS_DESC passDesc;
-	PosColorTech->GetPassByIndex(0)->GetDesc(&passDesc);
+	StdMeshTech->GetPassByIndex(0)->GetDesc(&passDesc);
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 2, passDesc.pIAInputSignature,
 	passDesc.IAInputSignatureSize, &m_inputLayout));
 
-	m_activeTech = PosColorTech;
+	m_activeTech = StdMeshTech;
 }
 
-PosColorEffect::~PosColorEffect()
+StdMeshEffect::~StdMeshEffect()
 {
 	ReleaseCOM(m_inputLayout);
 }
 
 EffectsManager* EffectsManager::_instance = nullptr;
 EffectsManager::EffectsManager() {
-	PosColorEffect* PosColor = new PosColorEffect(L"FX/Color.fxo");
+	StdMeshEffect* PosColor = new StdMeshEffect(L"FX/StdMesh.fxo");
 	m_effects.push_back(PosColor);
 }
 

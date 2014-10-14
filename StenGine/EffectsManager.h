@@ -20,12 +20,12 @@ public:
 	std::vector<MeshRenderer*> m_associatedMeshes;
 };
 
-class PosColorEffect : public Effect {
+class StdMeshEffect : public Effect {
 public:
-	PosColorEffect(const std::wstring& filename);
-	~PosColorEffect();
+	StdMeshEffect(const std::wstring& filename);
+	~StdMeshEffect();
 
-	ID3DX11EffectTechnique* PosColorTech;
+	ID3DX11EffectTechnique* StdMeshTech;
 	ID3DX11EffectMatrixVariable* WorldViewProj;
 };
 

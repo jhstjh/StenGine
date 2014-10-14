@@ -7,7 +7,7 @@
 class Effect;
 
 namespace Vertex {
-	struct Pos_Color_Vertex {
+	struct StdMeshVertex {
 		XMFLOAT3 Pos;
 		XMFLOAT4 Color;
 	};

@@ -155,6 +155,26 @@ bool D3D11Renderer::Init() {
 
 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
 
+
+
+	XMMATRIX I = XMMatrixIdentity();
+	XMStoreFloat4x4(&mWorld, I);
+	XMStoreFloat4x4(&mView, I);
+	XMStoreFloat4x4(&mProj, I);
+
+	XMVECTOR pos = XMVectorSet(0, 3.5, -3.5, 1.0f);
+	XMVECTOR target = XMVectorZero();
+	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+
+	XMMATRIX V = XMMatrixLookAtLH(pos, target, up);
+	XMStoreFloat4x4(&mView, V);
+
+	// The window resized, so update the aspect ratio and recompute the projection matrix.
+	XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f*3.1415926, 16.0 / 9.0, 1.0f, 1000.0f);
+	XMStoreFloat4x4(&mProj, P);
+
+
+
 	mesh = new MeshRenderer();
 
 	return true;
@@ -165,30 +185,10 @@ void D3D11Renderer::Draw() {
 	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 
- 		PosColorEffect* activeFX = (PosColorEffect*)(EffectsManager::Instance()->m_effects[0]);
+ 		StdMeshEffect* activeFX = (StdMeshEffect*)(EffectsManager::Instance()->m_effects[0]);
 		D3D11Renderer::Instance()->GetD3DContext()->IASetInputLayout(activeFX->GetInputLayout());
 		D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-
-		XMFLOAT4X4 mWorld;
-		XMFLOAT4X4 mView;
-		XMFLOAT4X4 mProj;
-
-		XMMATRIX I = XMMatrixIdentity();
-		XMStoreFloat4x4(&mWorld, I);
-		XMStoreFloat4x4(&mView, I);
-		XMStoreFloat4x4(&mProj, I);
-
-		XMVECTOR pos = XMVectorSet(0, 3.5, -3.5, 1.0f);
-		XMVECTOR target = XMVectorZero();
-		XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
-		XMMATRIX V = XMMatrixLookAtLH(pos, target, up);
-		XMStoreFloat4x4(&mView, V);
-
-		// The window resized, so update the aspect ratio and recompute the projection matrix.
-		XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f*3.1415926, 16.0/9.0, 1.0f, 1000.0f);
-		XMStoreFloat4x4(&mProj, P);
 
 		// Set constants
 		XMMATRIX world = XMLoadFloat4x4(&mWorld);

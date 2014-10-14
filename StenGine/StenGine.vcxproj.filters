@@ -86,7 +86,7 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="FX\color.fx">
+    <CustomBuild Include="FX\StdMesh.fx">
       <Filter>FX</Filter>
     </CustomBuild>
   </ItemGroup>
