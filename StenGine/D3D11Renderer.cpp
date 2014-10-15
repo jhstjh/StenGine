@@ -28,6 +28,9 @@ m_depthStencilView(nullptr)
 }
 
 D3D11Renderer::~D3D11Renderer() {
+	delete mesh;
+	delete mesh2;
+
 	ReleaseCOM(m_renderTargetView);
 	ReleaseCOM(m_depthStencilView);
 	ReleaseCOM(m_swapChain);

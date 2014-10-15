@@ -60,19 +60,20 @@ float4 PixShader(VertexOut pin) : SV_Target
 {
 	pin.NormalW = normalize(pin.NormalW);
 
-	float4 diffSpecColor = float4(0, 0, 0, 0);
+	float4 diffColor = float4(0, 0, 0, 0);
+	float4 specColor = float4(0, 0, 0, 0);
 	float diffuseK = dot(-gDirLight.direction, pin.NormalW);
 
 	[flatten]
 	if (diffuseK > 0) {
-		diffSpecColor += diffuseK * gMaterial.diffuse * gDirLight.intensity;
-		float3 refLight = reflect(-gDirLight.direction, pin.NormalW);
+		diffColor += diffuseK * gMaterial.diffuse * gDirLight.intensity;
+		float3 refLight = reflect(gDirLight.direction, pin.NormalW);
 		float3 viewRay = gEyePosW - pin.PosW;
 		viewRay = normalize(viewRay);
-		diffSpecColor += gMaterial.specular * pow(max(dot(refLight, viewRay), 0), gMaterial.specular.w);
+		specColor += gMaterial.specular * pow(max(dot(refLight, viewRay), 0), gMaterial.specular.w);
 	}
 
-	return  (gMaterial.ambient + diffSpecColor) * gDiffuseMap.Sample(samAnisotropic, pin.TexUV);
+	return  (gMaterial.ambient + diffColor) * gDiffuseMap.Sample(samAnisotropic, pin.TexUV) + specColor;
 }
 
 technique11 StdMeshTech
