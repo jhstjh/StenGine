@@ -1,14 +1,18 @@
 struct DirectionalLight {
-	float4 ambient;
-	float4 diffuse;
-	float4 specular;
+	float4 intensity;
 	float3 direction;
 	float pad;
 };
 
+struct Material {
+	float4 ambient;
+	float4 diffuse;
+	float4 specular;
+};
 
 cbuffer cbPerObject {
 	float4x4 gWorldViewProj; 
+	Material gMaterial;
 };
 
 cbuffer cbPerFrame {
@@ -40,7 +44,8 @@ VertexOut VertShader(VertexIn vin)
 
 float4 PixShader(VertexOut pin) : SV_Target
 {
-	return /*gDirLight.ambient*/ + clamp(dot(-gDirLight.direction, pin.NormalW), 0, 1) * float4(0.8, 0.8, 0.8, 0);
+	//return float4(-gDirLight.direction, 1);
+	return clamp(dot(-gDirLight.direction, pin.NormalW), 0, 1) * gMaterial.diffuse * gDirLight.intensity;
 }
 
 technique11 StdMeshTech

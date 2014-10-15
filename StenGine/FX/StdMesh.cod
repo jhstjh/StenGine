@@ -6,11 +6,12 @@
 cbuffer cbPerObject
 {
     float4x4 gWorldViewProj;            // Offset:    0, size:   64
+    Material gMaterial;                 // Offset:   64, size:   48
 }
 
 cbuffer cbPerFrame
 {
-    DirectionalLight gDirLight;         // Offset:    0, size:   64
+    DirectionalLight gDirLight;         // Offset:    0, size:   32
 }
 
 //
@@ -36,6 +37,15 @@ fxgroup
                 // {
                 //
                 //   float4x4 gWorldViewProj;           // Offset:    0 Size:    64
+                //   
+                //   struct Material
+                //   {
+                //       
+                //       float4 ambient;                // Offset:   64
+                //       float4 diffuse;                // Offset:   80
+                //       float4 specular;               // Offset:   96
+                //
+                //   } gMaterial;                       // Offset:   64 Size:    48 [unused]
                 //
                 // }
                 //
@@ -78,7 +88,7 @@ fxgroup
                 //   o1.x <- <VertShader return value>.NormalW.x; o1.y <- <VertShader return value>.NormalW.y; o1.z <- <VertShader return value>.NormalW.z; 
                 //   o0.x <- <VertShader return value>.PosH.x; o0.y <- <VertShader return value>.PosH.y; o0.z <- <VertShader return value>.PosH.z; o0.w <- <VertShader return value>.PosH.w
                 //
-                #line 33 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\StdMesh.fx"
+                #line 37 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\StdMesh.fx"
                 mov r0.xyz, v0.xyzx
                 mov r0.w, l(1.000000)
                 dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- vout.PosH.x
@@ -87,7 +97,7 @@ fxgroup
                 dp4 r1.w, r0.xyzw, cb0[3].xyzw  // r1.w <- vout.PosH.w
                 mov r0.xyz, v1.xyzx  // r0.x <- vout.NormalW.x; r0.y <- vout.NormalW.y; r0.z <- vout.NormalW.z
                 
-                #line 38
+                #line 42
                 mov o0.xyzw, r1.xyzw
                 mov o1.xyz, r0.xyzx
                 ret 
@@ -102,19 +112,33 @@ fxgroup
                 //
                 // Buffer Definitions: 
                 //
+                // cbuffer cbPerObject
+                // {
+                //
+                //   float4x4 gWorldViewProj;           // Offset:    0 Size:    64 [unused]
+                //   
+                //   struct Material
+                //   {
+                //       
+                //       float4 ambient;                // Offset:   64
+                //       float4 diffuse;                // Offset:   80
+                //       float4 specular;               // Offset:   96
+                //
+                //   } gMaterial;                       // Offset:   64 Size:    48
+                //
+                // }
+                //
                 // cbuffer cbPerFrame
                 // {
                 //
                 //   struct DirectionalLight
                 //   {
                 //       
-                //       float4 ambient;                // Offset:    0
-                //       float4 diffuse;                // Offset:   16
-                //       float4 specular;               // Offset:   32
-                //       float3 direction;              // Offset:   48
-                //       float pad;                     // Offset:   60
+                //       float4 intensity;              // Offset:    0
+                //       float3 direction;              // Offset:   16
+                //       float pad;                     // Offset:   28
                 //
-                //   } gDirLight;                       // Offset:    0 Size:    64
+                //   } gDirLight;                       // Offset:    0 Size:    32
                 //
                 // }
                 //
@@ -123,7 +147,8 @@ fxgroup
                 //
                 // Name                                 Type  Format         Dim Slot Elements
                 // ------------------------------ ---------- ------- ----------- ---- --------
-                // cbPerFrame                        cbuffer      NA          NA    0        1
+                // cbPerObject                       cbuffer      NA          NA    0        1
+                // cbPerFrame                        cbuffer      NA          NA    1        1
                 //
                 //
                 //
@@ -143,28 +168,28 @@ fxgroup
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer cb0[4], immediateIndexed
+                dcl_constantbuffer cb0[6], immediateIndexed
+                dcl_constantbuffer cb1[2], immediateIndexed
                 dcl_input_ps linear v1.xyz
                 dcl_output o0.xyzw
-                dcl_temps 2
+                dcl_temps 1
                 //
                 // Initial variable locations:
                 //   v0.x <- pin.PosH.x; v0.y <- pin.PosH.y; v0.z <- pin.PosH.z; v0.w <- pin.PosH.w; 
                 //   v1.x <- pin.NormalW.x; v1.y <- pin.NormalW.y; v1.z <- pin.NormalW.z; 
                 //   o0.x <- <PixShader return value>.x; o0.y <- <PixShader return value>.y; o0.z <- <PixShader return value>.z; o0.w <- <PixShader return value>.w
                 //
-                #line 43 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\StdMesh.fx"
-                mov r0.xyz, -cb0[3].xyzx
+                #line 48 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\StdMesh.fx"
+                mov r0.xyz, -cb1[1].xyzx
                 dp3 r0.x, r0.xyzx, v1.xyzx
                 itof r0.y, l(0)
                 itof r0.z, l(1)
                 max r0.x, r0.y, r0.x
                 min r0.x, r0.z, r0.x
-                itof r1.w, l(0)
-                mov r1.xyz, l(0.800000,0.800000,0.800000,0)
-                mul o0.xyzw, r0.xxxx, r1.xyzw
+                mul r0.xyzw, r0.xxxx, cb0[5].xyzw
+                mul o0.xyzw, r0.xyzw, cb1[0].xyzw
                 ret 
-                // Approximately 10 instruction slots used
+                // Approximately 9 instruction slots used
                             
             };
         }

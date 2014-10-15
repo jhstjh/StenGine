@@ -29,6 +29,7 @@ StdMeshEffect::StdMeshEffect(const std::wstring& filename)
 	StdMeshTech = m_fx->GetTechniqueByName("StdMeshTech");
 	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
 	DirLight = m_fx->GetVariableByName("gDirLight");
+	Mat = m_fx->GetVariableByName("gMaterial");
 	//m_vertexDesc.resize(2);
 	//m_vertexDesc =
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =

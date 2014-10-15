@@ -189,6 +189,7 @@ void D3D11Renderer::Draw() {
  		StdMeshEffect* activeFX = (StdMeshEffect*)(EffectsManager::Instance()->m_effects[0]);
 		D3D11Renderer::Instance()->GetD3DContext()->IASetInputLayout(activeFX->GetInputLayout());
 		D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		DirectionalLight* d = LightManager::Instance()->m_dirLights[0];
 		activeFX->DirLight->SetRawValue(LightManager::Instance()->m_dirLights[0], 0, sizeof(DirectionalLight));
 
 		for (int iMesh = 0; iMesh < activeFX->m_associatedMeshes.size(); iMesh++ ) {

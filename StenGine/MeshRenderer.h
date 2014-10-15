@@ -13,11 +13,18 @@ namespace Vertex {
 	};
 }
 
+struct Material {
+	XMFLOAT4 ambient;
+	XMFLOAT4 diffuse;
+	XMFLOAT4 specular;
+};
+
 class MeshRenderer {
 private:
 	ID3D11Buffer* m_indexBufferGPU;
 	ID3D11Buffer* m_stdMeshVertexBufferGPU;
 	Effect* m_associatedEffect;
+	Material m_material;
 
 	void CreateBoxPrimitive();
 	void PrepareGPUBuffer();

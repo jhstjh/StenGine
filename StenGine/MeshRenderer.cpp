@@ -10,6 +10,10 @@ m_stdMeshVertexBufferGPU(0)
 	//ObjReader::Read(L"Model/ball.obj", this);
 	CreateBoxPrimitive();
 	PrepareGPUBuffer();
+
+	m_material.ambient = XMFLOAT4(0.2, 0.2, 0.2, 1);
+	m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
+	m_material.specular = XMFLOAT4(1.0, 1.0, 1.0, 1);
 }
 
 MeshRenderer::~MeshRenderer() {
@@ -183,6 +187,7 @@ void MeshRenderer::Draw() {
 	UINT offset = 0;
 	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
 	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
+	((StdMeshEffect*)m_associatedEffect)->Mat->SetRawValue(&m_material, 0, sizeof(Material));
 
 	D3DX11_TECHNIQUE_DESC techDesc;
 	tech->GetDesc(&techDesc);

@@ -28,6 +28,7 @@ public:
 	ID3DX11EffectTechnique* StdMeshTech;
 	ID3DX11EffectMatrixVariable* WorldViewProj;
 	ID3DX11EffectVariable* DirLight;
+	ID3DX11EffectVariable* Mat;
 };
 
 class EffectsManager {
