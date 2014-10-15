@@ -22,6 +22,7 @@ public:
 		   float fov, float np, float fp);
 	~Camera();
 	XMMATRIX GetViewProjMatrix();
+	XMFLOAT4 GetPos() { return m_pos; };
 	void OnMouseDown(WPARAM btnState, int x, int y);
 	void OnMouseUp(WPARAM btnState, int x, int y);
 	void OnMouseMove(WPARAM btnState, int x, int y);

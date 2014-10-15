@@ -4,6 +4,7 @@
 #include "MeshRenderer.h"
 #include "LightManager.h"
 #include "MathHelper.h"
+#include "CameraManager.h"
 
 D3D11Renderer* D3D11Renderer::_instance = nullptr;
 
@@ -192,7 +193,7 @@ void D3D11Renderer::Draw() {
 		activeFX->DirLight->SetRawValue(LightManager::Instance()->m_dirLights[0], 0, sizeof(DirectionalLight));
 		activeFX->TheShadowMap->SetResource(LightManager::Instance()->m_shadowMap->GetDepthSRV());
 
-		XMVECTOR pos = XMVectorSet(2, 3.5, -3.5, 1.0f);
+		XMFLOAT4 pos = CameraManager::Instance()->GetActiveCamera()->GetPos();
 		activeFX->EyePosW->SetRawValue(&pos, 0, 3 * sizeof(float));
 
 		for (int iMesh = 0; iMesh < activeFX->m_associatedMeshes.size(); iMesh++ ) {

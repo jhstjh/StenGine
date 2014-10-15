@@ -198,7 +198,7 @@ void MeshRenderer::CreateBoxPrimitive() {
 
 	m_material.ambient = XMFLOAT4(0.2, 0.2, 0.2, 1);
 	m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
-	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 16.0f);
+	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
 }
 
 void MeshRenderer::CreatePlanePrimitive() {

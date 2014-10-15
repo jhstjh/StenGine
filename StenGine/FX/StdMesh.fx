@@ -97,7 +97,7 @@ float4 PixShader(VertexOut pin) : SV_Target
 		specColor += gMaterial.specular * pow(max(dot(refLight, viewRay), 0), gMaterial.specular.w);
 	}
 
-	return  (gMaterial.ambient + diffColor * shadowLit) * gDiffuseMap.Sample(samAnisotropic, pin.TexUV) + specColor;
+	return  (gMaterial.ambient + diffColor * shadowLit) * gDiffuseMap.Sample(samAnisotropic, pin.TexUV) + specColor * shadowLit;
 }
 
 technique11 StdMeshTech

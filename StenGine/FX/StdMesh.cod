@@ -291,9 +291,10 @@ fxgroup
                 add r1.xyzw, r1.xyzw, cb0[8].xyzw
                 sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v3.xyxx, t0.xyzw, s0
                 mul r1.xyzw, r1.xyzw, r2.xyzw
+                mul r0.xyzw, r3.xxxx, r0.xyzw
                 add o0.xyzw, r0.xyzw, r1.xyzw
                 ret 
-                // Approximately 43 instruction slots used
+                // Approximately 44 instruction slots used
                             
             };
         }
