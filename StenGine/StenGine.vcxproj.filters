@@ -60,6 +60,9 @@
     <ClInclude Include="LightManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MathHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

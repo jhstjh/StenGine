@@ -29,6 +29,8 @@ public:
 	ID3DX11EffectMatrixVariable* WorldViewProj;
 	ID3DX11EffectVariable* DirLight;
 	ID3DX11EffectVariable* Mat;
+	ID3DX11EffectVectorVariable* EyePosW;
+	ID3DX11EffectShaderResourceVariable* DiffuseMap;
 };
 
 class EffectsManager {

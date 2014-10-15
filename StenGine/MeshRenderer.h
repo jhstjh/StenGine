@@ -10,6 +10,7 @@ namespace Vertex {
 	struct StdMeshVertex {
 		XMFLOAT3 Pos;
 		XMFLOAT3 Normal;
+		XMFLOAT2 TexUV;
 	};
 }
 
@@ -25,9 +26,11 @@ private:
 	ID3D11Buffer* m_stdMeshVertexBufferGPU;
 	Effect* m_associatedEffect;
 	Material m_material;
+	ID3D11ShaderResourceView* m_diffuseMapSRV;
 
 	void CreateBoxPrimitive();
 	void PrepareGPUBuffer();
+	void PrepareSRV();
 
 public:
 	std::vector<UINT> m_indexBufferCPU;

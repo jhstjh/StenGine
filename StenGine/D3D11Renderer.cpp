@@ -3,6 +3,7 @@
 #include "EffectsManager.h"
 #include "MeshRenderer.h"
 #include "LightManager.h"
+#include "MathHelper.h"
 
 D3D11Renderer* D3D11Renderer::_instance = nullptr;
 
@@ -178,6 +179,12 @@ bool D3D11Renderer::Init() {
 
 	mesh = new MeshRenderer();
 
+	DirectionalLight* dLight = new DirectionalLight();
+	dLight->intensity = XMFLOAT4(1, 1, 1, 1);
+	dLight->direction = MatrixHelper::NormalizeFloat3(XMFLOAT3(-0.5, -2, 1));
+
+	LightManager::Instance()->m_dirLights.push_back(dLight);
+
 	return true;
 }
 
@@ -191,6 +198,9 @@ void D3D11Renderer::Draw() {
 		D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		DirectionalLight* d = LightManager::Instance()->m_dirLights[0];
 		activeFX->DirLight->SetRawValue(LightManager::Instance()->m_dirLights[0], 0, sizeof(DirectionalLight));
+		
+		XMVECTOR pos = XMVectorSet(2, 3.5, -3.5, 1.0f);
+		activeFX->EyePosW->SetRawValue(&pos, 0, 3 * sizeof(float));
 
 		for (int iMesh = 0; iMesh < activeFX->m_associatedMeshes.size(); iMesh++ ) {
 			// Set constants

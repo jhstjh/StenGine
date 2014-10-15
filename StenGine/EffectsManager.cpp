@@ -30,17 +30,20 @@ StdMeshEffect::StdMeshEffect(const std::wstring& filename)
 	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
 	DirLight = m_fx->GetVariableByName("gDirLight");
 	Mat = m_fx->GetVariableByName("gMaterial");
+	EyePosW = m_fx->GetVariableByName("gEyePosW")->AsVector();
+	DiffuseMap = m_fx->GetVariableByName("gDiffuseMap")->AsShaderResource();
 	//m_vertexDesc.resize(2);
 	//m_vertexDesc =
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
 	D3DX11_PASS_DESC passDesc;
 	StdMeshTech->GetPassByIndex(0)->GetDesc(&passDesc);
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 2, passDesc.pIAInputSignature,
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 3, passDesc.pIAInputSignature,
 	passDesc.IAInputSignatureSize, &m_inputLayout));
 
 	m_activeTech = StdMeshTech;

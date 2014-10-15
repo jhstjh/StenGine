@@ -5,20 +5,19 @@
 
 MeshRenderer::MeshRenderer():
 m_indexBufferCPU(0),
-m_stdMeshVertexBufferGPU(0)
+m_stdMeshVertexBufferGPU(0),
+m_diffuseMapSRV(0)
 {
 	//ObjReader::Read(L"Model/ball.obj", this);
 	CreateBoxPrimitive();
 	PrepareGPUBuffer();
-
-	m_material.ambient = XMFLOAT4(0.2, 0.2, 0.2, 1);
-	m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
-	m_material.specular = XMFLOAT4(1.0, 1.0, 1.0, 1);
+	PrepareSRV();
 }
 
 MeshRenderer::~MeshRenderer() {
 	ReleaseCOM(m_indexBufferGPU);
 	ReleaseCOM(m_stdMeshVertexBufferGPU);
+	ReleaseCOM(m_diffuseMapSRV);
 }
 
 void MeshRenderer::CreateBoxPrimitive() {
@@ -88,6 +87,39 @@ void MeshRenderer::CreateBoxPrimitive() {
 		XMFLOAT3(1.0f, 0.0f, 0.0f ),
 	};
 
+	m_texUVBufferCPU.resize(24);
+	m_texUVBufferCPU = {
+		XMFLOAT2(0.0f, 1.0f),
+		XMFLOAT2(0.0f, 0.0f),
+		XMFLOAT2(1.0f, 0.0f),
+		XMFLOAT2(1.0f, 1.0f),
+						   
+		XMFLOAT2(1.0f, 1.0f),
+		XMFLOAT2(0.0f, 1.0f),
+		XMFLOAT2(0.0f, 0.0f),
+		XMFLOAT2(1.0f, 0.0f),
+						   
+		XMFLOAT2(0.0f, 1.0f),
+		XMFLOAT2(0.0f, 0.0f),
+		XMFLOAT2(1.0f, 0.0f),
+		XMFLOAT2(1.0f, 1.0f),
+						   
+		XMFLOAT2(1.0f, 1.0f),
+		XMFLOAT2(0.0f, 1.0f),
+		XMFLOAT2(0.0f, 0.0f),
+		XMFLOAT2(1.0f, 0.0f),
+						   
+		XMFLOAT2(0.0f, 1.0f),
+		XMFLOAT2(0.0f, 0.0f),
+		XMFLOAT2(1.0f, 0.0f),
+		XMFLOAT2(1.0f, 1.0f),
+						   
+		XMFLOAT2(0.0f, 1.0f),
+		XMFLOAT2(0.0f, 0.0f),
+		XMFLOAT2(1.0f, 0.0f),
+		XMFLOAT2(1.0f, 1.0f),
+	};
+
 // 
 // 
 // 	v[0] =  Vertex(-1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
@@ -95,25 +127,25 @@ void MeshRenderer::CreateBoxPrimitive() {
 // 	v[2] =  Vertex(+1.0f, +1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 // 	v[3] =  Vertex(+1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
 // 		    
-// 	v[4] =  Vertex(-1.0f, -1.0f, +1.0f, 0.0f, 0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
-// 	v[5] =  Vertex(+1.0f, -1.0f, +1.0f, 0.0f, 0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-// 	v[6] =  Vertex(+1.0f, +1.0f, +1.0f, 0.0f, 0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-// 	v[7] =  Vertex(-1.0f, +1.0f, +1.0f, 0.0f, 0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+// 	v[4] = Vertex(-1.0f, -1.0f, +1.0f, 0.0f, 0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+// 	v[5] = Vertex(+1.0f, -1.0f, +1.0f, 0.0f, 0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+// 	v[6] = Vertex(+1.0f, +1.0f, +1.0f, 0.0f, 0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+// 	v[7] = Vertex(-1.0f, +1.0f, +1.0f, 0.0f, 0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 // 													 
 // 	v[8] =  Vertex(-1.0f, +1.0f, -1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 // 	v[9] =  Vertex(-1.0f, +1.0f, +1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 // 	v[10] = Vertex(+1.0f, +1.0f, +1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 // 	v[11] = Vertex(+1.0f, +1.0f, -1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
 // 
-// 	v[12] = Vertex(-1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
-// 	v[13] = Vertex(+1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-// 	v[14] = Vertex(+1.0f, -1.0f, +1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-// 	v[15] = Vertex(-1.0f, -1.0f, +1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+// 	v[12] =Vertex(-1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+// 	v[13] =Vertex(+1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+// 	v[14] =Vertex(+1.0f, -1.0f, +1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+// 	v[15] =Vertex(-1.0f, -1.0f, +1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 // 
-// 	v[16] = Vertex(-1.0f, -1.0f, +1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
-// 	v[17] = Vertex(-1.0f, +1.0f, +1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
-// 	v[18] = Vertex(-1.0f, +1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f);
-// 	v[19] = Vertex(-1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f);
+// 	v[16] =Vertex(-1.0f, -1.0f, +1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
+// 	v[17] =Vertex(-1.0f, +1.0f, +1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
+// 	v[18] =Vertex(-1.0f, +1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f);
+// 	v[19] =Vertex(-1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f);
 // 
 // 	v[20] = Vertex(+1.0f, -1.0f, -1.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f);
 // 	v[21] = Vertex(+1.0f, +1.0f, -1.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
@@ -142,6 +174,10 @@ void MeshRenderer::CreateBoxPrimitive() {
  		20, 21, 22,
  		20, 22, 23
 	};
+
+	m_material.ambient = XMFLOAT4(0.2, 0.2, 0.2, 1);
+	m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
+	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 16.0f);
 }
 
 void MeshRenderer::PrepareGPUBuffer() {
@@ -152,6 +188,7 @@ void MeshRenderer::PrepareGPUBuffer() {
 	{
 		vertices[k].Pos = m_positionBufferCPU[i];
 		vertices[k].Normal = m_normalBufferCPU[i];
+		vertices[k].TexUV = m_texUVBufferCPU[i];
 	}
 
 	D3D11_BUFFER_DESC vbd;
@@ -180,6 +217,12 @@ void MeshRenderer::PrepareGPUBuffer() {
 	m_associatedEffect->m_associatedMeshes.push_back(this);
 }
 
+void MeshRenderer::PrepareSRV() {
+	HR(D3DX11CreateShaderResourceViewFromFile(
+		D3D11Renderer::Instance()->GetD3DDevice(),
+		L"./Model/WoodCrate02.dds", 0, 0, &m_diffuseMapSRV, 0));
+}
+
 void MeshRenderer::Draw() {
 	ID3DX11EffectTechnique* tech = m_associatedEffect->GetActiveTech();
 
@@ -188,6 +231,7 @@ void MeshRenderer::Draw() {
 	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
 	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 	((StdMeshEffect*)m_associatedEffect)->Mat->SetRawValue(&m_material, 0, sizeof(Material));
+	((StdMeshEffect*)m_associatedEffect)->DiffuseMap->SetResource(m_diffuseMapSRV);
 
 	D3DX11_TECHNIQUE_DESC techDesc;
 	tech->GetDesc(&techDesc);

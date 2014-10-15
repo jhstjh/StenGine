@@ -12,7 +12,20 @@ cbuffer cbPerObject
 cbuffer cbPerFrame
 {
     DirectionalLight gDirLight;         // Offset:    0, size:   32
+    float3  gEyePosW;                   // Offset:   32, size:   12
 }
+
+//
+// 2 local object(s)
+//
+Texture2D gDiffuseMap;
+SamplerState samAnisotropic
+{
+    Filter   = uint(ANISOTROPIC /* 85 */);
+    MaxAnisotropy = uint(4);
+    AddressU = uint(WRAP /* 1 */);
+    AddressV = uint(WRAP /* 1 */);
+};
 
 //
 // 1 groups(s)
@@ -64,6 +77,7 @@ fxgroup
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // POSITION                 0   xyz         0     NONE   float   xyz 
                 // NORMAL                   0   xyz         1     NONE   float   xyz 
+                // TEXCOORD                 0   xyz         2     NONE   float   xyz 
                 //
                 //
                 // Output signature:
@@ -71,24 +85,32 @@ fxgroup
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float   xyzw
-                // NORMAL                   0   xyz         1     NONE   float   xyz 
+                // POSITION                 0   xyz         1     NONE   float   xyz 
+                // NORMAL                   0   xyz         2     NONE   float   xyz 
+                // TEXCOORD                 0   xyz         3     NONE   float   xyz 
                 //
                 vs_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
                 dcl_constantbuffer cb0[4], immediateIndexed
                 dcl_input v0.xyz
                 dcl_input v1.xyz
+                dcl_input v2.xyz
                 dcl_output_siv o0.xyzw, position
                 dcl_output o1.xyz
-                dcl_temps 2
+                dcl_output o2.xyz
+                dcl_output o3.xyz
+                dcl_temps 4
                 //
                 // Initial variable locations:
                 //   v0.x <- vin.PosL.x; v0.y <- vin.PosL.y; v0.z <- vin.PosL.z; 
                 //   v1.x <- vin.NormalL.x; v1.y <- vin.NormalL.y; v1.z <- vin.NormalL.z; 
-                //   o1.x <- <VertShader return value>.NormalW.x; o1.y <- <VertShader return value>.NormalW.y; o1.z <- <VertShader return value>.NormalW.z; 
+                //   v2.x <- vin.TexUV.x; v2.y <- vin.TexUV.y; v2.z <- vin.TexUV.z; 
+                //   o3.x <- <VertShader return value>.TexUV.x; o3.y <- <VertShader return value>.TexUV.y; o3.z <- <VertShader return value>.TexUV.z; 
+                //   o2.x <- <VertShader return value>.NormalW.x; o2.y <- <VertShader return value>.NormalW.y; o2.z <- <VertShader return value>.NormalW.z; 
+                //   o1.x <- <VertShader return value>.PosW.x; o1.y <- <VertShader return value>.PosW.y; o1.z <- <VertShader return value>.PosW.z; 
                 //   o0.x <- <VertShader return value>.PosH.x; o0.y <- <VertShader return value>.PosH.y; o0.z <- <VertShader return value>.PosH.z; o0.w <- <VertShader return value>.PosH.w
                 //
-                #line 37 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\StdMesh.fx"
+                #line 51 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\StdMesh.fx"
                 mov r0.xyz, v0.xyzx
                 mov r0.w, l(1.000000)
                 dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- vout.PosH.x
@@ -96,12 +118,14 @@ fxgroup
                 dp4 r1.z, r0.xyzw, cb0[2].xyzw  // r1.z <- vout.PosH.z
                 dp4 r1.w, r0.xyzw, cb0[3].xyzw  // r1.w <- vout.PosH.w
                 mov r0.xyz, v1.xyzx  // r0.x <- vout.NormalW.x; r0.y <- vout.NormalW.y; r0.z <- vout.NormalW.z
-                
-                #line 42
+                mov r2.xyz, v0.xyzx  // r2.x <- vout.PosW.x; r2.y <- vout.PosW.y; r2.z <- vout.PosW.z
+                mov r3.xyz, v2.xyzx  // r3.x <- vout.TexUV.x; r3.y <- vout.TexUV.y; r3.z <- vout.TexUV.z
                 mov o0.xyzw, r1.xyzw
-                mov o1.xyz, r0.xyzx
+                mov o1.xyz, r2.xyzx
+                mov o2.xyz, r0.xyzx
+                mov o3.xyz, r3.xyzx
                 ret 
-                // Approximately 10 instruction slots used
+                // Approximately 14 instruction slots used
                             
             };
             GeometryShader = NULL;
@@ -139,6 +163,7 @@ fxgroup
                 //       float pad;                     // Offset:   28
                 //
                 //   } gDirLight;                       // Offset:    0 Size:    32
+                //   float3 gEyePosW;                   // Offset:   32 Size:    12
                 //
                 // }
                 //
@@ -147,6 +172,8 @@ fxgroup
                 //
                 // Name                                 Type  Format         Dim Slot Elements
                 // ------------------------------ ---------- ------- ----------- ---- --------
+                // samAnisotropic                    sampler      NA          NA    0        1
+                // gDiffuseMap                       texture  float4          2d    0        1
                 // cbPerObject                       cbuffer      NA          NA    0        1
                 // cbPerFrame                        cbuffer      NA          NA    1        1
                 //
@@ -157,7 +184,9 @@ fxgroup
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float       
-                // NORMAL                   0   xyz         1     NONE   float   xyz 
+                // POSITION                 0   xyz         1     NONE   float   xyz 
+                // NORMAL                   0   xyz         2     NONE   float   xyz 
+                // TEXCOORD                 0   xyz         3     NONE   float   xy  
                 //
                 //
                 // Output signature:
@@ -168,28 +197,62 @@ fxgroup
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer cb0[6], immediateIndexed
-                dcl_constantbuffer cb1[2], immediateIndexed
+                dcl_constantbuffer cb0[7], immediateIndexed
+                dcl_constantbuffer cb1[3], immediateIndexed
+                dcl_sampler s0, mode_default
+                dcl_resource_texture2d (float,float,float,float) t0
                 dcl_input_ps linear v1.xyz
+                dcl_input_ps linear v2.xyz
+                dcl_input_ps linear v3.xy
                 dcl_output o0.xyzw
-                dcl_temps 1
+                dcl_temps 4
                 //
                 // Initial variable locations:
                 //   v0.x <- pin.PosH.x; v0.y <- pin.PosH.y; v0.z <- pin.PosH.z; v0.w <- pin.PosH.w; 
-                //   v1.x <- pin.NormalW.x; v1.y <- pin.NormalW.y; v1.z <- pin.NormalW.z; 
+                //   v1.x <- pin.PosW.x; v1.y <- pin.PosW.y; v1.z <- pin.PosW.z; 
+                //   v2.x <- pin.NormalW.x; v2.y <- pin.NormalW.y; v2.z <- pin.NormalW.z; 
+                //   v3.x <- pin.TexUV.x; v3.y <- pin.TexUV.y; v3.z <- pin.TexUV.z; 
                 //   o0.x <- <PixShader return value>.x; o0.y <- <PixShader return value>.y; o0.z <- <PixShader return value>.z; o0.w <- <PixShader return value>.w
                 //
-                #line 48 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\StdMesh.fx"
-                mov r0.xyz, -cb1[1].xyzx
-                dp3 r0.x, r0.xyzx, v1.xyzx
+                #line 61 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\StdMesh.fx"
+                dp3 r0.x, v2.xyzx, v2.xyzx
+                rsq r0.x, r0.x
+                mul r0.xyz, r0.xxxx, v2.xyzx  // r0.x <- pin.NormalW.x; r0.y <- pin.NormalW.y; r0.z <- pin.NormalW.z
+                itof r1.xyzw, l(0, 0, 0, 0)  // r1.x <- diffSpecColor.x; r1.y <- diffSpecColor.y; r1.z <- diffSpecColor.z; r1.w <- diffSpecColor.w
+                mov r2.xyz, -cb1[1].xyzx
+                dp3 r0.w, r2.xyzx, r0.xyzx  // r0.w <- diffuseK
+                
+                #line 67
+                itof r2.x, l(0)
+                lt r2.x, r2.x, r0.w
+                mul r3.xyzw, r0.wwww, cb0[5].xyzw
+                mul r3.xyzw, r3.xyzw, cb1[0].xyzw
+                add r3.xyzw, r1.xyzw, r3.xyzw  // r3.x <- diffSpecColor.x; r3.y <- diffSpecColor.y; r3.z <- diffSpecColor.z; r3.w <- diffSpecColor.w
+                mov r2.yzw, -cb1[1].xxyz
+                dp3 r0.w, r2.yzwy, r0.xyzx
+                add r0.w, r0.w, r0.w
+                mov r0.w, -r0.w
+                mul r0.xyz, r0.wwww, r0.xyzx
+                add r0.xyz, r2.yzwy, r0.xyzx  // r0.x <- refLight.x; r0.y <- refLight.y; r0.z <- refLight.z
+                mov r2.yzw, -v1.xxyz
+                add r2.yzw, r2.yyzw, cb1[2].xxyz  // r2.y <- viewRay.x; r2.z <- viewRay.y; r2.w <- viewRay.z
+                dp3 r0.w, r2.yzwy, r2.yzwy
+                rsq r0.w, r0.w
+                mul r2.yzw, r0.wwww, r2.yyzw
+                dp3 r0.x, r0.xyzx, r2.yzwy
                 itof r0.y, l(0)
-                itof r0.z, l(1)
                 max r0.x, r0.y, r0.x
-                min r0.x, r0.z, r0.x
-                mul r0.xyzw, r0.xxxx, cb0[5].xyzw
-                mul o0.xyzw, r0.xyzw, cb1[0].xyzw
+                log r0.x, r0.x
+                mul r0.x, r0.x, cb0[6].w
+                exp r0.x, r0.x
+                mul r0.xyzw, r0.xxxx, cb0[6].xyzw
+                add r0.xyzw, r0.xyzw, r3.xyzw  // r0.x <- diffSpecColor.x; r0.y <- diffSpecColor.y; r0.z <- diffSpecColor.z; r0.w <- diffSpecColor.w
+                movc r0.xyzw, r2.xxxx, r0.xyzw, r1.xyzw
+                add r0.xyzw, r0.xyzw, cb0[4].xyzw
+                sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v3.xyxx, t0.xyzw, s0
+                mul o0.xyzw, r0.xyzw, r1.xyzw
                 ret 
-                // Approximately 9 instruction slots used
+                // Approximately 35 instruction slots used
                             
             };
         }

@@ -85,6 +85,7 @@
     <ClInclude Include="d3dx11effect.h" />
     <ClInclude Include="EffectsManager.h" />
     <ClInclude Include="LightManager.h" />
+    <ClInclude Include="MathHelper.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="ObjReader.h" />
     <ClInclude Include="Resource.h" />
