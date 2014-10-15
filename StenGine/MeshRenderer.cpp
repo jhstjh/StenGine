@@ -1,74 +1,142 @@
 #include "MeshRenderer.h"
 #include "D3D11Renderer.h"
 #include "EffectsManager.h"
+#include "ObjReader.h"
 
 MeshRenderer::MeshRenderer():
-m_colorBufferGPU(0),
 m_indexBufferCPU(0),
-m_positionBufferGPU(0),
-m_Pos_Color_VertexBufferGPU(0)
+m_stdMeshVertexBufferGPU(0)
 {
+	//ObjReader::Read(L"Model/ball.obj", this);
 	CreateBoxPrimitive();
 	PrepareGPUBuffer();
 }
 
 MeshRenderer::~MeshRenderer() {
 	ReleaseCOM(m_indexBufferGPU);
-	ReleaseCOM(m_Pos_Color_VertexBufferGPU);
-	ReleaseCOM(m_colorBufferGPU);
-	ReleaseCOM(m_positionBufferGPU);
+	ReleaseCOM(m_stdMeshVertexBufferGPU);
 }
 
 void MeshRenderer::CreateBoxPrimitive() {
-	m_positionBufferCPU.resize(8);
+	m_positionBufferCPU.resize(24);
 	m_positionBufferCPU = {
 		XMFLOAT3(-1.0f, -1.0f, -1.0f),
 		XMFLOAT3(-1.0f, +1.0f, -1.0f),
 		XMFLOAT3(+1.0f, +1.0f, -1.0f),
 		XMFLOAT3(+1.0f, -1.0f, -1.0f),
+
+		XMFLOAT3(-1.0f, -1.0f, +1.0f),
+		XMFLOAT3(+1.0f, -1.0f, +1.0f),
+		XMFLOAT3(+1.0f, +1.0f, +1.0f),
+		XMFLOAT3(-1.0f, +1.0f, +1.0f),
+
+		XMFLOAT3(-1.0f, +1.0f, -1.0f),
+		XMFLOAT3(-1.0f, +1.0f, +1.0f),
+		XMFLOAT3(+1.0f, +1.0f, +1.0f),
+		XMFLOAT3(+1.0f, +1.0f, -1.0f),
+
+		XMFLOAT3(-1.0f, -1.0f, -1.0f),
+		XMFLOAT3(+1.0f, -1.0f, -1.0f),
+		XMFLOAT3(+1.0f, -1.0f, +1.0f),
+		XMFLOAT3(-1.0f, -1.0f, +1.0f),
+
 		XMFLOAT3(-1.0f, -1.0f, +1.0f),
 		XMFLOAT3(-1.0f, +1.0f, +1.0f),
+		XMFLOAT3(-1.0f, +1.0f, -1.0f),
+		XMFLOAT3(-1.0f, -1.0f, -1.0f),
+
+		XMFLOAT3(+1.0f, -1.0f, -1.0f),
+		XMFLOAT3(+1.0f, +1.0f, -1.0f),
 		XMFLOAT3(+1.0f, +1.0f, +1.0f),
 		XMFLOAT3(+1.0f, -1.0f, +1.0f),
 	};
 
-	m_colorBufferCPU.reserve(8);
-	m_colorBufferCPU = {
-		(const float*)&Colors::White,
-		(const float*)&Colors::Black,
-		(const float*)&Colors::Red,
-		(const float*)&Colors::Green,
-		(const float*)&Colors::Blue,
-		(const float*)&Colors::Yellow,
-		(const float*)&Colors::Cyan,
-		(const float*)&Colors::Magenta,
+	m_normalBufferCPU.resize(24);
+	m_normalBufferCPU = {
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+								   
+		XMFLOAT3(0.0f, 0.0f, 1.0f ),
+		XMFLOAT3(0.0f, 0.0f, 1.0f ),
+		XMFLOAT3(0.0f, 0.0f, 1.0f ),
+		XMFLOAT3(0.0f, 0.0f, 1.0f ),
+								   
+		XMFLOAT3(0.0f, 1.0f, 0.0f ),
+		XMFLOAT3(0.0f, 1.0f, 0.0f ),
+		XMFLOAT3(0.0f, 1.0f, 0.0f ),
+		XMFLOAT3(0.0f, 1.0f, 0.0f ),
+								   
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		XMFLOAT3(0.0f, -1.0f, 0.0f),
+								   
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+								   
+		XMFLOAT3(1.0f, 0.0f, 0.0f ),
+		XMFLOAT3(1.0f, 0.0f, 0.0f ),
+		XMFLOAT3(1.0f, 0.0f, 0.0f ),
+		XMFLOAT3(1.0f, 0.0f, 0.0f ),
 	};
+
+// 
+// 
+// 	v[0] =  Vertex(-1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+// 	v[1] =  Vertex(-1.0f, +1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+// 	v[2] =  Vertex(+1.0f, +1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+// 	v[3] =  Vertex(+1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+// 		    
+// 	v[4] =  Vertex(-1.0f, -1.0f, +1.0f, 0.0f, 0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+// 	v[5] =  Vertex(+1.0f, -1.0f, +1.0f, 0.0f, 0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+// 	v[6] =  Vertex(+1.0f, +1.0f, +1.0f, 0.0f, 0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+// 	v[7] =  Vertex(-1.0f, +1.0f, +1.0f, 0.0f, 0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+// 													 
+// 	v[8] =  Vertex(-1.0f, +1.0f, -1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+// 	v[9] =  Vertex(-1.0f, +1.0f, +1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+// 	v[10] = Vertex(+1.0f, +1.0f, +1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+// 	v[11] = Vertex(+1.0f, +1.0f, -1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+// 
+// 	v[12] = Vertex(-1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+// 	v[13] = Vertex(+1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+// 	v[14] = Vertex(+1.0f, -1.0f, +1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+// 	v[15] = Vertex(-1.0f, -1.0f, +1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+// 
+// 	v[16] = Vertex(-1.0f, -1.0f, +1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
+// 	v[17] = Vertex(-1.0f, +1.0f, +1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
+// 	v[18] = Vertex(-1.0f, +1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f);
+// 	v[19] = Vertex(-1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f);
+// 
+// 	v[20] = Vertex(+1.0f, -1.0f, -1.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f);
+// 	v[21] = Vertex(+1.0f, +1.0f, -1.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+// 	v[22] = Vertex(+1.0f, +1.0f, +1.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
+// 	v[23] = Vertex(+1.0f, -1.0f, +1.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+
 
 	m_indexBufferCPU.resize(36);
 	m_indexBufferCPU = {
-		// front face
+
 		0, 1, 2,
 		0, 2, 3,
 
-		// back face
-		4, 6, 5,
-		4, 7, 6,
+		4, 5, 6,
+		4, 6, 7,
 
-		// left face
-		4, 5, 1,
-		4, 1, 0,
+		8, 9, 10,
+		8, 10, 11,
 
-		// right face
-		3, 2, 6,
-		3, 6, 7,
+		12, 13, 14,
+		12, 14, 15,
 
-		// top face
-		1, 5, 6,
-		1, 6, 2,
+		16, 17, 18,
+		16, 18, 19,
 
-		// bottom face
-		4, 0, 3,
-		4, 3, 7
+ 		20, 21, 22,
+ 		20, 22, 23
 	};
 }
 
@@ -79,7 +147,7 @@ void MeshRenderer::PrepareGPUBuffer() {
 	for (size_t i = 0; i < m_positionBufferCPU.size(); ++i, ++k)
 	{
 		vertices[k].Pos = m_positionBufferCPU[i];
-		vertices[k].Color = m_colorBufferCPU[i];
+		vertices[k].Normal = m_normalBufferCPU[i];
 	}
 
 	D3D11_BUFFER_DESC vbd;
@@ -91,7 +159,7 @@ void MeshRenderer::PrepareGPUBuffer() {
 	//vbd.StructureByteStride = 0;
 	D3D11_SUBRESOURCE_DATA vinitData;
 	vinitData.pSysMem = &vertices[0];
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&vbd, &vinitData, &m_Pos_Color_VertexBufferGPU));
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&vbd, &vinitData, &m_stdMeshVertexBufferGPU));
 
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
@@ -113,7 +181,7 @@ void MeshRenderer::Draw() {
 
 	UINT stride = sizeof(Vertex::StdMeshVertex);
 	UINT offset = 0;
-	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_Pos_Color_VertexBufferGPU, &stride, &offset);
+	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
 	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
 	D3DX11_TECHNIQUE_DESC techDesc;
@@ -122,7 +190,6 @@ void MeshRenderer::Draw() {
 	{
 		tech->GetPassByIndex(p)->Apply(0, D3D11Renderer::Instance()->GetD3DContext());
 
-		// 36 indices for the box.
 		D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
 	}
 }

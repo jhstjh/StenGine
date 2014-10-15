@@ -84,7 +84,9 @@
     <ClInclude Include="D3DIncludes.h" />
     <ClInclude Include="d3dx11effect.h" />
     <ClInclude Include="EffectsManager.h" />
+    <ClInclude Include="LightManager.h" />
     <ClInclude Include="MeshRenderer.h" />
+    <ClInclude Include="ObjReader.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="StenGine.h" />
@@ -94,7 +96,9 @@
   <ItemGroup>
     <ClCompile Include="D3D11Renderer.cpp" />
     <ClCompile Include="EffectsManager.cpp" />
+    <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
+    <ClCompile Include="ObjReader.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -116,6 +120,11 @@
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">fxc compile for debug: %(FullPath)</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(RelativeDir)\%(Filename).fxo</Outputs>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Model\ball.obj">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

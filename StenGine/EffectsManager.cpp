@@ -28,13 +28,13 @@ StdMeshEffect::StdMeshEffect(const std::wstring& filename)
 {
 	StdMeshTech = m_fx->GetTechniqueByName("StdMeshTech");
 	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
-
+	DirLight = m_fx->GetVariableByName("gDirLight");
 	//m_vertexDesc.resize(2);
 	//m_vertexDesc =
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
 	D3DX11_PASS_DESC passDesc;

@@ -5,6 +5,7 @@
 #include "StenGine.h"
 #include "D3D11Renderer.h"
 #include "EffectsManager.h"
+#include "LightManager.h"
 #include "Timer.h"
 
 #define MAX_LOADSTRING 100
@@ -50,6 +51,15 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
  	}
 
 	EffectsManager::Instance();
+	DirectionalLight* dLight = new DirectionalLight();
+	dLight->ambient = XMFLOAT4(0.2, 0.2, 0.2, 1);
+	dLight->diffuse = XMFLOAT4(0.8, 0.8, 0.8, 1);
+	dLight->specular = XMFLOAT4(1, 1, 1, 1);
+	dLight->direction = XMFLOAT3(-0.5, 0, 1);
+
+	LightManager::Instance()->m_dirLights.push_back(dLight);
+
+
 	Timer::Init();
 
 	float elapsedTime = 0;

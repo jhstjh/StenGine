@@ -1,18 +1,28 @@
-cbuffer cbPerObject
-{
+struct DirectionalLight {
+	float4 ambient;
+	float4 diffuse;
+	float4 specular;
+	float3 direction;
+	float pad;
+};
+
+
+cbuffer cbPerObject {
 	float4x4 gWorldViewProj; 
 };
 
-struct VertexIn
-{
-	float3 PosL  : POSITION;
-    float4 Color : COLOR;
+cbuffer cbPerFrame {
+	DirectionalLight gDirLight;
 };
 
-struct VertexOut
-{
+struct VertexIn {
+	float3 PosL  : POSITION;
+    float3 NormalL : NORMAL;
+};
+
+struct VertexOut {
 	float4 PosH  : SV_POSITION;
-    float4 Color : COLOR;
+    float3 NormalW : NORMAL;
 };
 
 VertexOut VertShader(VertexIn vin)
@@ -21,16 +31,16 @@ VertexOut VertShader(VertexIn vin)
 	
 	// Transform to homogeneous clip space.
 	vout.PosH = mul(float4(vin.PosL, 1.0f), gWorldViewProj);
-	
+	vout.NormalW = vin.NormalL;
 	// Just pass vertex color into the pixel shader.
-    vout.Color = vin.Color;
+    //vout.Color = vin.Color;
     
     return vout;
 }
 
 float4 PixShader(VertexOut pin) : SV_Target
 {
-    return pin.Color;
+	return /*gDirLight.ambient*/ + clamp(dot(-gDirLight.direction, pin.NormalW), 0, 1) * float4(0.8, 0.8, 0.8, 0);
 }
 
 technique11 StdMeshTech

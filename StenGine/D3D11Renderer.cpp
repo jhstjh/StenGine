@@ -2,6 +2,7 @@
 #include "D3DIncludes.h"
 #include "EffectsManager.h"
 #include "MeshRenderer.h"
+#include "LightManager.h"
 
 D3D11Renderer* D3D11Renderer::_instance = nullptr;
 
@@ -162,7 +163,7 @@ bool D3D11Renderer::Init() {
 	XMStoreFloat4x4(&mView, I);
 	XMStoreFloat4x4(&mProj, I);
 
-	XMVECTOR pos = XMVectorSet(0, 3.5, -3.5, 1.0f);
+	XMVECTOR pos = XMVectorSet(2, 3.5, -3.5, 1.0f);
 	XMVECTOR target = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
@@ -188,17 +189,16 @@ void D3D11Renderer::Draw() {
  		StdMeshEffect* activeFX = (StdMeshEffect*)(EffectsManager::Instance()->m_effects[0]);
 		D3D11Renderer::Instance()->GetD3DContext()->IASetInputLayout(activeFX->GetInputLayout());
 		D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-
-		// Set constants
-		XMMATRIX world = XMLoadFloat4x4(&mWorld);
-		XMMATRIX view = XMLoadFloat4x4(&mView);
-		XMMATRIX proj = XMLoadFloat4x4(&mProj);
-		XMMATRIX worldViewProj = world*view*proj;
-
-		activeFX->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
+		activeFX->DirLight->SetRawValue(LightManager::Instance()->m_dirLights[0], 0, sizeof(DirectionalLight));
 
 		for (int iMesh = 0; iMesh < activeFX->m_associatedMeshes.size(); iMesh++ ) {
+			// Set constants
+			XMMATRIX world = XMLoadFloat4x4(&mWorld);
+			XMMATRIX view = XMLoadFloat4x4(&mView);
+			XMMATRIX proj = XMLoadFloat4x4(&mProj);
+			XMMATRIX worldViewProj = world*view*proj;
+
+			activeFX->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
 			activeFX->m_associatedMeshes[iMesh]->Draw();
 		}
 

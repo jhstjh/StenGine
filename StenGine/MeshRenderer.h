@@ -9,28 +9,26 @@ class Effect;
 namespace Vertex {
 	struct StdMeshVertex {
 		XMFLOAT3 Pos;
-		XMFLOAT4 Color;
+		XMFLOAT3 Normal;
 	};
 }
 
 class MeshRenderer {
 private:
-	std::vector<UINT> m_indexBufferCPU;
-	std::vector<XMFLOAT3> m_positionBufferCPU;
-	std::vector<XMFLOAT3> m_normalBufferCPU;
-	std::vector<XMFLOAT3> m_texUVBufferCPU;
-	std::vector<XMFLOAT4> m_colorBufferCPU;
-
 	ID3D11Buffer* m_indexBufferGPU;
-	ID3D11Buffer* m_positionBufferGPU;
-	ID3D11Buffer* m_colorBufferGPU;
-	ID3D11Buffer* m_Pos_Color_VertexBufferGPU;
+	ID3D11Buffer* m_stdMeshVertexBufferGPU;
 	Effect* m_associatedEffect;
 
 	void CreateBoxPrimitive();
 	void PrepareGPUBuffer();
 
 public:
+	std::vector<UINT> m_indexBufferCPU;
+	std::vector<XMFLOAT3> m_positionBufferCPU;
+	std::vector<XMFLOAT3> m_normalBufferCPU;
+	std::vector<XMFLOAT2> m_texUVBufferCPU;
+	std::vector<XMFLOAT4> m_colorBufferCPU;
+
 	MeshRenderer();
 	~MeshRenderer();
 	void Draw();

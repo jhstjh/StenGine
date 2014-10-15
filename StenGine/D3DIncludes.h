@@ -10,19 +10,20 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <string>
 
 #define ReleaseCOM(x) { if(x){ x->Release(); x = 0; } }
 
 #if defined(DEBUG) | defined(_DEBUG)
 #ifndef HR
-#define HR(x)                                              \
-				{                                                          \
-		HRESULT hr = (x);                                      \
-		if(FAILED(hr))                                         \
-						{                                                      \
-			DXTrace(__FILE__, (DWORD)__LINE__, hr, L#x, true); \
-						}                                                      \
-				}
+#define HR(x)												\
+{                                                           \
+	HRESULT hr = (x);										\
+	if(FAILED(hr))											\
+	{														\
+		DXTrace(__FILE__, (DWORD)__LINE__, hr, L#x, true);	\
+	}                                                       \
+}
 #endif
 
 #else
