@@ -13,6 +13,8 @@ public:
 	void Draw();
 	ID3D11Device* GetD3DDevice() { return m_d3d11Device; }
 	ID3D11DeviceContext* GetD3DContext() { return m_d3d11DeviceContext; }
+	XMFLOAT4X4 mView;
+	XMFLOAT4X4 mProj;
 
 private:
 	static D3D11Renderer* _instance;
@@ -36,9 +38,6 @@ private:
 	int m_clientHeight;
 	bool m_enable4xMsaa;
 
-	XMFLOAT4X4 mWorld;
-	XMFLOAT4X4 mView;
-	XMFLOAT4X4 mProj;
 
 	MeshRenderer* mesh;
 	MeshRenderer* mesh2;

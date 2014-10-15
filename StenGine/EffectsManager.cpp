@@ -28,6 +28,7 @@ StdMeshEffect::StdMeshEffect(const std::wstring& filename)
 {
 	StdMeshTech = m_fx->GetTechniqueByName("StdMeshTech");
 	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
+	World = m_fx->GetVariableByName("gWorld")->AsMatrix();
 	DirLight = m_fx->GetVariableByName("gDirLight");
 	Mat = m_fx->GetVariableByName("gMaterial");
 	EyePosW = m_fx->GetVariableByName("gEyePosW")->AsVector();

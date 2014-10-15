@@ -6,7 +6,8 @@
 cbuffer cbPerObject
 {
     float4x4 gWorldViewProj;            // Offset:    0, size:   64
-    Material gMaterial;                 // Offset:   64, size:   48
+    float   gWorld;                     // Offset:   64, size:    4
+    Material gMaterial;                 // Offset:   80, size:   48
 }
 
 cbuffer cbPerFrame
@@ -50,15 +51,16 @@ fxgroup
                 // {
                 //
                 //   float4x4 gWorldViewProj;           // Offset:    0 Size:    64
+                //   float gWorld;                      // Offset:   64 Size:     4
                 //   
                 //   struct Material
                 //   {
                 //       
-                //       float4 ambient;                // Offset:   64
-                //       float4 diffuse;                // Offset:   80
-                //       float4 specular;               // Offset:   96
+                //       float4 ambient;                // Offset:   80
+                //       float4 diffuse;                // Offset:   96
+                //       float4 specular;               // Offset:  112
                 //
-                //   } gMaterial;                       // Offset:   64 Size:    48 [unused]
+                //   } gMaterial;                       // Offset:   80 Size:    48 [unused]
                 //
                 // }
                 //
@@ -91,7 +93,7 @@ fxgroup
                 //
                 vs_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer cb0[4], immediateIndexed
+                dcl_constantbuffer cb0[5], immediateIndexed
                 dcl_input v0.xyz
                 dcl_input v1.xyz
                 dcl_input v2.xyz
@@ -110,7 +112,7 @@ fxgroup
                 //   o1.x <- <VertShader return value>.PosW.x; o1.y <- <VertShader return value>.PosW.y; o1.z <- <VertShader return value>.PosW.z; 
                 //   o0.x <- <VertShader return value>.PosH.x; o0.y <- <VertShader return value>.PosH.y; o0.z <- <VertShader return value>.PosH.z; o0.w <- <VertShader return value>.PosH.w
                 //
-                #line 51 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\StdMesh.fx"
+                #line 52 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\StdMesh.fx"
                 mov r0.xyz, v0.xyzx
                 mov r0.w, l(1.000000)
                 dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- vout.PosH.x
@@ -118,7 +120,7 @@ fxgroup
                 dp4 r1.z, r0.xyzw, cb0[2].xyzw  // r1.z <- vout.PosH.z
                 dp4 r1.w, r0.xyzw, cb0[3].xyzw  // r1.w <- vout.PosH.w
                 mov r0.xyz, v1.xyzx  // r0.x <- vout.NormalW.x; r0.y <- vout.NormalW.y; r0.z <- vout.NormalW.z
-                mov r2.xyz, v0.xyzx  // r2.x <- vout.PosW.x; r2.y <- vout.PosW.y; r2.z <- vout.PosW.z
+                mul r2.xyz, v0.xyzx, cb0[4].xxxx  // r2.x <- vout.PosW.x; r2.y <- vout.PosW.y; r2.z <- vout.PosW.z
                 mov r3.xyz, v2.xyzx  // r3.x <- vout.TexUV.x; r3.y <- vout.TexUV.y; r3.z <- vout.TexUV.z
                 mov o0.xyzw, r1.xyzw
                 mov o1.xyz, r2.xyzx
@@ -140,15 +142,16 @@ fxgroup
                 // {
                 //
                 //   float4x4 gWorldViewProj;           // Offset:    0 Size:    64 [unused]
+                //   float gWorld;                      // Offset:   64 Size:     4 [unused]
                 //   
                 //   struct Material
                 //   {
                 //       
-                //       float4 ambient;                // Offset:   64
-                //       float4 diffuse;                // Offset:   80
-                //       float4 specular;               // Offset:   96
+                //       float4 ambient;                // Offset:   80
+                //       float4 diffuse;                // Offset:   96
+                //       float4 specular;               // Offset:  112
                 //
-                //   } gMaterial;                       // Offset:   64 Size:    48
+                //   } gMaterial;                       // Offset:   80 Size:    48
                 //
                 // }
                 //
@@ -197,7 +200,7 @@ fxgroup
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer cb0[7], immediateIndexed
+                dcl_constantbuffer cb0[8], immediateIndexed
                 dcl_constantbuffer cb1[3], immediateIndexed
                 dcl_sampler s0, mode_default
                 dcl_resource_texture2d (float,float,float,float) t0
@@ -214,7 +217,7 @@ fxgroup
                 //   v3.x <- pin.TexUV.x; v3.y <- pin.TexUV.y; v3.z <- pin.TexUV.z; 
                 //   o0.x <- <PixShader return value>.x; o0.y <- <PixShader return value>.y; o0.z <- <PixShader return value>.z; o0.w <- <PixShader return value>.w
                 //
-                #line 61 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\StdMesh.fx"
+                #line 62 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\StdMesh.fx"
                 dp3 r0.x, v2.xyzx, v2.xyzx
                 rsq r0.x, r0.x
                 mul r0.xyz, r0.xxxx, v2.xyzx  // r0.x <- pin.NormalW.x; r0.y <- pin.NormalW.y; r0.z <- pin.NormalW.z
@@ -223,10 +226,10 @@ fxgroup
                 mov r3.xyz, -cb1[1].xyzx
                 dp3 r0.w, r3.xyzx, r0.xyzx  // r0.w <- diffuseK
                 
-                #line 68
+                #line 69
                 itof r3.x, l(0)
                 lt r3.x, r3.x, r0.w
-                mul r4.xyzw, r0.wwww, cb0[5].xyzw
+                mul r4.xyzw, r0.wwww, cb0[6].xyzw
                 mul r4.xyzw, r4.xyzw, cb1[0].xyzw
                 add r4.xyzw, r1.xyzw, r4.xyzw  // r4.x <- diffColor.x; r4.y <- diffColor.y; r4.z <- diffColor.z; r4.w <- diffColor.w
                 dp3 r0.w, cb1[1].xyzx, r0.xyzx
@@ -243,13 +246,13 @@ fxgroup
                 itof r0.y, l(0)
                 max r0.x, r0.y, r0.x
                 log r0.x, r0.x
-                mul r0.x, r0.x, cb0[6].w
+                mul r0.x, r0.x, cb0[7].w
                 exp r0.x, r0.x
-                mul r0.xyzw, r0.xxxx, cb0[6].xyzw
+                mul r0.xyzw, r0.xxxx, cb0[7].xyzw
                 add r0.xyzw, r0.xyzw, r2.xyzw  // r0.x <- specColor.x; r0.y <- specColor.y; r0.z <- specColor.z; r0.w <- specColor.w
                 movc r1.xyzw, r3.xxxx, r4.xyzw, r1.xyzw  // r1.x <- diffColor.x; r1.y <- diffColor.y; r1.z <- diffColor.z; r1.w <- diffColor.w
                 movc r0.xyzw, r3.xxxx, r0.xyzw, r2.xyzw
-                add r1.xyzw, r1.xyzw, cb0[4].xyzw
+                add r1.xyzw, r1.xyzw, cb0[5].xyzw
                 sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v3.xyxx, t0.xyzw, s0
                 mul r1.xyzw, r1.xyzw, r2.xyzw
                 add o0.xyzw, r0.xyzw, r1.xyzw

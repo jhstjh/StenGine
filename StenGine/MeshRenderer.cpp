@@ -15,6 +15,15 @@ m_diffuseMapSRV(0)
 		CreatePlanePrimitive();
 	PrepareGPUBuffer();
 	PrepareSRV(type);
+
+	XMMATRIX I = XMMatrixIdentity();
+	XMStoreFloat4x4(&m_worldTransform, I);
+	if (type == 1)
+		m_worldTransform._41 = -1;
+	else if (type == 0) {
+		XMMATRIX R = XMMatrixRotationY(3.14159 / 5);
+		XMStoreFloat4x4(&m_worldTransform, XMLoadFloat4x4(&m_worldTransform) * R);
+	}
 }
 
 MeshRenderer::~MeshRenderer() {
@@ -312,6 +321,14 @@ void MeshRenderer::Draw() {
 	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 	((StdMeshEffect*)m_associatedEffect)->Mat->SetRawValue(&m_material, 0, sizeof(Material));
 	((StdMeshEffect*)m_associatedEffect)->DiffuseMap->SetResource(m_diffuseMapSRV);
+
+	XMMATRIX world = XMLoadFloat4x4(&m_worldTransform);
+	XMMATRIX view = XMLoadFloat4x4(&D3D11Renderer::Instance()->mView);
+	XMMATRIX proj = XMLoadFloat4x4(&D3D11Renderer::Instance()->mProj);
+
+	XMMATRIX worldViewProj = world*view*proj;
+	((StdMeshEffect*)m_associatedEffect)->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
+	((StdMeshEffect*)m_associatedEffect)->World->SetMatrix(reinterpret_cast<float*>(&world));
 
 	D3DX11_TECHNIQUE_DESC techDesc;
 	tech->GetDesc(&techDesc);

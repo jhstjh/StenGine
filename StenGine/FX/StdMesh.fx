@@ -12,6 +12,7 @@ struct Material {
 
 cbuffer cbPerObject {
 	float4x4 gWorldViewProj; 
+	float gWorld;
 	Material gMaterial;
 };
 
@@ -50,7 +51,7 @@ VertexOut VertShader(VertexIn vin)
 	
 	vout.PosH = mul(float4(vin.PosL, 1.0f), gWorldViewProj);
 	vout.NormalW = vin.NormalL;
-	vout.PosW = vin.PosL;
+	vout.PosW = mul(float4(vin.PosL, 1.0f), gWorld);
 	vout.TexUV = vin.TexUV;
 
     return vout;

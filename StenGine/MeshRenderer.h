@@ -40,6 +40,7 @@ public:
 	std::vector<XMFLOAT2> m_texUVBufferCPU;
 	std::vector<XMFLOAT4> m_colorBufferCPU;
 
+	XMFLOAT4X4 m_worldTransform;
 	MeshRenderer(int type);
 	~MeshRenderer();
 	void Draw();

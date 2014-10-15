@@ -161,9 +161,7 @@ bool D3D11Renderer::Init() {
 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
 
 
-
 	XMMATRIX I = XMMatrixIdentity();
-	XMStoreFloat4x4(&mWorld, I);
 	XMStoreFloat4x4(&mView, I);
 	XMStoreFloat4x4(&mProj, I);
 
@@ -206,18 +204,9 @@ void D3D11Renderer::Draw() {
 		activeFX->EyePosW->SetRawValue(&pos, 0, 3 * sizeof(float));
 
 		for (int iMesh = 0; iMesh < activeFX->m_associatedMeshes.size(); iMesh++ ) {
-			// Set constants
-			XMMATRIX world = XMLoadFloat4x4(&mWorld);
-			XMMATRIX view = XMLoadFloat4x4(&mView);
-			XMMATRIX proj = XMLoadFloat4x4(&mProj);
-			XMMATRIX worldViewProj = world*view*proj;
-
-			activeFX->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
 			activeFX->m_associatedMeshes[iMesh]->Draw();
 		}
-
-		//mesh->Draw(activeFX->PosColorTech);
-			
+		
 	
 
 	HR(m_swapChain->Present(0, 0));
