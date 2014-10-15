@@ -4,8 +4,16 @@
 #include "D3D11Renderer.h"
 
 class Camera {
+	XMFLOAT4 m_pos;
 	XMFLOAT4X4 m_view;
 	XMFLOAT4X4 m_proj;
+	XMVECTOR m_target;
+	XMVECTOR m_up;
+
+	float m_radius;
+	float m_phi;
+	float m_theta;
+	POINT m_lastMousePos;
 
 public:
 	Camera(float px, float py, float pz,
@@ -14,6 +22,9 @@ public:
 		   float fov, float np, float fp);
 	~Camera();
 	XMMATRIX GetViewProjMatrix();
+	void OnMouseDown(WPARAM btnState, int x, int y);
+	void OnMouseUp(WPARAM btnState, int x, int y);
+	void OnMouseMove(WPARAM btnState, int x, int y);
 };
 
 class CameraManager {

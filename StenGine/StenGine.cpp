@@ -1,6 +1,7 @@
 // StenGine.cpp : Defines the entry point for the application.
 //
 
+#include "windowsX.h"
 #include "stdafx.h"
 #include "StenGine.h"
 #include "D3D11Renderer.h"
@@ -90,7 +91,15 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	return (int) msg.wParam;
 }
 
-
+void OnMouseDown(WPARAM btnState, int x, int y) {
+	CameraManager::Instance()->GetActiveCamera()->OnMouseDown(btnState, x, y);
+}
+void OnMouseUp(WPARAM btnState, int x, int y) {
+	CameraManager::Instance()->GetActiveCamera()->OnMouseUp(btnState, x, y);
+}
+void OnMouseMove(WPARAM btnState, int x, int y) {
+	CameraManager::Instance()->GetActiveCamera()->OnMouseMove(btnState, x, y);
+}
 
 //
 //  FUNCTION: MyRegisterClass()
@@ -173,6 +182,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
+	case WM_RBUTTONDOWN:
+		OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		return 0;
+	case WM_RBUTTONUP:
+		OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		return 0;
+	case WM_MOUSEMOVE:
+		OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		return 0;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
