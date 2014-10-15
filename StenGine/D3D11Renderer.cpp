@@ -176,8 +176,8 @@ bool D3D11Renderer::Init() {
 	XMStoreFloat4x4(&mProj, P);
 
 
-
-	mesh = new MeshRenderer();
+	mesh = new MeshRenderer(1);
+	mesh2 = new MeshRenderer(0);
 
 	DirectionalLight* dLight = new DirectionalLight();
 	dLight->intensity = XMFLOAT4(1, 1, 1, 1);

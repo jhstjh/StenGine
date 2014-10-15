@@ -29,8 +29,9 @@ private:
 	ID3D11ShaderResourceView* m_diffuseMapSRV;
 
 	void CreateBoxPrimitive();
+	void CreatePlanePrimitive();
 	void PrepareGPUBuffer();
-	void PrepareSRV();
+	void PrepareSRV(int type);
 
 public:
 	std::vector<UINT> m_indexBufferCPU;
@@ -39,7 +40,7 @@ public:
 	std::vector<XMFLOAT2> m_texUVBufferCPU;
 	std::vector<XMFLOAT4> m_colorBufferCPU;
 
-	MeshRenderer();
+	MeshRenderer(int type);
 	~MeshRenderer();
 	void Draw();
 

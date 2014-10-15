@@ -41,5 +41,6 @@ private:
 	XMFLOAT4X4 mProj;
 
 	MeshRenderer* mesh;
+	MeshRenderer* mesh2;
 };
 #endif

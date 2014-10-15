@@ -3,15 +3,18 @@
 #include "EffectsManager.h"
 #include "ObjReader.h"
 
-MeshRenderer::MeshRenderer():
+MeshRenderer::MeshRenderer(int type = 0):
 m_indexBufferCPU(0),
 m_stdMeshVertexBufferGPU(0),
 m_diffuseMapSRV(0)
 {
 	//ObjReader::Read(L"Model/ball.obj", this);
-	CreateBoxPrimitive();
+	if (type == 0)
+		CreateBoxPrimitive();
+	else if (type == 1)
+		CreatePlanePrimitive();
 	PrepareGPUBuffer();
-	PrepareSRV();
+	PrepareSRV(type);
 }
 
 MeshRenderer::~MeshRenderer() {
@@ -180,6 +183,76 @@ void MeshRenderer::CreateBoxPrimitive() {
 	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 16.0f);
 }
 
+void MeshRenderer::CreatePlanePrimitive() {
+	m_positionBufferCPU.resize(4);
+	m_positionBufferCPU = {
+		XMFLOAT3(-4.0f, -1.0f, -4.0f),
+		XMFLOAT3(+4.0f, -1.0f, -4.0f),
+		XMFLOAT3(+4.0f, -1.0f, +4.0f),
+		XMFLOAT3(-4.0f, -1.0f, +4.0f),
+	};
+
+	m_normalBufferCPU.resize(4);
+	m_normalBufferCPU = {
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		XMFLOAT3(0.0f, 1.0f, 0.0f),
+	};
+
+	m_texUVBufferCPU.resize(24);
+	m_texUVBufferCPU = {
+		XMFLOAT2(4.0f, 4.0f),
+		XMFLOAT2(0.0f, 4.0f),
+		XMFLOAT2(0.0f, 0.0f),
+		XMFLOAT2(4.0f, 0.0f),
+	};
+
+	// 
+	// 
+	// 	v[0] =  Vertex(-1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	// 	v[1] =  Vertex(-1.0f, +1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	// 	v[2] =  Vertex(+1.0f, +1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	// 	v[3] =  Vertex(+1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+	// 		    
+	// 	v[4] = Vertex(-1.0f, -1.0f, +1.0f, 0.0f, 0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+	// 	v[5] = Vertex(+1.0f, -1.0f, +1.0f, 0.0f, 0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	// 	v[6] = Vertex(+1.0f, +1.0f, +1.0f, 0.0f, 0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	// 	v[7] = Vertex(-1.0f, +1.0f, +1.0f, 0.0f, 0.0f,  1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	// 													 
+	// 	v[8] =  Vertex(-1.0f, +1.0f, -1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	// 	v[9] =  Vertex(-1.0f, +1.0f, +1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	// 	v[10] = Vertex(+1.0f, +1.0f, +1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	// 	v[11] = Vertex(+1.0f, +1.0f, -1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+	// 
+	// 	v[12] =Vertex(-1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
+	// 	v[13] =Vertex(+1.0f, -1.0f, -1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	// 	v[14] =Vertex(+1.0f, -1.0f, +1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	// 	v[15] =Vertex(-1.0f, -1.0f, +1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	// 
+	// 	v[16] =Vertex(-1.0f, -1.0f, +1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
+	// 	v[17] =Vertex(-1.0f, +1.0f, +1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
+	// 	v[18] =Vertex(-1.0f, +1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f);
+	// 	v[19] =Vertex(-1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f);
+	// 
+	// 	v[20] = Vertex(+1.0f, -1.0f, -1.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f);
+	// 	v[21] = Vertex(+1.0f, +1.0f, -1.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+	// 	v[22] = Vertex(+1.0f, +1.0f, +1.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f);
+	// 	v[23] = Vertex(+1.0f, -1.0f, +1.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f);
+
+
+	m_indexBufferCPU.resize(6);
+	m_indexBufferCPU = {
+
+		1, 0, 2,
+		2, 0, 3,
+	};
+
+	m_material.ambient = XMFLOAT4(0.2, 0.2, 0.2, 1);
+	m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
+	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 16.0f);
+}
+
 void MeshRenderer::PrepareGPUBuffer() {
 
 	std::vector<Vertex::StdMeshVertex> vertices(m_positionBufferCPU.size());
@@ -217,10 +290,17 @@ void MeshRenderer::PrepareGPUBuffer() {
 	m_associatedEffect->m_associatedMeshes.push_back(this);
 }
 
-void MeshRenderer::PrepareSRV() {
-	HR(D3DX11CreateShaderResourceViewFromFile(
-		D3D11Renderer::Instance()->GetD3DDevice(),
-		L"./Model/WoodCrate02.dds", 0, 0, &m_diffuseMapSRV, 0));
+void MeshRenderer::PrepareSRV(int type) {
+	if (type == 0) {
+		HR(D3DX11CreateShaderResourceViewFromFile(
+			D3D11Renderer::Instance()->GetD3DDevice(),
+			L"./Model/WoodCrate02.dds", 0, 0, &m_diffuseMapSRV, 0));
+	}
+	else if (type == 1) {
+		HR(D3DX11CreateShaderResourceViewFromFile(
+			D3D11Renderer::Instance()->GetD3DDevice(),
+			L"./Model/darkbrickdxt1.dds", 0, 0, &m_diffuseMapSRV, 0));
+	}
 }
 
 void MeshRenderer::Draw() {
