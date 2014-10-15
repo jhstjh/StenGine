@@ -3,10 +3,12 @@
 #include "EffectsManager.h"
 #include "ObjReader.h"
 #include "CameraManager.h"
+#include "LightManager.h"
 
 MeshRenderer::MeshRenderer(int type = 0):
 m_indexBufferCPU(0),
 m_stdMeshVertexBufferGPU(0),
+m_shadowMapVertexBufferGPU(0),
 m_diffuseMapSRV(0)
 {
 	//ObjReader::Read(L"Model/ball.obj", this);
@@ -30,6 +32,7 @@ m_diffuseMapSRV(0)
 MeshRenderer::~MeshRenderer() {
 	ReleaseCOM(m_indexBufferGPU);
 	ReleaseCOM(m_stdMeshVertexBufferGPU);
+	ReleaseCOM(m_shadowMapVertexBufferGPU);
 	ReleaseCOM(m_diffuseMapSRV);
 }
 
@@ -300,6 +303,27 @@ void MeshRenderer::PrepareGPUBuffer() {
 	m_associatedEffect->m_associatedMeshes.push_back(this);
 }
 
+void MeshRenderer::PrepareShadowMapBuffer() {
+
+	std::vector<Vertex::ShadowMapVertex> vertices(m_positionBufferCPU.size());
+	UINT k = 0;
+	for (size_t i = 0; i < m_positionBufferCPU.size(); ++i, ++k)
+	{
+		vertices[k].Pos = m_positionBufferCPU[i];
+	}
+
+	D3D11_BUFFER_DESC vbd;
+	vbd.Usage = D3D11_USAGE_IMMUTABLE;
+	vbd.ByteWidth = sizeof(Vertex::ShadowMapVertex) * m_positionBufferCPU.size();
+	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vbd.CPUAccessFlags = 0;
+	vbd.MiscFlags = 0;
+	//vbd.StructureByteStride = 0;
+	D3D11_SUBRESOURCE_DATA vinitData;
+	vinitData.pSysMem = &vertices[0];
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&vbd, &vinitData, &m_shadowMapVertexBufferGPU));
+}
+
 void MeshRenderer::PrepareSRV(int type) {
 	if (type == 0) {
 		HR(D3DX11CreateShaderResourceViewFromFile(
@@ -331,6 +355,9 @@ void MeshRenderer::Draw() {
 		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
 		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->World->SetMatrix(reinterpret_cast<float*>(&m_worldTransform));
 
+		XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(&m_worldTransform) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
+		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->ShadowTransform->SetMatrix(reinterpret_cast<float*>(&worldShadowMapTransform));
+
 		D3DX11_TECHNIQUE_DESC techDesc;
 		tech->GetDesc(&techDesc);
 		for (UINT p = 0; p < techDesc.Passes; ++p)
@@ -340,4 +367,26 @@ void MeshRenderer::Draw() {
 			D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
 		}
 	}
+}
+
+void MeshRenderer::DrawOnShadowMap() {
+	ID3DX11EffectTechnique* tech = EffectsManager::Instance()->m_shadowMapEffect->GetActiveTech();
+
+	UINT stride = sizeof(Vertex::ShadowMapVertex);
+	UINT offset = 0;
+	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
+	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
+
+	XMMATRIX worldViewProj = XMLoadFloat4x4(&m_worldTransform) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
+	EffectsManager::Instance()->m_shadowMapEffect->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
+
+	D3DX11_TECHNIQUE_DESC techDesc;
+	tech->GetDesc(&techDesc);
+	for (UINT p = 0; p < techDesc.Passes; ++p)
+	{
+		tech->GetPassByIndex(p)->Apply(0, D3D11Renderer::Instance()->GetD3DContext());
+
+		D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
+	}
+
 }

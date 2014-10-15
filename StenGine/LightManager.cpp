@@ -7,3 +7,4 @@ LightManager::~LightManager() {
 		delete m_dirLights[i];
 	}
 }
+

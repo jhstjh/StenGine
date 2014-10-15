@@ -149,7 +149,6 @@ bool D3D11Renderer::Init() {
 	HR(m_d3d11Device->CreateTexture2D(&depthStencilDesc, 0, &m_depthStencilBuffer));
 	HR(m_d3d11Device->CreateDepthStencilView(m_depthStencilBuffer, 0, &m_depthStencilView));
 
-	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
 
 	m_screenViewpot.TopLeftX = 0;
 	m_screenViewpot.TopLeftY = 0;
@@ -158,33 +157,39 @@ bool D3D11Renderer::Init() {
 	m_screenViewpot.MinDepth = 0.0f;
 	m_screenViewpot.MaxDepth = 1.0f;
 
-	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
-
-
-
+	
 	mesh = new MeshRenderer(1);
 	mesh2 = new MeshRenderer(0);
 
 	DirectionalLight* dLight = new DirectionalLight();
 	dLight->intensity = XMFLOAT4(1, 1, 1, 1);
 	dLight->direction = MatrixHelper::NormalizeFloat3(XMFLOAT3(-0.5, -2, 1));
+	dLight->castShadow = 1;
 
 	LightManager::Instance()->m_dirLights.push_back(dLight);
+	LightManager::Instance()->m_shadowMap = new ShadowMap(1024, 1024);
 
 	return true;
 }
 
 void D3D11Renderer::Draw() {
+
+	LightManager::Instance()->m_shadowMap->RenderShadowMap();
+
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
+	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
 	m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 
+		m_d3d11DeviceContext->RSSetState(0);
  		StdMeshEffect* activeFX = (StdMeshEffect*)(EffectsManager::Instance()->m_effects[0]);
 		D3D11Renderer::Instance()->GetD3DContext()->IASetInputLayout(activeFX->GetInputLayout());
 		D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		DirectionalLight* d = LightManager::Instance()->m_dirLights[0];
 		activeFX->DirLight->SetRawValue(LightManager::Instance()->m_dirLights[0], 0, sizeof(DirectionalLight));
-		
+		activeFX->TheShadowMap->SetResource(LightManager::Instance()->m_shadowMap->GetDepthSRV());
+
 		XMVECTOR pos = XMVectorSet(2, 3.5, -3.5, 1.0f);
 		activeFX->EyePosW->SetRawValue(&pos, 0, 3 * sizeof(float));
 
@@ -192,7 +197,8 @@ void D3D11Renderer::Draw() {
 			activeFX->m_associatedMeshes[iMesh]->Draw();
 		}
 		
-	
+	ID3D11ShaderResourceView* nullSRV[16] = { 0 };
+	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
 
 	HR(m_swapChain->Present(0, 0));
 }

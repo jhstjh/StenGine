@@ -12,6 +12,10 @@ namespace Vertex {
 		XMFLOAT3 Normal;
 		XMFLOAT2 TexUV;
 	};
+
+	struct ShadowMapVertex {
+		XMFLOAT3 Pos;
+	};
 }
 
 struct Material {
@@ -24,6 +28,7 @@ class MeshRenderer {
 private:
 	ID3D11Buffer* m_indexBufferGPU;
 	ID3D11Buffer* m_stdMeshVertexBufferGPU;
+	ID3D11Buffer* m_shadowMapVertexBufferGPU;
 	Effect* m_associatedEffect;
 	Material m_material;
 	ID3D11ShaderResourceView* m_diffuseMapSRV;
@@ -31,6 +36,7 @@ private:
 	void CreateBoxPrimitive();
 	void CreatePlanePrimitive();
 	void PrepareGPUBuffer();
+	void PrepareShadowMapBuffer();
 	void PrepareSRV(int type);
 
 public:
@@ -44,7 +50,7 @@ public:
 	MeshRenderer(int type);
 	~MeshRenderer();
 	void Draw();
-
+	void DrawOnShadowMap();
 };
 
 #endif // !__MESH_RENDERER__

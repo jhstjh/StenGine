@@ -14,11 +14,14 @@ protected:
 public:
 	Effect(const std::wstring& filename);
 	virtual ~Effect();
-	//D3D11_INPUT_ELEMENT_DESC* GetInputElementDesc() { return &(m_vertexDesc[0]); }
 	ID3D11InputLayout* GetInputLayout() { return m_inputLayout; }
 	ID3DX11EffectTechnique* GetActiveTech() { return m_activeTech; }
 	std::vector<MeshRenderer*> m_associatedMeshes;
 };
+
+
+//--------------------------------------------------------------------//
+
 
 class StdMeshEffect : public Effect {
 public:
@@ -28,16 +31,38 @@ public:
 	ID3DX11EffectTechnique* StdMeshTech;
 	ID3DX11EffectMatrixVariable* WorldViewProj;
 	ID3DX11EffectMatrixVariable* World;
+	ID3DX11EffectMatrixVariable* ShadowTransform;
 	ID3DX11EffectVariable* DirLight;
 	ID3DX11EffectVariable* Mat;
 	ID3DX11EffectVectorVariable* EyePosW;
 	ID3DX11EffectShaderResourceVariable* DiffuseMap;
+	ID3DX11EffectShaderResourceVariable* TheShadowMap;
 };
+
+
+//--------------------------------------------------------------------//
+
+
+class ShadowMapEffect : public Effect {
+public:
+	ShadowMapEffect(const std::wstring& filename);
+	~ShadowMapEffect();
+
+	ID3DX11EffectTechnique* ShadowMapTech;
+	ID3DX11EffectMatrixVariable* WorldViewProj;
+	//ID3DX11EffectMatrixVariable* World;
+	//ID3DX11EffectMatrixVariable* ViewProj;
+	//ID3DX11EffectVectorVariable* EyePosW;
+	//ID3DX11EffectShaderResourceVariable* DiffuseMap;
+};
+
+
+//--------------------------------------------------------------------//
+
 
 class EffectsManager {
 private:
 	static EffectsManager* _instance;
-
 
 public:
 	static EffectsManager* Instance() { 
@@ -46,10 +71,10 @@ public:
 		} 
 		return _instance; 
 	}
-
 	EffectsManager();
 	~EffectsManager();
 
+	ShadowMapEffect* m_shadowMapEffect;
 	std::vector<Effect*> m_effects;
 };
 

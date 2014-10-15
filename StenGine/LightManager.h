@@ -1,13 +1,14 @@
 #ifndef __LIGHT_MANAGER__
 #define __LIGHT_MANAGER__
 #include "D3DIncludes.h"
+#include "ShadowMap.h"
 
 struct DirectionalLight {
 	//DirectionalLight() { ZeroMemory(this, sizeof(this)); }
 
 	XMFLOAT4 intensity;
 	XMFLOAT3 direction;
-	float pad;
+	int castShadow;
 };
 
 
@@ -22,6 +23,7 @@ public:
 			_instance = new LightManager();
 		return _instance;
 	}
+	ShadowMap* m_shadowMap;
 };
 
 

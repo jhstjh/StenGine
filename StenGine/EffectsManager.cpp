@@ -23,18 +23,23 @@ Effect::~Effect()
 	ReleaseCOM(m_fx);
 }
 
+
+//------------------------------------------------------------//
+
+
 StdMeshEffect::StdMeshEffect(const std::wstring& filename)
 	: Effect(filename)
 {
 	StdMeshTech = m_fx->GetTechniqueByName("StdMeshTech");
 	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
+	ShadowTransform = m_fx->GetVariableByName("gShadowTransform")->AsMatrix();
 	World = m_fx->GetVariableByName("gWorld")->AsMatrix();
 	DirLight = m_fx->GetVariableByName("gDirLight");
 	Mat = m_fx->GetVariableByName("gMaterial");
 	EyePosW = m_fx->GetVariableByName("gEyePosW")->AsVector();
 	DiffuseMap = m_fx->GetVariableByName("gDiffuseMap")->AsShaderResource();
-	//m_vertexDesc.resize(2);
-	//m_vertexDesc =
+	TheShadowMap = m_fx->GetVariableByName("gShadowMap")->AsShaderResource();
+
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -55,9 +60,42 @@ StdMeshEffect::~StdMeshEffect()
 	ReleaseCOM(m_inputLayout);
 }
 
+
+//----------------------------------------------------------//
+
+
+ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
+	: Effect(filename)
+{
+	ShadowMapTech = m_fx->GetTechniqueByName("BuildShadowMapTech");
+	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
+
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	D3DX11_PASS_DESC passDesc;
+	ShadowMapTech->GetPassByIndex(0)->GetDesc(&passDesc);
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, passDesc.pIAInputSignature,
+		passDesc.IAInputSignatureSize, &m_inputLayout));
+
+	m_activeTech = ShadowMapTech;
+}
+
+ShadowMapEffect::~ShadowMapEffect()
+{
+	ReleaseCOM(m_inputLayout);
+}
+
+
+//----------------------------------------------------------//
+
+
 EffectsManager* EffectsManager::_instance = nullptr;
 EffectsManager::EffectsManager() {
 	StdMeshEffect* PosColor = new StdMeshEffect(L"FX/StdMesh.fxo");
+	m_shadowMapEffect = new ShadowMapEffect(L"FX/ShadowMap.fxo");
 	m_effects.push_back(PosColor);
 }
 
@@ -65,4 +103,5 @@ EffectsManager::~EffectsManager() {
 	for (int i = 0; i < m_effects.size(); i++) {
 		delete m_effects[i];
 	}
+	delete m_shadowMapEffect;
 }
