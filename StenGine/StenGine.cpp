@@ -6,6 +6,7 @@
 #include "D3D11Renderer.h"
 #include "EffectsManager.h"
 #include "LightManager.h"
+#include "CameraManager.h"
 //#include "MathHelper.h"
 #include "Timer.h"
 
@@ -52,7 +53,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
  	}
 
 	EffectsManager::Instance();
-
+	CameraManager::Instance();
 
 
 	Timer::Init();

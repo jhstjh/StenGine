@@ -13,8 +13,7 @@ public:
 	void Draw();
 	ID3D11Device* GetD3DDevice() { return m_d3d11Device; }
 	ID3D11DeviceContext* GetD3DContext() { return m_d3d11DeviceContext; }
-	XMFLOAT4X4 mView;
-	XMFLOAT4X4 mProj;
+	float GetAspectRatio() { return static_cast<float>(m_clientWidth) / static_cast<float>(m_clientHeight); }
 
 private:
 	static D3D11Renderer* _instance;

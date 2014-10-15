@@ -161,21 +161,6 @@ bool D3D11Renderer::Init() {
 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
 
 
-	XMMATRIX I = XMMatrixIdentity();
-	XMStoreFloat4x4(&mView, I);
-	XMStoreFloat4x4(&mProj, I);
-
-	XMVECTOR pos = XMVectorSet(2, 3.5, -3.5, 1.0f);
-	XMVECTOR target = XMVectorZero();
-	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
-	XMMATRIX V = XMMatrixLookAtLH(pos, target, up);
-	XMStoreFloat4x4(&mView, V);
-
-	// The window resized, so update the aspect ratio and recompute the projection matrix.
-	XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f*3.1415926, 16.0 / 9.0, 1.0f, 1000.0f);
-	XMStoreFloat4x4(&mProj, P);
-
 
 	mesh = new MeshRenderer(1);
 	mesh2 = new MeshRenderer(0);

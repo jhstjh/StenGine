@@ -2,6 +2,7 @@
 #include "D3D11Renderer.h"
 #include "EffectsManager.h"
 #include "ObjReader.h"
+#include "CameraManager.h"
 
 MeshRenderer::MeshRenderer(int type = 0):
 m_indexBufferCPU(0),
@@ -315,27 +316,28 @@ void MeshRenderer::PrepareSRV(int type) {
 void MeshRenderer::Draw() {
 	ID3DX11EffectTechnique* tech = m_associatedEffect->GetActiveTech();
 
-	UINT stride = sizeof(Vertex::StdMeshVertex);
-	UINT offset = 0;
-	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
-	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
-	((StdMeshEffect*)m_associatedEffect)->Mat->SetRawValue(&m_material, 0, sizeof(Material));
-	((StdMeshEffect*)m_associatedEffect)->DiffuseMap->SetResource(m_diffuseMapSRV);
+	// if it is std mesh
+	if (dynamic_cast<StdMeshEffect*>(m_associatedEffect)) {
+		UINT stride = sizeof(Vertex::StdMeshVertex);
+		UINT offset = 0;
+		D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
+		D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
-	XMMATRIX world = XMLoadFloat4x4(&m_worldTransform);
-	XMMATRIX view = XMLoadFloat4x4(&D3D11Renderer::Instance()->mView);
-	XMMATRIX proj = XMLoadFloat4x4(&D3D11Renderer::Instance()->mProj);
+		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->Mat->SetRawValue(&m_material, 0, sizeof(Material));
+		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->DiffuseMap->SetResource(m_diffuseMapSRV);
 
-	XMMATRIX worldViewProj = world*view*proj;
-	((StdMeshEffect*)m_associatedEffect)->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
-	((StdMeshEffect*)m_associatedEffect)->World->SetMatrix(reinterpret_cast<float*>(&world));
 
-	D3DX11_TECHNIQUE_DESC techDesc;
-	tech->GetDesc(&techDesc);
-	for (UINT p = 0; p < techDesc.Passes; ++p)
-	{
-		tech->GetPassByIndex(p)->Apply(0, D3D11Renderer::Instance()->GetD3DContext());
+		XMMATRIX worldViewProj = XMLoadFloat4x4(&m_worldTransform) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
+		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
+		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->World->SetMatrix(reinterpret_cast<float*>(&m_worldTransform));
 
-		D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
+		D3DX11_TECHNIQUE_DESC techDesc;
+		tech->GetDesc(&techDesc);
+		for (UINT p = 0; p < techDesc.Passes; ++p)
+		{
+			tech->GetPassByIndex(p)->Apply(0, D3D11Renderer::Instance()->GetD3DContext());
+
+			D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
+		}
 	}
 }
