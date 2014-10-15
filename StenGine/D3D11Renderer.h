@@ -40,5 +40,6 @@ private:
 
 	MeshRenderer* mesh;
 	MeshRenderer* mesh2;
+	MeshRenderer* mesh3;
 };
 #endif

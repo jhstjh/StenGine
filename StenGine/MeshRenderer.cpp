@@ -12,7 +12,7 @@ m_shadowMapVertexBufferGPU(0),
 m_diffuseMapSRV(0)
 {
 	//ObjReader::Read(L"Model/ball.obj", this);
-	if (type == 0)
+	if (type == 0 || type == 3)
 		CreateBoxPrimitive();
 	else if (type == 1)
 		CreatePlanePrimitive();
@@ -27,6 +27,10 @@ m_diffuseMapSRV(0)
 	else if (type == 0) {
 		XMMATRIX R = XMMatrixRotationY(3.14159 / 5);
 		XMStoreFloat4x4(&m_worldTransform, XMLoadFloat4x4(&m_worldTransform) * R);
+	}
+	else if (type == 3) {
+		m_worldTransform._42 = 2;
+		m_worldTransform._43 = -0.5;
 	}
 }
 
@@ -326,7 +330,7 @@ void MeshRenderer::PrepareShadowMapBuffer() {
 }
 
 void MeshRenderer::PrepareSRV(int type) {
-	if (type == 0) {
+	if (type == 0 || type == 3) {
 		HR(D3DX11CreateShaderResourceViewFromFile(
 			D3D11Renderer::Instance()->GetD3DDevice(),
 			L"./Model/WoodCrate02.dds", 0, 0, &m_diffuseMapSRV, 0));

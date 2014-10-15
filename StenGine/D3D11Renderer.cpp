@@ -30,6 +30,7 @@ m_depthStencilView(nullptr)
 D3D11Renderer::~D3D11Renderer() {
 	delete mesh;
 	delete mesh2;
+	delete mesh3;
 
 	ReleaseCOM(m_renderTargetView);
 	ReleaseCOM(m_depthStencilView);
@@ -160,6 +161,7 @@ bool D3D11Renderer::Init() {
 	
 	mesh = new MeshRenderer(1);
 	mesh2 = new MeshRenderer(0);
+	mesh3 = new MeshRenderer(3);
 
 	DirectionalLight* dLight = new DirectionalLight();
 	dLight->intensity = XMFLOAT4(1, 1, 1, 1);
