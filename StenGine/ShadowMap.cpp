@@ -70,7 +70,7 @@ void ShadowMap::RenderShadowMap() {
 	// only build shadow map for first directional light for now
 
 	XMVECTOR lightDir = XMLoadFloat3(&(LightManager::Instance()->m_dirLights[0]->direction));
-	XMVECTOR lightPos = -10 * XMLoadFloat3(&(LightManager::Instance()->m_dirLights[0]->direction));
+	XMVECTOR lightPos = -50 * XMLoadFloat3(&(LightManager::Instance()->m_dirLights[0]->direction));
 	XMVECTOR lightTarget = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 

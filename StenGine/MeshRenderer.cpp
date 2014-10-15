@@ -17,6 +17,7 @@ m_diffuseMapSRV(0)
 	else if (type == 1)
 		CreatePlanePrimitive();
 	PrepareGPUBuffer();
+	PrepareShadowMapBuffer();
 	PrepareSRV(type);
 
 	XMMATRIX I = XMMatrixIdentity();
@@ -374,7 +375,7 @@ void MeshRenderer::DrawOnShadowMap() {
 
 	UINT stride = sizeof(Vertex::ShadowMapVertex);
 	UINT offset = 0;
-	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
+	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_shadowMapVertexBufferGPU, &stride, &offset);
 	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
 	XMMATRIX worldViewProj = XMLoadFloat4x4(&m_worldTransform) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
