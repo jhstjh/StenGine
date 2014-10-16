@@ -3,6 +3,7 @@
 #include <vector>
 #include "D3DIncludes.h"
 #include "EffectsManager.h"
+#include "Component.h"
 
 class Effect;
 
@@ -24,7 +25,7 @@ struct Material {
 	XMFLOAT4 specular;
 };
 
-class MeshRenderer {
+class MeshRenderer: public Component {
 private:
 	ID3D11Buffer* m_indexBufferGPU;
 	ID3D11Buffer* m_stdMeshVertexBufferGPU;

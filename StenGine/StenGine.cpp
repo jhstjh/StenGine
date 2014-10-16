@@ -8,6 +8,7 @@
 #include "EffectsManager.h"
 #include "LightManager.h"
 #include "CameraManager.h"
+#include "GameObject.h"
 //#include "MathHelper.h"
 #include "Timer.h"
 
@@ -57,6 +58,20 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	CameraManager::Instance();
 
 
+	// could add same mesh and render with instancing?
+	GameObject* box0 = new GameObject();
+	MeshRenderer* box0Mesh = new MeshRenderer(0);
+	box0->AddComponent(box0Mesh);
+	box0->RotateAroundY(3.14159 / 5);
+
+	GameObject* box1 = new GameObject(0, 2, -0.5);
+	MeshRenderer* box1Mesh = new MeshRenderer(0);
+	box1->AddComponent(box1Mesh);
+
+ 	GameObject* plane0 = new GameObject(-1, 0, 0);
+ 	MeshRenderer* plane0Mesh = new MeshRenderer(1);
+ 	plane0->AddComponent(plane0Mesh);
+
 	Timer::Init();
 
 	float elapsedTime = 0;
@@ -87,6 +102,10 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 			elaspedFrame++;
 		}
 	}
+
+	delete box0;
+	delete box1;
+	delete plane0;
 
 	return (int) msg.wParam;
 }

@@ -12,26 +12,13 @@ m_shadowMapVertexBufferGPU(0),
 m_diffuseMapSRV(0)
 {
 	//ObjReader::Read(L"Model/ball.obj", this);
-	if (type == 0 || type == 3)
+	if (type == 0)
 		CreateBoxPrimitive();
 	else if (type == 1)
 		CreatePlanePrimitive();
 	PrepareGPUBuffer();
 	PrepareShadowMapBuffer();
 	PrepareSRV(type);
-
-	XMMATRIX I = XMMatrixIdentity();
-	XMStoreFloat4x4(&m_worldTransform, I);
-	if (type == 1)
-		m_worldTransform._41 = -1;
-	else if (type == 0) {
-		XMMATRIX R = XMMatrixRotationY(3.14159 / 5);
-		XMStoreFloat4x4(&m_worldTransform, XMLoadFloat4x4(&m_worldTransform) * R);
-	}
-	else if (type == 3) {
-		m_worldTransform._42 = 2;
-		m_worldTransform._43 = -0.5;
-	}
 }
 
 MeshRenderer::~MeshRenderer() {
@@ -304,7 +291,7 @@ void MeshRenderer::PrepareGPUBuffer() {
 	iinitData.pSysMem = &m_indexBufferCPU[0];
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&ibd, &iinitData, &m_indexBufferGPU));
 
-	m_associatedEffect = EffectsManager::Instance()->m_effects[0];
+	m_associatedEffect = EffectsManager::Instance()->m_stdMeshEffect;
 	m_associatedEffect->m_associatedMeshes.push_back(this);
 }
 
@@ -330,7 +317,7 @@ void MeshRenderer::PrepareShadowMapBuffer() {
 }
 
 void MeshRenderer::PrepareSRV(int type) {
-	if (type == 0 || type == 3) {
+	if (type == 0) {
 		HR(D3DX11CreateShaderResourceViewFromFile(
 			D3D11Renderer::Instance()->GetD3DDevice(),
 			L"./Model/WoodCrate02.dds", 0, 0, &m_diffuseMapSRV, 0));
@@ -344,7 +331,6 @@ void MeshRenderer::PrepareSRV(int type) {
 
 void MeshRenderer::Draw() {
 	ID3DX11EffectTechnique* tech = m_associatedEffect->GetActiveTech();
-
 	// if it is std mesh
 	if (dynamic_cast<StdMeshEffect*>(m_associatedEffect)) {
 		UINT stride = sizeof(Vertex::StdMeshVertex);
@@ -356,11 +342,11 @@ void MeshRenderer::Draw() {
 		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->DiffuseMap->SetResource(m_diffuseMapSRV);
 
 
-		XMMATRIX worldViewProj = XMLoadFloat4x4(&m_worldTransform) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
+		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parent->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
 		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
-		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->World->SetMatrix(reinterpret_cast<float*>(&m_worldTransform));
+		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->World->SetMatrix(reinterpret_cast<float*>(m_parent->GetWorldTransform()));
 
-		XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(&m_worldTransform) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
+		XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(m_parent->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
 		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->ShadowTransform->SetMatrix(reinterpret_cast<float*>(&worldShadowMapTransform));
 
 		D3DX11_TECHNIQUE_DESC techDesc;
@@ -368,7 +354,6 @@ void MeshRenderer::Draw() {
 		for (UINT p = 0; p < techDesc.Passes; ++p)
 		{
 			tech->GetPassByIndex(p)->Apply(0, D3D11Renderer::Instance()->GetD3DContext());
-
 			D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
 		}
 	}
@@ -382,7 +367,7 @@ void MeshRenderer::DrawOnShadowMap() {
 	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_shadowMapVertexBufferGPU, &stride, &offset);
 	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
-	XMMATRIX worldViewProj = XMLoadFloat4x4(&m_worldTransform) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
+	XMMATRIX worldViewProj = XMLoadFloat4x4(m_parent->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
 	EffectsManager::Instance()->m_shadowMapEffect->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
 
 	D3DX11_TECHNIQUE_DESC techDesc;

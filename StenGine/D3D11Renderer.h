@@ -36,10 +36,5 @@ private:
 	int m_clientWidth;
 	int m_clientHeight;
 	bool m_enable4xMsaa;
-
-
-	MeshRenderer* mesh;
-	MeshRenderer* mesh2;
-	MeshRenderer* mesh3;
 };
 #endif

@@ -81,10 +81,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraManager.h" />
+    <ClInclude Include="Component.h" />
     <ClInclude Include="D3D11Renderer.h" />
     <ClInclude Include="D3DIncludes.h" />
     <ClInclude Include="d3dx11effect.h" />
     <ClInclude Include="EffectsManager.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="LightManager.h" />
     <ClInclude Include="MathHelper.h" />
     <ClInclude Include="MeshRenderer.h" />
@@ -98,8 +100,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraManager.cpp" />
+    <ClCompile Include="Component.cpp" />
     <ClCompile Include="D3D11Renderer.cpp" />
     <ClCompile Include="EffectsManager.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="ObjReader.cpp" />

@@ -94,14 +94,15 @@ ShadowMapEffect::~ShadowMapEffect()
 
 EffectsManager* EffectsManager::_instance = nullptr;
 EffectsManager::EffectsManager() {
-	StdMeshEffect* PosColor = new StdMeshEffect(L"FX/StdMesh.fxo");
+	m_stdMeshEffect = new StdMeshEffect(L"FX/StdMesh.fxo");
 	m_shadowMapEffect = new ShadowMapEffect(L"FX/ShadowMap.fxo");
-	m_effects.push_back(PosColor);
+	//m_effects.push_back(PosColor);
 }
 
 EffectsManager::~EffectsManager() {
-	for (int i = 0; i < m_effects.size(); i++) {
-		delete m_effects[i];
-	}
+	//for (int i = 0; i < m_effects.size(); i++) {
+	//	delete m_effects[i];
+	//}
+	delete m_stdMeshEffect;
 	delete m_shadowMapEffect;
 }

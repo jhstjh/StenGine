@@ -50,10 +50,6 @@ public:
 
 	ID3DX11EffectTechnique* ShadowMapTech;
 	ID3DX11EffectMatrixVariable* WorldViewProj;
-	//ID3DX11EffectMatrixVariable* World;
-	//ID3DX11EffectMatrixVariable* ViewProj;
-	//ID3DX11EffectVectorVariable* EyePosW;
-	//ID3DX11EffectShaderResourceVariable* DiffuseMap;
 };
 
 
@@ -74,8 +70,8 @@ public:
 	EffectsManager();
 	~EffectsManager();
 
+	StdMeshEffect* m_stdMeshEffect;
 	ShadowMapEffect* m_shadowMapEffect;
-	std::vector<Effect*> m_effects;
 };
 
 #endif

@@ -14,7 +14,7 @@ m_hMainWnd(hMainWnd),
 m_d3dDriverType(D3D_DRIVER_TYPE_HARDWARE),
 m_clientWidth(1280),
 m_clientHeight(720),
-m_enable4xMsaa(false),
+m_enable4xMsaa(true),
 m_4xMsaaQuality(0),
 
 m_d3d11Device(nullptr),
@@ -29,9 +29,6 @@ m_depthStencilView(nullptr)
 }
 
 D3D11Renderer::~D3D11Renderer() {
-	delete mesh;
-	delete mesh2;
-	delete mesh3;
 
 	ReleaseCOM(m_renderTargetView);
 	ReleaseCOM(m_depthStencilView);
@@ -159,11 +156,6 @@ bool D3D11Renderer::Init() {
 	m_screenViewpot.MinDepth = 0.0f;
 	m_screenViewpot.MaxDepth = 1.0f;
 
-	
-	mesh = new MeshRenderer(1);
-	mesh2 = new MeshRenderer(0);
-	mesh3 = new MeshRenderer(3);
-
 	DirectionalLight* dLight = new DirectionalLight();
 	dLight->intensity = XMFLOAT4(1, 1, 1, 1);
 	dLight->direction = MatrixHelper::NormalizeFloat3(XMFLOAT3(-0.5, -2, 1));
@@ -186,7 +178,7 @@ void D3D11Renderer::Draw() {
 
 
 		m_d3d11DeviceContext->RSSetState(0);
- 		StdMeshEffect* activeFX = (StdMeshEffect*)(EffectsManager::Instance()->m_effects[0]);
+		StdMeshEffect* activeFX = EffectsManager::Instance()->m_stdMeshEffect;
 		D3D11Renderer::Instance()->GetD3DContext()->IASetInputLayout(activeFX->GetInputLayout());
 		D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		DirectionalLight* d = LightManager::Instance()->m_dirLights[0];
