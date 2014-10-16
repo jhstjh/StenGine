@@ -20,6 +20,8 @@ public:
 	void RotateAroundY(float radius);
 	void AddComponent(Component* c);
 	XMFLOAT4X4* GetWorldTransform() { return &m_worldTransform; }
+
+	virtual void Update();
 };
 
 

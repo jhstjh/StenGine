@@ -98,6 +98,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 				SetWindowText(hMainWnd, outs.str().c_str());
 				elaspedFrame = 0;
 			}
+			//box1->Update();
 			D3D11Renderer::Instance()->Draw();
 			elaspedFrame++;
 		}

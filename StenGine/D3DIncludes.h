@@ -3,6 +3,7 @@
 
 #include <d3dx11.h>
 #include "d3dx11Effect.h"
+#include "Timer.h"
 #include <xnamath.h>
 #include <dxerr.h>
 #include <assert.h>
