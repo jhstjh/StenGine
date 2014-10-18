@@ -6,9 +6,10 @@
 cbuffer cbPerObject
 {
     float4x4 gWorldViewProj;            // Offset:    0, size:   64
-    float4x4 gWorld;                    // Offset:   64, size:   64
-    Material gMaterial;                 // Offset:  128, size:   48
-    float4x4 gShadowTransform;          // Offset:  176, size:   64
+    float4x4 gWorldInvTranspose;        // Offset:   64, size:   64
+    float4x4 gWorld;                    // Offset:  128, size:   64
+    Material gMaterial;                 // Offset:  192, size:   48
+    float4x4 gShadowTransform;          // Offset:  240, size:   64
 }
 
 cbuffer cbPerFrame
@@ -61,17 +62,18 @@ fxgroup
                 // {
                 //
                 //   float4x4 gWorldViewProj;           // Offset:    0 Size:    64
-                //   float4x4 gWorld;                   // Offset:   64 Size:    64
+                //   float4x4 gWorldInvTranspose;       // Offset:   64 Size:    64
+                //   float4x4 gWorld;                   // Offset:  128 Size:    64
                 //   
                 //   struct Material
                 //   {
                 //       
-                //       float4 ambient;                // Offset:  128
-                //       float4 diffuse;                // Offset:  144
-                //       float4 specular;               // Offset:  160
+                //       float4 ambient;                // Offset:  192
+                //       float4 diffuse;                // Offset:  208
+                //       float4 specular;               // Offset:  224
                 //
-                //   } gMaterial;                       // Offset:  128 Size:    48 [unused]
-                //   float4x4 gShadowTransform;         // Offset:  176 Size:    64
+                //   } gMaterial;                       // Offset:  192 Size:    48 [unused]
+                //   float4x4 gShadowTransform;         // Offset:  240 Size:    64
                 //
                 // }
                 //
@@ -105,7 +107,7 @@ fxgroup
                 //
                 vs_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer cb0[15], immediateIndexed
+                dcl_constantbuffer cb0[19], immediateIndexed
                 dcl_input v0.xyz
                 dcl_input v1.xyz
                 dcl_input v2.xy
@@ -126,29 +128,31 @@ fxgroup
                 //   o1.x <- <VertShader return value>.PosW.x; o1.y <- <VertShader return value>.PosW.y; o1.z <- <VertShader return value>.PosW.z; 
                 //   o0.x <- <VertShader return value>.PosH.x; o0.y <- <VertShader return value>.PosH.y; o0.z <- <VertShader return value>.PosH.z; o0.w <- <VertShader return value>.PosH.w
                 //
-                #line 72 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
+                #line 73 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
                 mov r0.xyz, v0.xyzx
                 mov r0.w, l(1.000000)
                 dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- vout.PosH.x
                 dp4 r1.y, r0.xyzw, cb0[1].xyzw  // r1.y <- vout.PosH.y
                 dp4 r1.z, r0.xyzw, cb0[2].xyzw  // r1.z <- vout.PosH.z
                 dp4 r1.w, r0.xyzw, cb0[3].xyzw  // r1.w <- vout.PosH.w
-                mov r2.xyz, v1.xyzx  // r2.x <- vout.NormalW.x; r2.y <- vout.NormalW.y; r2.z <- vout.NormalW.z
-                dp4 r3.x, r0.xyzw, cb0[4].xyzw  // r3.x <- vout.PosW.x
-                dp4 r3.y, r0.xyzw, cb0[5].xyzw  // r3.y <- vout.PosW.y
-                dp4 r3.z, r0.xyzw, cb0[6].xyzw  // r3.z <- vout.PosW.z
+                dp3 r2.x, v1.xyzx, cb0[4].xyzx  // r2.x <- vout.NormalW.x
+                dp3 r2.y, v1.xyzx, cb0[5].xyzx  // r2.y <- vout.NormalW.y
+                dp3 r2.z, v1.xyzx, cb0[6].xyzx  // r2.z <- vout.NormalW.z
+                dp4 r3.x, r0.xyzw, cb0[8].xyzw  // r3.x <- vout.PosW.x
+                dp4 r3.y, r0.xyzw, cb0[9].xyzw  // r3.y <- vout.PosW.y
+                dp4 r3.z, r0.xyzw, cb0[10].xyzw  // r3.z <- vout.PosW.z
                 mov r4.xy, v2.xyxx  // r4.x <- vout.TexUV.x; r4.y <- vout.TexUV.y
-                dp4 r5.x, r0.xyzw, cb0[11].xyzw  // r5.x <- vout.ShadowPosH.x
-                dp4 r5.y, r0.xyzw, cb0[12].xyzw  // r5.y <- vout.ShadowPosH.y
-                dp4 r5.z, r0.xyzw, cb0[13].xyzw  // r5.z <- vout.ShadowPosH.z
-                dp4 r5.w, r0.xyzw, cb0[14].xyzw  // r5.w <- vout.ShadowPosH.w
+                dp4 r5.x, r0.xyzw, cb0[15].xyzw  // r5.x <- vout.ShadowPosH.x
+                dp4 r5.y, r0.xyzw, cb0[16].xyzw  // r5.y <- vout.ShadowPosH.y
+                dp4 r5.z, r0.xyzw, cb0[17].xyzw  // r5.z <- vout.ShadowPosH.z
+                dp4 r5.w, r0.xyzw, cb0[18].xyzw  // r5.w <- vout.ShadowPosH.w
                 mov o0.xyzw, r1.xyzw
                 mov o4.xyzw, r5.xyzw
                 mov o1.xyz, r3.xyzx
                 mov o2.xyz, r2.xyzx
                 mov o3.xy, r4.xyxx
                 ret 
-                // Approximately 21 instruction slots used
+                // Approximately 23 instruction slots used
                             
             };
             GeometryShader = NULL;
@@ -157,15 +161,23 @@ fxgroup
                 // Generated by Microsoft (R) HLSL Shader Compiler 6.3.9600.16384
                 //
                 //
+                // Resource Bindings:
+                //
+                // Name                                 Type  Format         Dim Slot Elements
+                // ------------------------------ ---------- ------- ----------- ---- --------
+                // samAnisotropic                    sampler      NA          NA    0        1
+                // gDiffuseMap                       texture  float4          2d    0        1
+                //
+                //
                 //
                 // Input signature:
                 //
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
-                // SV_POSITION              0   xyzw        0      POS   float       
+                // SV_POSITION              0   xyzw        0      POS   float   xyzw
                 // POSITION                 0   xyz         1     NONE   float       
-                // NORMAL                   0   xyz         2     NONE   float       
-                // TEXCOORD                 0   xy          3     NONE   float       
+                // NORMAL                   0   xyz         2     NONE   float   xyz 
+                // TEXCOORD                 0   xy          3     NONE   float   xy  
                 // TEXCOORD                 1   xyzw        4     NONE   float       
                 //
                 //
@@ -179,6 +191,11 @@ fxgroup
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
+                dcl_sampler s0, mode_default
+                dcl_resource_texture2d (float,float,float,float) t0
+                dcl_input_ps_siv linear noperspective v0.xyzw, position
+                dcl_input_ps linear v2.xyz
+                dcl_input_ps linear v3.xy
                 dcl_output o0.xyzw
                 dcl_output o1.xyzw
                 dcl_output o2.xyzw
@@ -194,15 +211,16 @@ fxgroup
                 //   o1.x <- <PixShader return value>.positionH.x; o1.y <- <PixShader return value>.positionH.y; o1.z <- <PixShader return value>.positionH.z; o1.w <- <PixShader return value>.positionH.w; 
                 //   o0.x <- <PixShader return value>.diffuseH.x; o0.y <- <PixShader return value>.diffuseH.y; o0.z <- <PixShader return value>.diffuseH.z; o0.w <- <PixShader return value>.diffuseH.w
                 //
-                #line 84 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
-                itof r0.xyzw, l(1, 0, 0, 0)  // r0.x <- pout.diffuseH.x; r0.y <- pout.diffuseH.y; r0.z <- pout.diffuseH.z; r0.w <- pout.diffuseH.w
-                itof r1.xyzw, l(0, 1, 0, 0)  // r1.x <- pout.positionH.x; r1.y <- pout.positionH.y; r1.z <- pout.positionH.z; r1.w <- pout.positionH.w
-                itof r2.xyzw, l(0, 0, 1, 0)  // r2.x <- pout.normalW.x; r2.y <- pout.normalW.y; r2.z <- pout.normalW.z; r2.w <- pout.normalW.w
+                #line 86 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
+                sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v3.xyxx, t0.xyzw, s0  // r0.x <- pout.diffuseH.x; r0.y <- pout.diffuseH.y; r0.z <- pout.diffuseH.z; r0.w <- pout.diffuseH.w
+                mov r1.xyzw, v0.xyzw  // r1.x <- pout.positionH.x; r1.y <- pout.positionH.y; r1.z <- pout.positionH.z; r1.w <- pout.positionH.w
+                itof r2.w, l(0)  // r2.w <- pout.normalW.w
+                mov r2.xyz, v2.xyzx  // r2.x <- pout.normalW.x; r2.y <- pout.normalW.y; r2.z <- pout.normalW.z
                 mov o0.xyzw, r0.xyzw
                 mov o1.xyzw, r1.xyzw
                 mov o2.xyzw, r2.xyzw
                 ret 
-                // Approximately 7 instruction slots used
+                // Approximately 8 instruction slots used
                             
             };
         }

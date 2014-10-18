@@ -97,6 +97,7 @@ DeferredShaderEffect::DeferredShaderEffect(const std::wstring& filename)
 {
 	DeferredShaderTech = m_fx->GetTechniqueByName("DeferredShaderTech");
 	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
+	WorldInvTranspose = m_fx->GetVariableByName("gWorldInvTranspose")->AsMatrix();
 	ShadowTransform = m_fx->GetVariableByName("gShadowTransform")->AsMatrix();
 	World = m_fx->GetVariableByName("gWorld")->AsMatrix();
 	//DirLight = m_fx->GetVariableByName("gDirLight");
@@ -134,6 +135,12 @@ ScreenQuadEffect::ScreenQuadEffect(const std::wstring& filename)
 {
 	FullScreenQuadTech = m_fx->GetTechniqueByName("t0");
 	ScreenMap = m_fx->GetVariableByName("gScreenMap")->AsShaderResource();
+	DiffuseGB = m_fx->GetVariableByName("gDiffuseGB")->AsShaderResource();
+	PositionGB = m_fx->GetVariableByName("gPositionGB")->AsShaderResource();
+	NormalGB = m_fx->GetVariableByName("gNormalGB")->AsShaderResource();
+	DirLight = m_fx->GetVariableByName("gDirLight");
+	//Mat = m_fx->GetVariableByName("gMaterial");
+	EyePosW = m_fx->GetVariableByName("gEyePosW")->AsVector();
 
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{

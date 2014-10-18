@@ -273,7 +273,7 @@ void D3D11Renderer::Draw() {
 		activeFX->EyePosW->SetRawValue(&pos, 0, 3 * sizeof(float));
 
 		for (int iMesh = 0; iMesh < activeFX->m_associatedMeshes.size(); iMesh++ ) {
-			//activeFX->m_associatedMeshes[iMesh]->Draw();
+			activeFX->m_associatedMeshes[iMesh]->Draw();
 		}
 #else
 
@@ -313,10 +313,18 @@ void D3D11Renderer::Draw() {
 	ID3DX11EffectTechnique* screenQuadTech = EffectsManager::Instance()->m_screenQuadEffect->GetActiveTech();
 	m_d3d11DeviceContext->IASetInputLayout(NULL);
 	screenQuadTech->GetDesc(&techDesc);
+
+	EffectsManager::Instance()->m_screenQuadEffect->DirLight->SetRawValue(LightManager::Instance()->m_dirLights[0], 0, sizeof(DirectionalLight));
+
+	XMFLOAT4 camPos = CameraManager::Instance()->GetActiveCamera()->GetPos();
+	EffectsManager::Instance()->m_screenQuadEffect->EyePosW->SetRawValue(&camPos, 0, 3 * sizeof(float));
+
 	for (UINT p = 0; p < techDesc.Passes; ++p)
 	{
 
-		EffectsManager::Instance()->m_screenQuadEffect->ScreenMap->SetResource(m_diffuseBufferSRV);
+		EffectsManager::Instance()->m_screenQuadEffect->DiffuseGB->SetResource(m_diffuseBufferSRV);
+		EffectsManager::Instance()->m_screenQuadEffect->PositionGB->SetResource(m_positionBufferSRV);
+		EffectsManager::Instance()->m_screenQuadEffect->NormalGB->SetResource(m_normalBufferSRV);
 
 		screenQuadTech->GetPassByIndex(p)->Apply(0, m_d3d11DeviceContext);
 		m_d3d11DeviceContext->Draw(6, 0);

@@ -1,7 +1,13 @@
-// struct VSIn
-// {
-// 	uint vertexId : SV_VertexID;
-// };
+struct DirectionalLight {
+	float4 intensity;
+	float3 direction;
+	float pad;
+};
+
+cbuffer cbPerFrame {
+	DirectionalLight gDirLight;
+	float3 gEyePosW;
+};
 
 struct VSOut
 {
@@ -19,6 +25,10 @@ SamplerState samAnisotropic
 };
 
 Texture2D gScreenMap;
+
+Texture2D gDiffuseGB;
+Texture2D gPositionGB;
+Texture2D gNormalGB;
 
 VSOut VSmain(uint vertexId : SV_VertexID)
 {
@@ -66,11 +76,24 @@ float4 PSmain(PSIn input) : SV_Target
 	// 	PSOut output;
 	// 
 	// 	output.color = color;
-	return gScreenMap.Sample(samAnisotropic, input.Tex);
+	float4 diffuseColor = gDiffuseGB.Sample(samAnisotropic, input.Tex);
+	float3 normalW = gNormalGB.Sample(samAnisotropic, input.Tex).xyz;
+	float diffuseK = dot(-gDirLight.direction, normalW);
+	return diffuseColor * diffuseK;
 }
 
 
 technique11 t0
+{
+	pass p0
+	{
+		SetVertexShader(CompileShader(vs_5_0, VSmain()));
+		SetGeometryShader(NULL);
+		SetPixelShader(CompileShader(ps_5_0, PSmain()));
+	}
+}
+
+technique11 DeferredLightingTech
 {
 	pass p0
 	{

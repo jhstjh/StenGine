@@ -5,6 +5,19 @@
 #include "CameraManager.h"
 #include "LightManager.h"
 
+
+XMMATRIX InverseTranspose(CXMMATRIX M)
+{
+	// Inverse-transpose is just applied to normals.  So zero out 
+	// translation row so that it doesn't get into our inverse-transpose
+	// calculation--we don't want the inverse-transpose of the translation.
+	XMMATRIX A = M;
+	A.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+
+	XMVECTOR det = XMMatrixDeterminant(A);
+	return XMMatrixTranspose(XMMatrixInverse(&det, A));
+}
+
 MeshRenderer::MeshRenderer(int type = 0):
 m_indexBufferCPU(0),
 m_stdMeshVertexBufferGPU(0),
@@ -372,6 +385,9 @@ void MeshRenderer::Draw() {
 		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parent->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
 		EffectsManager::Instance()->m_deferredShaderEffect->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
 		EffectsManager::Instance()->m_deferredShaderEffect->World->SetMatrix(reinterpret_cast<float*>(m_parent->GetWorldTransform()));
+		XMMATRIX worldInvTranspose = InverseTranspose(XMLoadFloat4x4(m_parent->GetWorldTransform()));
+		EffectsManager::Instance()->m_deferredShaderEffect->WorldInvTranspose->SetMatrix(reinterpret_cast<float*>(&worldInvTranspose));
+
 
 		XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(m_parent->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
 		EffectsManager::Instance()->m_deferredShaderEffect->ShadowTransform->SetMatrix(reinterpret_cast<float*>(&worldShadowMapTransform));

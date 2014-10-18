@@ -50,6 +50,7 @@ public:
 
 	ID3DX11EffectTechnique* DeferredShaderTech;
 	ID3DX11EffectMatrixVariable* WorldViewProj;
+	ID3DX11EffectMatrixVariable* WorldInvTranspose;
 	ID3DX11EffectMatrixVariable* World;
 	ID3DX11EffectMatrixVariable* ShadowTransform;
 	//ID3DX11EffectVariable* DirLight;
@@ -82,7 +83,14 @@ public:
 	~ScreenQuadEffect();
 
 	ID3DX11EffectTechnique* FullScreenQuadTech;
+	ID3DX11EffectTechnique* DeferredLightingTech;
 	ID3DX11EffectShaderResourceVariable* ScreenMap;
+	ID3DX11EffectShaderResourceVariable* DiffuseGB;
+	ID3DX11EffectShaderResourceVariable* PositionGB;
+	ID3DX11EffectShaderResourceVariable* NormalGB;
+	ID3DX11EffectVariable* DirLight;
+	//ID3DX11EffectVariable* Mat;
+	ID3DX11EffectVectorVariable* EyePosW;
 };
 
 

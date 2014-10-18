@@ -12,6 +12,7 @@ struct Material {
 
 cbuffer cbPerObject {
 	float4x4 gWorldViewProj; 
+	float4x4 gWorldInvTranspose;
 	float4x4 gWorld;
 	Material gMaterial;
 	float4x4 gShadowTransform;
@@ -70,7 +71,7 @@ VertexOut VertShader(VertexIn vin)
 	VertexOut vout;
 
 	vout.PosH = mul(float4(vin.PosL, 1.0f), gWorldViewProj);
-	vout.NormalW = vin.NormalL;
+	vout.NormalW = mul(vin.NormalL, gWorldInvTranspose);
 	vout.PosW = mul(float4(vin.PosL, 1.0f), gWorld);
 	vout.TexUV = vin.TexUV;
 	vout.ShadowPosH = mul(float4(vin.PosL, 1.0f), gShadowTransform);
@@ -81,9 +82,11 @@ VertexOut VertShader(VertexIn vin)
 PixelOut PixShader(VertexOut pin)
 {
 	PixelOut pout;
-	pout.diffuseH = float4(1, 0, 0, 0);
-	pout.positionH = float4(0, 1, 0, 0);
-	pout.normalW = float4(0, 0, 1, 0);
+
+	pout.diffuseH = gDiffuseMap.Sample(samAnisotropic, pin.TexUV);
+	pout.positionH = pin.PosH;
+	pout.normalW = float4(pin.NormalW, 0);
+
 	return pout;
 }
 
