@@ -94,7 +94,7 @@ PixelOut PixShader(VertexOut pin)
 
 	pout.diffuseH = gDiffuseMap.Sample(samAnisotropic, pin.TexUV) * gMaterial.diffuse;
 	pout.diffuseH.w = shadowLit;
-	pout.positionW = float4(pin.PosW, 1);
+	pout.positionW = float4(pin.PosW, 0);
 	pout.specularH = gMaterial.specular;
 	pout.normalW = float4(pin.NormalW, 0);
 	pout.edgeH = float4(1, 1, 1, 1); // implement edge detection later
@@ -109,5 +109,6 @@ technique11 DeferredShaderTech
 		SetVertexShader(CompileShader(vs_5_0, VertShader()));
 		SetGeometryShader( NULL );
 		SetPixelShader(CompileShader(ps_5_0, PixShader()));
+		SetBlendState(0, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
     }
 }

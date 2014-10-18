@@ -63,7 +63,7 @@ void Camera::OnMouseMove(WPARAM btnState, int x, int y) {
 CameraManager* CameraManager::_instance = nullptr;
 
 CameraManager::CameraManager() {
-	m_debugCamera = new Camera(2.0f, 3.5f, -3.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.25f * 3.14159f, 1.0f, 1000.0f);
+	m_debugCamera = new Camera(2.0f, 5.5f, -5.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.25f * 3.14159f, 1.0f, 1000.0f);
 	m_activeCamera = m_debugCamera;
 }
 

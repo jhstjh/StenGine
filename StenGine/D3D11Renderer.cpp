@@ -292,9 +292,10 @@ void D3D11Renderer::Draw() {
 	m_d3d11DeviceContext->OMSetRenderTargets(5, rtvs, m_deferredRenderDepthStencilView);
 	//m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearRenderTargetView(m_diffuseBufferRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
-	m_d3d11DeviceContext->ClearRenderTargetView(m_positionBufferRTV, reinterpret_cast<const float*>(&Colors::Black));
+	m_d3d11DeviceContext->ClearRenderTargetView(m_positionBufferRTV, reinterpret_cast<const float*>(&Colors::White));
 	m_d3d11DeviceContext->ClearRenderTargetView(m_normalBufferRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearRenderTargetView(m_specularBufferRTV, reinterpret_cast<const float*>(&Colors::Black));
+	m_d3d11DeviceContext->ClearRenderTargetView(m_edgeBufferRTV, reinterpret_cast<const float*>(&Colors::Black));
 	m_d3d11DeviceContext->ClearDepthStencilView(m_deferredRenderDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		m_d3d11DeviceContext->RSSetState(0);
@@ -308,13 +309,13 @@ void D3D11Renderer::Draw() {
 		XMFLOAT4 pos = CameraManager::Instance()->GetActiveCamera()->GetPos();
 		activeFX->EyePosW->SetRawValue(&pos, 0, 3 * sizeof(float));
 
-		for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_stdMeshEffect->m_associatedMeshes.size(); iMesh++) {
-			EffectsManager::Instance()->m_stdMeshEffect->m_associatedMeshes[iMesh]->Draw();
+		for (int iMesh = 0; iMesh < activeFX->m_associatedMeshes.size(); iMesh++) {
+			activeFX->m_associatedMeshes[iMesh]->Draw();
 		}
 
 
-	//m_d3d11DeviceContext->RSSetState(0);
-	//m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
+	//-------------- composite deferred render target views -------------------//
+
 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
 	m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
@@ -331,14 +332,13 @@ void D3D11Renderer::Draw() {
 	XMFLOAT4 camPos = CameraManager::Instance()->GetActiveCamera()->GetPos();
 	EffectsManager::Instance()->m_screenQuadEffect->EyePosW->SetRawValue(&camPos, 0, 3 * sizeof(float));
 
+	EffectsManager::Instance()->m_screenQuadEffect->DiffuseGB->SetResource(m_diffuseBufferSRV);
+	EffectsManager::Instance()->m_screenQuadEffect->PositionGB->SetResource(m_positionBufferSRV);
+	EffectsManager::Instance()->m_screenQuadEffect->NormalGB->SetResource(m_normalBufferSRV);
+	EffectsManager::Instance()->m_screenQuadEffect->SpecularGB->SetResource(m_specularBufferSRV);
+
 	for (UINT p = 0; p < techDesc.Passes; ++p)
 	{
-
-		EffectsManager::Instance()->m_screenQuadEffect->DiffuseGB->SetResource(m_diffuseBufferSRV);
-		EffectsManager::Instance()->m_screenQuadEffect->PositionGB->SetResource(m_positionBufferSRV);
-		EffectsManager::Instance()->m_screenQuadEffect->NormalGB->SetResource(m_normalBufferSRV);
-		EffectsManager::Instance()->m_screenQuadEffect->SpecularGB->SetResource(m_specularBufferSRV);
-
 		screenQuadTech->GetPassByIndex(p)->Apply(0, m_d3d11DeviceContext);
 		m_d3d11DeviceContext->Draw(6, 0);
 	}
@@ -347,6 +347,39 @@ void D3D11Renderer::Draw() {
 	m_d3d11DeviceContext->RSSetState(0);
 	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
 
+#if 0
+	//--------------------Post processing----------------------//
+	//m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::Black));
+	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	ID3DX11EffectTechnique* godRayTech = EffectsManager::Instance()->m_godrayEffect->GetActiveTech();
+	m_d3d11DeviceContext->IASetInputLayout(NULL);
+	godRayTech->GetDesc(&techDesc);
+
+	XMFLOAT3 lightDir = LightManager::Instance()->m_dirLights[0]->direction;
+	XMVECTOR lightPos = -20 * XMLoadFloat3(&lightDir);
+	XMVECTOR lightPosH = XMVector3Transform(lightPos, CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+	XMFLOAT4 lightPosHf;
+	XMStoreFloat4(&lightPosHf, lightPosH);
+	lightPosHf.x /= lightPosHf.w;
+	lightPosHf.x = 0.5 + lightPosHf.x / 2;
+	lightPosHf.y /= lightPosHf.w;
+	lightPosHf.y = 1 - (0.5f + lightPosHf.y / 2.0f);
+	lightPosHf.z /= lightPosHf.w;
+
+	EffectsManager::Instance()->m_godrayEffect->LightPosH->SetRawValue(&lightPosHf, 0, 3 * sizeof(float));
+	EffectsManager::Instance()->m_godrayEffect->OcclusionMap->SetResource(m_positionBufferSRV);
+
+	for (UINT p = 0; p < techDesc.Passes; ++p)
+	{
+		godRayTech->GetPassByIndex(p)->Apply(0, m_d3d11DeviceContext);
+		m_d3d11DeviceContext->Draw(6, 0);
+	}
+
+
+	m_d3d11DeviceContext->RSSetState(0);
+	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
+
+#endif
 
 #endif
 

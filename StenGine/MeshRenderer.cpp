@@ -306,6 +306,10 @@ void MeshRenderer::PrepareGPUBuffer() {
 
 	m_associatedEffect = EffectsManager::Instance()->m_stdMeshEffect;
 	m_associatedEffect->m_associatedMeshes.push_back(this);
+#if !FORWARD
+	m_associatedDeferredEffect = EffectsManager::Instance()->m_deferredShaderEffect;
+	m_associatedDeferredEffect->m_associatedMeshes.push_back(this);
+#endif
 }
 
 void MeshRenderer::PrepareShadowMapBuffer() {
@@ -379,25 +383,25 @@ void MeshRenderer::Draw() {
 		}
  	}
 #else
-	ID3DX11EffectTechnique* tech = EffectsManager::Instance()->m_deferredShaderEffect->GetActiveTech();
+	ID3DX11EffectTechnique* tech = m_associatedDeferredEffect->GetActiveTech();
 		UINT stride = sizeof(Vertex::StdMeshVertex);
 		UINT offset = 0;
 		D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
 		D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
-		EffectsManager::Instance()->m_deferredShaderEffect->Mat->SetRawValue(&m_material, 0, sizeof(Material));
-		EffectsManager::Instance()->m_deferredShaderEffect->DiffuseMap->SetResource(m_diffuseMapSRV);
+		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->Mat->SetRawValue(&m_material, 0, sizeof(Material));
+		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->DiffuseMap->SetResource(m_diffuseMapSRV);
 
 
 		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parent->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
-		EffectsManager::Instance()->m_deferredShaderEffect->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
-		EffectsManager::Instance()->m_deferredShaderEffect->World->SetMatrix(reinterpret_cast<float*>(m_parent->GetWorldTransform()));
+		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
+		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->World->SetMatrix(reinterpret_cast<float*>(m_parent->GetWorldTransform()));
 		XMMATRIX worldInvTranspose = InverseTranspose(XMLoadFloat4x4(m_parent->GetWorldTransform()));
-		EffectsManager::Instance()->m_deferredShaderEffect->WorldInvTranspose->SetMatrix(reinterpret_cast<float*>(&worldInvTranspose));
+		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->WorldInvTranspose->SetMatrix(reinterpret_cast<float*>(&worldInvTranspose));
 
 
 		XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(m_parent->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
-		EffectsManager::Instance()->m_deferredShaderEffect->ShadowTransform->SetMatrix(reinterpret_cast<float*>(&worldShadowMapTransform));
+		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->ShadowTransform->SetMatrix(reinterpret_cast<float*>(&worldShadowMapTransform));
 
 		D3DX11_TECHNIQUE_DESC techDesc;
 		tech->GetDesc(&techDesc);

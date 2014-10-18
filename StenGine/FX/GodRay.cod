@@ -5,25 +5,49 @@
 //
 cbuffer cbPerFrame
 {
-    DirectionalLight gDirLight;         // Offset:    0, size:   32
-    float3  gEyePosW;                   // Offset:   32, size:   12
+    float3  gLightPosH;                 // Offset:    0, size:   12
 }
 
 //
-// 6 local object(s)
+// 3 local object(s)
 //
+Texture2D gOcclusionMap;
 SamplerState samAnisotropic
 {
-    Filter   = uint(ANISOTROPIC /* 85 */);
-    MaxAnisotropy = uint(4);
-    AddressU = uint(WRAP /* 1 */);
-    AddressV = uint(WRAP /* 1 */);
+    Filter   = uint(MIN_MAG_POINT_MIP_LINEAR /* 1 */);
+    BorderColor = float4(0, 0, 0, 0);
+    AddressU = uint(BORDER /* 4 */);
+    AddressV = uint(BORDER /* 4 */);
 };
-Texture2D gScreenMap;
-Texture2D gDiffuseGB;
-Texture2D gPositionGB;
-Texture2D gNormalGB;
-Texture2D gSpecularGB;
+BlendState SrcAlphaBlendingAdd
+{
+    BlendEnable[0] = bool(TRUE /* 1 */);
+    SrcBlend[0] = uint(ONE /* 2 */);
+    SrcBlend[1] = uint(ONE /* 2 */);
+    SrcBlend[2] = uint(ONE /* 2 */);
+    SrcBlend[3] = uint(ONE /* 2 */);
+    SrcBlend[4] = uint(ONE /* 2 */);
+    SrcBlend[5] = uint(ONE /* 2 */);
+    SrcBlend[6] = uint(ONE /* 2 */);
+    SrcBlend[7] = uint(ONE /* 2 */);
+    DestBlend[0] = uint(ONE /* 2 */);
+    DestBlend[1] = uint(ONE /* 2 */);
+    DestBlend[2] = uint(ONE /* 2 */);
+    DestBlend[3] = uint(ONE /* 2 */);
+    DestBlend[4] = uint(ONE /* 2 */);
+    DestBlend[5] = uint(ONE /* 2 */);
+    DestBlend[6] = uint(ONE /* 2 */);
+    DestBlend[7] = uint(ONE /* 2 */);
+    BlendOp[0] = uint(ADD /* 1 */);
+    BlendOp[1] = uint(ADD /* 1 */);
+    BlendOp[2] = uint(ADD /* 1 */);
+    BlendOp[3] = uint(ADD /* 1 */);
+    BlendOp[4] = uint(ADD /* 1 */);
+    BlendOp[5] = uint(ADD /* 1 */);
+    BlendOp[6] = uint(ADD /* 1 */);
+    BlendOp[7] = uint(ADD /* 1 */);
+    RenderTargetWriteMask[0] = byte(0x0f);
+};
 
 //
 // 1 groups(s)
@@ -69,16 +93,16 @@ fxgroup
                 //   o1.x <- <VSmain return value>.Tex.x; o1.y <- <VSmain return value>.Tex.y; 
                 //   o0.x <- <VSmain return value>.pos.x; o0.y <- <VSmain return value>.pos.y; o0.z <- <VSmain return value>.pos.z; o0.w <- <VSmain return value>.pos.w
                 //
-                #line 38 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                #line 26 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\GodRay.fx"
                 if_z v0.x
                   mov r0.xyzw, l(-1.000000,-1.000000,0,1.000000)  // r0.x <- output.pos.x; r0.y <- output.pos.y; r0.z <- output.pos.z; r0.w <- output.pos.w
                   itof r1.xy, l(0, 1, 0, 0)  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
                 else 
                 
-                #line 38
+                #line 26
                   mov r1.z, v0.x  // r1.z <- vertexId
                 
-                #line 42
+                #line 30
                   mov r1.w, l(1)
                   ieq r1.w, r1.w, r1.z
                   if_nz r1.w
@@ -97,7 +121,7 @@ fxgroup
                         mov r0.xyzw, l(1.000000,1.000000,0,1.000000)  // r0.x <- output.pos.x; r0.y <- output.pos.y; r0.z <- output.pos.z; r0.w <- output.pos.w
                         itof r1.xy, l(1, 0, 0, 0)  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
                 
-                #line 53
+                #line 41
                       else 
                         mov r1.w, l(4)
                         ieq r1.w, r1.w, r1.z
@@ -133,15 +157,7 @@ fxgroup
                 // cbuffer cbPerFrame
                 // {
                 //
-                //   struct DirectionalLight
-                //   {
-                //       
-                //       float4 intensity;              // Offset:    0
-                //       float3 direction;              // Offset:   16
-                //       float pad;                     // Offset:   28
-                //
-                //   } gDirLight;                       // Offset:    0 Size:    32
-                //   float3 gEyePosW;                   // Offset:   32 Size:    12
+                //   float3 gLightPosH;                 // Offset:    0 Size:    12
                 //
                 // }
                 //
@@ -151,10 +167,7 @@ fxgroup
                 // Name                                 Type  Format         Dim Slot Elements
                 // ------------------------------ ---------- ------- ----------- ---- --------
                 // samAnisotropic                    sampler      NA          NA    0        1
-                // gDiffuseGB                        texture  float4          2d    0        1
-                // gPositionGB                       texture  float4          2d    1        1
-                // gNormalGB                         texture  float4          2d    2        1
-                // gSpecularGB                       texture  float4          2d    3        1
+                // gOcclusionMap                     texture  float4          2d    0        1
                 // cbPerFrame                        cbuffer      NA          NA    0        1
                 //
                 //
@@ -175,12 +188,9 @@ fxgroup
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer cb0[3], immediateIndexed
+                dcl_constantbuffer cb0[1], immediateIndexed
                 dcl_sampler s0, mode_default
                 dcl_resource_texture2d (float,float,float,float) t0
-                dcl_resource_texture2d (float,float,float,float) t1
-                dcl_resource_texture2d (float,float,float,float) t2
-                dcl_resource_texture2d (float,float,float,float) t3
                 dcl_input_ps linear v1.xy
                 dcl_output o0.xyzw
                 dcl_temps 5
@@ -190,70 +200,61 @@ fxgroup
                 //   v1.x <- input.Tex.x; v1.y <- input.Tex.y; 
                 //   o0.x <- <PSmain return value>.x; o0.y <- <PSmain return value>.y; o0.z <- <PSmain return value>.z; o0.w <- <PSmain return value>.w
                 //
-                #line 78 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
-                itof r0.x, l(1)
-                sample_indexable(texture2d)(float,float,float,float) r0.y, v1.xyxx, t1.xwyz, s0
-                mov r0.y, -r0.y
-                add r0.x, r0.y, r0.x
-                mov r0.y, l(-0.100000)
-                add r0.x, r0.y, r0.x
-                lt r0.x, r0.x, l(0.000000)
-                and r0.x, r0.x, l(-1)
-                discard_nz r0.x
+                #line 62 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\GodRay.fx"
+                mov r0.x, l(400)  // r0.x <- NUM_SAMPLES
                 
-                #line 81
-                itof r0.xyzw, l(0, 0, 0, 0)  // r0.x <- diffColor.x; r0.y <- diffColor.y; r0.z <- diffColor.z; r0.w <- diffColor.w
-                itof r1.xyzw, l(0, 0, 0, 0)  // r1.x <- specColor.x; r1.y <- specColor.y; r1.z <- specColor.z; r1.w <- specColor.w
-                sample_indexable(texture2d)(float,float,float,float) r2.xyz, v1.xyxx, t2.xyzw, s0
-                mov r2.xyz, r2.xyzx  // r2.x <- normalW.x; r2.y <- normalW.y; r2.z <- normalW.z
-                mov r3.xyz, -cb0[1].xyzx
-                dp3 r2.w, r3.xyzx, r2.xyzx  // r2.w <- diffuseK
-                sample_indexable(texture2d)(float,float,float,float) r3.x, v1.xyxx, t0.wxyz, s0
-                mov r3.x, r3.x  // r3.x <- shadowLit
-                itof r3.y, l(0)
-                lt r3.y, r3.y, r2.w
-                if_nz r3.y
-                  mul r4.xyzw, r2.wwww, cb0[0].xyzw
-                  add r0.xyzw, r0.xyzw, r4.xyzw
-                  dp3 r2.w, cb0[1].xyzx, r2.xyzx
-                  add r2.w, r2.w, r2.w
-                  mov r2.w, -r2.w
-                  mul r2.xyz, r2.wwww, r2.xyzx
-                  add r2.xyz, r2.xyzx, cb0[1].xyzx  // r2.x <- refLight.x; r2.y <- refLight.y; r2.z <- refLight.z
-                  sample_indexable(texture2d)(float,float,float,float) r3.yzw, v1.xyxx, t1.wxyz, s0
-                  mov r3.yzw, -r3.yyzw
-                  add r3.yzw, r3.yyzw, cb0[2].xxyz  // r3.y <- viewRay.x; r3.z <- viewRay.y; r3.w <- viewRay.z
+                #line 66
+                itof r0.y, l(1)  // r0.y <- Density
+                mov r0.z, l(0.900000)  // r0.z <- Decay
+                mov r0.w, l(0.100000)  // r0.w <- Exposure
+                mov r1.x, l(0.500000)  // r1.x <- Weight
                 
-                #line 92
-                  dp3 r2.w, r3.yzwy, r3.yzwy
-                  rsq r2.w, r2.w
-                  mul r3.yzw, r2.wwww, r3.yyzw
-                  sample_indexable(texture2d)(float,float,float,float) r4.xyzw, v1.xyxx, t3.xyzw, s0
-                  dp3 r2.x, r2.xyzx, r3.yzwy
-                  itof r2.y, l(0)
-                  max r2.x, r2.y, r2.x
-                  sample_indexable(texture2d)(float,float,float,float) r2.y, v1.xyxx, t3.xwyz, s0
-                  log r2.x, r2.x
-                  mul r2.x, r2.x, r2.y
-                  exp r2.x, r2.x
-                  mul r2.xyzw, r2.xxxx, r4.xyzw
-                  add r1.xyzw, r1.xyzw, r2.xyzw
-                endif 
-                itof r2.w, l(0)
-                mul r0.xyzw, r3.xxxx, r0.xyzw
-                mov r2.xyz, l(0.200000,0.200000,0.200000,0)
-                add r0.xyzw, r0.xyzw, r2.xyzw
-                sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t0.xyzw, s0
-                mul r0.xyzw, r0.xyzw, r2.xyzw
-                mul r1.xyzw, r3.xxxx, r1.xyzw
-                add o0.xyzw, r0.xyzw, r1.xyzw
+                #line 93
+                mov r1.yz, v1.xxyx  // r1.y <- texCoord.x; r1.z <- texCoord.y
+                
+                #line 96
+                mov r2.xy, -cb0[0].xyxx
+                add r2.xy, r1.yzyy, r2.xyxx  // r2.x <- deltaTexCoord.x; r2.y <- deltaTexCoord.y
+                mul r0.y, r0.y, l(0.002500)
+                mul r2.xy, r0.yyyy, r2.xyxx
+                itof r0.y, l(0)  // r0.y <- color
+                
+                #line 104
+                mov r1.w, l(1.000000)  // r1.w <- illuminationDecay
+                mov r2.z, l(0)  // r2.z <- i
+                mov r3.xy, r1.yzyy  // r3.x <- texCoord.x; r3.y <- texCoord.y
+                mov r2.w, r0.y  // r2.w <- color
+                mov r3.z, r1.w  // r3.z <- illuminationDecay
+                mov r3.w, r2.z  // r3.w <- i
+                loop 
+                  ilt r4.x, r3.w, r0.x
+                  breakc_z r4.x
+                
+                #line 109
+                  mov r4.xy, r2.xyxx
+                  mov r4.xy, -r4.xyxx
+                  add r3.xy, r3.xyxx, r4.xyxx
+                  sample_indexable(texture2d)(float,float,float,float) r4.x, r3.xyxx, t0.wxyz, s0
+                  mov r4.x, r4.x  // r4.x <- sample
+                  mul r4.y, r1.x, r3.z
+                  mul r4.x, r4.y, r4.x
+                  add r2.w, r2.w, r4.x
+                  mul r3.z, r0.z, r3.z
+                  iadd r3.w, r3.w, l(1)
+                endloop 
+                
+                #line 121
+                mul o0.x, r0.w, r2.w
+                mul o0.y, r0.w, r2.w
+                mul o0.z, r0.w, r2.w
+                itof o0.w, l(1)
                 ret 
-                // Approximately 53 instruction slots used
+                // Approximately 36 instruction slots used
                             
             };
             AB_BlendFactor = float4(0, 0, 0, 0);
             AB_SampleMask = uint(0xffffffff);
-            BlendState = NULL;
+            BlendState = SrcAlphaBlendingAdd;
         }
 
     }
@@ -294,16 +295,16 @@ fxgroup
                 //   o1.x <- <VSmain return value>.Tex.x; o1.y <- <VSmain return value>.Tex.y; 
                 //   o0.x <- <VSmain return value>.pos.x; o0.y <- <VSmain return value>.pos.y; o0.z <- <VSmain return value>.pos.z; o0.w <- <VSmain return value>.pos.w
                 //
-                #line 38 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                #line 26 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\GodRay.fx"
                 if_z v0.x
                   mov r0.xyzw, l(-1.000000,-1.000000,0,1.000000)  // r0.x <- output.pos.x; r0.y <- output.pos.y; r0.z <- output.pos.z; r0.w <- output.pos.w
                   itof r1.xy, l(0, 1, 0, 0)  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
                 else 
                 
-                #line 38
+                #line 26
                   mov r1.z, v0.x  // r1.z <- vertexId
                 
-                #line 42
+                #line 30
                   mov r1.w, l(1)
                   ieq r1.w, r1.w, r1.z
                   if_nz r1.w
@@ -322,7 +323,7 @@ fxgroup
                         mov r0.xyzw, l(1.000000,1.000000,0,1.000000)  // r0.x <- output.pos.x; r0.y <- output.pos.y; r0.z <- output.pos.z; r0.w <- output.pos.w
                         itof r1.xy, l(1, 0, 0, 0)  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
                 
-                #line 53
+                #line 41
                       else 
                         mov r1.w, l(4)
                         ieq r1.w, r1.w, r1.z
@@ -358,15 +359,7 @@ fxgroup
                 // cbuffer cbPerFrame
                 // {
                 //
-                //   struct DirectionalLight
-                //   {
-                //       
-                //       float4 intensity;              // Offset:    0
-                //       float3 direction;              // Offset:   16
-                //       float pad;                     // Offset:   28
-                //
-                //   } gDirLight;                       // Offset:    0 Size:    32
-                //   float3 gEyePosW;                   // Offset:   32 Size:    12
+                //   float3 gLightPosH;                 // Offset:    0 Size:    12
                 //
                 // }
                 //
@@ -376,10 +369,7 @@ fxgroup
                 // Name                                 Type  Format         Dim Slot Elements
                 // ------------------------------ ---------- ------- ----------- ---- --------
                 // samAnisotropic                    sampler      NA          NA    0        1
-                // gDiffuseGB                        texture  float4          2d    0        1
-                // gPositionGB                       texture  float4          2d    1        1
-                // gNormalGB                         texture  float4          2d    2        1
-                // gSpecularGB                       texture  float4          2d    3        1
+                // gOcclusionMap                     texture  float4          2d    0        1
                 // cbPerFrame                        cbuffer      NA          NA    0        1
                 //
                 //
@@ -400,12 +390,9 @@ fxgroup
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer cb0[3], immediateIndexed
+                dcl_constantbuffer cb0[1], immediateIndexed
                 dcl_sampler s0, mode_default
                 dcl_resource_texture2d (float,float,float,float) t0
-                dcl_resource_texture2d (float,float,float,float) t1
-                dcl_resource_texture2d (float,float,float,float) t2
-                dcl_resource_texture2d (float,float,float,float) t3
                 dcl_input_ps linear v1.xy
                 dcl_output o0.xyzw
                 dcl_temps 5
@@ -415,65 +402,56 @@ fxgroup
                 //   v1.x <- input.Tex.x; v1.y <- input.Tex.y; 
                 //   o0.x <- <PSmain return value>.x; o0.y <- <PSmain return value>.y; o0.z <- <PSmain return value>.z; o0.w <- <PSmain return value>.w
                 //
-                #line 78 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
-                itof r0.x, l(1)
-                sample_indexable(texture2d)(float,float,float,float) r0.y, v1.xyxx, t1.xwyz, s0
-                mov r0.y, -r0.y
-                add r0.x, r0.y, r0.x
-                mov r0.y, l(-0.100000)
-                add r0.x, r0.y, r0.x
-                lt r0.x, r0.x, l(0.000000)
-                and r0.x, r0.x, l(-1)
-                discard_nz r0.x
+                #line 62 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\GodRay.fx"
+                mov r0.x, l(400)  // r0.x <- NUM_SAMPLES
                 
-                #line 81
-                itof r0.xyzw, l(0, 0, 0, 0)  // r0.x <- diffColor.x; r0.y <- diffColor.y; r0.z <- diffColor.z; r0.w <- diffColor.w
-                itof r1.xyzw, l(0, 0, 0, 0)  // r1.x <- specColor.x; r1.y <- specColor.y; r1.z <- specColor.z; r1.w <- specColor.w
-                sample_indexable(texture2d)(float,float,float,float) r2.xyz, v1.xyxx, t2.xyzw, s0
-                mov r2.xyz, r2.xyzx  // r2.x <- normalW.x; r2.y <- normalW.y; r2.z <- normalW.z
-                mov r3.xyz, -cb0[1].xyzx
-                dp3 r2.w, r3.xyzx, r2.xyzx  // r2.w <- diffuseK
-                sample_indexable(texture2d)(float,float,float,float) r3.x, v1.xyxx, t0.wxyz, s0
-                mov r3.x, r3.x  // r3.x <- shadowLit
-                itof r3.y, l(0)
-                lt r3.y, r3.y, r2.w
-                if_nz r3.y
-                  mul r4.xyzw, r2.wwww, cb0[0].xyzw
-                  add r0.xyzw, r0.xyzw, r4.xyzw
-                  dp3 r2.w, cb0[1].xyzx, r2.xyzx
-                  add r2.w, r2.w, r2.w
-                  mov r2.w, -r2.w
-                  mul r2.xyz, r2.wwww, r2.xyzx
-                  add r2.xyz, r2.xyzx, cb0[1].xyzx  // r2.x <- refLight.x; r2.y <- refLight.y; r2.z <- refLight.z
-                  sample_indexable(texture2d)(float,float,float,float) r3.yzw, v1.xyxx, t1.wxyz, s0
-                  mov r3.yzw, -r3.yyzw
-                  add r3.yzw, r3.yyzw, cb0[2].xxyz  // r3.y <- viewRay.x; r3.z <- viewRay.y; r3.w <- viewRay.z
+                #line 66
+                itof r0.y, l(1)  // r0.y <- Density
+                mov r0.z, l(0.900000)  // r0.z <- Decay
+                mov r0.w, l(0.100000)  // r0.w <- Exposure
+                mov r1.x, l(0.500000)  // r1.x <- Weight
                 
-                #line 92
-                  dp3 r2.w, r3.yzwy, r3.yzwy
-                  rsq r2.w, r2.w
-                  mul r3.yzw, r2.wwww, r3.yyzw
-                  sample_indexable(texture2d)(float,float,float,float) r4.xyzw, v1.xyxx, t3.xyzw, s0
-                  dp3 r2.x, r2.xyzx, r3.yzwy
-                  itof r2.y, l(0)
-                  max r2.x, r2.y, r2.x
-                  sample_indexable(texture2d)(float,float,float,float) r2.y, v1.xyxx, t3.xwyz, s0
-                  log r2.x, r2.x
-                  mul r2.x, r2.x, r2.y
-                  exp r2.x, r2.x
-                  mul r2.xyzw, r2.xxxx, r4.xyzw
-                  add r1.xyzw, r1.xyzw, r2.xyzw
-                endif 
-                itof r2.w, l(0)
-                mul r0.xyzw, r3.xxxx, r0.xyzw
-                mov r2.xyz, l(0.200000,0.200000,0.200000,0)
-                add r0.xyzw, r0.xyzw, r2.xyzw
-                sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t0.xyzw, s0
-                mul r0.xyzw, r0.xyzw, r2.xyzw
-                mul r1.xyzw, r3.xxxx, r1.xyzw
-                add o0.xyzw, r0.xyzw, r1.xyzw
+                #line 93
+                mov r1.yz, v1.xxyx  // r1.y <- texCoord.x; r1.z <- texCoord.y
+                
+                #line 96
+                mov r2.xy, -cb0[0].xyxx
+                add r2.xy, r1.yzyy, r2.xyxx  // r2.x <- deltaTexCoord.x; r2.y <- deltaTexCoord.y
+                mul r0.y, r0.y, l(0.002500)
+                mul r2.xy, r0.yyyy, r2.xyxx
+                itof r0.y, l(0)  // r0.y <- color
+                
+                #line 104
+                mov r1.w, l(1.000000)  // r1.w <- illuminationDecay
+                mov r2.z, l(0)  // r2.z <- i
+                mov r3.xy, r1.yzyy  // r3.x <- texCoord.x; r3.y <- texCoord.y
+                mov r2.w, r0.y  // r2.w <- color
+                mov r3.z, r1.w  // r3.z <- illuminationDecay
+                mov r3.w, r2.z  // r3.w <- i
+                loop 
+                  ilt r4.x, r3.w, r0.x
+                  breakc_z r4.x
+                
+                #line 109
+                  mov r4.xy, r2.xyxx
+                  mov r4.xy, -r4.xyxx
+                  add r3.xy, r3.xyxx, r4.xyxx
+                  sample_indexable(texture2d)(float,float,float,float) r4.x, r3.xyxx, t0.wxyz, s0
+                  mov r4.x, r4.x  // r4.x <- sample
+                  mul r4.y, r1.x, r3.z
+                  mul r4.x, r4.y, r4.x
+                  add r2.w, r2.w, r4.x
+                  mul r3.z, r0.z, r3.z
+                  iadd r3.w, r3.w, l(1)
+                endloop 
+                
+                #line 121
+                mul o0.x, r0.w, r2.w
+                mul o0.y, r0.w, r2.w
+                mul o0.z, r0.w, r2.w
+                itof o0.w, l(1)
                 ret 
-                // Approximately 53 instruction slots used
+                // Approximately 36 instruction slots used
                             
             };
         }

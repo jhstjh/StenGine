@@ -140,6 +140,9 @@
     <CustomBuild Include="FX\ScreenQuad.fx">
       <Filter>FX</Filter>
     </CustomBuild>
+    <CustomBuild Include="FX\GodRay.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <None Include="Model\ball.obj">

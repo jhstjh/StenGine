@@ -75,7 +75,7 @@ struct PSIn
 float4 PSmain(PSIn input) : SV_Target
 {
 
-	clip(gPositionGB.Sample(samAnisotropic, input.Tex).w - 0.1);
+	clip(1 - gPositionGB.Sample(samAnisotropic, input.Tex).w - 0.1);
 		
 
 	float4 diffColor = float4(0, 0, 0, 0);
@@ -105,6 +105,7 @@ technique11 t0
 		SetVertexShader(CompileShader(vs_5_0, VSmain()));
 		SetGeometryShader(NULL);
 		SetPixelShader(CompileShader(ps_5_0, PSmain()));
+		SetBlendState(0, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
 	}
 }
 

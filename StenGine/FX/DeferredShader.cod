@@ -257,7 +257,7 @@ fxgroup
                 sample_indexable(texture2d)(float,float,float,float) r0.yzw, v3.xyxx, t0.wxyz, s0
                 mul r0.yzw, r0.yyzw, cb0[13].xxyz  // r0.y <- pout.diffuseH.x; r0.z <- pout.diffuseH.y; r0.w <- pout.diffuseH.z
                 mov r0.x, r0.x  // r0.x <- pout.diffuseH.w
-                itof r1.w, l(1)  // r1.w <- pout.positionW.w
+                itof r1.w, l(0)  // r1.w <- pout.positionW.w
                 mov r1.xyz, v1.xyzx  // r1.x <- pout.positionW.x; r1.y <- pout.positionW.y; r1.z <- pout.positionW.z
                 mov r2.xyzw, cb0[14].xyzw  // r2.x <- pout.specularH.x; r2.y <- pout.specularH.y; r2.z <- pout.specularH.z; r2.w <- pout.specularH.w
                 itof r3.w, l(0)  // r3.w <- pout.normalW.w
@@ -273,6 +273,9 @@ fxgroup
                 // Approximately 21 instruction slots used
                             
             };
+            AB_BlendFactor = float4(0, 0, 0, 0);
+            AB_SampleMask = uint(0xffffffff);
+            BlendState = NULL;
         }
 
     }

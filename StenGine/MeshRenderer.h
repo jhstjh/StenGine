@@ -31,6 +31,7 @@ private:
 	ID3D11Buffer* m_stdMeshVertexBufferGPU;
 	ID3D11Buffer* m_shadowMapVertexBufferGPU;
 	Effect* m_associatedEffect;
+	Effect* m_associatedDeferredEffect;
 	Material m_material;
 	ID3D11ShaderResourceView* m_diffuseMapSRV;
 

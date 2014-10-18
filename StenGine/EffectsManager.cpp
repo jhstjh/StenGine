@@ -166,12 +166,42 @@ ScreenQuadEffect::~ScreenQuadEffect()
 
 //----------------------------------------------------------//
 
+
+GodRayEffect::GodRayEffect(const std::wstring& filename)
+	: Effect(filename)
+{
+	GodRayTech = m_fx->GetTechniqueByName("t0");
+	OcclusionMap = m_fx->GetVariableByName("gOcclusionMap")->AsShaderResource();
+	LightPosH = m_fx->GetVariableByName("gLightPosH")->AsVector();
+
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		//{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+
+	D3DX11_PASS_DESC passDesc;
+	GodRayTech->GetPassByIndex(0)->GetDesc(&passDesc);
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, passDesc.pIAInputSignature,
+		passDesc.IAInputSignatureSize, &m_inputLayout));
+
+	m_activeTech = GodRayTech;
+}
+
+GodRayEffect::~GodRayEffect()
+{
+	//ReleaseCOM(m_inputLayout);
+}
+
+
+//----------------------------------------------------------//
 EffectsManager* EffectsManager::_instance = nullptr;
 EffectsManager::EffectsManager() {
 	m_stdMeshEffect = new StdMeshEffect(L"FX/StdMesh.fxo");
 	m_shadowMapEffect = new ShadowMapEffect(L"FX/ShadowMap.fxo");
 	m_deferredShaderEffect = new DeferredShaderEffect(L"FX/DeferredShader.fxo");
 	m_screenQuadEffect = new ScreenQuadEffect(L"FX/ScreenQuad.fxo");
+	m_godrayEffect = new GodRayEffect(L"FX/GodRay.fxo");
 	//m_effects.push_back(PosColor);
 }
 
@@ -181,4 +211,7 @@ EffectsManager::~EffectsManager() {
 	//}
 	delete m_stdMeshEffect;
 	delete m_shadowMapEffect;
+	delete m_deferredShaderEffect;
+	delete m_screenQuadEffect;
+	delete m_godrayEffect;
 }

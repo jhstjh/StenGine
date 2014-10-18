@@ -98,6 +98,19 @@ public:
 
 //--------------------------------------------------------------------//
 
+
+class GodRayEffect : public Effect {
+public:
+	GodRayEffect(const std::wstring& filename);
+	~GodRayEffect();
+
+	ID3DX11EffectTechnique* GodRayTech;
+	ID3DX11EffectShaderResourceVariable* OcclusionMap;
+	ID3DX11EffectVariable* LightPosH;
+};
+
+
+//--------------------------------------------------------------------//
 class EffectsManager {
 private:
 	static EffectsManager* _instance;
@@ -116,6 +129,7 @@ public:
 	ShadowMapEffect* m_shadowMapEffect;
 	DeferredShaderEffect* m_deferredShaderEffect; 
 	ScreenQuadEffect* m_screenQuadEffect;
+	GodRayEffect* m_godrayEffect;
 };
 
 #endif
