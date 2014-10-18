@@ -128,7 +128,7 @@ fxgroup
                 //   o1.x <- <VertShader return value>.PosW.x; o1.y <- <VertShader return value>.PosW.y; o1.z <- <VertShader return value>.PosW.z; 
                 //   o0.x <- <VertShader return value>.PosH.x; o0.y <- <VertShader return value>.PosH.y; o0.z <- <VertShader return value>.PosH.z; o0.w <- <VertShader return value>.PosH.w
                 //
-                #line 74 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
+                #line 75 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
                 mov r0.xyz, v0.xyzx
                 mov r0.w, l(1.000000)
                 dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- vout.PosH.x
@@ -214,6 +214,7 @@ fxgroup
                 // SV_TARGET                1   xyzw        1   TARGET   float   xyzw
                 // SV_TARGET                2   xyzw        2   TARGET   float   xyzw
                 // SV_TARGET                3   xyzw        3   TARGET   float   xyzw
+                // SV_TARGET                4   xyzw        4   TARGET   float   xyzw
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
@@ -230,7 +231,8 @@ fxgroup
                 dcl_output o1.xyzw
                 dcl_output o2.xyzw
                 dcl_output o3.xyzw
-                dcl_temps 4
+                dcl_output o4.xyzw
+                dcl_temps 5
                 //
                 // Initial variable locations:
                 //   v0.x <- pin.PosH.x; v0.y <- pin.PosH.y; v0.z <- pin.PosH.z; v0.w <- pin.PosH.w; 
@@ -238,19 +240,20 @@ fxgroup
                 //   v2.x <- pin.NormalW.x; v2.y <- pin.NormalW.y; v2.z <- pin.NormalW.z; 
                 //   v3.x <- pin.TexUV.x; v3.y <- pin.TexUV.y; 
                 //   v4.x <- pin.ShadowPosH.x; v4.y <- pin.ShadowPosH.y; v4.z <- pin.ShadowPosH.z; v4.w <- pin.ShadowPosH.w; 
+                //   o4.x <- <PixShader return value>.edgeH.x; o4.y <- <PixShader return value>.edgeH.y; o4.z <- <PixShader return value>.edgeH.z; o4.w <- <PixShader return value>.edgeH.w; 
                 //   o3.x <- <PixShader return value>.specularH.x; o3.y <- <PixShader return value>.specularH.y; o3.z <- <PixShader return value>.specularH.z; o3.w <- <PixShader return value>.specularH.w; 
                 //   o2.x <- <PixShader return value>.normalW.x; o2.y <- <PixShader return value>.normalW.y; o2.z <- <PixShader return value>.normalW.z; o2.w <- <PixShader return value>.normalW.w; 
                 //   o1.x <- <PixShader return value>.positionW.x; o1.y <- <PixShader return value>.positionW.y; o1.z <- <PixShader return value>.positionW.z; o1.w <- <PixShader return value>.positionW.w; 
                 //   o0.x <- <PixShader return value>.diffuseH.x; o0.y <- <PixShader return value>.diffuseH.y; o0.z <- <PixShader return value>.diffuseH.z; o0.w <- <PixShader return value>.diffuseH.w
                 //
-                #line 87 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
+                #line 88 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
                 div r0.xyz, v4.zxyz, v4.wwww  // r0.x <- pin.ShadowPosH.z; r0.y <- pin.ShadowPosH.x; r0.z <- pin.ShadowPosH.y
                 mov r0.x, r0.x  // r0.x <- depth
                 itof r0.w, l(0)  // r0.w <- shadowLit
                 sample_c_lz_indexable(texture2d)(float,float,float,float) r0.x, r0.yzyy, t1.xxxx, s1, r0.x
                 add r0.x, r0.x, r0.w  // r0.x <- shadowLit
                 
-                #line 94
+                #line 95
                 sample_indexable(texture2d)(float,float,float,float) r0.yzw, v3.xyxx, t0.wxyz, s0
                 mul r0.yzw, r0.yyzw, cb0[13].xxyz  // r0.y <- pout.diffuseH.x; r0.z <- pout.diffuseH.y; r0.w <- pout.diffuseH.z
                 mov r0.x, r0.x  // r0.x <- pout.diffuseH.w
@@ -259,13 +262,15 @@ fxgroup
                 mov r2.xyzw, cb0[14].xyzw  // r2.x <- pout.specularH.x; r2.y <- pout.specularH.y; r2.z <- pout.specularH.z; r2.w <- pout.specularH.w
                 itof r3.w, l(0)  // r3.w <- pout.normalW.w
                 mov r3.xyz, v2.xyzx  // r3.x <- pout.normalW.x; r3.y <- pout.normalW.y; r3.z <- pout.normalW.z
+                itof r4.xyzw, l(1, 1, 1, 1)  // r4.x <- pout.edgeH.x; r4.y <- pout.edgeH.y; r4.z <- pout.edgeH.z; r4.w <- pout.edgeH.w
                 mov o0.xyz, r0.yzwy
                 mov o0.w, r0.x
                 mov o1.xyzw, r1.xyzw
                 mov o2.xyzw, r3.xyzw
                 mov o3.xyzw, r2.xyzw
+                mov o4.xyzw, r4.xyzw
                 ret 
-                // Approximately 19 instruction slots used
+                // Approximately 21 instruction slots used
                             
             };
         }

@@ -158,16 +158,16 @@ bool D3D11Renderer::Init() {
 
 	m_screenSuperSampleViewpot.TopLeftX = 0;
 	m_screenSuperSampleViewpot.TopLeftY = 0;
-	m_screenSuperSampleViewpot.Width = static_cast<float>(m_clientWidth * SUPERSAMPLE);
-	m_screenSuperSampleViewpot.Height = static_cast<float>(m_clientHeight * SUPERSAMPLE);
+	m_screenSuperSampleViewpot.Width = static_cast<float>(m_clientWidth);
+	m_screenSuperSampleViewpot.Height = static_cast<float>(m_clientHeight);
 	m_screenSuperSampleViewpot.MinDepth = 0.0f;
 	m_screenSuperSampleViewpot.MaxDepth = 1.0f;
 
 	//-----------------setup MRT---------------------
 #if !FORWARD
 	D3D11_TEXTURE2D_DESC gBufferDesc;
-	gBufferDesc.Width = m_clientWidth * SUPERSAMPLE;
-	gBufferDesc.Height = m_clientHeight * SUPERSAMPLE;
+	gBufferDesc.Width = m_clientWidth;
+	gBufferDesc.Height = m_clientHeight;
 	gBufferDesc.MipLevels = 1;
 	gBufferDesc.ArraySize = 1;
 	gBufferDesc.SampleDesc.Count = 1;
@@ -182,11 +182,12 @@ bool D3D11Renderer::Init() {
 	ID3D11Texture2D* gBufferPTex = 0;
 	ID3D11Texture2D* gBufferNTex = 0;
 	ID3D11Texture2D* gBufferSTex = 0;
+	ID3D11Texture2D* gBufferETex = 0;
 	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferDTex));
 	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferPTex));
 	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferNTex));
 	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferSTex));
-
+	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferETex));
 
 	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
 	rtvDesc.Format = gBufferDesc.Format;
@@ -197,7 +198,7 @@ bool D3D11Renderer::Init() {
 	HR(m_d3d11Device->CreateRenderTargetView(gBufferPTex, &rtvDesc, &m_positionBufferRTV));
 	HR(m_d3d11Device->CreateRenderTargetView(gBufferNTex, &rtvDesc, &m_normalBufferRTV));
 	HR(m_d3d11Device->CreateRenderTargetView(gBufferSTex, &rtvDesc, &m_specularBufferRTV));
-
+	HR(m_d3d11Device->CreateRenderTargetView(gBufferETex, &rtvDesc, &m_edgeBufferRTV));
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	srvDesc.Format = gBufferDesc.Format;
@@ -209,16 +210,17 @@ bool D3D11Renderer::Init() {
 	HR(m_d3d11Device->CreateShaderResourceView(gBufferPTex, &srvDesc, &m_positionBufferSRV));
 	HR(m_d3d11Device->CreateShaderResourceView(gBufferNTex, &srvDesc, &m_normalBufferSRV));
 	HR(m_d3d11Device->CreateShaderResourceView(gBufferSTex, &srvDesc, &m_specularBufferSRV));
+	HR(m_d3d11Device->CreateShaderResourceView(gBufferETex, &srvDesc, &m_edgeBufferSRV));
 
 	ReleaseCOM(gBufferDTex);
 	ReleaseCOM(gBufferPTex);
 	ReleaseCOM(gBufferNTex);
 	ReleaseCOM(gBufferSTex);
-
+	ReleaseCOM(gBufferETex);
 
 	D3D11_TEXTURE2D_DESC depthTexDesc;
-	depthTexDesc.Width = m_clientWidth * SUPERSAMPLE;
-	depthTexDesc.Height = m_clientHeight * SUPERSAMPLE;
+	depthTexDesc.Width = m_clientWidth;
+	depthTexDesc.Height = m_clientHeight;
 	depthTexDesc.MipLevels = 1;
 	depthTexDesc.ArraySize = 1;
 	depthTexDesc.SampleDesc.Count = 1;
@@ -284,9 +286,10 @@ void D3D11Renderer::Draw() {
 			activeFX->m_associatedMeshes[iMesh]->Draw();
 		}
 #else
-	m_d3d11DeviceContext->RSSetViewports(1, &m_screenSuperSampleViewpot);
-	ID3D11RenderTargetView* rtvs[4] = { m_diffuseBufferRTV, m_positionBufferRTV, m_normalBufferRTV, m_specularBufferRTV };
-	m_d3d11DeviceContext->OMSetRenderTargets(4, rtvs, m_deferredRenderDepthStencilView);
+	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
+	//m_d3d11DeviceContext->RSSetViewports(1, &m_screenSuperSampleViewpot);
+	ID3D11RenderTargetView* rtvs[5] = { m_diffuseBufferRTV, m_positionBufferRTV, m_normalBufferRTV, m_specularBufferRTV, m_edgeBufferRTV };
+	m_d3d11DeviceContext->OMSetRenderTargets(5, rtvs, m_deferredRenderDepthStencilView);
 	//m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearRenderTargetView(m_diffuseBufferRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearRenderTargetView(m_positionBufferRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));

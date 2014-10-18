@@ -5,7 +5,6 @@
 #include "MeshRenderer.h"
 
 #define FORWARD 0
-#define SUPERSAMPLE 2
 
 class D3D11Renderer {
 public:
@@ -42,11 +41,13 @@ private:
 	ID3D11RenderTargetView* m_positionBufferRTV;
 	ID3D11RenderTargetView* m_normalBufferRTV;
 	ID3D11RenderTargetView* m_specularBufferRTV;
+	ID3D11RenderTargetView* m_edgeBufferRTV;
 
 	ID3D11ShaderResourceView* m_diffuseBufferSRV;
 	ID3D11ShaderResourceView* m_positionBufferSRV;
 	ID3D11ShaderResourceView* m_normalBufferSRV;
 	ID3D11ShaderResourceView* m_specularBufferSRV;
+	ID3D11ShaderResourceView* m_edgeBufferSRV;
 
 	ID3D11DepthStencilView* m_deferredRenderDepthStencilView;
 #pragma endregion
