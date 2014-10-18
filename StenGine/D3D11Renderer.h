@@ -5,6 +5,7 @@
 #include "MeshRenderer.h"
 
 #define FORWARD 0
+#define SUPERSAMPLE 2
 
 class D3D11Renderer {
 public:
@@ -34,6 +35,7 @@ private:
 	D3D_DRIVER_TYPE m_d3dDriverType;
 
 	D3D11_VIEWPORT m_screenViewpot;
+	D3D11_VIEWPORT m_screenSuperSampleViewpot;
 
 #pragma region DEDERRED_RENDER
 	ID3D11RenderTargetView* m_diffuseBufferRTV;
