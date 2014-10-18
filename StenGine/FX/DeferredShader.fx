@@ -62,8 +62,9 @@ struct VertexOut {
 
 struct PixelOut {
 	float4 diffuseH: SV_TARGET0;
-	float4 positionH: SV_TARGET1;
+	float4 positionW: SV_TARGET1;
 	float4 normalW: SV_TARGET2;
+	float4 specularH: SV_TARGET3;
 };
 
 VertexOut VertShader(VertexIn vin)
@@ -83,8 +84,17 @@ PixelOut PixShader(VertexOut pin)
 {
 	PixelOut pout;
 
-	pout.diffuseH = gDiffuseMap.Sample(samAnisotropic, pin.TexUV);
-	pout.positionH = pin.PosH;
+// 	pin.ShadowPosH.xyz /= pin.ShadowPosH.w;
+// 	float depth = pin.ShadowPosH.z;
+// 	float shadowLit = 0;
+// 
+// 	shadowLit += gShadowMap.SampleCmpLevelZero(samShadow,
+// 		pin.ShadowPosH.xy, depth).r;
+
+	pout.diffuseH = gDiffuseMap.Sample(samAnisotropic, pin.TexUV) * gMaterial.diffuse;
+	//pout.diffuseH.w = gMaterial.ambient;
+	pout.positionW = float4(pin.PosW, 1);
+	pout.specularH = gMaterial.specular;
 	pout.normalW = float4(pin.NormalW, 0);
 
 	return pout;

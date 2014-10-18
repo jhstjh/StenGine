@@ -29,6 +29,7 @@ Texture2D gScreenMap;
 Texture2D gDiffuseGB;
 Texture2D gPositionGB;
 Texture2D gNormalGB;
+Texture2D gSpecularGB;
 
 VSOut VSmain(uint vertexId : SV_VertexID)
 {
@@ -76,10 +77,22 @@ float4 PSmain(PSIn input) : SV_Target
 	// 	PSOut output;
 	// 
 	// 	output.color = color;
-	float4 diffuseColor = gDiffuseGB.Sample(samAnisotropic, input.Tex);
+	float4 diffColor = float4(0, 0, 0, 0);
+	float4 specColor = float4(0, 0, 0, 0);
+
 	float3 normalW = gNormalGB.Sample(samAnisotropic, input.Tex).xyz;
 	float diffuseK = dot(-gDirLight.direction, normalW);
-	return diffuseColor * diffuseK;
+
+	if (diffuseK > 0) {
+		diffColor += diffuseK * gDirLight.intensity;
+		float3 refLight = reflect(gDirLight.direction, normalW);
+		float3 viewRay = gEyePosW - gPositionGB.Sample(samAnisotropic, input.Tex).xyz;
+		viewRay = normalize(viewRay);
+		specColor += gSpecularGB.Sample(samAnisotropic, input.Tex) * pow(max(dot(refLight, viewRay), 0), gSpecularGB.Sample(samAnisotropic, input.Tex).w);
+	}
+
+	return  (float4(0.2, 0.2, 0.2, 0) + diffColor) * gDiffuseGB.Sample(samAnisotropic, input.Tex) + specColor;
+	//return diffuseColor * (clamp(diffuseK * gDirLight.intensity, 0, 1) + float4(0.2, 0.2, 0.2, 0));
 }
 
 

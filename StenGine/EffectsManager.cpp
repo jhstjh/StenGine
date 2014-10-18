@@ -32,6 +32,7 @@ StdMeshEffect::StdMeshEffect(const std::wstring& filename)
 {
 	StdMeshTech = m_fx->GetTechniqueByName("StdMeshTech");
 	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
+	WorldInvTranspose = m_fx->GetVariableByName("gWorldInvTranspose")->AsMatrix();
 	ShadowTransform = m_fx->GetVariableByName("gShadowTransform")->AsMatrix();
 	World = m_fx->GetVariableByName("gWorld")->AsMatrix();
 	DirLight = m_fx->GetVariableByName("gDirLight");
@@ -104,7 +105,7 @@ DeferredShaderEffect::DeferredShaderEffect(const std::wstring& filename)
 	Mat = m_fx->GetVariableByName("gMaterial");
 	EyePosW = m_fx->GetVariableByName("gEyePosW")->AsVector();
 	DiffuseMap = m_fx->GetVariableByName("gDiffuseMap")->AsShaderResource();
-	//TheShadowMap = m_fx->GetVariableByName("gShadowMap")->AsShaderResource();
+	TheShadowMap = m_fx->GetVariableByName("gShadowMap")->AsShaderResource();
 
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
@@ -137,6 +138,7 @@ ScreenQuadEffect::ScreenQuadEffect(const std::wstring& filename)
 	ScreenMap = m_fx->GetVariableByName("gScreenMap")->AsShaderResource();
 	DiffuseGB = m_fx->GetVariableByName("gDiffuseGB")->AsShaderResource();
 	PositionGB = m_fx->GetVariableByName("gPositionGB")->AsShaderResource();
+	SpecularGB = m_fx->GetVariableByName("gSpecularGB")->AsShaderResource();
 	NormalGB = m_fx->GetVariableByName("gNormalGB")->AsShaderResource();
 	DirLight = m_fx->GetVariableByName("gDirLight");
 	//Mat = m_fx->GetVariableByName("gMaterial");

@@ -12,6 +12,7 @@ struct Material {
 
 cbuffer cbPerObject {
 	float4x4 gWorldViewProj; 
+	float4x4 gWorldInvTranspose;
 	float4x4 gWorld;
 	Material gMaterial;
 	float4x4 gShadowTransform;
@@ -64,7 +65,7 @@ VertexOut VertShader(VertexIn vin)
 	VertexOut vout;
 
 	vout.PosH = mul(float4(vin.PosL, 1.0f), gWorldViewProj);
-	vout.NormalW = vin.NormalL;
+	vout.NormalW = mul(vin.NormalL, (float3x3)gWorldInvTranspose);
 	vout.PosW = mul(float4(vin.PosL, 1.0f), gWorld);
 	vout.TexUV = vin.TexUV;
 	vout.ShadowPosH = mul(float4(vin.PosL, 1.0f), gShadowTransform);

@@ -360,8 +360,15 @@ void MeshRenderer::Draw() {
 		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
 		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->World->SetMatrix(reinterpret_cast<float*>(m_parent->GetWorldTransform()));
 
+
+		XMMATRIX world = XMLoadFloat4x4(m_parent->GetWorldTransform());
+		XMMATRIX worldInvTranspose = InverseTranspose(world);
+		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->WorldInvTranspose->SetMatrix(reinterpret_cast<float*>(&worldInvTranspose));
+
+
 		XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(m_parent->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
 		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->ShadowTransform->SetMatrix(reinterpret_cast<float*>(&worldShadowMapTransform));
+
 
 		D3DX11_TECHNIQUE_DESC techDesc;
 		tech->GetDesc(&techDesc);
