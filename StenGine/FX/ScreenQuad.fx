@@ -74,9 +74,10 @@ struct PSIn
 
 float4 PSmain(PSIn input) : SV_Target
 {
-	// 	PSOut output;
-	// 
-	// 	output.color = color;
+
+	clip(gPositionGB.Sample(samAnisotropic, input.Tex).w - 0.1);
+		
+
 	float4 diffColor = float4(0, 0, 0, 0);
 	float4 specColor = float4(0, 0, 0, 0);
 
