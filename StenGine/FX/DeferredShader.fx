@@ -84,15 +84,15 @@ PixelOut PixShader(VertexOut pin)
 {
 	PixelOut pout;
 
-// 	pin.ShadowPosH.xyz /= pin.ShadowPosH.w;
-// 	float depth = pin.ShadowPosH.z;
-// 	float shadowLit = 0;
-// 
-// 	shadowLit += gShadowMap.SampleCmpLevelZero(samShadow,
-// 		pin.ShadowPosH.xy, depth).r;
+	pin.ShadowPosH.xyz /= pin.ShadowPosH.w;
+	float depth = pin.ShadowPosH.z;
+	float shadowLit = 0;
+
+	shadowLit += gShadowMap.SampleCmpLevelZero(samShadow,
+		pin.ShadowPosH.xy, depth).r;
 
 	pout.diffuseH = gDiffuseMap.Sample(samAnisotropic, pin.TexUV) * gMaterial.diffuse;
-	//pout.diffuseH.w = gMaterial.ambient;
+	pout.diffuseH.w = shadowLit;
 	pout.positionW = float4(pin.PosW, 1);
 	pout.specularH = gMaterial.specular;
 	pout.normalW = float4(pin.NormalW, 0);

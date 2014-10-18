@@ -82,6 +82,7 @@ float4 PSmain(PSIn input) : SV_Target
 
 	float3 normalW = gNormalGB.Sample(samAnisotropic, input.Tex).xyz;
 	float diffuseK = dot(-gDirLight.direction, normalW);
+	float shadowLit = gDiffuseGB.Sample(samAnisotropic, input.Tex).w;
 
 	if (diffuseK > 0) {
 		diffColor += diffuseK * gDirLight.intensity;
@@ -91,7 +92,7 @@ float4 PSmain(PSIn input) : SV_Target
 		specColor += gSpecularGB.Sample(samAnisotropic, input.Tex) * pow(max(dot(refLight, viewRay), 0), gSpecularGB.Sample(samAnisotropic, input.Tex).w);
 	}
 
-	return  (float4(0.2, 0.2, 0.2, 0) + diffColor) * gDiffuseGB.Sample(samAnisotropic, input.Tex) + specColor;
+	return  (float4(0.2, 0.2, 0.2, 0) + diffColor * shadowLit) * gDiffuseGB.Sample(samAnisotropic, input.Tex) + specColor * shadowLit;
 	//return diffuseColor * (clamp(diffuseK * gDirLight.intensity, 0, 1) + float4(0.2, 0.2, 0.2, 0));
 }
 

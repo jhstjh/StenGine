@@ -188,7 +188,9 @@ fxgroup
                 // Name                                 Type  Format         Dim Slot Elements
                 // ------------------------------ ---------- ------- ----------- ---- --------
                 // samAnisotropic                    sampler      NA          NA    0        1
+                // samShadow                       sampler_c      NA          NA    1        1
                 // gDiffuseMap                       texture  float4          2d    0        1
+                // gShadowMap                        texture  float4          2d    1        1
                 // cbPerObject                       cbuffer      NA          NA    0        1
                 //
                 //
@@ -201,7 +203,7 @@ fxgroup
                 // POSITION                 0   xyz         1     NONE   float   xyz 
                 // NORMAL                   0   xyz         2     NONE   float   xyz 
                 // TEXCOORD                 0   xy          3     NONE   float   xy  
-                // TEXCOORD                 1   xyzw        4     NONE   float       
+                // TEXCOORD                 1   xyzw        4     NONE   float   xyzw
                 //
                 //
                 // Output signature:
@@ -217,10 +219,13 @@ fxgroup
                 dcl_globalFlags refactoringAllowed | skipOptimization
                 dcl_constantbuffer cb0[15], immediateIndexed
                 dcl_sampler s0, mode_default
+                dcl_sampler s1, mode_comparison
                 dcl_resource_texture2d (float,float,float,float) t0
+                dcl_resource_texture2d (float,float,float,float) t1
                 dcl_input_ps linear v1.xyz
                 dcl_input_ps linear v2.xyz
                 dcl_input_ps linear v3.xy
+                dcl_input_ps linear v4.xyzw
                 dcl_output o0.xyzw
                 dcl_output o1.xyzw
                 dcl_output o2.xyzw
@@ -238,20 +243,29 @@ fxgroup
                 //   o1.x <- <PixShader return value>.positionW.x; o1.y <- <PixShader return value>.positionW.y; o1.z <- <PixShader return value>.positionW.z; o1.w <- <PixShader return value>.positionW.w; 
                 //   o0.x <- <PixShader return value>.diffuseH.x; o0.y <- <PixShader return value>.diffuseH.y; o0.z <- <PixShader return value>.diffuseH.z; o0.w <- <PixShader return value>.diffuseH.w
                 //
-                #line 94 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
-                sample_indexable(texture2d)(float,float,float,float) r0.xyzw, v3.xyxx, t0.xyzw, s0
-                mul r0.xyzw, r0.xyzw, cb0[13].xyzw  // r0.x <- pout.diffuseH.x; r0.y <- pout.diffuseH.y; r0.z <- pout.diffuseH.z; r0.w <- pout.diffuseH.w
+                #line 87 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
+                div r0.xyz, v4.zxyz, v4.wwww  // r0.x <- pin.ShadowPosH.z; r0.y <- pin.ShadowPosH.x; r0.z <- pin.ShadowPosH.y
+                mov r0.x, r0.x  // r0.x <- depth
+                itof r0.w, l(0)  // r0.w <- shadowLit
+                sample_c_lz_indexable(texture2d)(float,float,float,float) r0.x, r0.yzyy, t1.xxxx, s1, r0.x
+                add r0.x, r0.x, r0.w  // r0.x <- shadowLit
+                
+                #line 94
+                sample_indexable(texture2d)(float,float,float,float) r0.yzw, v3.xyxx, t0.wxyz, s0
+                mul r0.yzw, r0.yyzw, cb0[13].xxyz  // r0.y <- pout.diffuseH.x; r0.z <- pout.diffuseH.y; r0.w <- pout.diffuseH.z
+                mov r0.x, r0.x  // r0.x <- pout.diffuseH.w
                 itof r1.w, l(1)  // r1.w <- pout.positionW.w
                 mov r1.xyz, v1.xyzx  // r1.x <- pout.positionW.x; r1.y <- pout.positionW.y; r1.z <- pout.positionW.z
                 mov r2.xyzw, cb0[14].xyzw  // r2.x <- pout.specularH.x; r2.y <- pout.specularH.y; r2.z <- pout.specularH.z; r2.w <- pout.specularH.w
                 itof r3.w, l(0)  // r3.w <- pout.normalW.w
                 mov r3.xyz, v2.xyzx  // r3.x <- pout.normalW.x; r3.y <- pout.normalW.y; r3.z <- pout.normalW.z
-                mov o0.xyzw, r0.xyzw
+                mov o0.xyz, r0.yzwy
+                mov o0.w, r0.x
                 mov o1.xyzw, r1.xyzw
                 mov o2.xyzw, r3.xyzw
                 mov o3.xyzw, r2.xyzw
                 ret 
-                // Approximately 12 instruction slots used
+                // Approximately 19 instruction slots used
                             
             };
         }

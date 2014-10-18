@@ -197,26 +197,28 @@ fxgroup
                 mov r2.xyz, r2.xyzx  // r2.x <- normalW.x; r2.y <- normalW.y; r2.z <- normalW.z
                 mov r3.xyz, -cb0[1].xyzx
                 dp3 r2.w, r3.xyzx, r2.xyzx  // r2.w <- diffuseK
-                itof r3.x, l(0)
-                lt r3.x, r3.x, r2.w
-                if_nz r3.x
-                  mul r3.xyzw, r2.wwww, cb0[0].xyzw
-                  add r0.xyzw, r0.xyzw, r3.xyzw
+                sample_indexable(texture2d)(float,float,float,float) r3.x, v1.xyxx, t0.wxyz, s0
+                mov r3.x, r3.x  // r3.x <- shadowLit
+                itof r3.y, l(0)
+                lt r3.y, r3.y, r2.w
+                if_nz r3.y
+                  mul r4.xyzw, r2.wwww, cb0[0].xyzw
+                  add r0.xyzw, r0.xyzw, r4.xyzw
                   dp3 r2.w, cb0[1].xyzx, r2.xyzx
                   add r2.w, r2.w, r2.w
                   mov r2.w, -r2.w
                   mul r2.xyz, r2.wwww, r2.xyzx
                   add r2.xyz, r2.xyzx, cb0[1].xyzx  // r2.x <- refLight.x; r2.y <- refLight.y; r2.z <- refLight.z
-                  sample_indexable(texture2d)(float,float,float,float) r3.xyz, v1.xyxx, t1.xyzw, s0
-                  mov r3.xyz, -r3.xyzx
-                  add r3.xyz, r3.xyzx, cb0[2].xyzx  // r3.x <- viewRay.x; r3.y <- viewRay.y; r3.z <- viewRay.z
-                  dp3 r2.w, r3.xyzx, r3.xyzx
-                  rsq r2.w, r2.w
-                  mul r3.xyz, r2.wwww, r3.xyzx
+                  sample_indexable(texture2d)(float,float,float,float) r3.yzw, v1.xyxx, t1.wxyz, s0
+                  mov r3.yzw, -r3.yyzw
+                  add r3.yzw, r3.yyzw, cb0[2].xxyz  // r3.y <- viewRay.x; r3.z <- viewRay.y; r3.w <- viewRay.z
                 
                 #line 91
+                  dp3 r2.w, r3.yzwy, r3.yzwy
+                  rsq r2.w, r2.w
+                  mul r3.yzw, r2.wwww, r3.yyzw
                   sample_indexable(texture2d)(float,float,float,float) r4.xyzw, v1.xyxx, t3.xyzw, s0
-                  dp3 r2.x, r2.xyzx, r3.xyzx
+                  dp3 r2.x, r2.xyzx, r3.yzwy
                   itof r2.y, l(0)
                   max r2.x, r2.y, r2.x
                   sample_indexable(texture2d)(float,float,float,float) r2.y, v1.xyxx, t3.xwyz, s0
@@ -227,13 +229,15 @@ fxgroup
                   add r1.xyzw, r1.xyzw, r2.xyzw
                 endif 
                 itof r2.w, l(0)
+                mul r0.xyzw, r3.xxxx, r0.xyzw
                 mov r2.xyz, l(0.200000,0.200000,0.200000,0)
                 add r0.xyzw, r0.xyzw, r2.xyzw
                 sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t0.xyzw, s0
                 mul r0.xyzw, r0.xyzw, r2.xyzw
-                add o0.xyzw, r1.xyzw, r0.xyzw
+                mul r1.xyzw, r3.xxxx, r1.xyzw
+                add o0.xyzw, r0.xyzw, r1.xyzw
                 ret 
-                // Approximately 40 instruction slots used
+                // Approximately 44 instruction slots used
                             
             };
         }
@@ -404,26 +408,28 @@ fxgroup
                 mov r2.xyz, r2.xyzx  // r2.x <- normalW.x; r2.y <- normalW.y; r2.z <- normalW.z
                 mov r3.xyz, -cb0[1].xyzx
                 dp3 r2.w, r3.xyzx, r2.xyzx  // r2.w <- diffuseK
-                itof r3.x, l(0)
-                lt r3.x, r3.x, r2.w
-                if_nz r3.x
-                  mul r3.xyzw, r2.wwww, cb0[0].xyzw
-                  add r0.xyzw, r0.xyzw, r3.xyzw
+                sample_indexable(texture2d)(float,float,float,float) r3.x, v1.xyxx, t0.wxyz, s0
+                mov r3.x, r3.x  // r3.x <- shadowLit
+                itof r3.y, l(0)
+                lt r3.y, r3.y, r2.w
+                if_nz r3.y
+                  mul r4.xyzw, r2.wwww, cb0[0].xyzw
+                  add r0.xyzw, r0.xyzw, r4.xyzw
                   dp3 r2.w, cb0[1].xyzx, r2.xyzx
                   add r2.w, r2.w, r2.w
                   mov r2.w, -r2.w
                   mul r2.xyz, r2.wwww, r2.xyzx
                   add r2.xyz, r2.xyzx, cb0[1].xyzx  // r2.x <- refLight.x; r2.y <- refLight.y; r2.z <- refLight.z
-                  sample_indexable(texture2d)(float,float,float,float) r3.xyz, v1.xyxx, t1.xyzw, s0
-                  mov r3.xyz, -r3.xyzx
-                  add r3.xyz, r3.xyzx, cb0[2].xyzx  // r3.x <- viewRay.x; r3.y <- viewRay.y; r3.z <- viewRay.z
-                  dp3 r2.w, r3.xyzx, r3.xyzx
-                  rsq r2.w, r2.w
-                  mul r3.xyz, r2.wwww, r3.xyzx
+                  sample_indexable(texture2d)(float,float,float,float) r3.yzw, v1.xyxx, t1.wxyz, s0
+                  mov r3.yzw, -r3.yyzw
+                  add r3.yzw, r3.yyzw, cb0[2].xxyz  // r3.y <- viewRay.x; r3.z <- viewRay.y; r3.w <- viewRay.z
                 
                 #line 91
+                  dp3 r2.w, r3.yzwy, r3.yzwy
+                  rsq r2.w, r2.w
+                  mul r3.yzw, r2.wwww, r3.yyzw
                   sample_indexable(texture2d)(float,float,float,float) r4.xyzw, v1.xyxx, t3.xyzw, s0
-                  dp3 r2.x, r2.xyzx, r3.xyzx
+                  dp3 r2.x, r2.xyzx, r3.yzwy
                   itof r2.y, l(0)
                   max r2.x, r2.y, r2.x
                   sample_indexable(texture2d)(float,float,float,float) r2.y, v1.xyxx, t3.xwyz, s0
@@ -434,13 +440,15 @@ fxgroup
                   add r1.xyzw, r1.xyzw, r2.xyzw
                 endif 
                 itof r2.w, l(0)
+                mul r0.xyzw, r3.xxxx, r0.xyzw
                 mov r2.xyz, l(0.200000,0.200000,0.200000,0)
                 add r0.xyzw, r0.xyzw, r2.xyzw
                 sample_indexable(texture2d)(float,float,float,float) r2.xyzw, v1.xyxx, t0.xyzw, s0
                 mul r0.xyzw, r0.xyzw, r2.xyzw
-                add o0.xyzw, r1.xyzw, r0.xyzw
+                mul r1.xyzw, r3.xxxx, r1.xyzw
+                add o0.xyzw, r0.xyzw, r1.xyzw
                 ret 
-                // Approximately 40 instruction slots used
+                // Approximately 44 instruction slots used
                             
             };
         }
