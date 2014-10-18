@@ -134,6 +134,12 @@
     <CustomBuild Include="FX\ShadowMap.fx">
       <Filter>FX</Filter>
     </CustomBuild>
+    <CustomBuild Include="FX\DeferredShader.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
+    <CustomBuild Include="FX\ScreenQuad.fx">
+      <Filter>FX</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <None Include="Model\ball.obj">

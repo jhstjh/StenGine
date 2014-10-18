@@ -330,6 +330,7 @@ void MeshRenderer::PrepareSRV(int type) {
 }
 
 void MeshRenderer::Draw() {
+#if FORWARD
 	ID3DX11EffectTechnique* tech = m_associatedEffect->GetActiveTech();
 	// if it is std mesh
 	if (dynamic_cast<StdMeshEffect*>(m_associatedEffect)) {
@@ -356,7 +357,33 @@ void MeshRenderer::Draw() {
 			tech->GetPassByIndex(p)->Apply(0, D3D11Renderer::Instance()->GetD3DContext());
 			D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
 		}
-	}
+ 	}
+#else
+	ID3DX11EffectTechnique* tech = EffectsManager::Instance()->m_deferredShaderEffect->GetActiveTech();
+		UINT stride = sizeof(Vertex::StdMeshVertex);
+		UINT offset = 0;
+		D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
+		D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
+
+		EffectsManager::Instance()->m_deferredShaderEffect->Mat->SetRawValue(&m_material, 0, sizeof(Material));
+		EffectsManager::Instance()->m_deferredShaderEffect->DiffuseMap->SetResource(m_diffuseMapSRV);
+
+
+		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parent->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
+		EffectsManager::Instance()->m_deferredShaderEffect->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
+		EffectsManager::Instance()->m_deferredShaderEffect->World->SetMatrix(reinterpret_cast<float*>(m_parent->GetWorldTransform()));
+
+		XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(m_parent->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
+		EffectsManager::Instance()->m_deferredShaderEffect->ShadowTransform->SetMatrix(reinterpret_cast<float*>(&worldShadowMapTransform));
+
+		D3DX11_TECHNIQUE_DESC techDesc;
+		tech->GetDesc(&techDesc);
+		for (UINT p = 0; p < techDesc.Passes; ++p)
+		{
+			tech->GetPassByIndex(p)->Apply(0, D3D11Renderer::Instance()->GetD3DContext());
+			D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
+		}
+#endif
 }
 
 void MeshRenderer::DrawOnShadowMap() {

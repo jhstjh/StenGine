@@ -89,13 +89,80 @@ ShadowMapEffect::~ShadowMapEffect()
 }
 
 
+//------------------------------------------------------------//
+
+
+DeferredShaderEffect::DeferredShaderEffect(const std::wstring& filename)
+	: Effect(filename)
+{
+	DeferredShaderTech = m_fx->GetTechniqueByName("DeferredShaderTech");
+	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
+	ShadowTransform = m_fx->GetVariableByName("gShadowTransform")->AsMatrix();
+	World = m_fx->GetVariableByName("gWorld")->AsMatrix();
+	//DirLight = m_fx->GetVariableByName("gDirLight");
+	Mat = m_fx->GetVariableByName("gMaterial");
+	EyePosW = m_fx->GetVariableByName("gEyePosW")->AsVector();
+	DiffuseMap = m_fx->GetVariableByName("gDiffuseMap")->AsShaderResource();
+	//TheShadowMap = m_fx->GetVariableByName("gShadowMap")->AsShaderResource();
+
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+
+	D3DX11_PASS_DESC passDesc;
+	DeferredShaderTech->GetPassByIndex(0)->GetDesc(&passDesc);
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 3, passDesc.pIAInputSignature,
+		passDesc.IAInputSignatureSize, &m_inputLayout));
+
+	m_activeTech = DeferredShaderTech;
+}
+
+DeferredShaderEffect::~DeferredShaderEffect()
+{
+	ReleaseCOM(m_inputLayout);
+}
+
+
 //----------------------------------------------------------//
 
+
+ScreenQuadEffect::ScreenQuadEffect(const std::wstring& filename)
+	: Effect(filename)
+{
+	FullScreenQuadTech = m_fx->GetTechniqueByName("t0");
+	ScreenMap = m_fx->GetVariableByName("gScreenMap")->AsShaderResource();
+
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		//{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+
+	D3DX11_PASS_DESC passDesc;
+	FullScreenQuadTech->GetPassByIndex(0)->GetDesc(&passDesc);
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, passDesc.pIAInputSignature,
+		passDesc.IAInputSignatureSize, &m_inputLayout));
+
+	m_activeTech = FullScreenQuadTech;
+}
+
+ScreenQuadEffect::~ScreenQuadEffect()
+{
+	//ReleaseCOM(m_inputLayout);
+}
+
+
+//----------------------------------------------------------//
 
 EffectsManager* EffectsManager::_instance = nullptr;
 EffectsManager::EffectsManager() {
 	m_stdMeshEffect = new StdMeshEffect(L"FX/StdMesh.fxo");
 	m_shadowMapEffect = new ShadowMapEffect(L"FX/ShadowMap.fxo");
+	m_deferredShaderEffect = new DeferredShaderEffect(L"FX/DeferredShader.fxo");
+	m_screenQuadEffect = new ScreenQuadEffect(L"FX/ScreenQuad.fxo");
 	//m_effects.push_back(PosColor);
 }
 

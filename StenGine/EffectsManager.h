@@ -43,6 +43,26 @@ public:
 //--------------------------------------------------------------------//
 
 
+class DeferredShaderEffect : public Effect {
+public:
+	DeferredShaderEffect(const std::wstring& filename);
+	~DeferredShaderEffect();
+
+	ID3DX11EffectTechnique* DeferredShaderTech;
+	ID3DX11EffectMatrixVariable* WorldViewProj;
+	ID3DX11EffectMatrixVariable* World;
+	ID3DX11EffectMatrixVariable* ShadowTransform;
+	//ID3DX11EffectVariable* DirLight;
+	ID3DX11EffectVariable* Mat;
+	ID3DX11EffectVectorVariable* EyePosW;
+	ID3DX11EffectShaderResourceVariable* DiffuseMap;
+	//ID3DX11EffectShaderResourceVariable* TheShadowMap;
+};
+
+
+//--------------------------------------------------------------------//
+
+
 class ShadowMapEffect : public Effect {
 public:
 	ShadowMapEffect(const std::wstring& filename);
@@ -55,6 +75,18 @@ public:
 
 //--------------------------------------------------------------------//
 
+
+class ScreenQuadEffect : public Effect {
+public:
+	ScreenQuadEffect(const std::wstring& filename);
+	~ScreenQuadEffect();
+
+	ID3DX11EffectTechnique* FullScreenQuadTech;
+	ID3DX11EffectShaderResourceVariable* ScreenMap;
+};
+
+
+//--------------------------------------------------------------------//
 
 class EffectsManager {
 private:
@@ -72,6 +104,8 @@ public:
 
 	StdMeshEffect* m_stdMeshEffect;
 	ShadowMapEffect* m_shadowMapEffect;
+	DeferredShaderEffect* m_deferredShaderEffect; 
+	ScreenQuadEffect* m_screenQuadEffect;
 };
 
 #endif

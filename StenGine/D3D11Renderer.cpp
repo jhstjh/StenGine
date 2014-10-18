@@ -156,6 +156,87 @@ bool D3D11Renderer::Init() {
 	m_screenViewpot.MinDepth = 0.0f;
 	m_screenViewpot.MaxDepth = 1.0f;
 
+
+	//-----------------setup MRT---------------------
+#if !FORWARD
+	D3D11_TEXTURE2D_DESC gBufferDesc;
+	gBufferDesc.Width = m_clientWidth;
+	gBufferDesc.Height = m_clientHeight;
+	gBufferDesc.MipLevels = 1;
+	gBufferDesc.ArraySize = 1;
+	gBufferDesc.SampleDesc.Count = 1;
+	gBufferDesc.SampleDesc.Quality = 0;
+	gBufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	gBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	gBufferDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	gBufferDesc.CPUAccessFlags = 0;
+	gBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+
+	ID3D11Texture2D* gBufferDTex = 0;
+	ID3D11Texture2D* gBufferPTex = 0;
+	ID3D11Texture2D* gBufferNTex = 0;
+	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferDTex));
+	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferPTex));
+	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferNTex));
+
+
+
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
+	rtvDesc.Format = gBufferDesc.Format;
+	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	rtvDesc.Texture2DArray.ArraySize = 1;
+	rtvDesc.Texture2DArray.MipSlice = 0;
+
+	HR(m_d3d11Device->CreateRenderTargetView(gBufferDTex, &rtvDesc, &m_diffuseBufferRTV));
+	HR(m_d3d11Device->CreateRenderTargetView(gBufferPTex, &rtvDesc, &m_positionBufferRTV));
+	HR(m_d3d11Device->CreateRenderTargetView(gBufferNTex, &rtvDesc, &m_normalBufferRTV));
+
+
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	srvDesc.Format = gBufferDesc.Format;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.TextureCube.MostDetailedMip = 0;
+	srvDesc.TextureCube.MipLevels = -1;
+
+	HR(m_d3d11Device->CreateShaderResourceView(gBufferDTex, &srvDesc, &m_diffuseBufferSRV));
+	HR(m_d3d11Device->CreateShaderResourceView(gBufferPTex, &srvDesc, &m_positionBufferSRV));
+	HR(m_d3d11Device->CreateShaderResourceView(gBufferNTex, &srvDesc, &m_normalBufferSRV));
+
+	ReleaseCOM(gBufferDTex);
+	ReleaseCOM(gBufferPTex);
+	ReleaseCOM(gBufferNTex);
+
+
+
+	D3D11_TEXTURE2D_DESC depthTexDesc;
+	depthTexDesc.Width = m_clientWidth;
+	depthTexDesc.Height = m_clientHeight;
+	depthTexDesc.MipLevels = 1;
+	depthTexDesc.ArraySize = 1;
+	depthTexDesc.SampleDesc.Count = 1;
+	depthTexDesc.SampleDesc.Quality = 0;
+	depthTexDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	depthTexDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthTexDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthTexDesc.CPUAccessFlags = 0;
+	depthTexDesc.MiscFlags = 0;
+
+	ID3D11Texture2D* depthTex = 0;
+	HR(m_d3d11Device->CreateTexture2D(&depthTexDesc, 0, &depthTex));
+
+	// Create the depth stencil view for the entire cube
+	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+	dsvDesc.Format = depthTexDesc.Format;
+	dsvDesc.Flags = 0;
+	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	dsvDesc.Texture2D.MipSlice = 0;
+	HR(m_d3d11Device->CreateDepthStencilView(depthTex, &dsvDesc, &m_deferredRenderDepthStencilView));
+
+	ReleaseCOM(depthTex);
+
+#endif
+
 	DirectionalLight* dLight = new DirectionalLight();
 	dLight->intensity = XMFLOAT4(1, 1, 1, 1);
 	dLight->direction = MatrixHelper::NormalizeFloat3(XMFLOAT3(-0.5, -2, 1));
@@ -169,13 +250,16 @@ bool D3D11Renderer::Init() {
 
 void D3D11Renderer::Draw() {
 
-	LightManager::Instance()->m_shadowMap->RenderShadowMap();
+	//LightManager::Instance()->m_shadowMap->RenderShadowMap();
 
+ 	ID3D11ShaderResourceView* nullSRV[16] = { 0 };
+ 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
+
+
+#if FORWARD&&0
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
-	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
 	m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
 
 		m_d3d11DeviceContext->RSSetState(0);
 		StdMeshEffect* activeFX = EffectsManager::Instance()->m_stdMeshEffect;
@@ -189,10 +273,65 @@ void D3D11Renderer::Draw() {
 		activeFX->EyePosW->SetRawValue(&pos, 0, 3 * sizeof(float));
 
 		for (int iMesh = 0; iMesh < activeFX->m_associatedMeshes.size(); iMesh++ ) {
-			activeFX->m_associatedMeshes[iMesh]->Draw();
+			//activeFX->m_associatedMeshes[iMesh]->Draw();
 		}
-		
-	ID3D11ShaderResourceView* nullSRV[16] = { 0 };
+#else
+
+	ID3D11RenderTargetView* rtvs[3] = { m_diffuseBufferRTV, m_positionBufferRTV, m_normalBufferRTV };
+	m_d3d11DeviceContext->OMSetRenderTargets(3, rtvs, m_deferredRenderDepthStencilView);
+	//m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	m_d3d11DeviceContext->ClearRenderTargetView(m_diffuseBufferRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	m_d3d11DeviceContext->ClearRenderTargetView(m_positionBufferRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	m_d3d11DeviceContext->ClearRenderTargetView(m_normalBufferRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	m_d3d11DeviceContext->ClearDepthStencilView(m_deferredRenderDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+		m_d3d11DeviceContext->RSSetState(0);
+		DeferredShaderEffect* activeFX = EffectsManager::Instance()->m_deferredShaderEffect;
+		m_d3d11DeviceContext->IASetInputLayout(activeFX->GetInputLayout());
+		m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		DirectionalLight* d = LightManager::Instance()->m_dirLights[0];
+		//activeFX->DirLight->SetRawValue(LightManager::Instance()->m_dirLights[0], 0, sizeof(DirectionalLight));
+		//activeFX->TheShadowMap->SetResource(LightManager::Instance()->m_shadowMap->GetDepthSRV());
+
+		XMFLOAT4 pos = CameraManager::Instance()->GetActiveCamera()->GetPos();
+		activeFX->EyePosW->SetRawValue(&pos, 0, 3 * sizeof(float));
+
+		for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_stdMeshEffect->m_associatedMeshes.size(); iMesh++) {
+			EffectsManager::Instance()->m_stdMeshEffect->m_associatedMeshes[iMesh]->Draw();
+		}
+
+
+	//m_d3d11DeviceContext->RSSetState(0);
+	//m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
+
+	m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
+	m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::Blue));
+	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	D3DX11_TECHNIQUE_DESC techDesc;
+	ID3DX11EffectTechnique* screenQuadTech = EffectsManager::Instance()->m_screenQuadEffect->GetActiveTech();
+	m_d3d11DeviceContext->IASetInputLayout(NULL);
+	screenQuadTech->GetDesc(&techDesc);
+	for (UINT p = 0; p < techDesc.Passes; ++p)
+	{
+
+		EffectsManager::Instance()->m_screenQuadEffect->ScreenMap->SetResource(m_diffuseBufferSRV);
+
+		screenQuadTech->GetPassByIndex(p)->Apply(0, m_d3d11DeviceContext);
+		m_d3d11DeviceContext->Draw(6, 0);
+	}
+
+
+	m_d3d11DeviceContext->RSSetState(0);
+	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
+
+
+#endif
+
+
+
+//	ID3D11ShaderResourceView* nullSRV[16] = { 0 };
 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
 
 	HR(m_swapChain->Present(0, 0));

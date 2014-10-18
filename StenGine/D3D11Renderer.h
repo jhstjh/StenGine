@@ -4,6 +4,8 @@
 #include "stdafx.h"
 #include "MeshRenderer.h"
 
+#define FORWARD 0
+
 class D3D11Renderer {
 public:
 	D3D11Renderer(HINSTANCE hInstance, HWND hMainWnd);
@@ -32,6 +34,18 @@ private:
 	D3D_DRIVER_TYPE m_d3dDriverType;
 
 	D3D11_VIEWPORT m_screenViewpot;
+
+#pragma region DEDERRED_RENDER
+	ID3D11RenderTargetView* m_diffuseBufferRTV;
+	ID3D11RenderTargetView* m_positionBufferRTV;
+	ID3D11RenderTargetView* m_normalBufferRTV;
+
+	ID3D11ShaderResourceView* m_diffuseBufferSRV;
+	ID3D11ShaderResourceView* m_positionBufferSRV;
+	ID3D11ShaderResourceView* m_normalBufferSRV;
+
+	ID3D11DepthStencilView* m_deferredRenderDepthStencilView;
+#pragma endregion
 
 	int m_clientWidth;
 	int m_clientHeight;
