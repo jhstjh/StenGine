@@ -18,7 +18,7 @@ XMMATRIX InverseTranspose(CXMMATRIX M)
 	return XMMatrixTranspose(XMMatrixInverse(&det, A));
 }
 
-MeshRenderer::MeshRenderer(int type = 0):
+Mesh::Mesh(int type = 0):
 m_indexBufferCPU(0),
 m_stdMeshVertexBufferGPU(0),
 m_shadowMapVertexBufferGPU(0),
@@ -34,14 +34,14 @@ m_diffuseMapSRV(0)
 	PrepareSRV(type);
 }
 
-MeshRenderer::~MeshRenderer() {
+Mesh::~Mesh() {
 	ReleaseCOM(m_indexBufferGPU);
 	ReleaseCOM(m_stdMeshVertexBufferGPU);
 	ReleaseCOM(m_shadowMapVertexBufferGPU);
 	ReleaseCOM(m_diffuseMapSRV);
 }
 
-void MeshRenderer::CreateBoxPrimitive() {
+void Mesh::CreateBoxPrimitive() {
 	m_positionBufferCPU.resize(24);
 	m_positionBufferCPU = {
 		XMFLOAT3(-1.0f, -1.0f, -1.0f),
@@ -201,7 +201,7 @@ void MeshRenderer::CreateBoxPrimitive() {
 	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
 }
 
-void MeshRenderer::CreatePlanePrimitive() {
+void Mesh::CreatePlanePrimitive() {
 	m_positionBufferCPU.resize(4);
 	m_positionBufferCPU = {
 		XMFLOAT3(-4.0f, -1.0f, -4.0f),
@@ -271,7 +271,7 @@ void MeshRenderer::CreatePlanePrimitive() {
 	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 16.0f);
 }
 
-void MeshRenderer::PrepareGPUBuffer() {
+void Mesh::PrepareGPUBuffer() {
 
 	std::vector<Vertex::StdMeshVertex> vertices(m_positionBufferCPU.size());
 	UINT k = 0;
@@ -312,7 +312,7 @@ void MeshRenderer::PrepareGPUBuffer() {
 #endif
 }
 
-void MeshRenderer::PrepareShadowMapBuffer() {
+void Mesh::PrepareShadowMapBuffer() {
 
 	std::vector<Vertex::ShadowMapVertex> vertices(m_positionBufferCPU.size());
 	UINT k = 0;
@@ -333,7 +333,7 @@ void MeshRenderer::PrepareShadowMapBuffer() {
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&vbd, &vinitData, &m_shadowMapVertexBufferGPU));
 }
 
-void MeshRenderer::PrepareSRV(int type) {
+void Mesh::PrepareSRV(int type) {
 	if (type == 0) {
 		HR(D3DX11CreateShaderResourceViewFromFile(
 			D3D11Renderer::Instance()->GetD3DDevice(),
@@ -346,7 +346,7 @@ void MeshRenderer::PrepareSRV(int type) {
 	}
 }
 
-void MeshRenderer::Draw() {
+void Mesh::Draw() {
 #if FORWARD
 	ID3DX11EffectTechnique* tech = m_associatedEffect->GetActiveTech();
 	// if it is std mesh
@@ -413,7 +413,7 @@ void MeshRenderer::Draw() {
 #endif
 }
 
-void MeshRenderer::DrawOnShadowMap() {
+void Mesh::DrawOnShadowMap() {
 	ID3DX11EffectTechnique* tech = EffectsManager::Instance()->m_shadowMapEffect->GetActiveTech();
 
 	UINT stride = sizeof(Vertex::ShadowMapVertex);

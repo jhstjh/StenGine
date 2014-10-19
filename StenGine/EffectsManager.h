@@ -3,7 +3,7 @@
 #include "D3DIncludes.h"
 #include "MeshRenderer.h"
 
-class MeshRenderer;
+class Mesh;
 
 class Effect {
 protected:
@@ -16,7 +16,7 @@ public:
 	virtual ~Effect();
 	ID3D11InputLayout* GetInputLayout() { return m_inputLayout; }
 	ID3DX11EffectTechnique* GetActiveTech() { return m_activeTech; }
-	std::vector<MeshRenderer*> m_associatedMeshes;
+	std::vector<Mesh*> m_associatedMeshes;
 };
 
 

@@ -8,6 +8,7 @@
 #include "EffectsManager.h"
 #include "LightManager.h"
 #include "CameraManager.h"
+#include "ResourceManager.h"
 #include "GameObject.h"
 //#include "MathHelper.h"
 #include "Timer.h"
@@ -56,20 +57,20 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
 	EffectsManager::Instance();
 	CameraManager::Instance();
+	ResourceManager::Instance();
 
-
-	// could add same mesh and render with instancing?
+	//same mesh render with instancing
 	GameObject* box0 = new GameObject();
-	MeshRenderer* box0Mesh = new MeshRenderer(0);
+	Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
 	box0->AddComponent(box0Mesh);
 	box0->RotateAroundY(3.14159 / 5);
 
 	GameObject* box1 = new GameObject(0, 2, -0.5);
-	MeshRenderer* box1Mesh = new MeshRenderer(0);
+	Mesh* box1Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
 	box1->AddComponent(box1Mesh);
 
  	GameObject* plane0 = new GameObject(-1, 0, 0);
- 	MeshRenderer* plane0Mesh = new MeshRenderer(1);
+	Mesh* plane0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GeneratePlane");
  	plane0->AddComponent(plane0Mesh);
 
 	Timer::Init();
@@ -105,7 +106,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	}
 
 	delete box0;
-	delete box1;
+//	delete box1;
 	delete plane0;
 
 	return (int) msg.wParam;

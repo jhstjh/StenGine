@@ -6,7 +6,7 @@
 
 class ObjReader {
 public:
-	static void Read(const std::wstring& filename, MeshRenderer* mesh);
+	static void Read(const std::wstring& filename, Mesh* mesh);
 };
 
 #endif // !__OBJ_READER__

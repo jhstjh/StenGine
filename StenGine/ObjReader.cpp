@@ -1,6 +1,6 @@
 #include "ObjReader.h"
 
-void ObjReader::Read(const std::wstring& filename, MeshRenderer* mesh) {
+void ObjReader::Read(const std::wstring& filename, Mesh* mesh) {
 
 	std::ifstream fin(filename);
 	char line[256];

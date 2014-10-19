@@ -25,7 +25,7 @@ struct Material {
 	XMFLOAT4 specular;
 };
 
-class MeshRenderer: public Component {
+class Mesh: public Component {
 private:
 	ID3D11Buffer* m_indexBufferGPU;
 	ID3D11Buffer* m_stdMeshVertexBufferGPU;
@@ -49,8 +49,8 @@ public:
 	std::vector<XMFLOAT4> m_colorBufferCPU;
 
 	XMFLOAT4X4 m_worldTransform;
-	MeshRenderer(int type);
-	~MeshRenderer();
+	Mesh(int type);
+	~Mesh();
 	void Draw();
 	void DrawOnShadowMap();
 };
