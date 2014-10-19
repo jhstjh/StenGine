@@ -65,9 +65,9 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	box0->AddComponent(box0Mesh);
 	box0->RotateAroundY(3.14159 / 5);
 
-	GameObject* box1 = new GameObject(0, 2, -0.5);
-	Mesh* box1Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox12121");
-	box1->AddComponent(box1Mesh);
+	GameObject* sphere = new GameObject(0, 2.5, -0.5);
+	Mesh* sphereMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/earth.fbx");
+	sphere->AddComponent(sphereMesh);
 
  	GameObject* plane0 = new GameObject(-1, 0, 0);
 	Mesh* plane0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GeneratePlane");
@@ -99,14 +99,14 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 				SetWindowText(hMainWnd, outs.str().c_str());
 				elaspedFrame = 0;
 			}
-			//box1->Update();
+			sphere->Update();
 			D3D11Renderer::Instance()->Draw();
 			elaspedFrame++;
 		}
 	}
 
 	SafeDelete(box0);
-	SafeDelete(box1);
+	SafeDelete(sphere);
 	SafeDelete(plane0);
 
 	return (int) msg.wParam;
@@ -165,7 +165,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow, HWND &hMainWnd)
    hInst = hInstance; // Store instance handle in our global variable
 
    hMainWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
+	   CW_USEDEFAULT, CW_USEDEFAULT, 1280, 720, NULL, NULL, hInstance, NULL);
 
    if (!hMainWnd)
    {

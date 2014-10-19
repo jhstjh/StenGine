@@ -17,6 +17,7 @@ public:
 	GameObject(float x, float y, float z);
 	~GameObject();
 	void SetPosition(float x, float y, float z);
+	XMFLOAT3 GetPosition();
 	void RotateAroundY(float radius);
 	void AddComponent(Component* c);
 	XMFLOAT4X4* GetWorldTransform() { return &m_worldTransform; }

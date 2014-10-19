@@ -29,7 +29,6 @@ m_diffuseMapSRV(0)
 		CreateBoxPrimitive();
 	else if (type == 1)
 		CreatePlanePrimitive();
-	PrepareSRV(type);
 }
 
 Mesh::~Mesh() {
@@ -203,6 +202,10 @@ void Mesh::CreateBoxPrimitive() {
 	m_material.ambient = XMFLOAT4(0.2, 0.2, 0.2, 1);
 	m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
 	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
+
+	HR(D3DX11CreateShaderResourceViewFromFile(
+		D3D11Renderer::Instance()->GetD3DDevice(),
+		L"./Model/WoodCrate02.dds", 0, 0, &m_diffuseMapSRV, 0));
 }
 
 void Mesh::CreatePlanePrimitive() {
@@ -273,6 +276,10 @@ void Mesh::CreatePlanePrimitive() {
 	m_material.ambient = XMFLOAT4(0.2, 0.2, 0.2, 1);
 	m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
 	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 16.0f);
+
+	HR(D3DX11CreateShaderResourceViewFromFile(
+		D3D11Renderer::Instance()->GetD3DDevice(),
+		L"./Model/darkbrickdxt1.dds", 0, 0, &m_diffuseMapSRV, 0));
 }
 
 void Mesh::PrepareGPUBuffer() {
@@ -335,19 +342,6 @@ void Mesh::PrepareShadowMapBuffer() {
 	D3D11_SUBRESOURCE_DATA vinitData;
 	vinitData.pSysMem = &vertices[0];
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&vbd, &vinitData, &m_shadowMapVertexBufferGPU));
-}
-
-void Mesh::PrepareSRV(int type) {
-	if (type == 0) {
-		HR(D3DX11CreateShaderResourceViewFromFile(
-			D3D11Renderer::Instance()->GetD3DDevice(),
-			L"./Model/WoodCrate02.dds", 0, 0, &m_diffuseMapSRV, 0));
-	}
-	else if (type == 1) {
-		HR(D3DX11CreateShaderResourceViewFromFile(
-			D3D11Renderer::Instance()->GetD3DDevice(),
-			L"./Model/darkbrickdxt1.dds", 0, 0, &m_diffuseMapSRV, 0));
-	}
 }
 
 void Mesh::Draw() {

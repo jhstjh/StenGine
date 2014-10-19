@@ -32,9 +32,7 @@ private:
 	ID3D11Buffer* m_shadowMapVertexBufferGPU;
 	Effect* m_associatedEffect;
 	Effect* m_associatedDeferredEffect;
-	
-	ID3D11ShaderResourceView* m_diffuseMapSRV;
-	ID3D11ShaderResourceView* m_normalMapSRV;
+
 
 	void CreateBoxPrimitive();
 	void CreatePlanePrimitive();
@@ -48,6 +46,9 @@ public:
 	std::vector<XMFLOAT3> m_normalBufferCPU;
 	std::vector<XMFLOAT2> m_texUVBufferCPU;
 	std::vector<XMFLOAT4> m_colorBufferCPU;
+	ID3D11ShaderResourceView* m_diffuseMapSRV;
+	ID3D11ShaderResourceView* m_normalMapSRV;
+
 	Material m_material;
 	XMFLOAT4X4 m_worldTransform;
 	Mesh(int type);
@@ -55,6 +56,8 @@ public:
 	void Draw();
 	void DrawOnShadowMap();
 	void Prepare();
+
+
 };
 
 #endif // !__MESH_RENDERER__
