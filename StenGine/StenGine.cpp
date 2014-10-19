@@ -66,7 +66,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	box0->RotateAroundY(3.14159 / 5);
 
 	GameObject* box1 = new GameObject(0, 2, -0.5);
-	Mesh* box1Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
+	Mesh* box1Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox12121");
 	box1->AddComponent(box1Mesh);
 
  	GameObject* plane0 = new GameObject(-1, 0, 0);

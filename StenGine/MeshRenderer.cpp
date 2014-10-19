@@ -29,8 +29,6 @@ m_diffuseMapSRV(0)
 		CreateBoxPrimitive();
 	else if (type == 1)
 		CreatePlanePrimitive();
-	PrepareGPUBuffer();
-	PrepareShadowMapBuffer();
 	PrepareSRV(type);
 }
 
@@ -40,6 +38,11 @@ Mesh::~Mesh() {
 	ReleaseCOM(m_shadowMapVertexBufferGPU);
 	ReleaseCOM(m_diffuseMapSRV);
 	ReleaseCOM(m_normalMapSRV);
+}
+
+void Mesh::Prepare() {
+	PrepareGPUBuffer();
+	PrepareShadowMapBuffer();
 }
 
 void Mesh::CreateBoxPrimitive() {
