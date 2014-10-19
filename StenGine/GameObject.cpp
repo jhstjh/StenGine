@@ -32,8 +32,8 @@ void GameObject::SetPosition(float x, float y, float z) {
 
 void GameObject::AddComponent(Component* c) {
 	m_components.push_back(c); 
-	c->m_parent = this;
-	c->m_instancingParent.push_back(this);
+	//c->m_parent = this;
+	c->m_parents.push_back(this);
 }
 
 void GameObject::Update() {

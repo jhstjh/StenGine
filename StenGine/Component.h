@@ -9,7 +9,7 @@ class GameObject;
 class Component {
 public:
 	GameObject* m_parent;
-	std::vector<GameObject*> m_instancingParent;
+	std::vector<GameObject*> m_parents;
 	virtual ~Component();
 };
 
