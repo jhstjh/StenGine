@@ -38,9 +38,10 @@ public:
 		}
 	}
 
+	~ResourceManager();
+
 private:
 	static ResourceManager* _instance;
-
 	std::unordered_map<std::wstring, Mesh*> m_meshResourceMap;
 };
 

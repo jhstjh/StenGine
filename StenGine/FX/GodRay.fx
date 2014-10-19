@@ -59,45 +59,33 @@ struct PSIn
 	linear float2 Tex : TEXCOORD;
 };
 
-static const int NUM_SAMPLES = 400;
+static const int NUM_SAMPLES = 100;
 
 float4 PSmain(PSIn input) : SV_Target
 {
+	clip(1 - gLightPosH.z);
+
 	float Density = 1;
 	float Decay = 0.9;
-	float Exposure = 0.1;
+	float Exposure = 0.2;
 	float Weight = 0.5;
-
-//	if (gLightPosH.z < 0 || gLightPosH.z > 1) return float4(0, 0, 0, 0);
-
-// 	if (gLightPosH.x < 0 ||
-// 		gLightPosH.y < 0 ||
-// 		gLightPosH.x > 1 ||
-// 		gLightPosH.y > 1 )
-// 		return float4(0, 0, 0, 0);
-
-// 	float occlusion = gOcclusionMap.Sample(samAnisotropic, input.Tex).w;
-// 
-// 	if (occlusion == 1) {
-// 		half2 deltaTexCoord = (input.Tex - gLightPosH.xy);
-// 			if (length(deltaTexCoord) < 0.1)
-// 				return float4(1, 0, 0, 0);
-// 			else
-// 				return float4(0, 1, 0, 0);
-// 	}
-// 	else
-// 		return float4(0, 0, 0, 0);
-
 
 
 	float2 texCoord = input.Tex;
 
-	// Calculate vector from pixel to light source in screen space.  
+
+
+		// Calculate vector from pixel to light source in screen space.  
 	half2 deltaTexCoord = (texCoord - gLightPosH.xy);
-	// Divide by number of samples and scale by control factor.  
+
+	Weight = 0.5 - clamp(abs(gLightPosH.x - 0.5), 0, 0.5);
+	//Weight = clamp(length(deltaTexCoord) / 10, 0, 1);
+
 	deltaTexCoord *= 1.0f / NUM_SAMPLES * Density;
 	// Store initial sample.  
 	half color = 0;
+	half count = 0;
+	
 
 	//return float4(color, color, color, 1);
 	// Set up illumination decay factor.  
@@ -118,13 +106,13 @@ float4 PSmain(PSIn input) : SV_Target
 	}
 	// Output final color with a further scale control factor.  
 	//color /= 5005;
-	return float4(color * Exposure, color * Exposure, color * Exposure, 1);
+	return float4(color * Exposure, color * Exposure, color * Exposure, (1 - gOcclusionMap.Sample(samAnisotropic, input.Tex).w) * 0.5);
 }
 
 BlendState SrcAlphaBlendingAdd
 {
 	BlendEnable[0] = TRUE;
-	SrcBlend = ONE;
+	SrcBlend = SRC_ALPHA;
 	DestBlend = ONE;
 	BlendOp = ADD;
 	RenderTargetWriteMask[0] = 0x0F;

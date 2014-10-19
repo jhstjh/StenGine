@@ -105,9 +105,9 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 		}
 	}
 
-	delete box0;
-//	delete box1;
-	delete plane0;
+	SafeDelete(box0);
+	SafeDelete(box1);
+	SafeDelete(plane0);
 
 	return (int) msg.wParam;
 }

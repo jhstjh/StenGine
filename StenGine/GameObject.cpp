@@ -1,5 +1,5 @@
 #include "GameObject.h"
-
+#include <algorithm>
 
 GameObject::GameObject() {
 	XMMATRIX I = XMMatrixIdentity();
@@ -15,7 +15,10 @@ GameObject::GameObject(float x, float y, float z) {
 
 GameObject::~GameObject() {
 	for (int i = 0; i < m_components.size(); i++) {
-		delete m_components[i];
+		m_components[i]->m_parents.erase(std::remove(m_components[i]->m_parents.begin(), m_components[i]->m_parents.end(), this), m_components[i]->m_parents.end());
+		if (m_components[i]->m_parents.size() == 0) {
+//			SafeDelete(m_components[i]);
+		}
 	}
 }
 
