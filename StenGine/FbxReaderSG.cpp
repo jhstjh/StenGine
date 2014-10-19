@@ -43,6 +43,24 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 	// Destroy the SDK manager and all the other objects it was handling.
 	lSdkManager->Destroy();
 
+	mesh->m_material.ambient = XMFLOAT4(0.2, 0.2, 0.2, 1);
+	mesh->m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
+	mesh->m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
+
+	std::wstring imgPath = filename;
+
+	int len = imgPath.length();
+
+	imgPath[len - 1] = 's';
+	imgPath[len - 2] = 'd';
+	imgPath[len - 3] = 'd';
+
+	HR(D3DX11CreateShaderResourceViewFromFile(
+		D3D11Renderer::Instance()->GetD3DDevice(),
+		imgPath.c_str(), 0, 0, &(mesh->m_diffuseMapSRV), 0));
+
+
+
 	return true;
 }
 
@@ -128,14 +146,4 @@ void ReadFbxMesh(FbxNode* node, Mesh* mesh) {
 
 
 	}
-	//mesh->m_texUVBufferCPU.resize(mesh->m_positionBufferCPU.size());
-
-	mesh->m_material.ambient = XMFLOAT4(0.2, 0.2, 0.2, 1);
-	mesh->m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
-	mesh->m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
-
-
-	HR(D3DX11CreateShaderResourceViewFromFile(
-		D3D11Renderer::Instance()->GetD3DDevice(),
-		L"Model/earth.dds", 0, 0, &(mesh->m_diffuseMapSRV), 0));
 }

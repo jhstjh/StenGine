@@ -73,6 +73,10 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	Mesh* plane0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GeneratePlane");
  	plane0->AddComponent(plane0Mesh);
 
+	GameObject* dragon = new GameObject(-3, -1, 0);
+	Mesh* dragonMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/dragon.fbx");
+	dragon->AddComponent(dragonMesh);
+
 	Timer::Init();
 
 	float elapsedTime = 0;
@@ -108,6 +112,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	SafeDelete(box0);
 	SafeDelete(sphere);
 	SafeDelete(plane0);
+	SafeDelete(dragon);
 
 	return (int) msg.wParam;
 }

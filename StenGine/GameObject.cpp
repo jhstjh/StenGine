@@ -47,5 +47,5 @@ void GameObject::AddComponent(Component* c) {
 }
 
 void GameObject::Update() {
-	RotateAroundY(Timer::GetDeltaTime() * 3.14159);
+	RotateAroundY(-Timer::GetDeltaTime() * 3.14159);
 }
