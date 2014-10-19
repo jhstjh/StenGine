@@ -14,7 +14,8 @@ cbuffer cbPerFrame
 Texture2D gOcclusionMap;
 SamplerState samAnisotropic
 {
-    Filter   = uint(MIN_MAG_POINT_MIP_LINEAR /* 1 */);
+    Filter   = uint(ANISOTROPIC /* 85 */);
+    MaxAnisotropy = uint(4);
     BorderColor = float4(0, 0, 0, 0);
     AddressU = uint(BORDER /* 4 */);
     AddressV = uint(BORDER /* 4 */);

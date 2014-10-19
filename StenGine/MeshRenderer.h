@@ -34,6 +34,7 @@ private:
 	Effect* m_associatedDeferredEffect;
 	Material m_material;
 	ID3D11ShaderResourceView* m_diffuseMapSRV;
+	ID3D11ShaderResourceView* m_normalMapSRV;
 
 	void CreateBoxPrimitive();
 	void CreatePlanePrimitive();

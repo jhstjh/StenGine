@@ -39,6 +39,7 @@ Mesh::~Mesh() {
 	ReleaseCOM(m_stdMeshVertexBufferGPU);
 	ReleaseCOM(m_shadowMapVertexBufferGPU);
 	ReleaseCOM(m_diffuseMapSRV);
+	ReleaseCOM(m_normalMapSRV);
 }
 
 void Mesh::CreateBoxPrimitive() {

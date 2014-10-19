@@ -12,8 +12,8 @@ struct VSOut
 
 SamplerState samAnisotropic
 {
-	Filter = MIN_MAG_POINT_MIP_LINEAR;
-	//MaxAnisotropy = 4;
+	Filter = ANISOTROPIC;
+	MaxAnisotropy = 4;
 	BorderColor = float4(0, 0, 0, 0);
 	AddressU = BORDER;
 	AddressV = BORDER;
