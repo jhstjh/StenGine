@@ -247,18 +247,20 @@ fxgroup
                 sample_indexable(texture2d)(float,float,float,float) r0.yzw, v2.xyxx, t0.wxyz, s0
                 mul r0.yzw, r0.yyzw, cb0[21].xxyz  // r0.y <- pout.diffuseH.x; r0.z <- pout.diffuseH.y; r0.w <- pout.diffuseH.z
                 mov r0.x, r0.x  // r0.x <- pout.diffuseH.w
-                mov r1.xyzw, cb0[22].xyzw  // r1.x <- pout.specularH.x; r1.y <- pout.specularH.y; r1.z <- pout.specularH.z; r1.w <- pout.specularH.w
+                mov r1.xyzw, cb0[22].wxyz  // r1.x <- pout.specularH.w; r1.y <- pout.specularH.x; r1.z <- pout.specularH.y; r1.w <- pout.specularH.z
+                div r1.x, r1.x, l(255.000000)
                 dp3 r2.x, v1.xyzx, v1.xyzx
                 rsq r2.x, r2.x
                 mul r2.xy, r2.xxxx, v1.xyxx  // r2.x <- pout.normalV.x; r2.y <- pout.normalV.y
                 
-                #line 102
+                #line 103
                 mov o0.xyz, r0.yzwy
                 mov o0.w, r0.x
-                mov o2.xyzw, r1.xyzw
+                mov o2.xyz, r1.yzwy
+                mov o2.w, r1.x
                 mov o1.xy, r2.xyxx
                 ret 
-                // Approximately 17 instruction slots used
+                // Approximately 19 instruction slots used
                             
             };
             AB_BlendFactor = float4(0, 0, 0, 0);

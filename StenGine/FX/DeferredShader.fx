@@ -62,9 +62,9 @@ struct VertexOut {
 };
 
 struct PixelOut {
-	float4 diffuseH: SV_TARGET0;
+	half4 diffuseH: SV_TARGET0;
 	float2 normalV: SV_TARGET1;
-	float4 specularH: SV_TARGET2;
+	half4 specularH: SV_TARGET2;
 	//float4 edgeH: SV_TARGET3;
 };
 
@@ -95,6 +95,7 @@ PixelOut PixShader(VertexOut pin)
 	pout.diffuseH.w = shadowLit;
 	//pout.positionW = float4(pin.PosW, 0);
 	pout.specularH = gMaterial.specular;
+	pout.specularH.w /= 255.0f;
 	//pout.normalW = float4(pin.NormalW, 0);
 	pout.normalV = normalize(pin.NormalV).xy;
 	//pout.edgeH = float4(1, 1, 1, 1); // implement edge detection later

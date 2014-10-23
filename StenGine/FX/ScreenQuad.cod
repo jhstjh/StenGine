@@ -267,6 +267,7 @@ fxgroup
                   itof r0.y, l(0)
                   max r0.x, r0.y, r0.x
                   sample_indexable(texture2d)(float,float,float,float) r0.y, v1.xyxx, t2.xwyz, s0
+                  mul r0.y, r0.y, l(255.000000)
                   log r0.x, r0.x
                   mul r0.x, r0.x, r0.y
                   exp r0.x, r0.x
@@ -284,7 +285,7 @@ fxgroup
                 mul r1.xyzw, r3.wwww, r2.xyzw
                 add o0.xyzw, r0.xyzw, r1.xyzw
                 ret 
-                // Approximately 80 instruction slots used
+                // Approximately 81 instruction slots used
                             
             };
             AB_BlendFactor = float4(0, 0, 0, 0);
@@ -526,6 +527,7 @@ fxgroup
                   itof r0.y, l(0)
                   max r0.x, r0.y, r0.x
                   sample_indexable(texture2d)(float,float,float,float) r0.y, v1.xyxx, t2.xwyz, s0
+                  mul r0.y, r0.y, l(255.000000)
                   log r0.x, r0.x
                   mul r0.x, r0.x, r0.y
                   exp r0.x, r0.x
@@ -543,7 +545,7 @@ fxgroup
                 mul r1.xyzw, r3.wwww, r2.xyzw
                 add o0.xyzw, r0.xyzw, r1.xyzw
                 ret 
-                // Approximately 80 instruction slots used
+                // Approximately 81 instruction slots used
                             
             };
         }
