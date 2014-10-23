@@ -177,6 +177,21 @@ bool D3D11Renderer::Init() {
 
 	//-----------------setup MRT---------------------
 #if !FORWARD
+	D3D11_TEXTURE2D_DESC gNormalBufferDesc;
+	gNormalBufferDesc.Width = m_clientWidth;
+	gNormalBufferDesc.Height = m_clientHeight;
+	gNormalBufferDesc.MipLevels = 1;
+	gNormalBufferDesc.ArraySize = 1;
+	gNormalBufferDesc.SampleDesc.Count = 1;
+	gNormalBufferDesc.SampleDesc.Quality = 0;
+	gNormalBufferDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
+	gNormalBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	gNormalBufferDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	gNormalBufferDesc.CPUAccessFlags = 0;
+	gNormalBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+
+
+
 	D3D11_TEXTURE2D_DESC gBufferDesc;
 	gBufferDesc.Width = m_clientWidth;
 	gBufferDesc.Height = m_clientHeight;
@@ -191,15 +206,19 @@ bool D3D11Renderer::Init() {
 	gBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
 	ID3D11Texture2D* gBufferDTex = 0;
-	ID3D11Texture2D* gBufferPTex = 0;
 	ID3D11Texture2D* gBufferNTex = 0;
 	ID3D11Texture2D* gBufferSTex = 0;
-	ID3D11Texture2D* gBufferETex = 0;
+	//ID3D11Texture2D* gBufferETex = 0;
 	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferDTex));
-	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferPTex));
-	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferNTex));
+	HR(m_d3d11Device->CreateTexture2D(&gNormalBufferDesc, 0, &gBufferNTex));
 	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferSTex));
-	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferETex));
+	//HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferETex));
+
+	D3D11_RENDER_TARGET_VIEW_DESC rtvNormalDesc;
+	rtvNormalDesc.Format = gNormalBufferDesc.Format;
+	rtvNormalDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	rtvNormalDesc.Texture2D.MipSlice = 0;
+
 
 	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc;
 	rtvDesc.Format = gBufferDesc.Format;
@@ -207,10 +226,16 @@ bool D3D11Renderer::Init() {
 	rtvDesc.Texture2D.MipSlice = 0;
 
 	HR(m_d3d11Device->CreateRenderTargetView(gBufferDTex, &rtvDesc, &m_diffuseBufferRTV));
-	HR(m_d3d11Device->CreateRenderTargetView(gBufferPTex, &rtvDesc, &m_positionBufferRTV));
-	HR(m_d3d11Device->CreateRenderTargetView(gBufferNTex, &rtvDesc, &m_normalBufferRTV));
+	HR(m_d3d11Device->CreateRenderTargetView(gBufferNTex, &rtvNormalDesc, &m_normalBufferRTV));
 	HR(m_d3d11Device->CreateRenderTargetView(gBufferSTex, &rtvDesc, &m_specularBufferRTV));
-	HR(m_d3d11Device->CreateRenderTargetView(gBufferETex, &rtvDesc, &m_edgeBufferRTV));
+	//HR(m_d3d11Device->CreateRenderTargetView(gBufferETex, &rtvDesc, &m_edgeBufferRTV));
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvNormalDesc;
+	srvNormalDesc.Format = gNormalBufferDesc.Format;
+	srvNormalDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvNormalDesc.Texture2D.MostDetailedMip = 0;
+	srvNormalDesc.Texture2D.MipLevels = -1;
+
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	srvDesc.Format = gBufferDesc.Format;
@@ -219,16 +244,14 @@ bool D3D11Renderer::Init() {
 	srvDesc.Texture2D.MipLevels = -1;
 
 	HR(m_d3d11Device->CreateShaderResourceView(gBufferDTex, &srvDesc, &m_diffuseBufferSRV));
-	HR(m_d3d11Device->CreateShaderResourceView(gBufferPTex, &srvDesc, &m_positionBufferSRV));
-	HR(m_d3d11Device->CreateShaderResourceView(gBufferNTex, &srvDesc, &m_normalBufferSRV));
+	HR(m_d3d11Device->CreateShaderResourceView(gBufferNTex, &srvNormalDesc, &m_normalBufferSRV));
 	HR(m_d3d11Device->CreateShaderResourceView(gBufferSTex, &srvDesc, &m_specularBufferSRV));
-	HR(m_d3d11Device->CreateShaderResourceView(gBufferETex, &srvDesc, &m_edgeBufferSRV));
+	//HR(m_d3d11Device->CreateShaderResourceView(gBufferETex, &srvDesc, &m_edgeBufferSRV));
 
 	ReleaseCOM(gBufferDTex);
-	ReleaseCOM(gBufferPTex);
 	ReleaseCOM(gBufferNTex);
 	ReleaseCOM(gBufferSTex);
-	ReleaseCOM(gBufferETex);
+//	ReleaseCOM(gBufferETex);
 
 	D3D11_TEXTURE2D_DESC depthTexDesc;
 	depthTexDesc.Width = m_clientWidth;
@@ -307,14 +330,14 @@ void D3D11Renderer::Draw() {
 #else
 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
 	//m_d3d11DeviceContext->RSSetViewports(1, &m_screenSuperSampleViewpot);
-	ID3D11RenderTargetView* rtvs[5] = { m_diffuseBufferRTV, m_normalBufferRTV, m_specularBufferRTV, m_edgeBufferRTV };
-	m_d3d11DeviceContext->OMSetRenderTargets(5, rtvs, m_deferredRenderDepthStencilView);
+	ID3D11RenderTargetView* rtvs[4] = { m_diffuseBufferRTV, m_normalBufferRTV, m_specularBufferRTV, m_edgeBufferRTV };
+	m_d3d11DeviceContext->OMSetRenderTargets(3, rtvs, m_deferredRenderDepthStencilView);
 	//m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearRenderTargetView(m_diffuseBufferRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	//m_d3d11DeviceContext->ClearRenderTargetView(m_positionBufferRTV, reinterpret_cast<const float*>(&Colors::White));
 	m_d3d11DeviceContext->ClearRenderTargetView(m_normalBufferRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearRenderTargetView(m_specularBufferRTV, reinterpret_cast<const float*>(&Colors::Black));
-	m_d3d11DeviceContext->ClearRenderTargetView(m_edgeBufferRTV, reinterpret_cast<const float*>(&Colors::Black));
+	//m_d3d11DeviceContext->ClearRenderTargetView(m_edgeBufferRTV, reinterpret_cast<const float*>(&Colors::Black));
 	m_d3d11DeviceContext->ClearDepthStencilView(m_deferredRenderDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		m_d3d11DeviceContext->RSSetState(0);

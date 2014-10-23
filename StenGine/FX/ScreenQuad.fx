@@ -96,13 +96,18 @@ float4 PSmain(PSIn input) : SV_Target
 	float4 diffColor = float4(0, 0, 0, 0);
 	float4 specColor = float4(0, 0, 0, 0);
 
-	float3 normalW = gNormalGB.Sample(samAnisotropic, input.Tex).xyz;
-	float diffuseK = dot(-gDirLight.direction, normalW);
+	float3 normalV;
+	normalV.xy = gNormalGB.Sample(samAnisotropic, input.Tex).xy;
+	normalV.z = - sqrt(1 - dot(normalV.xy, normalV.xy));
+
+
+
+	float diffuseK = dot(-gDirLight.direction, normalV);
 	float shadowLit = gDiffuseGB.Sample(samAnisotropic, input.Tex).w;
 
 	if (diffuseK > 0) {
 		diffColor += diffuseK * gDirLight.intensity;
-		float3 refLight = reflect(gDirLight.direction, normalW);
+		float3 refLight = reflect(gDirLight.direction, normalV);
 		float3 viewRay = gEyePosW - vPositionVS.xyz/*gPositionGB.Sample(samAnisotropic, input.Tex).xyz*/;
 		viewRay = normalize(viewRay);
 		specColor += gSpecularGB.Sample(samAnisotropic, input.Tex) * pow(max(dot(refLight, viewRay), 0), gSpecularGB.Sample(samAnisotropic, input.Tex).w);

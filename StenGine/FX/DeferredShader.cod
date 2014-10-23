@@ -129,7 +129,7 @@ fxgroup
                 //   o1.x <- <VertShader return value>.NormalV.x; o1.y <- <VertShader return value>.NormalV.y; o1.z <- <VertShader return value>.NormalV.z; 
                 //   o0.x <- <VertShader return value>.PosH.x; o0.y <- <VertShader return value>.PosH.y; o0.z <- <VertShader return value>.PosH.z; o0.w <- <VertShader return value>.PosH.w
                 //
-                #line 77 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
+                #line 75 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
                 mov r0.xyz, v0.xyzx
                 mov r0.w, l(1.000000)
                 dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- vout.PosH.x
@@ -209,9 +209,8 @@ fxgroup
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_TARGET                0   xyzw        0   TARGET   float   xyzw
-                // SV_TARGET                1   xyzw        1   TARGET   float   xyzw
+                // SV_TARGET                1   xy          1   TARGET   float   xy  
                 // SV_TARGET                2   xyzw        2   TARGET   float   xyzw
-                // SV_TARGET                3   xyzw        3   TARGET   float   xyzw
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
@@ -224,45 +223,42 @@ fxgroup
                 dcl_input_ps linear v2.xy
                 dcl_input_ps linear v3.xyzw
                 dcl_output o0.xyzw
-                dcl_output o1.xyzw
+                dcl_output o1.xy
                 dcl_output o2.xyzw
-                dcl_output o3.xyzw
-                dcl_temps 4
+                dcl_temps 3
                 //
                 // Initial variable locations:
                 //   v0.x <- pin.PosH.x; v0.y <- pin.PosH.y; v0.z <- pin.PosH.z; v0.w <- pin.PosH.w; 
                 //   v1.x <- pin.NormalV.x; v1.y <- pin.NormalV.y; v1.z <- pin.NormalV.z; 
                 //   v2.x <- pin.TexUV.x; v2.y <- pin.TexUV.y; 
                 //   v3.x <- pin.ShadowPosH.x; v3.y <- pin.ShadowPosH.y; v3.z <- pin.ShadowPosH.z; v3.w <- pin.ShadowPosH.w; 
-                //   o3.x <- <PixShader return value>.edgeH.x; o3.y <- <PixShader return value>.edgeH.y; o3.z <- <PixShader return value>.edgeH.z; o3.w <- <PixShader return value>.edgeH.w; 
                 //   o2.x <- <PixShader return value>.specularH.x; o2.y <- <PixShader return value>.specularH.y; o2.z <- <PixShader return value>.specularH.z; o2.w <- <PixShader return value>.specularH.w; 
-                //   o1.x <- <PixShader return value>.normalV.x; o1.y <- <PixShader return value>.normalV.y; o1.z <- <PixShader return value>.normalV.z; o1.w <- <PixShader return value>.normalV.w; 
+                //   o1.x <- <PixShader return value>.normalV.x; o1.y <- <PixShader return value>.normalV.y; 
                 //   o0.x <- <PixShader return value>.diffuseH.x; o0.y <- <PixShader return value>.diffuseH.y; o0.z <- <PixShader return value>.diffuseH.z; o0.w <- <PixShader return value>.diffuseH.w
                 //
-                #line 90 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
+                #line 87 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
                 div r0.xyz, v3.zxyz, v3.wwww  // r0.x <- pin.ShadowPosH.z; r0.y <- pin.ShadowPosH.x; r0.z <- pin.ShadowPosH.y
                 mov r0.x, r0.x  // r0.x <- depth
                 itof r0.w, l(0)  // r0.w <- shadowLit
                 sample_c_lz_indexable(texture2d)(float,float,float,float) r0.x, r0.yzyy, t1.xxxx, s1, r0.x
                 add r0.x, r0.x, r0.w  // r0.x <- shadowLit
                 
-                #line 97
+                #line 94
                 sample_indexable(texture2d)(float,float,float,float) r0.yzw, v2.xyxx, t0.wxyz, s0
                 mul r0.yzw, r0.yyzw, cb0[21].xxyz  // r0.y <- pout.diffuseH.x; r0.z <- pout.diffuseH.y; r0.w <- pout.diffuseH.z
                 mov r0.x, r0.x  // r0.x <- pout.diffuseH.w
                 mov r1.xyzw, cb0[22].xyzw  // r1.x <- pout.specularH.x; r1.y <- pout.specularH.y; r1.z <- pout.specularH.z; r1.w <- pout.specularH.w
                 dp3 r2.x, v1.xyzx, v1.xyzx
                 rsq r2.x, r2.x
-                mul r2.xyz, r2.xxxx, v1.xyzx  // r2.x <- pout.normalV.x; r2.y <- pout.normalV.y; r2.z <- pout.normalV.z
-                itof r2.w, l(0)  // r2.w <- pout.normalV.w
-                itof r3.xyzw, l(1, 1, 1, 1)  // r3.x <- pout.edgeH.x; r3.y <- pout.edgeH.y; r3.z <- pout.edgeH.z; r3.w <- pout.edgeH.w
+                mul r2.xy, r2.xxxx, v1.xyxx  // r2.x <- pout.normalV.x; r2.y <- pout.normalV.y
+                
+                #line 102
                 mov o0.xyz, r0.yzwy
                 mov o0.w, r0.x
-                mov o1.xyzw, r2.xyzw
                 mov o2.xyzw, r1.xyzw
-                mov o3.xyzw, r3.xyzw
+                mov o1.xy, r2.xyxx
                 ret 
-                // Approximately 20 instruction slots used
+                // Approximately 17 instruction slots used
                             
             };
             AB_BlendFactor = float4(0, 0, 0, 0);
