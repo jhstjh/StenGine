@@ -105,6 +105,7 @@
     <ClInclude Include="StenGine.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="InputManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraManager.cpp" />
@@ -124,6 +125,7 @@
     </ClCompile>
     <ClCompile Include="StenGine.cpp" />
     <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="InputManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="StenGine.rc" />

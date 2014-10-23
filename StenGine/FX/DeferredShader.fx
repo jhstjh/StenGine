@@ -12,7 +12,9 @@ struct Material {
 
 cbuffer cbPerObject {
 	float4x4 gWorldViewProj; 
+	float4x4 gWorldViewInvTranspose;
 	float4x4 gWorldInvTranspose;
+	float4x4 gWorldView;
 	float4x4 gWorld;
 	Material gMaterial;
 	float4x4 gShadowTransform;
@@ -54,18 +56,18 @@ struct VertexIn {
 
 struct VertexOut {
 	float4 PosH  : SV_POSITION;
-	float3 PosW  : POSITION;
-    float3 NormalW : NORMAL;
+    //float3 NormalW : NORMAL;
+	float3 NormalV : NORMAL;
 	float2 TexUV : TEXCOORD0;
 	float4 ShadowPosH: TEXCOORD1;
 };
 
 struct PixelOut {
 	float4 diffuseH: SV_TARGET0;
-	float4 positionW: SV_TARGET1;
-	float4 normalW: SV_TARGET2;
-	float4 specularH: SV_TARGET3;
-	float4 edgeH: SV_TARGET4;
+	float4 normalV: SV_TARGET1;
+	//float4 normalW: SV_TARGET2;
+	float4 specularH: SV_TARGET2;
+	float4 edgeH: SV_TARGET3;
 };
 
 VertexOut VertShader(VertexIn vin)
@@ -73,8 +75,8 @@ VertexOut VertShader(VertexIn vin)
 	VertexOut vout;
 
 	vout.PosH = mul(float4(vin.PosL, 1.0f), gWorldViewProj);
-	vout.NormalW = mul(vin.NormalL, gWorldInvTranspose);
-	vout.PosW = mul(float4(vin.PosL, 1.0f), gWorld);
+	//vout.NormalW = mul(vin.NormalL, gWorldInvTranspose);
+	vout.NormalV = mul(vin.NormalL, gWorldViewInvTranspose);
 	vout.TexUV = vin.TexUV;
 	vout.ShadowPosH = mul(float4(vin.PosL, 1.0f), gShadowTransform);
 
@@ -94,9 +96,10 @@ PixelOut PixShader(VertexOut pin)
 
 	pout.diffuseH = gDiffuseMap.Sample(samAnisotropic, pin.TexUV) * gMaterial.diffuse;
 	pout.diffuseH.w = shadowLit;
-	pout.positionW = float4(pin.PosW, 0);
+	//pout.positionW = float4(pin.PosW, 0);
 	pout.specularH = gMaterial.specular;
-	pout.normalW = float4(pin.NormalW, 0);
+	//pout.normalW = float4(pin.NormalW, 0);
+	pout.normalV = float4(normalize(pin.NormalV), 0);
 	pout.edgeH = float4(1, 1, 1, 1); // implement edge detection later
 
 	return pout;

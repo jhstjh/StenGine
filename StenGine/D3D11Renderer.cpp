@@ -8,6 +8,18 @@
 
 D3D11Renderer* D3D11Renderer::_instance = nullptr;
 
+XMMATRIX InverseTransposeD(CXMMATRIX M)
+{
+	// Inverse-transpose is just applied to normals.  So zero out 
+	// translation row so that it doesn't get into our inverse-transpose
+	// calculation--we don't want the inverse-transpose of the translation.
+	XMMATRIX A = M;
+	A.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+
+	XMVECTOR det = XMMatrixDeterminant(A);
+	return XMMatrixTranspose(XMMatrixInverse(&det, A));
+}
+
 D3D11Renderer::D3D11Renderer(HINSTANCE hInstance, HWND hMainWnd):
 m_hInst(hInstance),
 m_hMainWnd(hMainWnd),
@@ -172,7 +184,7 @@ bool D3D11Renderer::Init() {
 	gBufferDesc.ArraySize = 1;
 	gBufferDesc.SampleDesc.Count = 1;
 	gBufferDesc.SampleDesc.Quality = 0;
-	gBufferDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	gBufferDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	gBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	gBufferDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	gBufferDesc.CPUAccessFlags = 0;
@@ -225,9 +237,9 @@ bool D3D11Renderer::Init() {
 	depthTexDesc.ArraySize = 1;
 	depthTexDesc.SampleDesc.Count = 1;
 	depthTexDesc.SampleDesc.Quality = 0;
-	depthTexDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	depthTexDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
 	depthTexDesc.Usage = D3D11_USAGE_DEFAULT;
-	depthTexDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthTexDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 	depthTexDesc.CPUAccessFlags = 0;
 	depthTexDesc.MiscFlags = 0;
 
@@ -236,11 +248,18 @@ bool D3D11Renderer::Init() {
 
 	// Create the depth stencil view for the entire cube
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
-	dsvDesc.Format = depthTexDesc.Format;
+	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	dsvDesc.Flags = 0;
 	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	dsvDesc.Texture2D.MipSlice = 0;
 	HR(m_d3d11Device->CreateDepthStencilView(depthTex, &dsvDesc, &m_deferredRenderDepthStencilView));
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC dsrvDesc;
+	dsrvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+	dsrvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	dsrvDesc.Texture2D.MipLevels = depthTexDesc.MipLevels;
+	dsrvDesc.Texture2D.MostDetailedMip = 0;
+	HR(m_d3d11Device->CreateShaderResourceView(depthTex, &dsrvDesc, &m_deferredRenderShaderResourceView));
 
 	ReleaseCOM(depthTex);
 
@@ -288,11 +307,11 @@ void D3D11Renderer::Draw() {
 #else
 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
 	//m_d3d11DeviceContext->RSSetViewports(1, &m_screenSuperSampleViewpot);
-	ID3D11RenderTargetView* rtvs[5] = { m_diffuseBufferRTV, m_positionBufferRTV, m_normalBufferRTV, m_specularBufferRTV, m_edgeBufferRTV };
+	ID3D11RenderTargetView* rtvs[5] = { m_diffuseBufferRTV, m_normalBufferRTV, m_specularBufferRTV, m_edgeBufferRTV };
 	m_d3d11DeviceContext->OMSetRenderTargets(5, rtvs, m_deferredRenderDepthStencilView);
 	//m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearRenderTargetView(m_diffuseBufferRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
-	m_d3d11DeviceContext->ClearRenderTargetView(m_positionBufferRTV, reinterpret_cast<const float*>(&Colors::White));
+	//m_d3d11DeviceContext->ClearRenderTargetView(m_positionBufferRTV, reinterpret_cast<const float*>(&Colors::White));
 	m_d3d11DeviceContext->ClearRenderTargetView(m_normalBufferRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearRenderTargetView(m_specularBufferRTV, reinterpret_cast<const float*>(&Colors::Black));
 	m_d3d11DeviceContext->ClearRenderTargetView(m_edgeBufferRTV, reinterpret_cast<const float*>(&Colors::Black));
@@ -327,15 +346,29 @@ void D3D11Renderer::Draw() {
 	m_d3d11DeviceContext->IASetInputLayout(NULL);
 	screenQuadTech->GetDesc(&techDesc);
 
-	EffectsManager::Instance()->m_screenQuadEffect->DirLight->SetRawValue(LightManager::Instance()->m_dirLights[0], 0, sizeof(DirectionalLight));
+	DirectionalLight viewDirLight;
+	memcpy(&viewDirLight, LightManager::Instance()->m_dirLights[0], sizeof(DirectionalLight));
+
+	XMMATRIX ViewInvTranspose = InverseTransposeD(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
+	XMStoreFloat3(&viewDirLight.direction, XMVector3Transform(XMLoadFloat3(&viewDirLight.direction), ViewInvTranspose));
+	EffectsManager::Instance()->m_screenQuadEffect->DirLight->SetRawValue(&viewDirLight, 0, sizeof(DirectionalLight));
+
 
 	XMFLOAT4 camPos = CameraManager::Instance()->GetActiveCamera()->GetPos();
+	XMStoreFloat4(&camPos, XMVector3Transform(XMLoadFloat4(&camPos), CameraManager::Instance()->GetActiveCamera()->GetViewMatrix()));
 	EffectsManager::Instance()->m_screenQuadEffect->EyePosW->SetRawValue(&camPos, 0, 3 * sizeof(float));
 
+
+	XMMATRIX projMat = CameraManager::Instance()->GetActiveCamera()->GetProjMatrix();
+	XMVECTOR det = XMMatrixDeterminant(projMat);
+	EffectsManager::Instance()->m_screenQuadEffect->ProjInv->SetMatrix(reinterpret_cast<float*>(&XMMatrixInverse(&det, projMat)));
+	
+
 	EffectsManager::Instance()->m_screenQuadEffect->DiffuseGB->SetResource(m_diffuseBufferSRV);
-	EffectsManager::Instance()->m_screenQuadEffect->PositionGB->SetResource(m_positionBufferSRV);
+	//EffectsManager::Instance()->m_screenQuadEffect->PositionGB->SetResource(m_positionBufferSRV);
 	EffectsManager::Instance()->m_screenQuadEffect->NormalGB->SetResource(m_normalBufferSRV);
 	EffectsManager::Instance()->m_screenQuadEffect->SpecularGB->SetResource(m_specularBufferSRV);
+	EffectsManager::Instance()->m_screenQuadEffect->DepthGB->SetResource(m_deferredRenderShaderResourceView);
 
 	for (UINT p = 0; p < techDesc.Passes; ++p)
 	{

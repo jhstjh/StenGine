@@ -23,11 +23,7 @@ GameObject::~GameObject() {
 }
 
 void GameObject::RotateAroundY(float radius) {
-	XMMATRIX R = XMMatrixRotationY(radius);
-	XMFLOAT3 P = GetPosition();
-	SetPosition(0, 0, 0);
-	XMStoreFloat4x4(&m_worldTransform, XMLoadFloat4x4(&m_worldTransform) * R);
-	SetPosition(P.x, P.y, P.z);
+	XMStoreFloat4x4(&m_worldTransform, XMMatrixRotationY(radius) * XMLoadFloat4x4(&m_worldTransform));
 }
 
 void GameObject::SetPosition(float x, float y, float z) {

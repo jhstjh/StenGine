@@ -398,7 +398,12 @@ void Mesh::Draw() {
 			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->World->SetMatrix(reinterpret_cast<float*>(m_parents[iP]->GetWorldTransform()));
 			XMMATRIX worldInvTranspose = InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
 			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->WorldInvTranspose->SetMatrix(reinterpret_cast<float*>(&worldInvTranspose));
+			
+			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
+			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->WorldView->SetMatrix(reinterpret_cast<float*>(&worldView));
 
+			XMMATRIX worldViewInvTranspose = InverseTranspose(worldView);
+			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->WorldViewInvTranspose->SetMatrix(reinterpret_cast<float*>(&worldViewInvTranspose));
 
 			XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
 			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->ShadowTransform->SetMatrix(reinterpret_cast<float*>(&worldShadowMapTransform));

@@ -99,6 +99,8 @@ DeferredShaderEffect::DeferredShaderEffect(const std::wstring& filename)
 	DeferredShaderTech = m_fx->GetTechniqueByName("DeferredShaderTech");
 	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
 	WorldInvTranspose = m_fx->GetVariableByName("gWorldInvTranspose")->AsMatrix();
+	WorldView = m_fx->GetVariableByName("gWorldView")->AsMatrix();
+	WorldViewInvTranspose = m_fx->GetVariableByName("gWorldViewInvTranspose")->AsMatrix();
 	ShadowTransform = m_fx->GetVariableByName("gShadowTransform")->AsMatrix();
 	World = m_fx->GetVariableByName("gWorld")->AsMatrix();
 	//DirLight = m_fx->GetVariableByName("gDirLight");
@@ -140,6 +142,8 @@ ScreenQuadEffect::ScreenQuadEffect(const std::wstring& filename)
 	PositionGB = m_fx->GetVariableByName("gPositionGB")->AsShaderResource();
 	SpecularGB = m_fx->GetVariableByName("gSpecularGB")->AsShaderResource();
 	NormalGB = m_fx->GetVariableByName("gNormalGB")->AsShaderResource();
+	DepthGB = m_fx->GetVariableByName("gDepthGB")->AsShaderResource();
+	ProjInv = m_fx->GetVariableByName("gProjInv")->AsMatrix();
 	DirLight = m_fx->GetVariableByName("gDirLight");
 	//Mat = m_fx->GetVariableByName("gMaterial");
 	EyePosW = m_fx->GetVariableByName("gEyePosW")->AsVector();

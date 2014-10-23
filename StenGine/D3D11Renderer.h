@@ -50,6 +50,8 @@ private:
 	ID3D11ShaderResourceView* m_edgeBufferSRV;
 
 	ID3D11DepthStencilView* m_deferredRenderDepthStencilView;
+	ID3D11ShaderResourceView* m_deferredRenderShaderResourceView;
+
 #pragma endregion
 
 	int m_clientWidth;

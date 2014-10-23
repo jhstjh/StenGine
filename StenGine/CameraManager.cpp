@@ -25,6 +25,14 @@ XMMATRIX Camera::GetViewProjMatrix() {
 	return XMLoadFloat4x4(&m_view) * XMLoadFloat4x4(&m_proj);
 }
 
+XMMATRIX Camera::GetViewMatrix() {
+	return XMLoadFloat4x4(&m_view);
+}
+
+XMMATRIX Camera::GetProjMatrix() {
+	return XMLoadFloat4x4(&m_proj);
+}
+
 void Camera::OnMouseDown(WPARAM btnState, int x, int y) {
 	m_lastMousePos.x = x;
 	m_lastMousePos.y = y;

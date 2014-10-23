@@ -6,10 +6,12 @@
 cbuffer cbPerObject
 {
     float4x4 gWorldViewProj;            // Offset:    0, size:   64
-    float4x4 gWorldInvTranspose;        // Offset:   64, size:   64
-    float4x4 gWorld;                    // Offset:  128, size:   64
-    Material gMaterial;                 // Offset:  192, size:   48
-    float4x4 gShadowTransform;          // Offset:  240, size:   64
+    float4x4 gWorldViewInvTranspose;    // Offset:   64, size:   64
+    float4x4 gWorldInvTranspose;        // Offset:  128, size:   64
+    float4x4 gWorldView;                // Offset:  192, size:   64
+    float4x4 gWorld;                    // Offset:  256, size:   64
+    Material gMaterial;                 // Offset:  320, size:   48
+    float4x4 gShadowTransform;          // Offset:  368, size:   64
 }
 
 cbuffer cbPerFrame
@@ -62,18 +64,20 @@ fxgroup
                 // {
                 //
                 //   float4x4 gWorldViewProj;           // Offset:    0 Size:    64
-                //   float4x4 gWorldInvTranspose;       // Offset:   64 Size:    64
-                //   float4x4 gWorld;                   // Offset:  128 Size:    64
+                //   float4x4 gWorldViewInvTranspose;   // Offset:   64 Size:    64
+                //   float4x4 gWorldInvTranspose;       // Offset:  128 Size:    64 [unused]
+                //   float4x4 gWorldView;               // Offset:  192 Size:    64 [unused]
+                //   float4x4 gWorld;                   // Offset:  256 Size:    64 [unused]
                 //   
                 //   struct Material
                 //   {
                 //       
-                //       float4 ambient;                // Offset:  192
-                //       float4 diffuse;                // Offset:  208
-                //       float4 specular;               // Offset:  224
+                //       float4 ambient;                // Offset:  320
+                //       float4 diffuse;                // Offset:  336
+                //       float4 specular;               // Offset:  352
                 //
-                //   } gMaterial;                       // Offset:  192 Size:    48 [unused]
-                //   float4x4 gShadowTransform;         // Offset:  240 Size:    64
+                //   } gMaterial;                       // Offset:  320 Size:    48 [unused]
+                //   float4x4 gShadowTransform;         // Offset:  368 Size:    64
                 //
                 // }
                 //
@@ -100,59 +104,52 @@ fxgroup
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float   xyzw
-                // POSITION                 0   xyz         1     NONE   float   xyz 
-                // NORMAL                   0   xyz         2     NONE   float   xyz 
-                // TEXCOORD                 0   xy          3     NONE   float   xy  
-                // TEXCOORD                 1   xyzw        4     NONE   float   xyzw
+                // NORMAL                   0   xyz         1     NONE   float   xyz 
+                // TEXCOORD                 0   xy          2     NONE   float   xy  
+                // TEXCOORD                 1   xyzw        3     NONE   float   xyzw
                 //
                 vs_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer cb0[19], immediateIndexed
+                dcl_constantbuffer cb0[27], immediateIndexed
                 dcl_input v0.xyz
                 dcl_input v1.xyz
                 dcl_input v2.xy
                 dcl_output_siv o0.xyzw, position
                 dcl_output o1.xyz
-                dcl_output o2.xyz
-                dcl_output o3.xy
-                dcl_output o4.xyzw
-                dcl_temps 6
+                dcl_output o2.xy
+                dcl_output o3.xyzw
+                dcl_temps 5
                 //
                 // Initial variable locations:
                 //   v0.x <- vin.PosL.x; v0.y <- vin.PosL.y; v0.z <- vin.PosL.z; 
                 //   v1.x <- vin.NormalL.x; v1.y <- vin.NormalL.y; v1.z <- vin.NormalL.z; 
                 //   v2.x <- vin.TexUV.x; v2.y <- vin.TexUV.y; 
-                //   o4.x <- <VertShader return value>.ShadowPosH.x; o4.y <- <VertShader return value>.ShadowPosH.y; o4.z <- <VertShader return value>.ShadowPosH.z; o4.w <- <VertShader return value>.ShadowPosH.w; 
-                //   o3.x <- <VertShader return value>.TexUV.x; o3.y <- <VertShader return value>.TexUV.y; 
-                //   o2.x <- <VertShader return value>.NormalW.x; o2.y <- <VertShader return value>.NormalW.y; o2.z <- <VertShader return value>.NormalW.z; 
-                //   o1.x <- <VertShader return value>.PosW.x; o1.y <- <VertShader return value>.PosW.y; o1.z <- <VertShader return value>.PosW.z; 
+                //   o3.x <- <VertShader return value>.ShadowPosH.x; o3.y <- <VertShader return value>.ShadowPosH.y; o3.z <- <VertShader return value>.ShadowPosH.z; o3.w <- <VertShader return value>.ShadowPosH.w; 
+                //   o2.x <- <VertShader return value>.TexUV.x; o2.y <- <VertShader return value>.TexUV.y; 
+                //   o1.x <- <VertShader return value>.NormalV.x; o1.y <- <VertShader return value>.NormalV.y; o1.z <- <VertShader return value>.NormalV.z; 
                 //   o0.x <- <VertShader return value>.PosH.x; o0.y <- <VertShader return value>.PosH.y; o0.z <- <VertShader return value>.PosH.z; o0.w <- <VertShader return value>.PosH.w
                 //
-                #line 75 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
+                #line 77 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
                 mov r0.xyz, v0.xyzx
                 mov r0.w, l(1.000000)
                 dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- vout.PosH.x
                 dp4 r1.y, r0.xyzw, cb0[1].xyzw  // r1.y <- vout.PosH.y
                 dp4 r1.z, r0.xyzw, cb0[2].xyzw  // r1.z <- vout.PosH.z
                 dp4 r1.w, r0.xyzw, cb0[3].xyzw  // r1.w <- vout.PosH.w
-                dp3 r2.x, v1.xyzx, cb0[4].xyzx  // r2.x <- vout.NormalW.x
-                dp3 r2.y, v1.xyzx, cb0[5].xyzx  // r2.y <- vout.NormalW.y
-                dp3 r2.z, v1.xyzx, cb0[6].xyzx  // r2.z <- vout.NormalW.z
-                dp4 r3.x, r0.xyzw, cb0[8].xyzw  // r3.x <- vout.PosW.x
-                dp4 r3.y, r0.xyzw, cb0[9].xyzw  // r3.y <- vout.PosW.y
-                dp4 r3.z, r0.xyzw, cb0[10].xyzw  // r3.z <- vout.PosW.z
-                mov r4.xy, v2.xyxx  // r4.x <- vout.TexUV.x; r4.y <- vout.TexUV.y
-                dp4 r5.x, r0.xyzw, cb0[15].xyzw  // r5.x <- vout.ShadowPosH.x
-                dp4 r5.y, r0.xyzw, cb0[16].xyzw  // r5.y <- vout.ShadowPosH.y
-                dp4 r5.z, r0.xyzw, cb0[17].xyzw  // r5.z <- vout.ShadowPosH.z
-                dp4 r5.w, r0.xyzw, cb0[18].xyzw  // r5.w <- vout.ShadowPosH.w
+                dp3 r2.x, v1.xyzx, cb0[4].xyzx  // r2.x <- vout.NormalV.x
+                dp3 r2.y, v1.xyzx, cb0[5].xyzx  // r2.y <- vout.NormalV.y
+                dp3 r2.z, v1.xyzx, cb0[6].xyzx  // r2.z <- vout.NormalV.z
+                mov r3.xy, v2.xyxx  // r3.x <- vout.TexUV.x; r3.y <- vout.TexUV.y
+                dp4 r4.x, r0.xyzw, cb0[23].xyzw  // r4.x <- vout.ShadowPosH.x
+                dp4 r4.y, r0.xyzw, cb0[24].xyzw  // r4.y <- vout.ShadowPosH.y
+                dp4 r4.z, r0.xyzw, cb0[25].xyzw  // r4.z <- vout.ShadowPosH.z
+                dp4 r4.w, r0.xyzw, cb0[26].xyzw  // r4.w <- vout.ShadowPosH.w
                 mov o0.xyzw, r1.xyzw
-                mov o4.xyzw, r5.xyzw
-                mov o1.xyz, r3.xyzx
-                mov o2.xyz, r2.xyzx
-                mov o3.xy, r4.xyxx
+                mov o3.xyzw, r4.xyzw
+                mov o1.xyz, r2.xyzx
+                mov o2.xy, r3.xyxx
                 ret 
-                // Approximately 23 instruction slots used
+                // Approximately 19 instruction slots used
                             
             };
             GeometryShader = NULL;
@@ -167,18 +164,20 @@ fxgroup
                 // {
                 //
                 //   float4x4 gWorldViewProj;           // Offset:    0 Size:    64 [unused]
-                //   float4x4 gWorldInvTranspose;       // Offset:   64 Size:    64 [unused]
-                //   float4x4 gWorld;                   // Offset:  128 Size:    64 [unused]
+                //   float4x4 gWorldViewInvTranspose;   // Offset:   64 Size:    64 [unused]
+                //   float4x4 gWorldInvTranspose;       // Offset:  128 Size:    64 [unused]
+                //   float4x4 gWorldView;               // Offset:  192 Size:    64 [unused]
+                //   float4x4 gWorld;                   // Offset:  256 Size:    64 [unused]
                 //   
                 //   struct Material
                 //   {
                 //       
-                //       float4 ambient;                // Offset:  192
-                //       float4 diffuse;                // Offset:  208
-                //       float4 specular;               // Offset:  224
+                //       float4 ambient;                // Offset:  320
+                //       float4 diffuse;                // Offset:  336
+                //       float4 specular;               // Offset:  352
                 //
-                //   } gMaterial;                       // Offset:  192 Size:    48
-                //   float4x4 gShadowTransform;         // Offset:  240 Size:    64 [unused]
+                //   } gMaterial;                       // Offset:  320 Size:    48
+                //   float4x4 gShadowTransform;         // Offset:  368 Size:    64 [unused]
                 //
                 // }
                 //
@@ -200,10 +199,9 @@ fxgroup
                 // Name                 Index   Mask Register SysValue  Format   Used
                 // -------------------- ----- ------ -------- -------- ------- ------
                 // SV_POSITION              0   xyzw        0      POS   float       
-                // POSITION                 0   xyz         1     NONE   float   xyz 
-                // NORMAL                   0   xyz         2     NONE   float   xyz 
-                // TEXCOORD                 0   xy          3     NONE   float   xy  
-                // TEXCOORD                 1   xyzw        4     NONE   float   xyzw
+                // NORMAL                   0   xyz         1     NONE   float   xyz 
+                // TEXCOORD                 0   xy          2     NONE   float   xy  
+                // TEXCOORD                 1   xyzw        3     NONE   float   xyzw
                 //
                 //
                 // Output signature:
@@ -214,63 +212,57 @@ fxgroup
                 // SV_TARGET                1   xyzw        1   TARGET   float   xyzw
                 // SV_TARGET                2   xyzw        2   TARGET   float   xyzw
                 // SV_TARGET                3   xyzw        3   TARGET   float   xyzw
-                // SV_TARGET                4   xyzw        4   TARGET   float   xyzw
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer cb0[15], immediateIndexed
+                dcl_constantbuffer cb0[23], immediateIndexed
                 dcl_sampler s0, mode_default
                 dcl_sampler s1, mode_comparison
                 dcl_resource_texture2d (float,float,float,float) t0
                 dcl_resource_texture2d (float,float,float,float) t1
                 dcl_input_ps linear v1.xyz
-                dcl_input_ps linear v2.xyz
-                dcl_input_ps linear v3.xy
-                dcl_input_ps linear v4.xyzw
+                dcl_input_ps linear v2.xy
+                dcl_input_ps linear v3.xyzw
                 dcl_output o0.xyzw
                 dcl_output o1.xyzw
                 dcl_output o2.xyzw
                 dcl_output o3.xyzw
-                dcl_output o4.xyzw
-                dcl_temps 5
+                dcl_temps 4
                 //
                 // Initial variable locations:
                 //   v0.x <- pin.PosH.x; v0.y <- pin.PosH.y; v0.z <- pin.PosH.z; v0.w <- pin.PosH.w; 
-                //   v1.x <- pin.PosW.x; v1.y <- pin.PosW.y; v1.z <- pin.PosW.z; 
-                //   v2.x <- pin.NormalW.x; v2.y <- pin.NormalW.y; v2.z <- pin.NormalW.z; 
-                //   v3.x <- pin.TexUV.x; v3.y <- pin.TexUV.y; 
-                //   v4.x <- pin.ShadowPosH.x; v4.y <- pin.ShadowPosH.y; v4.z <- pin.ShadowPosH.z; v4.w <- pin.ShadowPosH.w; 
-                //   o4.x <- <PixShader return value>.edgeH.x; o4.y <- <PixShader return value>.edgeH.y; o4.z <- <PixShader return value>.edgeH.z; o4.w <- <PixShader return value>.edgeH.w; 
-                //   o3.x <- <PixShader return value>.specularH.x; o3.y <- <PixShader return value>.specularH.y; o3.z <- <PixShader return value>.specularH.z; o3.w <- <PixShader return value>.specularH.w; 
-                //   o2.x <- <PixShader return value>.normalW.x; o2.y <- <PixShader return value>.normalW.y; o2.z <- <PixShader return value>.normalW.z; o2.w <- <PixShader return value>.normalW.w; 
-                //   o1.x <- <PixShader return value>.positionW.x; o1.y <- <PixShader return value>.positionW.y; o1.z <- <PixShader return value>.positionW.z; o1.w <- <PixShader return value>.positionW.w; 
+                //   v1.x <- pin.NormalV.x; v1.y <- pin.NormalV.y; v1.z <- pin.NormalV.z; 
+                //   v2.x <- pin.TexUV.x; v2.y <- pin.TexUV.y; 
+                //   v3.x <- pin.ShadowPosH.x; v3.y <- pin.ShadowPosH.y; v3.z <- pin.ShadowPosH.z; v3.w <- pin.ShadowPosH.w; 
+                //   o3.x <- <PixShader return value>.edgeH.x; o3.y <- <PixShader return value>.edgeH.y; o3.z <- <PixShader return value>.edgeH.z; o3.w <- <PixShader return value>.edgeH.w; 
+                //   o2.x <- <PixShader return value>.specularH.x; o2.y <- <PixShader return value>.specularH.y; o2.z <- <PixShader return value>.specularH.z; o2.w <- <PixShader return value>.specularH.w; 
+                //   o1.x <- <PixShader return value>.normalV.x; o1.y <- <PixShader return value>.normalV.y; o1.z <- <PixShader return value>.normalV.z; o1.w <- <PixShader return value>.normalV.w; 
                 //   o0.x <- <PixShader return value>.diffuseH.x; o0.y <- <PixShader return value>.diffuseH.y; o0.z <- <PixShader return value>.diffuseH.z; o0.w <- <PixShader return value>.diffuseH.w
                 //
-                #line 88 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
-                div r0.xyz, v4.zxyz, v4.wwww  // r0.x <- pin.ShadowPosH.z; r0.y <- pin.ShadowPosH.x; r0.z <- pin.ShadowPosH.y
+                #line 90 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
+                div r0.xyz, v3.zxyz, v3.wwww  // r0.x <- pin.ShadowPosH.z; r0.y <- pin.ShadowPosH.x; r0.z <- pin.ShadowPosH.y
                 mov r0.x, r0.x  // r0.x <- depth
                 itof r0.w, l(0)  // r0.w <- shadowLit
                 sample_c_lz_indexable(texture2d)(float,float,float,float) r0.x, r0.yzyy, t1.xxxx, s1, r0.x
                 add r0.x, r0.x, r0.w  // r0.x <- shadowLit
                 
-                #line 95
-                sample_indexable(texture2d)(float,float,float,float) r0.yzw, v3.xyxx, t0.wxyz, s0
-                mul r0.yzw, r0.yyzw, cb0[13].xxyz  // r0.y <- pout.diffuseH.x; r0.z <- pout.diffuseH.y; r0.w <- pout.diffuseH.z
+                #line 97
+                sample_indexable(texture2d)(float,float,float,float) r0.yzw, v2.xyxx, t0.wxyz, s0
+                mul r0.yzw, r0.yyzw, cb0[21].xxyz  // r0.y <- pout.diffuseH.x; r0.z <- pout.diffuseH.y; r0.w <- pout.diffuseH.z
                 mov r0.x, r0.x  // r0.x <- pout.diffuseH.w
-                itof r1.w, l(0)  // r1.w <- pout.positionW.w
-                mov r1.xyz, v1.xyzx  // r1.x <- pout.positionW.x; r1.y <- pout.positionW.y; r1.z <- pout.positionW.z
-                mov r2.xyzw, cb0[14].xyzw  // r2.x <- pout.specularH.x; r2.y <- pout.specularH.y; r2.z <- pout.specularH.z; r2.w <- pout.specularH.w
-                itof r3.w, l(0)  // r3.w <- pout.normalW.w
-                mov r3.xyz, v2.xyzx  // r3.x <- pout.normalW.x; r3.y <- pout.normalW.y; r3.z <- pout.normalW.z
-                itof r4.xyzw, l(1, 1, 1, 1)  // r4.x <- pout.edgeH.x; r4.y <- pout.edgeH.y; r4.z <- pout.edgeH.z; r4.w <- pout.edgeH.w
+                mov r1.xyzw, cb0[22].xyzw  // r1.x <- pout.specularH.x; r1.y <- pout.specularH.y; r1.z <- pout.specularH.z; r1.w <- pout.specularH.w
+                dp3 r2.x, v1.xyzx, v1.xyzx
+                rsq r2.x, r2.x
+                mul r2.xyz, r2.xxxx, v1.xyzx  // r2.x <- pout.normalV.x; r2.y <- pout.normalV.y; r2.z <- pout.normalV.z
+                itof r2.w, l(0)  // r2.w <- pout.normalV.w
+                itof r3.xyzw, l(1, 1, 1, 1)  // r3.x <- pout.edgeH.x; r3.y <- pout.edgeH.y; r3.z <- pout.edgeH.z; r3.w <- pout.edgeH.w
                 mov o0.xyz, r0.yzwy
                 mov o0.w, r0.x
-                mov o1.xyzw, r1.xyzw
-                mov o2.xyzw, r3.xyzw
-                mov o3.xyzw, r2.xyzw
-                mov o4.xyzw, r4.xyzw
+                mov o1.xyzw, r2.xyzw
+                mov o2.xyzw, r1.xyzw
+                mov o3.xyzw, r3.xyzw
                 ret 
-                // Approximately 21 instruction slots used
+                // Approximately 20 instruction slots used
                             
             };
             AB_BlendFactor = float4(0, 0, 0, 0);

@@ -52,8 +52,10 @@ public:
 	ID3DX11EffectTechnique* DeferredShaderTech;
 	ID3DX11EffectMatrixVariable* WorldViewProj;
 	ID3DX11EffectMatrixVariable* WorldInvTranspose;
+	ID3DX11EffectMatrixVariable* WorldView;
 	ID3DX11EffectMatrixVariable* World;
 	ID3DX11EffectMatrixVariable* ShadowTransform;
+	ID3DX11EffectMatrixVariable* WorldViewInvTranspose;
 	//ID3DX11EffectVariable* DirLight;
 	ID3DX11EffectVariable* Mat;
 	ID3DX11EffectVectorVariable* EyePosW;
@@ -90,9 +92,11 @@ public:
 	ID3DX11EffectShaderResourceVariable* PositionGB;
 	ID3DX11EffectShaderResourceVariable* NormalGB;
 	ID3DX11EffectShaderResourceVariable* SpecularGB;
+	ID3DX11EffectShaderResourceVariable* DepthGB;
 	ID3DX11EffectVariable* DirLight;
 	//ID3DX11EffectVariable* Mat;
 	ID3DX11EffectVectorVariable* EyePosW;
+	ID3DX11EffectMatrixVariable* ProjInv;
 };
 
 

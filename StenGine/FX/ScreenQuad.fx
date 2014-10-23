@@ -7,6 +7,7 @@ struct DirectionalLight {
 cbuffer cbPerFrame {
 	DirectionalLight gDirLight;
 	float3 gEyePosW;
+	float4x4 gProjInv;
 };
 
 struct VSOut
@@ -30,6 +31,7 @@ Texture2D gDiffuseGB;
 Texture2D gPositionGB;
 Texture2D gNormalGB;
 Texture2D gSpecularGB;
+Texture2D gDepthGB;
 
 VSOut VSmain(uint vertexId : SV_VertexID)
 {
@@ -75,7 +77,20 @@ struct PSIn
 float4 PSmain(PSIn input) : SV_Target
 {
 
-	clip(1 - gPositionGB.Sample(samAnisotropic, input.Tex).w - 0.1);
+	float z = gDepthGB.Sample(samAnisotropic, input.Tex);// tex2D(DepthSampler, vTexCoord);
+
+	float x = input.Tex.x * 2 - 1;
+	float y = (1 - input.Tex.y) * 2 - 1;
+	float4 vProjectedPos = float4(x, y, z, 1.0f);
+		// Transform by the inverse projection matrix
+	float4 vPositionVS = mul(vProjectedPos, gProjInv);
+		// Divide by w to get the view-space position
+	vPositionVS.xyz = vPositionVS.xyz / vPositionVS.w;
+
+	//return vPositionVS;
+	//return gPositionGB.Sample(samAnisotropic, input.Tex);
+
+	clip(1000 - vPositionVS.z - 1);
 		
 
 	float4 diffColor = float4(0, 0, 0, 0);
@@ -88,7 +103,7 @@ float4 PSmain(PSIn input) : SV_Target
 	if (diffuseK > 0) {
 		diffColor += diffuseK * gDirLight.intensity;
 		float3 refLight = reflect(gDirLight.direction, normalW);
-		float3 viewRay = gEyePosW - gPositionGB.Sample(samAnisotropic, input.Tex).xyz;
+		float3 viewRay = gEyePosW - vPositionVS.xyz/*gPositionGB.Sample(samAnisotropic, input.Tex).xyz*/;
 		viewRay = normalize(viewRay);
 		specColor += gSpecularGB.Sample(samAnisotropic, input.Tex) * pow(max(dot(refLight, viewRay), 0), gSpecularGB.Sample(samAnisotropic, input.Tex).w);
 	}

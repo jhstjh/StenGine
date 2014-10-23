@@ -117,16 +117,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	return (int) msg.wParam;
 }
 
-// void OnMouseDown(WPARAM btnState, int x, int y) {
-// 	CameraManager::Instance()->GetActiveCamera()->OnMouseDown(btnState, x, y);
-// }
-// void OnMouseUp(WPARAM btnState, int x, int y) {
-// 	CameraManager::Instance()->GetActiveCamera()->OnMouseUp(btnState, x, y);
-// }
-// void OnMouseMove(WPARAM btnState, int x, int y) {
-// 	CameraManager::Instance()->GetActiveCamera()->OnMouseMove(btnState, x, y);
-// }
-
 //
 //  FUNCTION: MyRegisterClass()
 //
