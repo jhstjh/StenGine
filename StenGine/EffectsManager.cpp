@@ -137,6 +137,7 @@ ScreenQuadEffect::ScreenQuadEffect(const std::wstring& filename)
 	: Effect(filename)
 {
 	FullScreenQuadTech = m_fx->GetTechniqueByName("t0");
+	SSAOTech = m_fx->GetTechniqueByName("SSAOTech");
 	ScreenMap = m_fx->GetVariableByName("gScreenMap")->AsShaderResource();
 	DiffuseGB = m_fx->GetVariableByName("gDiffuseGB")->AsShaderResource();
 	PositionGB = m_fx->GetVariableByName("gPositionGB")->AsShaderResource();
@@ -144,6 +145,7 @@ ScreenQuadEffect::ScreenQuadEffect(const std::wstring& filename)
 	NormalGB = m_fx->GetVariableByName("gNormalGB")->AsShaderResource();
 	DepthGB = m_fx->GetVariableByName("gDepthGB")->AsShaderResource();
 	ProjInv = m_fx->GetVariableByName("gProjInv")->AsMatrix();
+	Proj = m_fx->GetVariableByName("gProj")->AsMatrix();
 	DirLight = m_fx->GetVariableByName("gDirLight");
 	//Mat = m_fx->GetVariableByName("gMaterial");
 	EyePosW = m_fx->GetVariableByName("gEyePosW")->AsVector();

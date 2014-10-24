@@ -59,7 +59,7 @@ struct PSIn
 	linear float2 Tex : TEXCOORD;
 };
 
-static const int NUM_SAMPLES = 100;
+static const int NUM_SAMPLES = 200;
 
 float4 PSmain(PSIn input) : SV_Target
 {
@@ -96,7 +96,7 @@ float4 PSmain(PSIn input) : SV_Target
 		// Step sample location along ray.  
 		texCoord -= deltaTexCoord;
 		// Retrieve sample at new location.  
-		half sample = gOcclusionMap.Sample(samAnisotropic, texCoord).w;
+		half sample = gOcclusionMap.Sample(samAnisotropic, texCoord).x == 0? 1: 0;
 		// Apply sample attenuation scale/decay factors.  
 		sample *= illuminationDecay * Weight;
 		// Accumulate combined color.  
@@ -106,7 +106,7 @@ float4 PSmain(PSIn input) : SV_Target
 	}
 	// Output final color with a further scale control factor.  
 	//color /= 5005;
-	return float4(color * Exposure, color * Exposure, color * Exposure, (1 - gOcclusionMap.Sample(samAnisotropic, input.Tex).w) * 0.5);
+	return float4(color * Exposure, color * Exposure, color * Exposure, (1 - gOcclusionMap.Sample(samAnisotropic, texCoord).x == 0 ? 0 : 1) * 0.5);
 }
 
 BlendState SrcAlphaBlendingAdd

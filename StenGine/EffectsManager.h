@@ -87,6 +87,7 @@ public:
 
 	ID3DX11EffectTechnique* FullScreenQuadTech;
 	ID3DX11EffectTechnique* DeferredLightingTech;
+	ID3DX11EffectTechnique* SSAOTech;
 	ID3DX11EffectShaderResourceVariable* ScreenMap;
 	ID3DX11EffectShaderResourceVariable* DiffuseGB;
 	ID3DX11EffectShaderResourceVariable* PositionGB;
@@ -97,6 +98,7 @@ public:
 	//ID3DX11EffectVariable* Mat;
 	ID3DX11EffectVectorVariable* EyePosW;
 	ID3DX11EffectMatrixVariable* ProjInv;
+	ID3DX11EffectMatrixVariable* Proj;
 };
 
 

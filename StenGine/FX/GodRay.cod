@@ -202,7 +202,7 @@ fxgroup
                 //   o0.x <- <PSmain return value>.x; o0.y <- <PSmain return value>.y; o0.z <- <PSmain return value>.z; o0.w <- <PSmain return value>.w
                 //
                 #line 62 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\GodRay.fx"
-                mov r0.x, l(100)  // r0.x <- NUM_SAMPLES
+                mov r0.x, l(200)  // r0.x <- NUM_SAMPLES
                 
                 #line 66
                 itof r0.y, l(1)
@@ -232,7 +232,7 @@ fxgroup
                 add r2.x, r2.x, l(0.500000)  // r2.x <- Weight
                 
                 #line 84
-                mul r0.y, r0.y, l(0.010000)
+                mul r0.y, r0.y, l(0.005000)
                 mul r1.zw, r0.yyyy, r1.zzzw
                 itof r0.y, l(0)  // r0.y <- color
                 
@@ -251,8 +251,11 @@ fxgroup
                   mov r4.xy, r1.zwzz
                   mov r4.xy, -r4.xyxx
                   add r3.xy, r3.xyxx, r4.xyxx
-                  sample_indexable(texture2d)(float,float,float,float) r4.x, r3.xyxx, t0.wxyz, s0
-                  mov r4.x, r4.x  // r4.x <- sample
+                  sample_indexable(texture2d)(float,float,float,float) r4.x, r3.xyxx, t0.xyzw, s0
+                  itof r4.y, l(0)
+                  eq r4.x, r4.y, r4.x
+                  movc r4.x, r4.x, l(1), l(0)
+                  itof r4.x, r4.x  // r4.x <- sample
                   mul r4.y, r2.x, r3.z
                   mul r4.x, r4.y, r4.x
                   add r2.w, r2.w, r4.x
@@ -265,12 +268,16 @@ fxgroup
                 mul o0.y, r0.w, r2.w
                 mul o0.z, r0.w, r2.w
                 itof r0.x, l(1)
-                sample_indexable(texture2d)(float,float,float,float) r0.y, v1.xyxx, t0.xwyz, s0
+                sample_indexable(texture2d)(float,float,float,float) r0.y, r3.xyxx, t0.yxzw, s0
                 mov r0.y, -r0.y
                 add r0.x, r0.y, r0.x
+                itof r0.y, l(0)
+                eq r0.x, r0.y, r0.x
+                movc r0.x, r0.x, l(0), l(1)
+                itof r0.x, r0.x
                 mul o0.w, r0.x, l(0.500000)
                 ret 
-                // Approximately 54 instruction slots used
+                // Approximately 61 instruction slots used
                             
             };
             AB_BlendFactor = float4(0, 0, 0, 0);
@@ -424,7 +431,7 @@ fxgroup
                 //   o0.x <- <PSmain return value>.x; o0.y <- <PSmain return value>.y; o0.z <- <PSmain return value>.z; o0.w <- <PSmain return value>.w
                 //
                 #line 62 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\GodRay.fx"
-                mov r0.x, l(100)  // r0.x <- NUM_SAMPLES
+                mov r0.x, l(200)  // r0.x <- NUM_SAMPLES
                 
                 #line 66
                 itof r0.y, l(1)
@@ -454,7 +461,7 @@ fxgroup
                 add r2.x, r2.x, l(0.500000)  // r2.x <- Weight
                 
                 #line 84
-                mul r0.y, r0.y, l(0.010000)
+                mul r0.y, r0.y, l(0.005000)
                 mul r1.zw, r0.yyyy, r1.zzzw
                 itof r0.y, l(0)  // r0.y <- color
                 
@@ -473,8 +480,11 @@ fxgroup
                   mov r4.xy, r1.zwzz
                   mov r4.xy, -r4.xyxx
                   add r3.xy, r3.xyxx, r4.xyxx
-                  sample_indexable(texture2d)(float,float,float,float) r4.x, r3.xyxx, t0.wxyz, s0
-                  mov r4.x, r4.x  // r4.x <- sample
+                  sample_indexable(texture2d)(float,float,float,float) r4.x, r3.xyxx, t0.xyzw, s0
+                  itof r4.y, l(0)
+                  eq r4.x, r4.y, r4.x
+                  movc r4.x, r4.x, l(1), l(0)
+                  itof r4.x, r4.x  // r4.x <- sample
                   mul r4.y, r2.x, r3.z
                   mul r4.x, r4.y, r4.x
                   add r2.w, r2.w, r4.x
@@ -487,12 +497,16 @@ fxgroup
                 mul o0.y, r0.w, r2.w
                 mul o0.z, r0.w, r2.w
                 itof r0.x, l(1)
-                sample_indexable(texture2d)(float,float,float,float) r0.y, v1.xyxx, t0.xwyz, s0
+                sample_indexable(texture2d)(float,float,float,float) r0.y, r3.xyxx, t0.yxzw, s0
                 mov r0.y, -r0.y
                 add r0.x, r0.y, r0.x
+                itof r0.y, l(0)
+                eq r0.x, r0.y, r0.x
+                movc r0.x, r0.x, l(0), l(1)
+                itof r0.x, r0.x
                 mul o0.w, r0.x, l(0.500000)
                 ret 
-                // Approximately 54 instruction slots used
+                // Approximately 61 instruction slots used
                             
             };
         }

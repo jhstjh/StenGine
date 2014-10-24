@@ -1,17 +1,27 @@
 //
 // FX Version: fx_5_0
 //
-// 1 local buffer(s)
+// 2 local buffer(s)
 //
+cbuffer $Globals
+{
+    float4  OffsetVect[14] = { 1, 1, 1, 0, -1, -1, -1, 0, -1, 1, 1, 0, 1, -1, -1, 0, 1, 1, -1, 0, -1, -1, 1, 0, -1, 1, -1, 0, 1, -1, 1, 0, -1, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, 0, 1, 0 };// Offset:    0, size:  224
+}
+
 cbuffer cbPerFrame
 {
     DirectionalLight gDirLight;         // Offset:    0, size:   32
     float3  gEyePosW;                   // Offset:   32, size:   12
     float4x4 gProjInv;                  // Offset:   48, size:   64
+    float4x4 gProj;                     // Offset:  112, size:   64
+    float   gOcclusionRadius = 0.5;     // Offset:  176, size:    4
+    float   gOcclusionFadeStart = 0.200000003;// Offset:  180, size:    4
+    float   gOcclusionFadeEnd = 2;      // Offset:  184, size:    4
+    float   gSurfaceEpsilon = 0.0500000007;// Offset:  188, size:    4
 }
 
 //
-// 7 local object(s)
+// 9 local object(s)
 //
 SamplerState samAnisotropic
 {
@@ -19,6 +29,19 @@ SamplerState samAnisotropic
     MaxAnisotropy = uint(4);
     AddressU = uint(WRAP /* 1 */);
     AddressV = uint(WRAP /* 1 */);
+};
+SamplerState samLinear
+{
+    Filter   = uint(MIN_MAG_MIP_LINEAR /* 21 */);
+    AddressU = uint(WRAP /* 1 */);
+    AddressV = uint(WRAP /* 1 */);
+};
+SamplerState samNormalDepth
+{
+    Filter   = uint(MIN_MAG_LINEAR_MIP_POINT /* 20 */);
+    AddressU = uint(BORDER /* 4 */);
+    AddressV = uint(BORDER /* 4 */);
+    BorderColor = float4(0, 0, 0, 100000);
 };
 Texture2D gScreenMap;
 Texture2D gDiffuseGB;
@@ -33,7 +56,7 @@ Texture2D gDepthGB;
 fxgroup
 {
     //
-    // 2 technique(s)
+    // 3 technique(s)
     //
     technique11 t0
     {
@@ -71,16 +94,16 @@ fxgroup
                 //   o1.x <- <VSmain return value>.Tex.x; o1.y <- <VSmain return value>.Tex.y; 
                 //   o0.x <- <VSmain return value>.pos.x; o0.y <- <VSmain return value>.pos.y; o0.z <- <VSmain return value>.pos.z; o0.w <- <VSmain return value>.pos.w
                 //
-                #line 40 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                #line 64 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
                 if_z v0.x
                   mov r0.xyzw, l(-1.000000,-1.000000,0,1.000000)  // r0.x <- output.pos.x; r0.y <- output.pos.y; r0.z <- output.pos.z; r0.w <- output.pos.w
                   itof r1.xy, l(0, 1, 0, 0)  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
                 else 
                 
-                #line 40
+                #line 64
                   mov r1.z, v0.x  // r1.z <- vertexId
                 
-                #line 44
+                #line 68
                   mov r1.w, l(1)
                   ieq r1.w, r1.w, r1.z
                   if_nz r1.w
@@ -99,7 +122,7 @@ fxgroup
                         mov r0.xyzw, l(1.000000,1.000000,0,1.000000)  // r0.x <- output.pos.x; r0.y <- output.pos.y; r0.z <- output.pos.z; r0.w <- output.pos.w
                         itof r1.xy, l(1, 0, 0, 0)  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
                 
-                #line 55
+                #line 79
                       else 
                         mov r1.w, l(4)
                         ieq r1.w, r1.w, r1.z
@@ -145,6 +168,15 @@ fxgroup
                 //   } gDirLight;                       // Offset:    0 Size:    32
                 //   float3 gEyePosW;                   // Offset:   32 Size:    12
                 //   float4x4 gProjInv;                 // Offset:   48 Size:    64
+                //   float4x4 gProj;                    // Offset:  112 Size:    64 [unused]
+                //   float gOcclusionRadius;            // Offset:  176 Size:     4 [unused]
+                //      = 0x3f000000 
+                //   float gOcclusionFadeStart;         // Offset:  180 Size:     4 [unused]
+                //      = 0x3e4ccccd 
+                //   float gOcclusionFadeEnd;           // Offset:  184 Size:     4 [unused]
+                //      = 0x40000000 
+                //   float gSurfaceEpsilon;             // Offset:  188 Size:     4 [unused]
+                //      = 0x3d4ccccd 
                 //
                 // }
                 //
@@ -193,7 +225,7 @@ fxgroup
                 //   v1.x <- input.Tex.x; v1.y <- input.Tex.y; 
                 //   o0.x <- <PSmain return value>.x; o0.y <- <PSmain return value>.y; o0.z <- <PSmain return value>.z; o0.w <- <PSmain return value>.w
                 //
-                #line 80 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                #line 208 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
                 sample_indexable(texture2d)(float,float,float,float) r0.z, v1.xyxx, t3.yzxw, s0
                 mov r0.z, r0.z  // r0.z <- z
                 itof r1.x, l(2)
@@ -217,7 +249,7 @@ fxgroup
                 dp4 r0.x, r0.xyzw, cb0[6].xyzw  // r0.x <- vPositionVS.w
                 div r0.xyz, r1.xyzx, r0.xxxx  // r0.x <- vPositionVS.x; r0.y <- vPositionVS.y; r0.z <- vPositionVS.z
                 
-                #line 93
+                #line 221
                 itof r0.w, l(1000)
                 mov r1.x, -r0.z
                 add r0.w, r0.w, r1.x
@@ -228,11 +260,11 @@ fxgroup
                 and r0.w, r0.w, l(-1)
                 discard_nz r0.w
                 
-                #line 96
+                #line 224
                 itof r1.xyzw, l(0, 0, 0, 0)  // r1.x <- diffColor.x; r1.y <- diffColor.y; r1.z <- diffColor.z; r1.w <- diffColor.w
                 itof r2.xyzw, l(0, 0, 0, 0)  // r2.x <- specColor.x; r2.y <- specColor.y; r2.z <- specColor.z; r2.w <- specColor.w
                 
-                #line 100
+                #line 228
                 sample_indexable(texture2d)(float,float,float,float) r3.xy, v1.xyxx, t1.xyzw, s0
                 mov r3.xy, r3.xyxx  // r3.x <- normalV.x; r3.y <- normalV.y
                 itof r0.w, l(1)
@@ -242,7 +274,7 @@ fxgroup
                 sqrt r0.w, r0.w
                 mov r3.z, -r0.w  // r3.z <- normalV.z
                 
-                #line 105
+                #line 233
                 mov r4.xyz, -cb0[1].xyzx
                 dp3 r0.w, r4.xyzx, r3.xyzx  // r0.w <- diffuseK
                 sample_indexable(texture2d)(float,float,float,float) r3.w, v1.xyxx, t0.xyzw, s0
@@ -257,13 +289,13 @@ fxgroup
                   mov r0.w, -r0.w
                   mul r3.xyz, r0.wwww, r3.xyzx
                   add r3.xyz, r3.xyzx, cb0[1].xyzx  // r3.x <- refLight.x; r3.y <- refLight.y; r3.z <- refLight.z
-                  mov r0.xyz, -r0.xyzx
-                  add r0.xyz, r0.xyzx, cb0[2].xyzx  // r0.x <- viewRay.x; r0.y <- viewRay.y; r0.z <- viewRay.z
-                  dp3 r0.w, r0.xyzx, r0.xyzx
-                  rsq r0.w, r0.w
-                  mul r0.xyz, r0.wwww, r0.xyzx
+                  mov r0.xyw, -r0.xyxz
+                  add r0.xyw, r0.xyxw, cb0[2].xyxz  // r0.x <- viewRay.x; r0.y <- viewRay.y; r0.w <- viewRay.z
+                  dp3 r4.x, r0.xywx, r0.xywx
+                  rsq r4.x, r4.x
+                  mul r0.xyw, r0.xyxw, r4.xxxx
                   sample_indexable(texture2d)(float,float,float,float) r4.xyzw, v1.xyxx, t2.xyzw, s0
-                  dp3 r0.x, r3.xyzx, r0.xyzx
+                  dp3 r0.x, r3.xyzx, r0.xywx
                   itof r0.y, l(0)
                   max r0.x, r0.y, r0.x
                   sample_indexable(texture2d)(float,float,float,float) r0.y, v1.xyxx, t2.xwyz, s0
@@ -271,21 +303,26 @@ fxgroup
                   log r0.x, r0.x
                   mul r0.x, r0.x, r0.y
                   exp r0.x, r0.x
-                  mul r0.xyzw, r0.xxxx, r4.xyzw
-                  add r2.xyzw, r0.xyzw, r2.xyzw
+                  mul r4.xyzw, r0.xxxx, r4.xyzw
+                  add r2.xyzw, r2.xyzw, r4.xyzw
                 endif 
                 
-                #line 116
-                itof r0.w, l(0)
+                #line 244
+                itof r4.w, l(0)
                 mul r1.xyzw, r3.wwww, r1.xyzw
-                mov r0.xyz, l(0.200000,0.200000,0.200000,0)
-                add r0.xyzw, r0.xyzw, r1.xyzw
-                sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t0.xyzw, s0
-                mul r0.xyzw, r0.xyzw, r1.xyzw
-                mul r1.xyzw, r3.wwww, r2.xyzw
+                mov r4.xyz, l(0.200000,0.200000,0.200000,0)
+                add r1.xyzw, r1.xyzw, r4.xyzw
+                sample_indexable(texture2d)(float,float,float,float) r4.xyzw, v1.xyxx, t0.xyzw, s0
+                mul r1.xyzw, r1.xyzw, r4.xyzw
+                mul r2.xyzw, r3.wwww, r2.xyzw
+                add r1.xyzw, r1.xyzw, r2.xyzw
+                itof r2.xyzw, l(1, 1, 1, 1)
+                mul r0.xyzw, r0.zzzz, r2.xyzw
+                itof r2.xyzw, l(20, 20, 20, 20)
+                div r0.xyzw, r0.xyzw, r2.xyzw
                 add o0.xyzw, r0.xyzw, r1.xyzw
                 ret 
-                // Approximately 81 instruction slots used
+                // Approximately 86 instruction slots used
                             
             };
             AB_BlendFactor = float4(0, 0, 0, 0);
@@ -331,16 +368,16 @@ fxgroup
                 //   o1.x <- <VSmain return value>.Tex.x; o1.y <- <VSmain return value>.Tex.y; 
                 //   o0.x <- <VSmain return value>.pos.x; o0.y <- <VSmain return value>.pos.y; o0.z <- <VSmain return value>.pos.z; o0.w <- <VSmain return value>.pos.w
                 //
-                #line 40 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                #line 64 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
                 if_z v0.x
                   mov r0.xyzw, l(-1.000000,-1.000000,0,1.000000)  // r0.x <- output.pos.x; r0.y <- output.pos.y; r0.z <- output.pos.z; r0.w <- output.pos.w
                   itof r1.xy, l(0, 1, 0, 0)  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
                 else 
                 
-                #line 40
+                #line 64
                   mov r1.z, v0.x  // r1.z <- vertexId
                 
-                #line 44
+                #line 68
                   mov r1.w, l(1)
                   ieq r1.w, r1.w, r1.z
                   if_nz r1.w
@@ -359,7 +396,7 @@ fxgroup
                         mov r0.xyzw, l(1.000000,1.000000,0,1.000000)  // r0.x <- output.pos.x; r0.y <- output.pos.y; r0.z <- output.pos.z; r0.w <- output.pos.w
                         itof r1.xy, l(1, 0, 0, 0)  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
                 
-                #line 55
+                #line 79
                       else 
                         mov r1.w, l(4)
                         ieq r1.w, r1.w, r1.z
@@ -405,6 +442,15 @@ fxgroup
                 //   } gDirLight;                       // Offset:    0 Size:    32
                 //   float3 gEyePosW;                   // Offset:   32 Size:    12
                 //   float4x4 gProjInv;                 // Offset:   48 Size:    64
+                //   float4x4 gProj;                    // Offset:  112 Size:    64 [unused]
+                //   float gOcclusionRadius;            // Offset:  176 Size:     4 [unused]
+                //      = 0x3f000000 
+                //   float gOcclusionFadeStart;         // Offset:  180 Size:     4 [unused]
+                //      = 0x3e4ccccd 
+                //   float gOcclusionFadeEnd;           // Offset:  184 Size:     4 [unused]
+                //      = 0x40000000 
+                //   float gSurfaceEpsilon;             // Offset:  188 Size:     4 [unused]
+                //      = 0x3d4ccccd 
                 //
                 // }
                 //
@@ -453,7 +499,7 @@ fxgroup
                 //   v1.x <- input.Tex.x; v1.y <- input.Tex.y; 
                 //   o0.x <- <PSmain return value>.x; o0.y <- <PSmain return value>.y; o0.z <- <PSmain return value>.z; o0.w <- <PSmain return value>.w
                 //
-                #line 80 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                #line 208 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
                 sample_indexable(texture2d)(float,float,float,float) r0.z, v1.xyxx, t3.yzxw, s0
                 mov r0.z, r0.z  // r0.z <- z
                 itof r1.x, l(2)
@@ -477,7 +523,7 @@ fxgroup
                 dp4 r0.x, r0.xyzw, cb0[6].xyzw  // r0.x <- vPositionVS.w
                 div r0.xyz, r1.xyzx, r0.xxxx  // r0.x <- vPositionVS.x; r0.y <- vPositionVS.y; r0.z <- vPositionVS.z
                 
-                #line 93
+                #line 221
                 itof r0.w, l(1000)
                 mov r1.x, -r0.z
                 add r0.w, r0.w, r1.x
@@ -488,11 +534,11 @@ fxgroup
                 and r0.w, r0.w, l(-1)
                 discard_nz r0.w
                 
-                #line 96
+                #line 224
                 itof r1.xyzw, l(0, 0, 0, 0)  // r1.x <- diffColor.x; r1.y <- diffColor.y; r1.z <- diffColor.z; r1.w <- diffColor.w
                 itof r2.xyzw, l(0, 0, 0, 0)  // r2.x <- specColor.x; r2.y <- specColor.y; r2.z <- specColor.z; r2.w <- specColor.w
                 
-                #line 100
+                #line 228
                 sample_indexable(texture2d)(float,float,float,float) r3.xy, v1.xyxx, t1.xyzw, s0
                 mov r3.xy, r3.xyxx  // r3.x <- normalV.x; r3.y <- normalV.y
                 itof r0.w, l(1)
@@ -502,7 +548,7 @@ fxgroup
                 sqrt r0.w, r0.w
                 mov r3.z, -r0.w  // r3.z <- normalV.z
                 
-                #line 105
+                #line 233
                 mov r4.xyz, -cb0[1].xyzx
                 dp3 r0.w, r4.xyzx, r3.xyzx  // r0.w <- diffuseK
                 sample_indexable(texture2d)(float,float,float,float) r3.w, v1.xyxx, t0.xyzw, s0
@@ -517,13 +563,13 @@ fxgroup
                   mov r0.w, -r0.w
                   mul r3.xyz, r0.wwww, r3.xyzx
                   add r3.xyz, r3.xyzx, cb0[1].xyzx  // r3.x <- refLight.x; r3.y <- refLight.y; r3.z <- refLight.z
-                  mov r0.xyz, -r0.xyzx
-                  add r0.xyz, r0.xyzx, cb0[2].xyzx  // r0.x <- viewRay.x; r0.y <- viewRay.y; r0.z <- viewRay.z
-                  dp3 r0.w, r0.xyzx, r0.xyzx
-                  rsq r0.w, r0.w
-                  mul r0.xyz, r0.wwww, r0.xyzx
+                  mov r0.xyw, -r0.xyxz
+                  add r0.xyw, r0.xyxw, cb0[2].xyxz  // r0.x <- viewRay.x; r0.y <- viewRay.y; r0.w <- viewRay.z
+                  dp3 r4.x, r0.xywx, r0.xywx
+                  rsq r4.x, r4.x
+                  mul r0.xyw, r0.xyxw, r4.xxxx
                   sample_indexable(texture2d)(float,float,float,float) r4.xyzw, v1.xyxx, t2.xyzw, s0
-                  dp3 r0.x, r3.xyzx, r0.xyzx
+                  dp3 r0.x, r3.xyzx, r0.xywx
                   itof r0.y, l(0)
                   max r0.x, r0.y, r0.x
                   sample_indexable(texture2d)(float,float,float,float) r0.y, v1.xyxx, t2.xwyz, s0
@@ -531,23 +577,341 @@ fxgroup
                   log r0.x, r0.x
                   mul r0.x, r0.x, r0.y
                   exp r0.x, r0.x
-                  mul r0.xyzw, r0.xxxx, r4.xyzw
-                  add r2.xyzw, r0.xyzw, r2.xyzw
+                  mul r4.xyzw, r0.xxxx, r4.xyzw
+                  add r2.xyzw, r2.xyzw, r4.xyzw
                 endif 
                 
-                #line 116
-                itof r0.w, l(0)
+                #line 244
+                itof r4.w, l(0)
                 mul r1.xyzw, r3.wwww, r1.xyzw
-                mov r0.xyz, l(0.200000,0.200000,0.200000,0)
-                add r0.xyzw, r0.xyzw, r1.xyzw
-                sample_indexable(texture2d)(float,float,float,float) r1.xyzw, v1.xyxx, t0.xyzw, s0
-                mul r0.xyzw, r0.xyzw, r1.xyzw
-                mul r1.xyzw, r3.wwww, r2.xyzw
+                mov r4.xyz, l(0.200000,0.200000,0.200000,0)
+                add r1.xyzw, r1.xyzw, r4.xyzw
+                sample_indexable(texture2d)(float,float,float,float) r4.xyzw, v1.xyxx, t0.xyzw, s0
+                mul r1.xyzw, r1.xyzw, r4.xyzw
+                mul r2.xyzw, r3.wwww, r2.xyzw
+                add r1.xyzw, r1.xyzw, r2.xyzw
+                itof r2.xyzw, l(1, 1, 1, 1)
+                mul r0.xyzw, r0.zzzz, r2.xyzw
+                itof r2.xyzw, l(20, 20, 20, 20)
+                div r0.xyzw, r0.xyzw, r2.xyzw
                 add o0.xyzw, r0.xyzw, r1.xyzw
                 ret 
-                // Approximately 81 instruction slots used
+                // Approximately 86 instruction slots used
                             
             };
+        }
+
+    }
+
+    technique11 SSAOTech
+    {
+        pass p0
+        {
+            VertexShader = asm {
+                //
+                // Generated by Microsoft (R) HLSL Shader Compiler 6.3.9600.16384
+                //
+                //
+                //
+                // Input signature:
+                //
+                // Name                 Index   Mask Register SysValue  Format   Used
+                // -------------------- ----- ------ -------- -------- ------- ------
+                // SV_VertexID              0   x           0   VERTID    uint   x   
+                //
+                //
+                // Output signature:
+                //
+                // Name                 Index   Mask Register SysValue  Format   Used
+                // -------------------- ----- ------ -------- -------- ------- ------
+                // SV_Position              0   xyzw        0      POS   float   xyzw
+                // TEXCOORD                 0   xy          1     NONE   float   xy  
+                //
+                vs_5_0
+                dcl_globalFlags refactoringAllowed | skipOptimization
+                dcl_input_sgv v0.x, vertex_id
+                dcl_output_siv o0.xyzw, position
+                dcl_output o1.xy
+                dcl_temps 2
+                //
+                // Initial variable locations:
+                //   v0.x <- vertexId; 
+                //   o1.x <- <VSmain return value>.Tex.x; o1.y <- <VSmain return value>.Tex.y; 
+                //   o0.x <- <VSmain return value>.pos.x; o0.y <- <VSmain return value>.pos.y; o0.z <- <VSmain return value>.pos.z; o0.w <- <VSmain return value>.pos.w
+                //
+                #line 64 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                if_z v0.x
+                  mov r0.xyzw, l(-1.000000,-1.000000,0,1.000000)  // r0.x <- output.pos.x; r0.y <- output.pos.y; r0.z <- output.pos.z; r0.w <- output.pos.w
+                  itof r1.xy, l(0, 1, 0, 0)  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
+                else 
+                
+                #line 64
+                  mov r1.z, v0.x  // r1.z <- vertexId
+                
+                #line 68
+                  mov r1.w, l(1)
+                  ieq r1.w, r1.w, r1.z
+                  if_nz r1.w
+                    mov r0.xyzw, l(-1.000000,1.000000,0,1.000000)  // r0.x <- output.pos.x; r0.y <- output.pos.y; r0.z <- output.pos.z; r0.w <- output.pos.w
+                    itof r1.xy, l(0, 0, 0, 0)  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
+                  else 
+                    mov r1.w, l(2)
+                    ieq r1.w, r1.w, r1.z
+                    if_nz r1.w
+                      mov r0.xyzw, l(1.000000,1.000000,0,1.000000)  // r0.x <- output.pos.x; r0.y <- output.pos.y; r0.z <- output.pos.z; r0.w <- output.pos.w
+                      itof r1.xy, l(1, 0, 0, 0)  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
+                    else 
+                      mov r1.w, l(3)
+                      ieq r1.w, r1.w, r1.z
+                      if_nz r1.w
+                        mov r0.xyzw, l(1.000000,1.000000,0,1.000000)  // r0.x <- output.pos.x; r0.y <- output.pos.y; r0.z <- output.pos.z; r0.w <- output.pos.w
+                        itof r1.xy, l(1, 0, 0, 0)  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
+                
+                #line 79
+                      else 
+                        mov r1.w, l(4)
+                        ieq r1.w, r1.w, r1.z
+                        if_nz r1.w
+                          mov r0.xyzw, l(1.000000,-1.000000,0,1.000000)  // r0.x <- output.pos.x; r0.y <- output.pos.y; r0.z <- output.pos.z; r0.w <- output.pos.w
+                          itof r1.xy, l(1, 1, 0, 0)  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
+                        else 
+                          mov r1.w, l(5)
+                          ieq r1.z, r1.w, r1.z
+                          if_nz r1.z
+                            mov r0.xyzw, l(-1.000000,-1.000000,0,1.000000)  // r0.x <- output.pos.x; r0.y <- output.pos.y; r0.z <- output.pos.z; r0.w <- output.pos.w
+                            itof r1.xy, l(0, 1, 0, 0)
+                          endif   // r1.x <- output.Tex.x; r1.y <- output.Tex.y
+                        endif 
+                      endif 
+                    endif 
+                  endif 
+                endif 
+                mov o0.xyzw, r0.xyzw
+                mov o1.xy, r1.xyxx
+                ret 
+                // Approximately 43 instruction slots used
+                            
+            };
+            GeometryShader = NULL;
+            PixelShader = asm {
+                //
+                // Generated by Microsoft (R) HLSL Shader Compiler 6.3.9600.16384
+                //
+                //
+                // Buffer Definitions: 
+                //
+                // cbuffer $Globals
+                // {
+                //
+                //   float4 OffsetVect[14];             // Offset:    0 Size:   224
+                //      = 0x3f800000 0x3f800000 0x3f800000 0x00000000 
+                //        0xbf800000 0xbf800000 0xbf800000 0x00000000 
+                //        0xbf800000 0x3f800000 0x3f800000 0x00000000 
+                //        0x3f800000 0xbf800000 0xbf800000 0x00000000 
+                //        0x3f800000 0x3f800000 0xbf800000 0x00000000 
+                //        0xbf800000 0xbf800000 0x3f800000 0x00000000 
+                //        0xbf800000 0x3f800000 0xbf800000 0x00000000 
+                //        0x3f800000 0xbf800000 0x3f800000 0x00000000 
+                //        0xbf800000 0x00000000 0x00000000 0x00000000 
+                //        0x3f800000 0x00000000 0x00000000 0x00000000 
+                //        0x00000000 0xbf800000 0x00000000 0x00000000 
+                //        0x00000000 0x3f800000 0x00000000 0x00000000 
+                //        0x00000000 0x00000000 0xbf800000 0x00000000 
+                //        0x00000000 0x00000000 0x3f800000 0x00000000 
+                //
+                // }
+                //
+                // cbuffer cbPerFrame
+                // {
+                //
+                //   struct DirectionalLight
+                //   {
+                //       
+                //       float4 intensity;              // Offset:    0
+                //       float3 direction;              // Offset:   16
+                //       float pad;                     // Offset:   28
+                //
+                //   } gDirLight;                       // Offset:    0 Size:    32 [unused]
+                //   float3 gEyePosW;                   // Offset:   32 Size:    12 [unused]
+                //   float4x4 gProjInv;                 // Offset:   48 Size:    64
+                //   float4x4 gProj;                    // Offset:  112 Size:    64
+                //   float gOcclusionRadius;            // Offset:  176 Size:     4
+                //      = 0x3f000000 
+                //   float gOcclusionFadeStart;         // Offset:  180 Size:     4
+                //      = 0x3e4ccccd 
+                //   float gOcclusionFadeEnd;           // Offset:  184 Size:     4
+                //      = 0x40000000 
+                //   float gSurfaceEpsilon;             // Offset:  188 Size:     4
+                //      = 0x3d4ccccd 
+                //
+                // }
+                //
+                //
+                // Resource Bindings:
+                //
+                // Name                                 Type  Format         Dim Slot Elements
+                // ------------------------------ ---------- ------- ----------- ---- --------
+                // samNormalDepth                    sampler      NA          NA    0        1
+                // gNormalGB                         texture  float4          2d    0        1
+                // gDepthGB                          texture  float4          2d    1        1
+                // $Globals                          cbuffer      NA          NA    0        1
+                // cbPerFrame                        cbuffer      NA          NA    1        1
+                //
+                //
+                //
+                // Input signature:
+                //
+                // Name                 Index   Mask Register SysValue  Format   Used
+                // -------------------- ----- ------ -------- -------- ------- ------
+                // SV_Position              0   xyzw        0      POS   float       
+                // TEXCOORD                 0   xy          1     NONE   float   xy  
+                //
+                //
+                // Output signature:
+                //
+                // Name                 Index   Mask Register SysValue  Format   Used
+                // -------------------- ----- ------ -------- -------- ------- ------
+                // SV_Target                0   xyzw        0   TARGET   float   xyzw
+                //
+                ps_5_0
+                dcl_globalFlags refactoringAllowed | skipOptimization
+                dcl_constantbuffer cb0[14], dynamicIndexed
+                dcl_constantbuffer cb1[12], immediateIndexed
+                dcl_sampler s0, mode_default
+                dcl_resource_texture2d (float,float,float,float) t0
+                dcl_resource_texture2d (float,float,float,float) t1
+                dcl_input_ps linear v1.xy
+                dcl_output o0.xyzw
+                dcl_temps 5
+                //
+                // Initial variable locations:
+                //   v0.x <- input.pos.x; v0.y <- input.pos.y; v0.z <- input.pos.z; v0.w <- input.pos.w; 
+                //   v1.x <- input.Tex.x; v1.y <- input.Tex.y; 
+                //   o0.x <- <PSSSAOmain return value>.x; o0.y <- <PSSSAOmain return value>.y; o0.z <- <PSSSAOmain return value>.z; o0.w <- <PSSSAOmain return value>.w
+                //
+                #line 154 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                sample_indexable(texture2d)(float,float,float,float) r0.z, v1.xyxx, t1.yzxw, s0
+                mov r0.z, r0.z  // r0.z <- z
+                itof r1.x, l(2)
+                mul r1.x, r1.x, v1.x
+                itof r1.y, l(1)
+                mov r1.y, -r1.y
+                add r0.x, r1.y, r1.x  // r0.x <- x
+                itof r1.x, l(1)
+                mov r1.y, -v1.y
+                add r1.x, r1.y, r1.x
+                itof r1.y, l(2)
+                mul r1.x, r1.y, r1.x
+                itof r1.y, l(1)
+                mov r1.y, -r1.y
+                add r0.y, r1.y, r1.x  // r0.y <- y
+                mov r0.w, l(1.000000)
+                mov r0.xyzw, r0.xyzw  // r0.x <- vProjectedPos.x; r0.y <- vProjectedPos.y; r0.z <- vProjectedPos.z; r0.w <- vProjectedPos.w
+                dp4 r1.x, r0.xyzw, cb1[3].xyzw  // r1.x <- vPositionVS.x
+                dp4 r1.y, r0.xyzw, cb1[4].xyzw  // r1.y <- vPositionVS.y
+                dp4 r1.z, r0.xyzw, cb1[5].xyzw  // r1.z <- vPositionVS.z
+                dp4 r0.x, r0.xyzw, cb1[6].xyzw  // r0.x <- vPositionVS.w
+                div r0.xyz, r1.xyzx, r0.xxxx  // r0.x <- vPositionVS.x; r0.y <- vPositionVS.y; r0.z <- vPositionVS.z
+                
+                #line 165
+                sample_indexable(texture2d)(float,float,float,float) r1.xy, v1.xyxx, t0.xyzw, s0
+                mov r1.xy, r1.xyxx  // r1.x <- normalV.x; r1.y <- normalV.y
+                itof r0.w, l(1)
+                dp2 r1.w, r1.xyxx, r1.xyxx
+                mov r1.w, -r1.w
+                add r0.w, r0.w, r1.w
+                sqrt r0.w, r0.w
+                mov r1.z, -r0.w  // r1.z <- normalV.z
+                
+                #line 169
+                mov r0.w, l(0)  // r0.w <- occlusionSum
+                mov r1.w, l(0)  // r1.w <- i
+                mov r2.x, r0.w  // r2.x <- occlusionSum
+                mov r2.y, r1.w  // r2.y <- i
+                loop 
+                  ilt r2.z, r2.y, l(14)
+                  breakc_z r2.z
+                  dp3 r2.z, cb0[r2.y + 0].xyzx, cb0[r2.y + 0].xyzx
+                  rsq r2.z, r2.z
+                  mul r3.xyz, r2.zzzz, cb0[r2.y + 0].xyzx  // r3.x <- offset.x; r3.y <- offset.y; r3.z <- offset.z
+                  mov r2.z, l(1.000000)  // r2.z <- flip
+                  mul r2.z, r2.z, cb1[11].x
+                  mul r3.xyz, r3.xyzx, r2.zzzz
+                  add r3.xyz, r0.xyzx, r3.xyzx  // r3.x <- qV.x; r3.y <- qV.y; r3.z <- qV.z
+                  mov r3.w, l(1.000000)
+                  dp4 r4.x, r3.xyzw, cb1[7].xyzw  // r4.x <- projQ.x
+                  dp4 r4.y, r3.xyzw, cb1[8].xyzw  // r4.y <- projQ.y
+                  dp4 r2.z, r3.xyzw, cb1[10].xyzw  // r2.z <- projQ.w
+                
+                #line 180
+                  div r3.xy, r4.xyxx, r2.zzzz  // r3.x <- projQ.x; r3.y <- projQ.y
+                  mul r2.z, r3.x, l(0.500000)
+                  add r4.x, r2.z, l(0.500000)
+                  mul r2.z, r3.y, l(0.500000)
+                  mov r2.z, -r2.z
+                  add r4.y, r2.z, l(0.500000)
+                  sample_indexable(texture2d)(float,float,float,float) r3.z, r4.xyxx, t1.yzxw, s0
+                  mov r3.z, r3.z  // r3.z <- rz
+                  mov r3.w, l(1.000000)
+                  mov r3.xyzw, r3.xyzw  // r3.x <- rProjectedPos.x; r3.y <- rProjectedPos.y; r3.z <- rProjectedPos.z; r3.w <- rProjectedPos.w
+                  dp4 r4.x, r3.xyzw, cb1[3].xyzw  // r4.x <- rPositionVS.x
+                  dp4 r4.y, r3.xyzw, cb1[4].xyzw  // r4.y <- rPositionVS.y
+                  dp4 r4.z, r3.xyzw, cb1[5].xyzw  // r4.z <- rPositionVS.z
+                  dp4 r2.z, r3.xyzw, cb1[6].xyzw  // r2.z <- rPositionVS.w
+                  div r3.xyz, r4.xyzx, r2.zzzz  // r3.x <- rPositionVS.x; r3.y <- rPositionVS.y; r3.z <- rPositionVS.z
+                
+                #line 188
+                  mov r2.z, -r3.z
+                  add r2.z, r0.z, r2.z  // r2.z <- distZ
+                  mov r4.xyz, -r0.xyzx
+                  add r3.xyz, r3.xyzx, r4.xyzx
+                  dp3 r2.w, r3.xyzx, r3.xyzx
+                  rsq r2.w, r2.w
+                  mul r3.xyz, r2.wwww, r3.xyzx
+                  dp3 r2.w, r1.xyzx, r3.xyzx
+                  max r2.w, r2.w, l(0.000000)  // r2.w <- dp
+                  nop 
+                  mov r2.z, r2.z
+                
+                #line 139
+                  mov r3.x, l(0)  // r3.x <- occlusion
+                  lt r3.y, cb1[11].w, r2.z
+                  if_nz r3.y
+                    mov r3.y, -cb1[11].y
+                    add r3.y, r3.y, cb1[11].z  // r3.y <- fadeLength
+                
+                #line 146
+                    mov r2.z, -r2.z
+                    add r2.z, r2.z, cb1[11].z
+                    div r2.z, r2.z, r3.y
+                    max r2.z, r2.z, l(0.000000)
+                    min r3.x, r2.z, l(1.000000)
+                  endif 
+                  mov r3.x, r3.x  // r3.x <- <OcclusionFunction return value>
+                
+                #line 190
+                  mul r2.z, r2.w, r3.x  // r2.z <- occlusion
+                  add r2.x, r2.z, r2.x
+                  iadd r2.y, r2.y, l(1)
+                endloop 
+                div r0.x, r2.x, l(14.000000)  // r0.x <- occlusionSum
+                mov r0.x, -r0.x
+                add r0.x, r0.x, l(1.000000)  // r0.x <- access
+                
+                #line 200
+                mov r0.y, l(1.000000)
+                mul r0.x, r0.x, r0.x
+                mul r0.x, r0.x, r0.x
+                mul r0.x, r0.x, r0.y
+                max r0.x, r0.x, l(0.000000)
+                min o0.xyzw, r0.xxxx, l(1.000000, 1.000000, 1.000000, 1.000000)
+                ret 
+                // Approximately 100 instruction slots used
+                            
+            };
+            AB_BlendFactor = float4(0, 0, 0, 0);
+            AB_SampleMask = uint(0xffffffff);
+            BlendState = NULL;
         }
 
     }
