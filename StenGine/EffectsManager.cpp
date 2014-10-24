@@ -138,7 +138,10 @@ ScreenQuadEffect::ScreenQuadEffect(const std::wstring& filename)
 {
 	FullScreenQuadTech = m_fx->GetTechniqueByName("t0");
 //	SSAOTech = m_fx->GetTechniqueByName("SSAOTech");
+	HBlurTech = m_fx->GetTechniqueByName("HBlurTech");
+	VBlurTech = m_fx->GetTechniqueByName("VBlurTech");
 	ScreenMap = m_fx->GetVariableByName("gScreenMap")->AsShaderResource();
+	SSAOMap = m_fx->GetVariableByName("gSSAOMap")->AsShaderResource();
 	DiffuseGB = m_fx->GetVariableByName("gDiffuseGB")->AsShaderResource();
 	PositionGB = m_fx->GetVariableByName("gPositionGB")->AsShaderResource();
 	SpecularGB = m_fx->GetVariableByName("gSpecularGB")->AsShaderResource();

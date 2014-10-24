@@ -210,6 +210,7 @@ bool D3D11Renderer::Init() {
 	ID3D11Texture2D* gBufferSTex = 0;
 	ID3D11Texture2D* gBufferPTex = 0;
 	ID3D11Texture2D* gSSAOTex = 0;
+	ID3D11Texture2D* gSSAOTex2 = 0;
 	ID3D11Texture2D* gDeferredShadeTex = 0;
 	//ID3D11Texture2D* gBufferETex = 0;
 	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferDTex));
@@ -217,6 +218,7 @@ bool D3D11Renderer::Init() {
 	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferSTex));
 	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferPTex));
 	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gSSAOTex));
+	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gSSAOTex2));
 	HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gDeferredShadeTex));
 	//HR(m_d3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferETex));
 
@@ -236,6 +238,7 @@ bool D3D11Renderer::Init() {
 	HR(m_d3d11Device->CreateRenderTargetView(gBufferSTex, &rtvDesc, &m_specularBufferRTV));
 	HR(m_d3d11Device->CreateRenderTargetView(gBufferPTex, &rtvDesc, &m_positionBufferRTV));
 	HR(m_d3d11Device->CreateRenderTargetView(gSSAOTex, &rtvDesc, &m_SSAORTV));
+	HR(m_d3d11Device->CreateRenderTargetView(gSSAOTex2, &rtvDesc, &m_SSAORTV2));
 	HR(m_d3d11Device->CreateRenderTargetView(gDeferredShadeTex, &rtvDesc, &m_deferredShadingRTV));
 	//HR(m_d3d11Device->CreateRenderTargetView(gBufferETex, &rtvDesc, &m_edgeBufferRTV));
 
@@ -257,6 +260,7 @@ bool D3D11Renderer::Init() {
 	HR(m_d3d11Device->CreateShaderResourceView(gBufferSTex, &srvDesc, &m_specularBufferSRV));
 	HR(m_d3d11Device->CreateShaderResourceView(gBufferPTex, &srvDesc, &m_positionBufferSRV));
 	HR(m_d3d11Device->CreateShaderResourceView(gSSAOTex, &srvDesc, &m_SSAOSRV));
+	HR(m_d3d11Device->CreateShaderResourceView(gSSAOTex2, &srvDesc, &m_SSAOSRV2));
 	HR(m_d3d11Device->CreateShaderResourceView(gDeferredShadeTex, &srvDesc, &m_deferredShadingSRV));
 	//HR(m_d3d11Device->CreateShaderResourceView(gBufferETex, &srvDesc, &m_edgeBufferSRV));
 
@@ -374,7 +378,7 @@ void D3D11Renderer::Draw() {
 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
 
 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
-	m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	ID3D11RenderTargetView* crtvs[2] = { m_deferredShadingRTV, m_SSAORTV };
 	m_d3d11DeviceContext->OMSetRenderTargets(2, crtvs, m_depthStencilView);
 	m_d3d11DeviceContext->ClearRenderTargetView(m_SSAORTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
@@ -419,6 +423,38 @@ void D3D11Renderer::Draw() {
 		m_d3d11DeviceContext->Draw(6, 0);
 	}
 
+
+	// ------ VBlur -------//
+	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_SSAORTV2, m_depthStencilView);
+	m_d3d11DeviceContext->ClearRenderTargetView(m_SSAORTV2, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	ID3DX11EffectTechnique* VBlurTech = EffectsManager::Instance()->m_screenQuadEffect->VBlurTech;
+	VBlurTech->GetDesc(&techDesc);
+	EffectsManager::Instance()->m_screenQuadEffect->SSAOMap->SetResource(m_SSAOSRV);
+	for (UINT p = 0; p < techDesc.Passes; ++p)
+	{
+		VBlurTech->GetPassByIndex(p)->Apply(0, m_d3d11DeviceContext);
+		m_d3d11DeviceContext->Draw(6, 0);
+	}
+	EffectsManager::Instance()->m_screenQuadEffect->ScreenMap->SetResource(0);
+
+	// ------ HBlur -------//
+	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
+	m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	ID3DX11EffectTechnique* HBlurTech = EffectsManager::Instance()->m_screenQuadEffect->HBlurTech;
+	HBlurTech->GetDesc(&techDesc);
+	EffectsManager::Instance()->m_screenQuadEffect->SSAOMap->SetResource(m_SSAOSRV2);
+	EffectsManager::Instance()->m_screenQuadEffect->ScreenMap->SetResource(m_deferredShadingSRV);
+	for (UINT p = 0; p < techDesc.Passes; ++p)
+	{
+		HBlurTech->GetPassByIndex(p)->Apply(0, m_d3d11DeviceContext);
+		m_d3d11DeviceContext->Draw(6, 0);
+	}
 
 	m_d3d11DeviceContext->RSSetState(0);
 	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);

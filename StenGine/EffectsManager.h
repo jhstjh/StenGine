@@ -87,8 +87,10 @@ public:
 
 	ID3DX11EffectTechnique* FullScreenQuadTech;
 	ID3DX11EffectTechnique* DeferredLightingTech;
-//	ID3DX11EffectTechnique* SSAOTech;
+	ID3DX11EffectTechnique* HBlurTech;
+	ID3DX11EffectTechnique* VBlurTech;
 	ID3DX11EffectShaderResourceVariable* ScreenMap;
+	ID3DX11EffectShaderResourceVariable* SSAOMap;
 	ID3DX11EffectShaderResourceVariable* DiffuseGB;
 	ID3DX11EffectShaderResourceVariable* PositionGB;
 	ID3DX11EffectShaderResourceVariable* NormalGB;

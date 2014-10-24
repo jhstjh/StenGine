@@ -10,10 +10,10 @@ cbuffer cbPerFrame {
 	float4x4 gProjInv;
 	float4x4 gProj;
 
-	float    gOcclusionRadius = 0.5f;
-	float    gOcclusionFadeStart = 0.2f;
+	float    gOcclusionRadius = 0.2f;
+	float    gOcclusionFadeStart = 0.1f;
 	float    gOcclusionFadeEnd = 2.0f;
-	float    gSurfaceEpsilon = 0.05f;
+	float    gSurfaceEpsilon = 0.005f;
 };
 
 struct VSOut
@@ -58,18 +58,19 @@ SamplerState samNormalDepth
 
 cbuffer cbSettings
 {
-	float gWeights[11] =
+	float gWeights[21] =
 	{
-		0.05f, 0.05f, 0.1f, 0.1f, 0.1f, 0.2f, 0.1f, 0.1f, 0.1f, 0.05f, 0.05f
+		0.013757049563821119, 0.01888216932766378, 0.025066978648142262, 0.03218663770378345, 0.03997355278034706, 0.048016821060535536, 0.05578758693508665, 0.06269100992275224, 0.06813911255361485, 0.07163267956032793, 0.07283656203947195, 0.07163267956032793, 0.06813911255361485, 0.06269100992275224, 0.05578758693508665, 0.048016821060535536, 0.03997355278034706, 0.03218663770378345, 0.025066978648142262, 0.01888216932766378, 0.013757049563821119,
 	};
 };
 
 cbuffer cbFixed
 {
-	static const int gBlurRadius = 5;
+	static const int gBlurRadius = 10;
 };
 
 Texture2D gScreenMap;
+Texture2D gSSAOMap;
 
 Texture2D gDiffuseGB;
 Texture2D gPositionGB;
@@ -223,11 +224,18 @@ float4 PSSSAOmain(PSIn input) : SV_Target
 float4 PSBlurmain(PSIn input, uniform float2 texOffset) : SV_Target
 {
 	// The center value always contributes to the sum.
-	float4 color = gWeights[5] * gScreenMap.Sample(samAnisotropic, input.Tex);
-	float totalWeight = gWeights[5];
+	float4 color = gWeights[10] * gSSAOMap.Sample(samAnisotropic, input.Tex);
+	float totalWeight = gWeights[10];
 
-	//float centerDepth = gDepthGB.Sample(samAnisotropic, input.Tex);
-	float4 centerNormal = gNormalGB.Sample(samAnisotropic, input.Tex);
+// 	float centerDepth = gDepthGB.Sample(samAnisotropic, input.Tex);
+// 
+// 	float x = input.Tex.x * 2 - 1;
+// 	float y = (1 - input.Tex.y) * 2 - 1;
+// 	float4 vProjectedPos = float4(x, y, centerDepth, 1.0f);
+// 	float4 vPositionVS = mul(vProjectedPos, gProjInv);
+// 	vPositionVS.xyz /= vPositionVS.w;
+// 
+// 	float4 centerNormal = gNormalGB.Sample(samAnisotropic, input.Tex);
 
 	for (float i = -gBlurRadius; i <= gBlurRadius; ++i)
 	{
@@ -237,29 +245,31 @@ float4 PSBlurmain(PSIn input, uniform float2 texOffset) : SV_Target
 
 		float2 tex = input.Tex + i*texOffset;
 
-		//float4 neighborDepth = gDepthGB.Sample(samAnisotropic, tex);
-		float4 neighborNormal = gNormalGB.Sample(samAnisotropic, tex);
+// 		float neighborDepth = gDepthGB.Sample(samAnisotropic, tex);
+// 		float4 neighborNormal = gNormalGB.Sample(samAnisotropic, tex);
+// 
+// 		float x = input.Tex.x * 2 - 1;
+// 		float y = (1 - input.Tex.y) * 2 - 1;
+// 		float4 nProjectedPos = float4(x, y, neighborDepth, 1.0f);
+// 		float4 nPositionVS = mul(vProjectedPos, gProjInv);
+// 		nPositionVS.xyz /= nPositionVS.w;
 
-		//
-		// If the center value and neighbor values differ too much (either in 
-		// normal or depth), then we assume we are sampling across a discontinuity.
-		// We discard such samples from the blur.
-		//
-
-		if (dot(neighborNormal.xyz, centerNormal.xyz) >= 0.8f /*&&
-			abs(neighborNormalDepth.a - centerNormalDepth.a) <= 0.2f*/)
+// 		if (dot(neighborNormal.xyz, centerNormal.xyz) >= 0.8f &&
+//			abs(nPositionVS.z - vPositionVS.z) <= 0.2f)
 		{
 			float weight = gWeights[i + gBlurRadius];
 
 			// Add neighbor pixel to blur.
-			color += weight * gScreenMap.Sample(samAnisotropic, tex);
+			color += weight * gSSAOMap.Sample(samAnisotropic, tex);
 
 			totalWeight += weight;
 		}
 	}
 
 	// Compensate for discarded samples by making total weights sum to 1.
-	return color / totalWeight;
+	color /= totalWeight;
+	if (texOffset.x > 0) return saturate(color) * gScreenMap.Sample(samAnisotropic, input.Tex);
+	else return color;
 }
 
 PSOut PSmain(PSIn input) 
@@ -303,7 +313,7 @@ PSOut PSmain(PSIn input)
 		specColor += gSpecularGB.Sample(samAnisotropic, input.Tex) * pow(max(dot(refLight, viewRay), 0), gSpecularGB.Sample(samAnisotropic, input.Tex).w * 255.0f);
 	}
 
-	pOut.DeferredShade = (float4(0.2, 0.2, 0.2, 0) + diffColor * shadowLit) * gDiffuseGB.Sample(samAnisotropic, input.Tex) + specColor * shadowLit + float4(1, 1, 1, 1) * vPositionVS.z / 20;
+	pOut.DeferredShade = (float4(0.2, 0.2, 0.2, 0) + diffColor * shadowLit) * gDiffuseGB.Sample(samAnisotropic, input.Tex) + specColor * shadowLit /*+ float4(1, 1, 1, 1) * vPositionVS.z / 20*/;
 	
 	// ---------------- SSAO ---------------//
 
@@ -376,13 +386,24 @@ technique11 SSAOTech
 	}
 }
 
-technique11 BlurTech
+technique11 HBlurTech
 {
 	pass p0
 	{
 		SetVertexShader(CompileShader(vs_5_0, VSmain()));
 		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_5_0, PSBlurmain(float2(1280, 0.0f))));
+		SetPixelShader(CompileShader(ps_5_0, PSBlurmain(float2(1.0/1280, 0.0f))));
+		SetBlendState(0, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
+	}
+}
+
+technique11 VBlurTech
+{
+	pass p0
+	{
+		SetVertexShader(CompileShader(vs_5_0, VSmain()));
+		SetGeometryShader(NULL);
+		SetPixelShader(CompileShader(ps_5_0, PSBlurmain(float2(0.0f, 1.0/720))));
 		SetBlendState(0, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
 	}
 }
