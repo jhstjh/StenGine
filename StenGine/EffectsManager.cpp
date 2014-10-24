@@ -137,7 +137,7 @@ ScreenQuadEffect::ScreenQuadEffect(const std::wstring& filename)
 	: Effect(filename)
 {
 	FullScreenQuadTech = m_fx->GetTechniqueByName("t0");
-	SSAOTech = m_fx->GetTechniqueByName("SSAOTech");
+//	SSAOTech = m_fx->GetTechniqueByName("SSAOTech");
 	ScreenMap = m_fx->GetVariableByName("gScreenMap")->AsShaderResource();
 	DiffuseGB = m_fx->GetVariableByName("gDiffuseGB")->AsShaderResource();
 	PositionGB = m_fx->GetVariableByName("gPositionGB")->AsShaderResource();

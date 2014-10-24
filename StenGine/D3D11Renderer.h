@@ -42,12 +42,16 @@ private:
 	ID3D11RenderTargetView* m_specularBufferRTV;
 	ID3D11RenderTargetView* m_positionBufferRTV;
 	ID3D11RenderTargetView* m_edgeBufferRTV;
+	ID3D11RenderTargetView* m_SSAORTV;
+	ID3D11RenderTargetView* m_deferredShadingRTV;
 
 	ID3D11ShaderResourceView* m_diffuseBufferSRV;
 	ID3D11ShaderResourceView* m_normalBufferSRV;
 	ID3D11ShaderResourceView* m_specularBufferSRV;
 	ID3D11ShaderResourceView* m_positionBufferSRV;
 	ID3D11ShaderResourceView* m_edgeBufferSRV;
+	ID3D11ShaderResourceView* m_SSAOSRV;
+	ID3D11ShaderResourceView* m_deferredShadingSRV;
 
 	ID3D11DepthStencilView* m_deferredRenderDepthStencilView;
 	ID3D11ShaderResourceView* m_deferredRenderShaderResourceView;
