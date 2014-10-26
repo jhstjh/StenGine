@@ -45,12 +45,13 @@ StdMeshEffect::StdMeshEffect(const std::wstring& filename)
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
 	D3DX11_PASS_DESC passDesc;
 	StdMeshTech->GetPassByIndex(0)->GetDesc(&passDesc);
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 3, passDesc.pIAInputSignature,
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 4, passDesc.pIAInputSignature,
 	passDesc.IAInputSignatureSize, &m_inputLayout));
 
 	m_activeTech = StdMeshTech;
@@ -107,18 +108,20 @@ DeferredShaderEffect::DeferredShaderEffect(const std::wstring& filename)
 	Mat = m_fx->GetVariableByName("gMaterial");
 	EyePosW = m_fx->GetVariableByName("gEyePosW")->AsVector();
 	DiffuseMap = m_fx->GetVariableByName("gDiffuseMap")->AsShaderResource();
+	NormalMap = m_fx->GetVariableByName("gNormalMap")->AsShaderResource();
 	TheShadowMap = m_fx->GetVariableByName("gShadowMap")->AsShaderResource();
 
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
 	D3DX11_PASS_DESC passDesc;
 	DeferredShaderTech->GetPassByIndex(0)->GetDesc(&passDesc);
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 3, passDesc.pIAInputSignature,
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 4, passDesc.pIAInputSignature,
 		passDesc.IAInputSignatureSize, &m_inputLayout));
 
 	m_activeTech = DeferredShaderTech;

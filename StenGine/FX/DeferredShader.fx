@@ -26,6 +26,7 @@ cbuffer cbPerFrame {
 };
 
 Texture2D gDiffuseMap;
+Texture2D gNormalMap;
 Texture2D gShadowMap;
 
 SamplerState samAnisotropic
@@ -51,6 +52,7 @@ SamplerComparisonState samShadow
 struct VertexIn {
 	float3 PosL  : POSITION;
     float3 NormalL : NORMAL;
+	float3 TangentL: TANGENT;
 	float2 TexUV : TEXCOORD;
 };
 
@@ -58,6 +60,7 @@ struct VertexOut {
 	float4 PosH  : SV_POSITION;
 	//float4 PosV  : POSITION;
 	float3 NormalV : NORMAL;
+	float3 TangentV: TANGENT;
 	float2 TexUV : TEXCOORD0;
 	float4 ShadowPosH: TEXCOORD1;
 };
@@ -76,6 +79,7 @@ VertexOut VertShader(VertexIn vin)
 
 	vout.PosH = mul(float4(vin.PosL, 1.0f), gWorldViewProj);
 	vout.NormalV = mul(vin.NormalL, gWorldViewInvTranspose);
+	vout.TangentV = mul(vin.TangentL, gWorldViewInvTranspose);
 	vout.TexUV = vin.TexUV;
 	vout.ShadowPosH = mul(float4(vin.PosL, 1.0f), gShadowTransform);
 	//vout.PosV = mul(float4(vin.PosL, 1.0f), gWorldView);
@@ -95,11 +99,19 @@ PixelOut PixShader(VertexOut pin)
 
 	pout.diffuseH = gDiffuseMap.Sample(samAnisotropic, pin.TexUV) * gMaterial.diffuse;
 	pout.diffuseH.w = shadowLit;
-	//pout.positionV = pin.PosV;
 	pout.specularH = gMaterial.specular;
 	pout.specularH.w /= 255.0f;
-	//pout.normalW = float4(pin.NormalW, 0);
-	pout.normalV = normalize(pin.NormalV).xy;
+
+	float3 normalMapNormal = gNormalMap.Sample(samAnisotropic, pin.TexUV);
+	normalMapNormal = 2.0f * normalMapNormal - 1.0;
+
+	float3 N = normalize(pin.NormalV);
+	float3 T = normalize(pin.TangentV - dot(pin.TangentV, N)*N);
+	float3 B = cross(N, T);
+
+	float3x3 TBN = float3x3(T, B, N);
+
+	pout.normalV = normalize(mul(normalMapNormal, TBN));//normalize(pin.NormalV).xy;
 	//pout.edgeH = float4(1, 1, 1, 1); // implement edge detection later
 
 	return pout;

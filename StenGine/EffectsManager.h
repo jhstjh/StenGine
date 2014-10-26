@@ -60,6 +60,7 @@ public:
 	ID3DX11EffectVariable* Mat;
 	ID3DX11EffectVectorVariable* EyePosW;
 	ID3DX11EffectShaderResourceVariable* DiffuseMap;
+	ID3DX11EffectShaderResourceVariable* NormalMap;
 	ID3DX11EffectShaderResourceVariable* TheShadowMap;
 };
 

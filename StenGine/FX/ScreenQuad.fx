@@ -265,7 +265,7 @@ float4 PSBlurmain(PSIn input, uniform float2 texOffset) : SV_Target
 			totalWeight += weight;
 		}
 	}
-
+	
 	// Compensate for discarded samples by making total weights sum to 1.
 	color /= totalWeight;
 	if (texOffset.x > 0) return saturate(color) * gScreenMap.Sample(samAnisotropic, input.Tex);

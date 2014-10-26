@@ -11,6 +11,7 @@ namespace Vertex {
 	struct StdMeshVertex {
 		XMFLOAT3 Pos;
 		XMFLOAT3 Normal;
+		XMFLOAT3 Tangent;
 		XMFLOAT2 TexUV;
 	};
 
@@ -46,6 +47,7 @@ public:
 	std::vector<XMFLOAT3> m_normalBufferCPU;
 	std::vector<XMFLOAT2> m_texUVBufferCPU;
 	std::vector<XMFLOAT4> m_colorBufferCPU;
+	std::vector<XMFLOAT3> m_tangentBufferCPU;
 	ID3D11ShaderResourceView* m_diffuseMapSRV;
 	ID3D11ShaderResourceView* m_normalMapSRV;
 

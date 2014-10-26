@@ -111,6 +111,39 @@ void Mesh::CreateBoxPrimitive() {
 		XMFLOAT3(1.0f, 0.0f, 0.0f ),
 	};
 
+	m_tangentBufferCPU.resize(24);
+	m_tangentBufferCPU = {
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		XMFLOAT3(0.0f, 0.0f, -1.0f),
+
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		XMFLOAT3(0.0f, 0.0f, 1.0f),
+	};
+
 	m_texUVBufferCPU.resize(24);
 	m_texUVBufferCPU = {
 		XMFLOAT2(0.0f, 1.0f),
@@ -166,10 +199,10 @@ void Mesh::CreateBoxPrimitive() {
 // 	v[14] =Vertex(+1.0f, -1.0f, +1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 // 	v[15] =Vertex(-1.0f, -1.0f, +1.0f, 0.0f, -1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 // 
-// 	v[16] =Vertex(-1.0f, -1.0f, +1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
-// 	v[17] =Vertex(-1.0f, +1.0f, +1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
-// 	v[18] =Vertex(-1.0f, +1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f);
-// 	v[19] =Vertex(-1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f);
+// 	v[16] =Vertex(-1.0f, -1.0f, +1.0f, -1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f);
+// 	v[17] =Vertex(-1.0f, +1.0f, +1.0f, -1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f, 0.0f, 0.0f);
+// 	v[18] =Vertex(-1.0f, +1.0f, -1.0f, -1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f, 1.0f, 0.0f);
+// 	v[19] =Vertex(-1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f, 1.0f, 1.0f);
 // 
 // 	v[20] = Vertex(+1.0f, -1.0f, -1.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f);
 // 	v[21] = Vertex(+1.0f, +1.0f, -1.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
@@ -206,6 +239,10 @@ void Mesh::CreateBoxPrimitive() {
 	HR(D3DX11CreateShaderResourceViewFromFile(
 		D3D11Renderer::Instance()->GetD3DDevice(),
 		L"./Model/WoodCrate02.dds", 0, 0, &m_diffuseMapSRV, 0));
+
+	HR(D3DX11CreateShaderResourceViewFromFile(
+		D3D11Renderer::Instance()->GetD3DDevice(),
+		L"./Model/WoodCrate02_normal.dds", 0, 0, &m_normalMapSRV, 0));
 }
 
 void Mesh::CreatePlanePrimitive() {
@@ -223,6 +260,14 @@ void Mesh::CreatePlanePrimitive() {
 		XMFLOAT3(0.0f, 1.0f, 0.0f),
 		XMFLOAT3(0.0f, 1.0f, 0.0f),
 		XMFLOAT3(0.0f, 1.0f, 0.0f),
+	};
+
+	m_tangentBufferCPU.resize(4);
+	m_tangentBufferCPU = {
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		XMFLOAT3(1.0f, 0.0f, 0.0f),
 	};
 
 	m_texUVBufferCPU.resize(24);
@@ -280,6 +325,10 @@ void Mesh::CreatePlanePrimitive() {
 	HR(D3DX11CreateShaderResourceViewFromFile(
 		D3D11Renderer::Instance()->GetD3DDevice(),
 		L"./Model/darkbrickdxt1.dds", 0, 0, &m_diffuseMapSRV, 0));
+
+	HR(D3DX11CreateShaderResourceViewFromFile(
+		D3D11Renderer::Instance()->GetD3DDevice(),
+		L"./Model/darkbrickdxt1_normal.dds", 0, 0, &m_normalMapSRV, 0));
 }
 
 void Mesh::PrepareGPUBuffer() {
@@ -290,6 +339,7 @@ void Mesh::PrepareGPUBuffer() {
 	{
 		vertices[k].Pos = m_positionBufferCPU[i];
 		vertices[k].Normal = m_normalBufferCPU[i];
+		vertices[k].Tangent = m_tangentBufferCPU[i];
 		vertices[k].TexUV = m_texUVBufferCPU[i];
 	}
 
@@ -389,6 +439,7 @@ void Mesh::Draw() {
 
 		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->Mat->SetRawValue(&m_material, 0, sizeof(Material));
 		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->DiffuseMap->SetResource(m_diffuseMapSRV);
+		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->NormalMap->SetResource(m_normalMapSRV);
 
 
 		for (int iP = 0; iP < m_parents.size(); iP++) {
