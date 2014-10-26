@@ -59,7 +59,12 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 		D3D11Renderer::Instance()->GetD3DDevice(),
 		imgPath.c_str(), 0, 0, &(mesh->m_diffuseMapSRV), 0));
 
+	imgPath.resize(len - 4);
+	imgPath += L"_normal.dds";
 
+	HR(D3DX11CreateShaderResourceViewFromFile(
+		D3D11Renderer::Instance()->GetD3DDevice(),
+		imgPath.c_str(), 0, 0, &(mesh->m_normalMapSRV), 0));
 
 	return true;
 }
@@ -141,9 +146,32 @@ void ReadFbxMesh(FbxNode* node, Mesh* mesh) {
 					}
 				}
 			}
+
+			for (k = 0; k < fbxMesh->GetElementTangentCount(); k++){
+				FbxGeometryElementTangent* Tangent = fbxMesh->GetElementTangent(k);
+				if (Tangent->GetMappingMode() == FbxGeometryElement::eByPolygonVertex) {
+					if (Tangent->GetReferenceMode() == FbxGeometryElement::eDirect){
+						mesh->m_tangentBufferCPU.push_back(XMFLOAT3(Tangent->GetDirectArray().GetAt(vertexIndex)[0], Tangent->GetDirectArray().GetAt(vertexIndex)[1], -Tangent->GetDirectArray().GetAt(vertexIndex)[2]));
+					}
+					else if (Tangent->GetReferenceMode() == FbxGeometryElement::eIndexToDirect){
+						int id = Tangent->GetIndexArray().GetAt(vertexIndex);
+						mesh->m_tangentBufferCPU.push_back(XMFLOAT3(Tangent->GetDirectArray().GetAt(id)[0], Tangent->GetDirectArray().GetAt(id)[1], -Tangent->GetDirectArray().GetAt(id)[2]));
+					}
+				}
+				else if (Tangent->GetMappingMode() == FbxGeometryElement::eByControlPoint) {
+					if (Tangent->GetReferenceMode() == FbxGeometryElement::eDirect){
+						mesh->m_tangentBufferCPU.push_back(XMFLOAT3(Tangent->GetDirectArray().GetAt(ControlPointIndex).mData[0],
+							Tangent->GetDirectArray().GetAt(ControlPointIndex).mData[1],
+							Tangent->GetDirectArray().GetAt(ControlPointIndex).mData[2]));
+					}
+					else if (Tangent->GetReferenceMode() == FbxGeometryElement::eIndexToDirect){
+						int id = Tangent->GetIndexArray().GetAt(ControlPointIndex);
+						mesh->m_tangentBufferCPU.push_back(XMFLOAT3(Tangent->GetDirectArray().GetAt(id)[0], Tangent->GetDirectArray().GetAt(id)[1], -Tangent->GetDirectArray().GetAt(id)[2]));
+					}
+				}
+			}
+
 			vertexIndex++;
 		}
-
-
 	}
 }

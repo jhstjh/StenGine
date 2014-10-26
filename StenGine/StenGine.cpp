@@ -65,18 +65,18 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	box0->AddComponent(box0Mesh);
 	box0->RotateAroundY(3.14159 / 5);
 
-// 	GameObject* sphere = new GameObject(0, 2.5, -0.5);
-// 	Mesh* sphereMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/earth.fbx");
-// 	sphere->AddComponent(sphereMesh);
-// 
+ 	GameObject* sphere = new GameObject(0, 2.5, -0.5);
+ 	Mesh* sphereMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/earth.fbx");
+ 	sphere->AddComponent(sphereMesh);
+ 
  	GameObject* plane0 = new GameObject(-1, 0, 0);
 	Mesh* plane0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GeneratePlane");
  	plane0->AddComponent(plane0Mesh);
 	plane0->RotateAroundY(3.14159);
-// 
-// 	GameObject* dragon = new GameObject(-3, -1, 0);
-// 	Mesh* dragonMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/dragon.fbx");
-// 	dragon->AddComponent(dragonMesh);
+
+	GameObject* dragon = new GameObject(-3, -1, 0);
+	Mesh* dragonMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/dragon.fbx");
+	dragon->AddComponent(dragonMesh);
 
 	Timer::Init();
 
@@ -104,16 +104,16 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 				SetWindowText(hMainWnd, outs.str().c_str());
 				elaspedFrame = 0;
 			}
-			//sphere->Update();
+			sphere->Update();
 			D3D11Renderer::Instance()->Draw();
 			elaspedFrame++;
 		}
 	}
 
 	SafeDelete(box0);
-// 	SafeDelete(sphere);
+ 	SafeDelete(sphere);
  	SafeDelete(plane0);
-// 	SafeDelete(dragon);
+ 	SafeDelete(dragon);
 
 	return (int) msg.wParam;
 }
