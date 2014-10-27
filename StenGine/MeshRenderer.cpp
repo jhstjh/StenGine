@@ -18,11 +18,14 @@ XMMATRIX InverseTranspose(CXMMATRIX M)
 	return XMMatrixTranspose(XMMatrixInverse(&det, A));
 }
 
-Mesh::Mesh(int type = 0):
+Mesh::Mesh(int type = 0) :
 m_indexBufferCPU(0),
 m_stdMeshVertexBufferGPU(0),
 m_shadowMapVertexBufferGPU(0),
-m_diffuseMapSRV(0)
+m_diffuseMapSRV(0),
+m_normalMapSRV(0),
+m_castShadow(true),
+m_receiveShadow(true)
 {
 	//ObjReader::Read(L"Model/ball.obj", this);
 	if (type == 0)
@@ -372,8 +375,19 @@ void Mesh::Draw() {
 		D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
 		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->Mat->SetRawValue(&m_material, 0, sizeof(Material));
-		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->DiffuseMap->SetResource(m_diffuseMapSRV);
-		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->NormalMap->SetResource(m_normalMapSRV);
+
+		int resourceMask[3] = { 0, 0, 0 };
+		if (m_diffuseMapSRV) {
+			resourceMask[0] = 1;
+			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->DiffuseMap->SetResource(m_diffuseMapSRV);
+		}
+		if (m_normalMapSRV) {
+			resourceMask[1] = 1;
+			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->NormalMap->SetResource(m_normalMapSRV);
+		}
+		if (m_receiveShadow)
+			resourceMask[2] = 1;
+		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->DiffX_NormY_ShadZ->SetRawValue(resourceMask, 0, sizeof(int) * 3);
 
 
 		for (int iP = 0; iP < m_parents.size(); iP++) {
@@ -392,6 +406,7 @@ void Mesh::Draw() {
 
 			XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
 			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->ShadowTransform->SetMatrix(reinterpret_cast<float*>(&worldShadowMapTransform));
+
 
 			D3DX11_TECHNIQUE_DESC techDesc;
 			tech->GetDesc(&techDesc);

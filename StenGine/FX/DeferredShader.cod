@@ -12,6 +12,7 @@ cbuffer cbPerObject
     float4x4 gWorld;                    // Offset:  256, size:   64
     Material gMaterial;                 // Offset:  320, size:   48
     float4x4 gShadowTransform;          // Offset:  368, size:   64
+    int4    gDiffX_NormY_ShadZ;         // Offset:  432, size:   16
 }
 
 cbuffer cbPerFrame
@@ -79,6 +80,7 @@ fxgroup
                 //
                 //   } gMaterial;                       // Offset:  320 Size:    48 [unused]
                 //   float4x4 gShadowTransform;         // Offset:  368 Size:    64
+                //   int4 gDiffX_NormY_ShadZ;           // Offset:  432 Size:    16 [unused]
                 //
                 // }
                 //
@@ -136,7 +138,7 @@ fxgroup
                 //   o1.x <- <VertShader return value>.NormalV.x; o1.y <- <VertShader return value>.NormalV.y; o1.z <- <VertShader return value>.NormalV.z; 
                 //   o0.x <- <VertShader return value>.PosH.x; o0.y <- <VertShader return value>.PosH.y; o0.z <- <VertShader return value>.PosH.z; o0.w <- <VertShader return value>.PosH.w
                 //
-                #line 80 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
+                #line 81 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
                 mov r0.xyz, v0.xyzx
                 mov r0.w, l(1.000000)
                 dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- vout.PosH.x
@@ -189,6 +191,7 @@ fxgroup
                 //
                 //   } gMaterial;                       // Offset:  320 Size:    48
                 //   float4x4 gShadowTransform;         // Offset:  368 Size:    64 [unused]
+                //   int4 gDiffX_NormY_ShadZ;           // Offset:  432 Size:    16
                 //
                 // }
                 //
@@ -227,7 +230,7 @@ fxgroup
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer cb0[23], immediateIndexed
+                dcl_constantbuffer cb0[28], immediateIndexed
                 dcl_sampler s0, mode_default
                 dcl_sampler s1, mode_comparison
                 dcl_resource_texture2d (float,float,float,float) t0
@@ -240,7 +243,7 @@ fxgroup
                 dcl_output o0.xyzw
                 dcl_output o1.xy
                 dcl_output o2.xyzw
-                dcl_temps 8
+                dcl_temps 9
                 //
                 // Initial variable locations:
                 //   v0.x <- pin.PosH.x; v0.y <- pin.PosH.y; v0.z <- pin.PosH.z; v0.w <- pin.PosH.w; 
@@ -252,64 +255,81 @@ fxgroup
                 //   o1.x <- <PixShader return value>.normalV.x; o1.y <- <PixShader return value>.normalV.y; 
                 //   o0.x <- <PixShader return value>.diffuseH.x; o0.y <- <PixShader return value>.diffuseH.y; o0.z <- <PixShader return value>.diffuseH.z; o0.w <- <PixShader return value>.diffuseH.w
                 //
-                #line 93 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
+                #line 94 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\DeferredShader.fx"
                 div r0.xyz, v4.zxyz, v4.wwww  // r0.x <- pin.ShadowPosH.z; r0.y <- pin.ShadowPosH.x; r0.z <- pin.ShadowPosH.y
                 mov r0.x, r0.x  // r0.x <- depth
-                itof r0.w, l(0)  // r0.w <- shadowLit
+                ineg r0.w, cb0[27].z
+                iadd r0.w, r0.w, l(1)
+                itof r0.w, r0.w  // r0.w <- shadowLit
                 sample_c_lz_indexable(texture2d)(float,float,float,float) r0.x, r0.yzyy, t2.xxxx, s1, r0.x
                 add r0.x, r0.x, r0.w  // r0.x <- shadowLit
                 
-                #line 100
-                sample_indexable(texture2d)(float,float,float,float) r0.yzw, v3.xyxx, t0.wxyz, s0
+                #line 101
+                ineg r0.y, cb0[27].x
+                iadd r0.y, r0.y, l(1)
+                itof r0.yzw, r0.yyyy
+                itof r1.xyz, l(1, 1, 1, 0)
+                mul r0.yzw, r0.yyzw, r1.xxyz
+                itof r1.xyz, cb0[27].xxxx
+                sample_indexable(texture2d)(float,float,float,float) r2.xyz, v3.xyxx, t0.xyzw, s0
+                mul r1.xyz, r1.xyzx, r2.xyzx
+                add r0.yzw, r0.yyzw, r1.xxyz
                 mul r0.yzw, r0.yyzw, cb0[21].xxyz  // r0.y <- pout.diffuseH.x; r0.z <- pout.diffuseH.y; r0.w <- pout.diffuseH.z
-                mov r0.x, r0.x  // r0.x <- pout.diffuseH.w
+                max r0.x, r0.x, l(0.000000)
+                min r0.x, r0.x, l(1.000000)  // r0.x <- pout.diffuseH.w
                 mov r1.xyzw, cb0[22].wxyz  // r1.x <- pout.specularH.w; r1.y <- pout.specularH.x; r1.z <- pout.specularH.y; r1.w <- pout.specularH.z
                 div r1.x, r1.x, l(255.000000)
-                sample_indexable(texture2d)(float,float,float,float) r2.xyz, v3.xyxx, t1.xyzw, s0
-                mov r2.xyz, r2.xyzx  // r2.x <- normalMapNormal.x; r2.y <- normalMapNormal.y; r2.z <- normalMapNormal.z
-                mul r2.xyz, r2.xyzx, l(2.000000, 2.000000, 2.000000, 0.000000)
-                mov r3.xyz, l(-1.000000,-1.000000,-1.000000,-0.000000)
-                add r2.xyz, r2.xyzx, r3.xyzx
-                dp3 r2.w, v1.xyzx, v1.xyzx
-                rsq r2.w, r2.w
-                mul r3.xyz, r2.wwww, v1.xyzx  // r3.x <- N.x; r3.y <- N.y; r3.z <- N.z
-                dp3 r2.w, v2.xyzx, r3.xyzx
-                mul r4.xyz, r3.yzxy, r2.wwww
-                mov r4.xyz, -r4.xyzx
-                add r4.xyz, r4.xyzx, v2.yzxy
-                dp3 r2.w, r4.xyzx, r4.xyzx
-                rsq r2.w, r2.w
-                mul r4.xyz, r2.wwww, r4.xyzx  // r4.x <- T.y; r4.y <- T.z; r4.z <- T.x
-                mul r5.xyz, r3.yzxy, r4.yzxy
-                mul r6.xyz, r3.zxyz, r4.xyzx
-                mov r6.xyz, -r6.xyzx
-                add r5.xyz, r5.xyzx, r6.xyzx  // r5.x <- B.x; r5.y <- B.y; r5.z <- B.z
+                dp3 r2.x, v1.xyzx, v1.xyzx
+                rsq r2.x, r2.x
+                mul r2.xy, r2.xxxx, v1.xyxx  // r2.x <- pout.normalV.x; r2.y <- pout.normalV.y
+                ilt r2.z, l(0), cb0[27].y
+                if_nz r2.z
+                  sample_indexable(texture2d)(float,float,float,float) r3.xyz, v3.xyxx, t1.xyzw, s0
+                  mov r3.xyz, r3.xyzx  // r3.x <- normalMapNormal.x; r3.y <- normalMapNormal.y; r3.z <- normalMapNormal.z
+                  mul r3.xyz, r3.xyzx, l(2.000000, 2.000000, 2.000000, 0.000000)
+                  mov r4.xyz, l(-1.000000,-1.000000,-1.000000,-0.000000)
+                  add r3.xyz, r3.xyzx, r4.xyzx
+                  dp3 r2.z, v1.xyzx, v1.xyzx
+                  rsq r2.z, r2.z
+                  mul r4.xyz, r2.zzzz, v1.xyzx  // r4.x <- N.x; r4.y <- N.y; r4.z <- N.z
                 
                 #line 112
-                mov r6.x, r4.z  // r6.x <- TBN._m00
-                mov r6.y, r5.x  // r6.y <- TBN._m10
-                mov r6.z, r3.x  // r6.z <- TBN._m20
-                mov r7.x, r4.x  // r7.x <- TBN._m01
-                mov r7.y, r5.y  // r7.y <- TBN._m11
-                mov r7.z, r3.y  // r7.z <- TBN._m21
-                mov r3.x, r4.y  // r3.x <- TBN._m02
-                mov r3.y, r5.z  // r3.y <- TBN._m12
-                mov r3.z, r3.z  // r3.z <- TBN._m22
-                dp3 r4.x, r2.xyzx, r6.xyzx
-                dp3 r4.y, r2.xyzx, r7.xyzx
-                dp3 r4.z, r2.xyzx, r3.xyzx
-                dp3 r2.x, r4.xyzx, r4.xyzx
-                rsq r2.x, r2.x
-                mul r2.xy, r2.xxxx, r4.xyxx  // r2.x <- pout.normalV.x; r2.y <- pout.normalV.y
+                  dp3 r2.z, v2.xyzx, r4.xyzx
+                  mul r5.xyz, r4.yzxy, r2.zzzz
+                  mov r5.xyz, -r5.xyzx
+                  add r5.xyz, r5.xyzx, v2.yzxy
+                  dp3 r2.z, r5.xyzx, r5.xyzx
+                  rsq r2.z, r2.z
+                  mul r5.xyz, r2.zzzz, r5.xyzx  // r5.x <- T.y; r5.y <- T.z; r5.z <- T.x
+                  mul r6.xyz, r4.yzxy, r5.yzxy
+                  mul r7.xyz, r4.zxyz, r5.xyzx
+                  mov r7.xyz, -r7.xyzx
+                  add r6.xyz, r6.xyzx, r7.xyzx  // r6.x <- B.x; r6.y <- B.y; r6.z <- B.z
+                  mov r7.x, r5.z  // r7.x <- TBN._m00
+                  mov r7.y, r6.x  // r7.y <- TBN._m10
+                  mov r7.z, r4.x  // r7.z <- TBN._m20
+                  mov r8.x, r5.x  // r8.x <- TBN._m01
+                  mov r8.y, r6.y  // r8.y <- TBN._m11
+                  mov r8.z, r4.y  // r8.z <- TBN._m21
+                  mov r4.x, r5.y  // r4.x <- TBN._m02
+                  mov r4.y, r6.z  // r4.y <- TBN._m12
+                  mov r4.z, r4.z  // r4.z <- TBN._m22
+                  dp3 r5.x, r3.xyzx, r7.xyzx
+                  dp3 r5.y, r3.xyzx, r8.xyzx
+                  dp3 r5.z, r3.xyzx, r4.xyzx
+                  dp3 r2.z, r5.xyzx, r5.xyzx
+                  rsq r2.z, r2.z
+                  mul r2.xy, r2.zzzz, r5.xyxx
+                endif 
                 
-                #line 117
+                #line 121
                 mov o0.xyz, r0.yzwy
                 mov o0.w, r0.x
                 mov o2.xyz, r1.yzwy
                 mov o2.w, r1.x
                 mov o1.xy, r2.xyxx
                 ret 
-                // Approximately 50 instruction slots used
+                // Approximately 67 instruction slots used
                             
             };
             AB_BlendFactor = float4(0, 0, 0, 0);

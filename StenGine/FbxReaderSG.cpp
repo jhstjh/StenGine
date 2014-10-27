@@ -1,6 +1,7 @@
 #include "FbxReaderSG.h"
 #include <fbxsdk.h>
 #include "D3D11Renderer.h"
+#include "Shlwapi.h"
 
 void ReadFbxMesh(FbxNode* node, Mesh* mesh);
 
@@ -55,16 +56,20 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 	imgPath[len - 2] = 'd';
 	imgPath[len - 3] = 'd';
 
-	HR(D3DX11CreateShaderResourceViewFromFile(
-		D3D11Renderer::Instance()->GetD3DDevice(),
-		imgPath.c_str(), 0, 0, &(mesh->m_diffuseMapSRV), 0));
+	if (PathFileExists(imgPath.c_str())) {
+		HR(D3DX11CreateShaderResourceViewFromFile(
+			D3D11Renderer::Instance()->GetD3DDevice(),
+			imgPath.c_str(), 0, 0, &(mesh->m_diffuseMapSRV), 0));
+	}
 
 	imgPath.resize(len - 4);
 	imgPath += L"_normal.dds";
 
-	HR(D3DX11CreateShaderResourceViewFromFile(
-		D3D11Renderer::Instance()->GetD3DDevice(),
-		imgPath.c_str(), 0, 0, &(mesh->m_normalMapSRV), 0));
+	if (PathFileExists(imgPath.c_str())) {
+		HR(D3DX11CreateShaderResourceViewFromFile(
+			D3D11Renderer::Instance()->GetD3DDevice(),
+			imgPath.c_str(), 0, 0, &(mesh->m_normalMapSRV), 0));
+	}
 
 	return true;
 }

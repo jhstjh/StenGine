@@ -18,6 +18,7 @@ cbuffer cbPerObject {
 	float4x4 gWorld;
 	Material gMaterial;
 	float4x4 gShadowTransform;
+	int4 gDiffX_NormY_ShadZ;
 };
 
 cbuffer cbPerFrame {
@@ -92,26 +93,29 @@ PixelOut PixShader(VertexOut pin)
 
 	pin.ShadowPosH.xyz /= pin.ShadowPosH.w;
 	float depth = pin.ShadowPosH.z;
-	float shadowLit = 0;
+	float shadowLit = 1 - gDiffX_NormY_ShadZ.z;
 
 	shadowLit += gShadowMap.SampleCmpLevelZero(samShadow,
 		pin.ShadowPosH.xy, depth).r;
 
-	pout.diffuseH = gDiffuseMap.Sample(samAnisotropic, pin.TexUV) * gMaterial.diffuse;
-	pout.diffuseH.w = shadowLit;
+	pout.diffuseH = ((1 - gDiffX_NormY_ShadZ.x) * float4(1, 1, 1, 1) + gDiffX_NormY_ShadZ.x * gDiffuseMap.Sample(samAnisotropic, pin.TexUV)) * gMaterial.diffuse;
+	pout.diffuseH.w = saturate(shadowLit);
 	pout.specularH = gMaterial.specular;
 	pout.specularH.w /= 255.0f;
+	pout.normalV = normalize(pin.NormalV).xy;
 
-	float3 normalMapNormal = gNormalMap.Sample(samAnisotropic, pin.TexUV);
-	normalMapNormal = 2.0f * normalMapNormal - 1.0;
+	if (gDiffX_NormY_ShadZ.y > 0) {
+		float3 normalMapNormal = gNormalMap.Sample(samAnisotropic, pin.TexUV);
+		normalMapNormal = 2.0f * normalMapNormal - 1.0;
 
-	float3 N = normalize(pin.NormalV);
-	float3 T = normalize(pin.TangentV - dot(pin.TangentV, N)*N);
-	float3 B = cross(N, T);
+		float3 N = normalize(pin.NormalV);
+		float3 T = normalize(pin.TangentV - dot(pin.TangentV, N)*N);
+		float3 B = cross(N, T);
 
-	float3x3 TBN = float3x3(T, B, N);
+		float3x3 TBN = float3x3(T, B, N);
 
-	pout.normalV = normalize(mul(normalMapNormal, TBN));//normalize(pin.NormalV).xy;
+		pout.normalV = normalize(mul(normalMapNormal, TBN));//normalize(pin.NormalV).xy;
+	}
 	//pout.edgeH = float4(1, 1, 1, 1); // implement edge detection later
 
 	return pout;

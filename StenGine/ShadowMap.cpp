@@ -104,7 +104,8 @@ void ShadowMap::RenderShadowMap() {
 
 
 	for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_stdMeshEffect->m_associatedMeshes.size(); iMesh++) {
-		EffectsManager::Instance()->m_stdMeshEffect->m_associatedMeshes[iMesh]->DrawOnShadowMap();
+		if (EffectsManager::Instance()->m_stdMeshEffect->m_associatedMeshes[iMesh]->m_castShadow)
+			EffectsManager::Instance()->m_stdMeshEffect->m_associatedMeshes[iMesh]->DrawOnShadowMap();
 	}
 
 }

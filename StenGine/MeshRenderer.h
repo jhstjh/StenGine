@@ -53,6 +53,8 @@ public:
 
 	Material m_material;
 	XMFLOAT4X4 m_worldTransform;
+	bool m_castShadow;
+	bool m_receiveShadow;
 	Mesh(int type);
 	~Mesh();
 	void Draw();

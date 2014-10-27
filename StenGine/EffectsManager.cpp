@@ -110,6 +110,7 @@ DeferredShaderEffect::DeferredShaderEffect(const std::wstring& filename)
 	DiffuseMap = m_fx->GetVariableByName("gDiffuseMap")->AsShaderResource();
 	NormalMap = m_fx->GetVariableByName("gNormalMap")->AsShaderResource();
 	TheShadowMap = m_fx->GetVariableByName("gShadowMap")->AsShaderResource();
+	DiffX_NormY_ShadZ = m_fx->GetVariableByName("gDiffX_NormY_ShadZ")->AsVector();
 
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
