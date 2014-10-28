@@ -16,6 +16,43 @@ cbuffer cbPerFrame {
 	float    gSurfaceEpsilon = 0.005f;
 };
 
+cbuffer cbFixed {
+	half4 vertexArray[6] = {
+		half4(-1.0, -1.0, 0.0, 1.0),
+		half4(-1.0, 1.0, 0.0, 1.0),
+		half4(1.0, 1.0, 0.0, 1.0),
+		half4(1.0, 1.0, 0.0, 1.0),
+		half4(1.0, -1.0, 0.0, 1.0),
+		half4(-1.0, -1.0, 0.0, 1.0),
+	};
+
+	half2 uvArray[6] = {
+		half2(0, 1),
+		half2(0, 0),
+		half2(1, 0),
+		half2(1, 0),
+		half2(1, 1),
+		half2(0, 1),
+	};
+
+	float4 OffsetVect[] = {
+			{ +1.0f, +1.0f, +1.0f, 0.0f },
+			{ -1.0f, -1.0f, -1.0f, 0.0f },
+			{ -1.0f, +1.0f, +1.0f, 0.0f },
+			{ +1.0f, -1.0f, -1.0f, 0.0f },
+			{ +1.0f, +1.0f, -1.0f, 0.0f },
+			{ -1.0f, -1.0f, +1.0f, 0.0f },
+			{ -1.0f, +1.0f, -1.0f, 0.0f },
+			{ +1.0f, -1.0f, +1.0f, 0.0f },
+			{ -1.0f, 0.0f, 0.0f, 0.0f },
+			{ +1.0f, 0.0f, 0.0f, 0.0f },
+			{ 0.0f, -1.0f, 0.0f, 0.0f },
+			{ 0.0f, +1.0f, 0.0f, 0.0f },
+			{ 0.0f, 0.0f, -1.0f, 0.0f },
+			{ 0.0f, 0.0f, +1.0f, 0.0f },
+	};
+};
+
 struct VSOut
 {
 	float4 pos : SV_Position;
@@ -82,58 +119,16 @@ VSOut VSmain(uint vertexId : SV_VertexID)
 {
 	VSOut output;
 
-	if (vertexId == 0) {
-		output.pos = float4(-1.0, -1.0, 0.0, 1.0);
-		output.Tex = float2(0, 1);
-	}
-	else if (vertexId == 1) {
-		output.pos = float4(-1.0, 1.0, 0.0, 1.0);
-		output.Tex = float2(0, 0);
-	}
-	else if (vertexId == 2) {
-		output.pos = float4(1.0, 1.0, 0.0, 1.0);
-		output.Tex = float2(1, 0);
-	}
-	else if (vertexId == 3) {
-		output.pos = float4(1.0, 1.0, 0.0, 1.0);
-		output.Tex = float2(1, 0);
-	}
-	else if (vertexId == 4) {
-		output.pos = float4(1.0, -1.0, 0.0, 1.0);
-		output.Tex = float2(1, 1);
-	}
-	else if (vertexId == 5) {
-		output.pos = float4(-1.0, -1.0, 0.0, 1.0);
-		output.Tex = float2(0, 1);
-	}
-	
+	output.pos = vertexArray[vertexId];
+	output.Tex = uvArray[vertexId];
+
 	return output;
 }
-
-
 
 struct PSIn
 {
 	float4 pos : SV_Position;
 	linear float2 Tex : TEXCOORD;
-};
-
-
-float4 OffsetVect[] = { 
-		{ +1.0f, +1.0f, +1.0f, 0.0f },
-		{ -1.0f, -1.0f, -1.0f, 0.0f },
-		{ -1.0f, +1.0f, +1.0f, 0.0f },
-		{ +1.0f, -1.0f, -1.0f, 0.0f },
-		{ +1.0f, +1.0f, -1.0f, 0.0f },
-		{ -1.0f, -1.0f, +1.0f, 0.0f },
-		{ -1.0f, +1.0f, -1.0f, 0.0f },
-		{ +1.0f, -1.0f, +1.0f, 0.0f },
-		{ -1.0f, 0.0f, 0.0f, 0.0f },
-		{ +1.0f, 0.0f, 0.0f, 0.0f },
-		{ 0.0f, -1.0f, 0.0f, 0.0f },
-		{ 0.0f, +1.0f, 0.0f, 0.0f },
-		{ 0.0f, 0.0f, -1.0f, 0.0f },
-		{ 0.0f, 0.0f, +1.0f, 0.0f },
 };
 
 float OcclusionFunction(float distZ)

@@ -388,7 +388,8 @@ void Mesh::Draw() {
 		if (m_receiveShadow)
 			resourceMask[2] = 1;
 		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->DiffX_NormY_ShadZ->SetRawValue(resourceMask, 0, sizeof(int) * 3);
-
+		
+		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->CubeMap->SetResource(D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV);
 
 		for (int iP = 0; iP < m_parents.size(); iP++) {
 

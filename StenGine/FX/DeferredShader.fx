@@ -29,6 +29,7 @@ cbuffer cbPerFrame {
 Texture2D gDiffuseMap;
 Texture2D gNormalMap;
 Texture2D gShadowMap;
+TextureCube gCubeMap;
 
 SamplerState samAnisotropic
 {
@@ -52,15 +53,16 @@ SamplerComparisonState samShadow
 
 struct VertexIn {
 	float3 PosL  : POSITION;
-    float3 NormalL : NORMAL;
+    float3 NormalL : NORMAL0;
 	float3 TangentL: TANGENT;
 	float2 TexUV : TEXCOORD;
 };
 
 struct VertexOut {
 	float4 PosH  : SV_POSITION;
-	//float4 PosV  : POSITION;
-	float3 NormalV : NORMAL;
+	float4 PosW  : POSITION;
+	float3 NormalV : NORMAL0;
+	float3 NormalW : NORMAL1;
 	float3 TangentV: TANGENT;
 	float2 TexUV : TEXCOORD0;
 	float4 ShadowPosH: TEXCOORD1;
@@ -83,6 +85,8 @@ VertexOut VertShader(VertexIn vin)
 	vout.TangentV = mul(vin.TangentL, gWorldViewInvTranspose);
 	vout.TexUV = vin.TexUV;
 	vout.ShadowPosH = mul(float4(vin.PosL, 1.0f), gShadowTransform);
+	vout.PosW = mul(float4(vin.PosL, 1.0f), gWorld);
+	vout.NormalW = mul(vin.NormalL, gWorldInvTranspose);
 	//vout.PosV = mul(float4(vin.PosL, 1.0f), gWorldView);
     return vout;
 }
@@ -90,6 +94,10 @@ VertexOut VertShader(VertexIn vin)
 PixelOut PixShader(VertexOut pin)
 {
 	PixelOut pout;
+	pin.PosW /= pin.PosW.w;
+
+	float3 eyeRay = normalize(pin.PosW - gEyePosW);
+	float3 refRay = reflect(eyeRay, pin.NormalW);
 
 	pin.ShadowPosH.xyz /= pin.ShadowPosH.w;
 	float depth = pin.ShadowPosH.z;
@@ -98,7 +106,10 @@ PixelOut PixShader(VertexOut pin)
 	shadowLit += gShadowMap.SampleCmpLevelZero(samShadow,
 		pin.ShadowPosH.xy, depth).r;
 
-	pout.diffuseH = ((1 - gDiffX_NormY_ShadZ.x) * float4(1.0, 1.0, 1.0, 1) + gDiffX_NormY_ShadZ.x * gDiffuseMap.Sample(samAnisotropic, pin.TexUV)) * gMaterial.diffuse;
+	
+
+	pout.diffuseH = ((1 - gDiffX_NormY_ShadZ.x) * gCubeMap.Sample(samAnisotropic, refRay) + gDiffX_NormY_ShadZ.x * gDiffuseMap.Sample(samAnisotropic, pin.TexUV)) * gMaterial.diffuse;
+	//pout.diffuseH = gCubeMap.Sample(samAnisotropic, refRay);
 	pout.diffuseH.w = saturate(shadowLit);
 	pout.specularH = gMaterial.specular;
 	pout.specularH.w /= 255.0f;
