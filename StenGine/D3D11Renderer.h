@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "MeshRenderer.h"
+#include "Skybox.h"
 
 #define FORWARD 0
 
@@ -35,6 +36,8 @@ private:
 
 	D3D11_VIEWPORT m_screenViewpot;
 	D3D11_VIEWPORT m_screenSuperSampleViewpot;
+
+	Skybox* m_SkyBox;
 
 #pragma region DEDERRED_RENDER
 	ID3D11RenderTargetView* m_diffuseBufferRTV;

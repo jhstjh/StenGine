@@ -39,7 +39,6 @@ public:
 					bool result = FbxReaderSG::Read(path, newMesh);
 					assert(result);
 					newMesh->Prepare();
-					// add to dictionary here
 					m_meshResourceMap[path] = newMesh;
 					
 					return newMesh;

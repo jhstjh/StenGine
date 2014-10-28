@@ -376,7 +376,7 @@ void Mesh::Draw() {
 
 		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->Mat->SetRawValue(&m_material, 0, sizeof(Material));
 
-		int resourceMask[3] = { 0, 0, 0 };
+		int resourceMask[3] = { 0 };
 		if (m_diffuseMapSRV) {
 			resourceMask[0] = 1;
 			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->DiffuseMap->SetResource(m_diffuseMapSRV);

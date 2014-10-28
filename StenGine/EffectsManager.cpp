@@ -208,6 +208,36 @@ GodRayEffect::~GodRayEffect()
 
 
 //----------------------------------------------------------//
+
+
+SkyboxEffect::SkyboxEffect(const std::wstring& filename)
+	: Effect(filename)
+{
+	SkyboxTech = m_fx->GetTechniqueByName("SkyboxTech");
+	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
+	CubeMap = m_fx->GetVariableByName("gCubeMap")->AsShaderResource();
+
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	D3DX11_PASS_DESC passDesc;
+	SkyboxTech->GetPassByIndex(0)->GetDesc(&passDesc);
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, passDesc.pIAInputSignature,
+		passDesc.IAInputSignatureSize, &m_inputLayout));
+
+	m_activeTech = SkyboxTech;
+}
+
+SkyboxEffect::~SkyboxEffect()
+{
+	ReleaseCOM(m_inputLayout);
+}
+
+
+
+//----------------------------------------------------------//
 EffectsManager* EffectsManager::_instance = nullptr;
 EffectsManager::EffectsManager() {
 	m_stdMeshEffect = new StdMeshEffect(L"FX/StdMesh.fxo");
@@ -215,6 +245,7 @@ EffectsManager::EffectsManager() {
 	m_deferredShaderEffect = new DeferredShaderEffect(L"FX/DeferredShader.fxo");
 	m_screenQuadEffect = new ScreenQuadEffect(L"FX/ScreenQuad.fxo");
 	m_godrayEffect = new GodRayEffect(L"FX/GodRay.fxo");
+	m_skyboxEffect = new SkyboxEffect(L"FX/Skybox.fxo");
 	//m_effects.push_back(PosColor);
 }
 
@@ -227,4 +258,5 @@ EffectsManager::~EffectsManager() {
 	delete m_deferredShaderEffect;
 	delete m_screenQuadEffect;
 	delete m_godrayEffect;
+	delete m_skyboxEffect;
 }

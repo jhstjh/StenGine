@@ -268,8 +268,7 @@ fxgroup
                 ineg r0.y, cb0[27].x
                 iadd r0.y, r0.y, l(1)
                 itof r0.yzw, r0.yyyy
-                itof r1.xyz, l(1, 1, 1, 0)
-                mul r0.yzw, r0.yyzw, r1.xxyz
+                mul r0.yzw, r0.yyzw, l(0.000000, 1.000000, 1.000000, 1.000000)
                 itof r1.xyz, cb0[27].xxxx
                 sample_indexable(texture2d)(float,float,float,float) r2.xyz, v3.xyxx, t0.xyzw, s0
                 mul r1.xyz, r1.xyzx, r2.xyzx
@@ -329,7 +328,7 @@ fxgroup
                 mov o2.w, r1.x
                 mov o1.xy, r2.xyxx
                 ret 
-                // Approximately 67 instruction slots used
+                // Approximately 66 instruction slots used
                             
             };
             AB_BlendFactor = float4(0, 0, 0, 0);

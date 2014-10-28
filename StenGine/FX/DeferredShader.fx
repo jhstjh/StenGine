@@ -98,7 +98,7 @@ PixelOut PixShader(VertexOut pin)
 	shadowLit += gShadowMap.SampleCmpLevelZero(samShadow,
 		pin.ShadowPosH.xy, depth).r;
 
-	pout.diffuseH = ((1 - gDiffX_NormY_ShadZ.x) * float4(1, 1, 1, 1) + gDiffX_NormY_ShadZ.x * gDiffuseMap.Sample(samAnisotropic, pin.TexUV)) * gMaterial.diffuse;
+	pout.diffuseH = ((1 - gDiffX_NormY_ShadZ.x) * float4(1.0, 1.0, 1.0, 1) + gDiffX_NormY_ShadZ.x * gDiffuseMap.Sample(samAnisotropic, pin.TexUV)) * gMaterial.diffuse;
 	pout.diffuseH.w = saturate(shadowLit);
 	pout.specularH = gMaterial.specular;
 	pout.specularH.w /= 255.0f;

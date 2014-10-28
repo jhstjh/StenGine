@@ -121,6 +121,21 @@ public:
 
 
 //--------------------------------------------------------------------//
+
+
+class SkyboxEffect : public Effect {
+public:
+	SkyboxEffect(const std::wstring& filename);
+	~SkyboxEffect();
+
+	ID3DX11EffectTechnique* SkyboxTech;
+	ID3DX11EffectMatrixVariable* WorldViewProj;
+	ID3DX11EffectShaderResourceVariable* CubeMap;
+};
+
+//--------------------------------------------------------------------//
+
+
 class EffectsManager {
 private:
 	static EffectsManager* _instance;
@@ -140,6 +155,7 @@ public:
 	DeferredShaderEffect* m_deferredShaderEffect; 
 	ScreenQuadEffect* m_screenQuadEffect;
 	GodRayEffect* m_godrayEffect;
+	SkyboxEffect* m_skyboxEffect;
 };
 
 #endif

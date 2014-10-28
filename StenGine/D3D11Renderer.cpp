@@ -314,6 +314,8 @@ bool D3D11Renderer::Init() {
 	LightManager::Instance()->m_dirLights.push_back(dLight);
 	LightManager::Instance()->m_shadowMap = new ShadowMap(1024, 1024);
 
+	m_SkyBox = new Skybox(std::wstring(L"Model/sunsetcube1024.dds"));
+
 	return true;
 }
 
@@ -373,6 +375,17 @@ void D3D11Renderer::Draw() {
 			activeFX->m_associatedMeshes[iMesh]->Draw();
 		}
 
+	// --------- skybox --------- //
+	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_deferredShadingRTV, m_depthStencilView);
+	m_d3d11DeviceContext->ClearRenderTargetView(m_deferredShadingRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	m_SkyBox->Draw();
+
+	m_d3d11DeviceContext->RSSetState(0);
+	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
+	m_d3d11DeviceContext->OMSetRenderTargets(0, NULL, NULL);
 
 	//-------------- composite deferred render target views AND SSAO-------------------//
 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
@@ -382,7 +395,7 @@ void D3D11Renderer::Draw() {
 	ID3D11RenderTargetView* crtvs[2] = { m_deferredShadingRTV, m_SSAORTV };
 	m_d3d11DeviceContext->OMSetRenderTargets(2, crtvs, m_depthStencilView);
 	m_d3d11DeviceContext->ClearRenderTargetView(m_SSAORTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
-	m_d3d11DeviceContext->ClearRenderTargetView(m_deferredShadingRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	//m_d3d11DeviceContext->ClearRenderTargetView(m_deferredShadingRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	D3DX11_TECHNIQUE_DESC techDesc;
@@ -443,7 +456,7 @@ void D3D11Renderer::Draw() {
 	// ------ HBlur -------//
 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
-	m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	//m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	ID3DX11EffectTechnique* HBlurTech = EffectsManager::Instance()->m_screenQuadEffect->HBlurTech;
@@ -459,6 +472,8 @@ void D3D11Renderer::Draw() {
 	m_d3d11DeviceContext->RSSetState(0);
 	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
 	m_d3d11DeviceContext->OMSetRenderTargets(0, NULL, NULL);
+
+
 
 #if 0
 	//--------------------Post processing----------------------//
