@@ -6,18 +6,6 @@
 #include "LightManager.h"
 
 
-XMMATRIX InverseTranspose(CXMMATRIX M)
-{
-	// Inverse-transpose is just applied to normals.  So zero out 
-	// translation row so that it doesn't get into our inverse-transpose
-	// calculation--we don't want the inverse-transpose of the translation.
-	XMMATRIX A = M;
-	A.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
-
-	XMVECTOR det = XMMatrixDeterminant(A);
-	return XMMatrixTranspose(XMMatrixInverse(&det, A));
-}
-
 Mesh::Mesh(int type = 0) :
 m_indexBufferCPU(0),
 m_stdMeshVertexBufferGPU(0),
@@ -396,13 +384,13 @@ void Mesh::Draw() {
 			XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
 			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
 			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->World->SetMatrix(reinterpret_cast<float*>(m_parents[iP]->GetWorldTransform()));
-			XMMATRIX worldInvTranspose = InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
+			XMMATRIX worldInvTranspose = MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
 			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->WorldInvTranspose->SetMatrix(reinterpret_cast<float*>(&worldInvTranspose));
 			
 			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
 			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->WorldView->SetMatrix(reinterpret_cast<float*>(&worldView));
 
-			XMMATRIX worldViewInvTranspose = InverseTranspose(worldView);
+			XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
 			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->WorldViewInvTranspose->SetMatrix(reinterpret_cast<float*>(&worldViewInvTranspose));
 
 			XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();

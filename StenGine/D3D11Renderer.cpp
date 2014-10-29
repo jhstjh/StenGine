@@ -8,18 +8,6 @@
 
 D3D11Renderer* D3D11Renderer::_instance = nullptr;
 
-XMMATRIX InverseTransposeD(CXMMATRIX M)
-{
-	// Inverse-transpose is just applied to normals.  So zero out 
-	// translation row so that it doesn't get into our inverse-transpose
-	// calculation--we don't want the inverse-transpose of the translation.
-	XMMATRIX A = M;
-	A.r[3] = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
-
-	XMVECTOR det = XMMatrixDeterminant(A);
-	return XMMatrixTranspose(XMMatrixInverse(&det, A));
-}
-
 D3D11Renderer::D3D11Renderer(HINSTANCE hInstance, HWND hMainWnd):
 m_hInst(hInstance),
 m_hMainWnd(hMainWnd),
@@ -52,6 +40,7 @@ D3D11Renderer::~D3D11Renderer() {
 
 	ReleaseCOM(m_d3d11DeviceContext);
 	ReleaseCOM(m_d3d11Device);
+	SafeDelete(m_SkyBox);
 }
 
 bool D3D11Renderer::Init() {
@@ -406,7 +395,7 @@ void D3D11Renderer::Draw() {
 	DirectionalLight viewDirLight;
 	memcpy(&viewDirLight, LightManager::Instance()->m_dirLights[0], sizeof(DirectionalLight));
 
-	XMMATRIX ViewInvTranspose = InverseTransposeD(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
+	XMMATRIX ViewInvTranspose = MatrixHelper::InverseTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
 	XMStoreFloat3(&viewDirLight.direction, XMVector3Transform(XMLoadFloat3(&viewDirLight.direction), ViewInvTranspose));
 	EffectsManager::Instance()->m_screenQuadEffect->DirLight->SetRawValue(&viewDirLight, 0, sizeof(DirectionalLight));
 
