@@ -10,6 +10,7 @@
 #include "CameraManager.h"
 #include "ResourceManager.h"
 #include "GameObject.h"
+#include "InputManager.h"
 //#include "MathHelper.h"
 #include "Timer.h"
 
@@ -58,6 +59,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	EffectsManager::Instance();
 	CameraManager::Instance();
 	ResourceManager::Instance();
+	InputManager::Instance();
 
 	//same mesh render with instancing
 	GameObject* box0 = new GameObject();
@@ -104,6 +106,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 				SetWindowText(hMainWnd, outs.str().c_str());
 				elaspedFrame = 0;
 			}
+			InputManager::Instance()->Update();
 			sphere->Update();
 			D3D11Renderer::Instance()->Draw();
 			elaspedFrame++;
