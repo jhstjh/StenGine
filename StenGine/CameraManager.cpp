@@ -1,4 +1,7 @@
 #include "CameraManager.h"
+#include "InputManager.h"
+
+#include "D3D11Renderer.h"
 
 Camera::Camera(float px, float py, float pz,
 	float tx, float ty, float tz,
@@ -19,6 +22,11 @@ Camera::Camera(float px, float py, float pz,
 	m_radius = XMVectorGetX(XMVector3Length(pos - m_target));
 	m_phi = acosf((py - ty) / m_radius);
 	m_theta = asinf((pz - tz) / (m_radius * sinf(m_phi)));
+
+	//XMMATRIX invView;
+	//XMVECTOR det = XMMatrixDeterminant(V);
+
+	XMStoreFloat4x4(&m_worldTransform, MatrixHelper::Inverse(V));
 }
 
 XMMATRIX Camera::GetViewProjMatrix() {
@@ -43,30 +51,48 @@ void Camera::OnMouseUp(WPARAM btnState, int x, int y) {
 }
 
 void Camera::OnMouseMove(WPARAM btnState, int x, int y) {
-	if ((btnState & MK_LBUTTON)) {
-		float dx = XMConvertToRadians(0.25f*static_cast<float>(x - m_lastMousePos.x));
-		float dy = XMConvertToRadians(0.25f*static_cast<float>(y - m_lastMousePos.y));
-		m_theta -= dx;
-		m_phi -= dy;
-
-		m_phi = min(max(m_phi, 0.1f), 3.14159f - 0.1f);
-		
-	}
-	m_lastMousePos.x = x;
-	m_lastMousePos.y = y;
-
-
-	float px = m_radius*sinf(m_phi)*cosf(m_theta);
-	float pz = m_radius*sinf(m_phi)*sinf(m_theta);
-	float py = m_radius*cosf(m_phi);
-
-	XMVECTOR pos = XMVectorSet(px, py, pz, 0.0f);
-	XMStoreFloat4(&m_pos, pos);
-
-	XMMATRIX V = XMMatrixLookAtLH(pos, m_target, m_up);
-	XMStoreFloat4x4(&m_view, V);
+// 	if ((btnState & MK_LBUTTON)) {
+// 		float dx = XMConvertToRadians(0.25f*static_cast<float>(x - m_lastMousePos.x));
+// 		float dy = XMConvertToRadians(0.25f*static_cast<float>(y - m_lastMousePos.y));
+// 		m_theta -= dx;
+// 		m_phi -= dy;
+// 
+// 		m_phi = min(max(m_phi, 0.1f), 3.14159f - 0.1f);
+// 		
+// 	}
+// 	m_lastMousePos.x = x;
+// 	m_lastMousePos.y = y;
+// 
+// 
+// 	float px = m_radius*sinf(m_phi)*cosf(m_theta);
+// 	float pz = m_radius*sinf(m_phi)*sinf(m_theta);
+// 	float py = m_radius*cosf(m_phi);
+// 
+// 	XMVECTOR pos = XMVectorSet(px, py, pz, 0.0f);
+// 	XMStoreFloat4(&m_pos, pos);
+// 
+// 	XMMATRIX V = XMMatrixLookAtLH(pos, m_target, m_up);
+// 	XMStoreFloat4x4(&m_view, V);
 }
 
+void Camera::Update() {
+	if (InputManager::Instance()->GetKeyHold('W')) {
+		MatrixHelper::MoveForward(m_worldTransform, 5 * Timer::GetDeltaTime());
+		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
+	}
+	if (InputManager::Instance()->GetKeyHold('S')) {
+		MatrixHelper::MoveBack(m_worldTransform, 5 * Timer::GetDeltaTime());
+		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
+	}
+	if (InputManager::Instance()->GetKeyHold('A')) {
+		MatrixHelper::MoveLeft(m_worldTransform, 5 * Timer::GetDeltaTime());
+		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
+	}
+	if (InputManager::Instance()->GetKeyHold('D')) {
+		MatrixHelper::MoveRight(m_worldTransform, 5 * Timer::GetDeltaTime());
+		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
+	}
+}
 
 CameraManager* CameraManager::_instance = nullptr;
 

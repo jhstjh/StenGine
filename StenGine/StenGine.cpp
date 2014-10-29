@@ -107,6 +107,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 				elaspedFrame = 0;
 			}
 			InputManager::Instance()->Update();
+			CameraManager::Instance()->GetActiveCamera()->Update();
 			sphere->Update();
 			D3D11Renderer::Instance()->Draw();
 			elaspedFrame++;

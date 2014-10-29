@@ -1,12 +1,13 @@
 #ifndef __CAMERA_MANAGER__
 #define __CAMERA_MANAGER__
 
-#include "D3D11Renderer.h"
+#include "D3DIncludes.h"
 
 class Camera {
 	XMFLOAT4 m_pos;
 	XMFLOAT4X4 m_view;
 	XMFLOAT4X4 m_proj;
+	XMFLOAT4X4 m_worldTransform;
 	XMVECTOR m_target;
 	XMVECTOR m_up;
 
@@ -20,14 +21,16 @@ public:
 		   float tx, float ty, float tz,
 		   float ux, float uy, float uz,
 		   float fov, float np, float fp);
+	//Camera(XMFLOAT4X4 worldTransform;)
 	~Camera();
 	XMMATRIX GetViewProjMatrix();
 	XMMATRIX GetViewMatrix();
 	XMMATRIX GetProjMatrix();
-	XMFLOAT4 GetPos() { return m_pos; };
+	XMFLOAT4 GetPos() { /*return m_pos;*/return XMFLOAT4(m_worldTransform._41, m_worldTransform._42, m_worldTransform._43, 0.0); }
 	void OnMouseDown(WPARAM btnState, int x, int y);
 	void OnMouseUp(WPARAM btnState, int x, int y);
 	void OnMouseMove(WPARAM btnState, int x, int y);
+	void Update();
 };
 
 class CameraManager {
