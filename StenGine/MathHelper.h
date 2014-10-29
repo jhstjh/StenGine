@@ -6,6 +6,7 @@
 class MatrixHelper {
 public:
 	inline static XMFLOAT3 GetPosition(const XMFLOAT4X4& mat) { return XMFLOAT3(mat._41, mat._42, mat._43); }
+	inline static void SetPosition(XMFLOAT4X4 &mat, float x, float y, float z) { mat._41 = x; mat._42 = y; mat._43 = z; }
 	inline static XMFLOAT3 GetForward(const XMFLOAT4X4& mat) { return XMFLOAT3(mat._31, mat._32, mat._33); }
 	inline static XMFLOAT3 GetRight(const XMFLOAT4X4& mat) { return XMFLOAT3(mat._11, mat._12, mat._13); }
 	inline static void MoveForward(XMFLOAT4X4& mat, float distance) {

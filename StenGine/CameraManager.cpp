@@ -92,6 +92,32 @@ void Camera::Update() {
 		MatrixHelper::MoveRight(m_worldTransform, 5 * Timer::GetDeltaTime());
 		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
 	}
+	if (InputManager::Instance()->GetKeyHold(VK_UP)) {
+		XMMATRIX M = XMMatrixRotationX(-3.14159 / 3.0f * Timer::GetDeltaTime()) * XMLoadFloat4x4(&m_worldTransform);
+		XMStoreFloat4x4(&m_worldTransform, M);
+		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(M));
+	}
+	if (InputManager::Instance()->GetKeyHold(VK_DOWN)) {
+		XMMATRIX M = XMMatrixRotationX(3.14159 / 3.0f * Timer::GetDeltaTime()) * XMLoadFloat4x4(&m_worldTransform);
+		XMStoreFloat4x4(&m_worldTransform, M);
+		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(M));
+	}
+	if (InputManager::Instance()->GetKeyHold(VK_LEFT)) {
+		XMFLOAT4 pos = GetPos();
+		MatrixHelper::SetPosition(m_worldTransform, 0, 0, 0);
+		XMMATRIX M = XMLoadFloat4x4(&m_worldTransform) * XMMatrixRotationY(-3.14159 / 3.0f * Timer::GetDeltaTime());
+		M.r[3] = XMVectorSet(pos.x, pos.y, pos.z, 1.0);
+		XMStoreFloat4x4(&m_worldTransform, M);
+		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(M));
+	}
+	if (InputManager::Instance()->GetKeyHold(VK_RIGHT)) {
+		XMFLOAT4 pos = GetPos();
+		MatrixHelper::SetPosition(m_worldTransform, 0, 0, 0);
+		XMMATRIX M = XMLoadFloat4x4(&m_worldTransform) * XMMatrixRotationY(3.14159 / 3.0f * Timer::GetDeltaTime());
+		M.r[3] = XMVectorSet(pos.x, pos.y, pos.z, 1.0);
+		XMStoreFloat4x4(&m_worldTransform, M);
+		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(M));
+	}
 }
 
 CameraManager* CameraManager::_instance = nullptr;
