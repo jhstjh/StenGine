@@ -98,20 +98,24 @@ DeferredShaderEffect::DeferredShaderEffect(const std::wstring& filename)
 	: Effect(filename)
 {
 	DeferredShaderTech = m_fx->GetTechniqueByName("DeferredShaderTech");
+	DeferredShaderTessTech = m_fx->GetTechniqueByName("DeferredShaderTessTech");
 	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
 	WorldInvTranspose = m_fx->GetVariableByName("gWorldInvTranspose")->AsMatrix();
 	WorldView = m_fx->GetVariableByName("gWorldView")->AsMatrix();
 	WorldViewInvTranspose = m_fx->GetVariableByName("gWorldViewInvTranspose")->AsMatrix();
 	ShadowTransform = m_fx->GetVariableByName("gShadowTransform")->AsMatrix();
 	World = m_fx->GetVariableByName("gWorld")->AsMatrix();
+	ViewProj = m_fx->GetVariableByName("gViewProj")->AsMatrix();
 	//DirLight = m_fx->GetVariableByName("gDirLight");
 	Mat = m_fx->GetVariableByName("gMaterial");
 	EyePosW = m_fx->GetVariableByName("gEyePosW")->AsVector();
 	DiffuseMap = m_fx->GetVariableByName("gDiffuseMap")->AsShaderResource();
+	BumpMap = m_fx->GetVariableByName("gBumpMap")->AsShaderResource();
 	NormalMap = m_fx->GetVariableByName("gNormalMap")->AsShaderResource();
 	TheShadowMap = m_fx->GetVariableByName("gShadowMap")->AsShaderResource();
 	DiffX_NormY_ShadZ = m_fx->GetVariableByName("gDiffX_NormY_ShadZ")->AsVector();
 	CubeMap = m_fx->GetVariableByName("gCubeMap")->AsShaderResource();
+
 
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{

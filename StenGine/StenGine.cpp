@@ -71,8 +71,8 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
  	Mesh* sphereMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/earth.fbx");
  	sphere->AddComponent(sphereMesh);
  
- 	GameObject* plane0 = new GameObject(-1, 0, 0);
-	Mesh* plane0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GeneratePlane");
+ 	GameObject* plane0 = new GameObject(-1, -1, 0);
+	Mesh* plane0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plane.fbx");
  	plane0->AddComponent(plane0Mesh);
 	plane0->RotateAroundY(3.14159);
 

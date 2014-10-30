@@ -50,6 +50,7 @@ public:
 	std::vector<XMFLOAT3> m_tangentBufferCPU;
 	ID3D11ShaderResourceView* m_diffuseMapSRV;
 	ID3D11ShaderResourceView* m_normalMapSRV;
+	ID3D11ShaderResourceView* m_bumpMapSRV;
 
 	Material m_material;
 	XMFLOAT4X4 m_worldTransform;

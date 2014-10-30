@@ -45,7 +45,7 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 	lSdkManager->Destroy();
 
 	mesh->m_material.ambient = XMFLOAT4(0.2, 0.2, 0.2, 1);
-	mesh->m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
+	mesh->m_material.diffuse = XMFLOAT4(1.0, 0.8, 0.7, 1);
 	mesh->m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
 
 	std::wstring imgPath = filename;
@@ -69,6 +69,15 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 		HR(D3DX11CreateShaderResourceViewFromFile(
 			D3D11Renderer::Instance()->GetD3DDevice(),
 			imgPath.c_str(), 0, 0, &(mesh->m_normalMapSRV), 0));
+	}
+
+	imgPath.resize(len - 4);
+	imgPath += L"_bump.dds";
+
+	if (PathFileExists(imgPath.c_str())) {
+		HR(D3DX11CreateShaderResourceViewFromFile(
+			D3D11Renderer::Instance()->GetD3DDevice(),
+			imgPath.c_str(), 0, 0, &(mesh->m_bumpMapSRV), 0));
 	}
 
 	return true;

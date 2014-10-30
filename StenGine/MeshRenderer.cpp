@@ -12,6 +12,7 @@ m_stdMeshVertexBufferGPU(0),
 m_shadowMapVertexBufferGPU(0),
 m_diffuseMapSRV(0),
 m_normalMapSRV(0),
+m_bumpMapSRV(0),
 m_castShadow(true),
 m_receiveShadow(true)
 {
@@ -28,6 +29,7 @@ Mesh::~Mesh() {
 	ReleaseCOM(m_shadowMapVertexBufferGPU);
 	ReleaseCOM(m_diffuseMapSRV);
 	ReleaseCOM(m_normalMapSRV);
+	ReleaseCOM(m_bumpMapSRV);
 }
 
 void Mesh::Prepare() {
@@ -230,10 +232,10 @@ void Mesh::CreatePlanePrimitive() {
 
 	m_texUVBufferCPU.resize(24);
 	m_texUVBufferCPU = {
-		XMFLOAT2(4.0f, 4.0f),
-		XMFLOAT2(0.0f, 4.0f),
+		XMFLOAT2(1.0f, 1.0f),
+		XMFLOAT2(0.0f, 1.0f),
 		XMFLOAT2(0.0f, 0.0f),
-		XMFLOAT2(4.0f, 0.0f),
+		XMFLOAT2(1.0f, 0.0f),
 	};
 
 	m_indexBufferCPU.resize(6);
@@ -254,6 +256,10 @@ void Mesh::CreatePlanePrimitive() {
 	HR(D3DX11CreateShaderResourceViewFromFile(
 		D3D11Renderer::Instance()->GetD3DDevice(),
 		L"./Model/darkbrickdxt1_normal.dds", 0, 0, &m_normalMapSRV, 0));
+
+	HR(D3DX11CreateShaderResourceViewFromFile(
+		D3D11Renderer::Instance()->GetD3DDevice(),
+		L"./Model/darkbrickdxt1_bump.dds", 0, 0, &m_bumpMapSRV, 0));
 }
 
 void Mesh::PrepareGPUBuffer() {
@@ -359,6 +365,12 @@ void Mesh::Draw() {
 	ID3DX11EffectTechnique* tech = m_associatedDeferredEffect->GetActiveTech();
 		UINT stride = sizeof(Vertex::StdMeshVertex);
 		UINT offset = 0;
+		if (m_bumpMapSRV) {
+			
+		}
+		else {
+			
+		}
 		D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
 		D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
@@ -379,6 +391,8 @@ void Mesh::Draw() {
 		
 		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->CubeMap->SetResource(D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV);
 
+		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->ViewProj->SetMatrix(reinterpret_cast<float*>(&CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix()));
+		
 		for (int iP = 0; iP < m_parents.size(); iP++) {
 
 			XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
@@ -397,12 +411,30 @@ void Mesh::Draw() {
 			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->ShadowTransform->SetMatrix(reinterpret_cast<float*>(&worldShadowMapTransform));
 
 
-			D3DX11_TECHNIQUE_DESC techDesc;
-			tech->GetDesc(&techDesc);
-			for (UINT p = 0; p < techDesc.Passes; ++p)
-			{
-				tech->GetPassByIndex(p)->Apply(0, D3D11Renderer::Instance()->GetD3DContext());
-				D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
+			if (m_bumpMapSRV) {
+				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->BumpMap->SetResource(m_bumpMapSRV);
+				tech = dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect)->DeferredShaderTessTech;
+				D3DX11_TECHNIQUE_DESC techDesc;
+				tech->GetDesc(&techDesc);
+				for (UINT p = 0; p < techDesc.Passes; ++p)
+				{
+					tech->GetPassByIndex(p)->Apply(0, D3D11Renderer::Instance()->GetD3DContext());
+					D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
+				}
+				D3D11Renderer::Instance()->GetD3DContext()->HSSetShader(0, 0, 0);
+				D3D11Renderer::Instance()->GetD3DContext()->DSSetShader(0, 0, 0);
+				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			}
+			else {
+				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+				D3DX11_TECHNIQUE_DESC techDesc;
+				tech->GetDesc(&techDesc);
+				for (UINT p = 0; p < techDesc.Passes; ++p)
+				{
+					tech->GetPassByIndex(p)->Apply(0, D3D11Renderer::Instance()->GetD3DContext());
+					D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
+				}
 			}
 		}
 

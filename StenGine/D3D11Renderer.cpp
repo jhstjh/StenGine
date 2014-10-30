@@ -295,6 +295,15 @@ bool D3D11Renderer::Init() {
 
 #endif
 
+	D3D11_RASTERIZER_DESC wireframeDesc;
+	ZeroMemory(&wireframeDesc, sizeof(D3D11_RASTERIZER_DESC));
+	wireframeDesc.FillMode = D3D11_FILL_WIREFRAME;
+	wireframeDesc.CullMode = D3D11_CULL_BACK;
+	wireframeDesc.FrontCounterClockwise = false;
+	wireframeDesc.DepthClipEnable = true;
+
+	HR(m_d3d11Device->CreateRasterizerState(&wireframeDesc, &m_wireFrameRS));
+
 	DirectionalLight* dLight = new DirectionalLight();
 	dLight->intensity = XMFLOAT4(1, 1, 1, 1);
 	dLight->direction = MatrixHelper::NormalizeFloat3(XMFLOAT3(-0.5, -2, 1));
@@ -304,6 +313,8 @@ bool D3D11Renderer::Init() {
 	LightManager::Instance()->m_shadowMap = new ShadowMap(1024, 1024);
 
 	m_SkyBox = new Skybox(std::wstring(L"Model/sunsetcube1024.dds"));
+
+	m_d3d11DeviceContext->RSSetState(m_wireFrameRS);
 
 	return true;
 }
@@ -352,7 +363,7 @@ void D3D11Renderer::Draw() {
 		m_d3d11DeviceContext->RSSetState(0);
 		DeferredShaderEffect* activeFX = EffectsManager::Instance()->m_deferredShaderEffect;
 		m_d3d11DeviceContext->IASetInputLayout(activeFX->GetInputLayout());
-		m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		//m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		DirectionalLight* d = LightManager::Instance()->m_dirLights[0];
 		//activeFX->DirLight->SetRawValue(LightManager::Instance()->m_dirLights[0], 0, sizeof(DirectionalLight));
 		activeFX->TheShadowMap->SetResource(LightManager::Instance()->m_shadowMap->GetDepthSRV());

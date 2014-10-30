@@ -50,10 +50,12 @@ public:
 	~DeferredShaderEffect();
 
 	ID3DX11EffectTechnique* DeferredShaderTech;
+	ID3DX11EffectTechnique* DeferredShaderTessTech;
 	ID3DX11EffectMatrixVariable* WorldViewProj;
 	ID3DX11EffectMatrixVariable* WorldInvTranspose;
 	ID3DX11EffectMatrixVariable* WorldView;
 	ID3DX11EffectMatrixVariable* World;
+	ID3DX11EffectMatrixVariable* ViewProj;
 	ID3DX11EffectMatrixVariable* ShadowTransform;
 	ID3DX11EffectMatrixVariable* WorldViewInvTranspose;
 	//ID3DX11EffectVariable* DirLight;
@@ -64,6 +66,7 @@ public:
 	ID3DX11EffectShaderResourceVariable* DiffuseMap;
 	ID3DX11EffectShaderResourceVariable* NormalMap;
 	ID3DX11EffectShaderResourceVariable* TheShadowMap;
+	ID3DX11EffectShaderResourceVariable* BumpMap;
 };
 
 
