@@ -218,6 +218,10 @@ DeferredShaderEffect::DeferredShaderEffect(const std::wstring& filename)
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
 	m_activeTech = DeferredShaderTech;
+
+	for (int i = 0; i < 5; i++) {
+		m_shaderResources[i] = 0;
+	}
 }
 
 DeferredShaderEffect::~DeferredShaderEffect()
@@ -276,12 +280,12 @@ void DeferredShaderEffect::CreateConstantBuffer() {
 }
 
 void DeferredShaderEffect::BindConstantBuffer() {
-	ID3D11Buffer* cbuf[] = { m_perObjectCB };
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 1, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 1, cbuf);
+	ID3D11Buffer* cbuf[] = { m_perObjectCB, m_perFrameCB };
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 2, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 2, cbuf);
 
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 1, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 1, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 2, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 2, cbuf);
 }
 
 void DeferredShaderEffect::BindShaderResource() {

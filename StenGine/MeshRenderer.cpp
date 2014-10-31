@@ -385,22 +385,24 @@ void Mesh::Draw() {
 
 // 		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->Mat->SetRawValue(&m_material, 0, sizeof(Material));
 		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.Mat = m_material;
-// 		int resourceMask[3] = { 0 };
-// 		if (m_diffuseMapSRV) {
-// 			resourceMask[0] = 1;
-// 			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->DiffuseMap->SetResource(m_diffuseMapSRV);
-// 		}
-// 		if (m_normalMapSRV) {
-// 			resourceMask[1] = 1;
-// 			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->NormalMap->SetResource(m_normalMapSRV);
-// 		}
-// 		if (m_receiveShadow)
-// 			resourceMask[2] = 1;
-// 		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->DiffX_NormY_ShadZ->SetRawValue(resourceMask, 0, sizeof(int) * 3);
-		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.DiffX_NormY_ShadZ = XMFLOAT4(0, 0, 0, 0);
+		XMFLOAT4 resourceMask(0, 0, 0, 0);
+		if (m_diffuseMapSRV) {
+			resourceMask.x = 1;
+			//(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->DiffuseMap->SetResource(m_diffuseMapSRV);
+			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_shaderResources[0] = m_diffuseMapSRV;
+		}
+		if (m_normalMapSRV) {
+			resourceMask.y = 1;
+			//(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->NormalMap->SetResource(m_normalMapSRV);
+			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_shaderResources[1] = m_normalMapSRV;
+		}
+		if (m_receiveShadow)
+			resourceMask.z = 1;
+//		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->DiffX_NormY_ShadZ->SetRawValue(resourceMask, 0, sizeof(int) * 3);
+		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.DiffX_NormY_ShadZ = resourceMask;
 // 		
 // 		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->CubeMap->SetResource(D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV);
-// 
+		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_shaderResources[4] = D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV;
 // 		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->ViewProj->SetMatrix(reinterpret_cast<float*>(&CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix()));
 		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
@@ -446,7 +448,9 @@ void Mesh::Draw() {
 				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->CreateConstantBuffer();
 				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->BindConstantBuffer();
+				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->BindShaderResource();
 				D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
+				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->UnBindShaderResource();
 				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->UnBindConstantBuffer();
 			}
 		}

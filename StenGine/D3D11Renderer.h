@@ -38,6 +38,7 @@ private:
 	D3D11_VIEWPORT m_screenViewpot;
 	D3D11_VIEWPORT m_screenSuperSampleViewpot;
 	ID3D11RasterizerState * m_wireFrameRS;
+	ID3D11SamplerState* m_samplerState;
 	
 
 #pragma region DEDERRED_RENDER

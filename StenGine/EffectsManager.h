@@ -123,12 +123,13 @@ public:
 		XMFLOAT4 EyePosW;
 	} m_perFrameConstantBuffer;
 
-	ID3D11ShaderResourceView **m_shaderResources;
-// 	ID3DX11EffectShaderResourceVariable* CubeMap;
+	ID3D11ShaderResourceView *m_shaderResources[5];
+
 // 	ID3DX11EffectShaderResourceVariable* DiffuseMap;
 // 	ID3DX11EffectShaderResourceVariable* NormalMap;
 // 	ID3DX11EffectShaderResourceVariable* TheShadowMap;
 // 	ID3DX11EffectShaderResourceVariable* BumpMap;
+// 	ID3DX11EffectShaderResourceVariable* CubeMap;
 };
 
 

@@ -165,6 +165,28 @@ bool D3D11Renderer::Init() {
 	m_screenSuperSampleViewpot.MinDepth = 0.0f;
 	m_screenSuperSampleViewpot.MaxDepth = 1.0f;
 
+	D3D11_SAMPLER_DESC samplerDesc;
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.MipLODBias = 0.0f;
+	samplerDesc.MaxAnisotropy = 1;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.BorderColor[0] = 0;
+	samplerDesc.BorderColor[1] = 0;
+	samplerDesc.BorderColor[2] = 0;
+	samplerDesc.BorderColor[3] = 0;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	// Create the texture sampler state.
+	hr = m_d3d11Device->CreateSamplerState(&samplerDesc, &m_samplerState);
+	assert(SUCCEEDED(hr));
+
+
+
+
 	//-----------------setup MRT---------------------
 #if !FORWARD
 	D3D11_TEXTURE2D_DESC gNormalBufferDesc;
@@ -372,6 +394,7 @@ void D3D11Renderer::Draw() {
 		//activeFX->EyePosW->SetRawValue(&pos, 0, 3 * sizeof(float));
 		EffectsManager::Instance()->m_deferredShaderEffect->m_perFrameConstantBuffer.EyePosW = pos;
 
+		m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_samplerState);
 		for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredShaderEffect->m_associatedMeshes.size(); iMesh++) {
 			EffectsManager::Instance()->m_deferredShaderEffect->m_associatedMeshes[iMesh]->Draw();
 		}

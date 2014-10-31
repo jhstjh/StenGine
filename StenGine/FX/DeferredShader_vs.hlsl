@@ -22,10 +22,10 @@ cbuffer cbPerObject : register(b0) {
 	int4 gDiffX_NormY_ShadZ;
 };
 
-// cbuffer cbPerFrame : register(b1) {
-// 	//DirectionalLight gDirLight;
-// 	float3 gEyePosW;
-// };
+cbuffer cbPerFrame : register(b1) {
+	//DirectionalLight gDirLight;
+	float3 gEyePosW;
+};
 
 Texture2D gDiffuseMap;
 Texture2D gNormalMap;

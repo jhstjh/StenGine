@@ -22,16 +22,18 @@ cbuffer cbPerObject : register(b0) {
 	int4 gDiffX_NormY_ShadZ;
 };
 
-// cbuffer cbPerFrame : register(b1) {
-// 	//DirectionalLight gDirLight;
-// 	float3 gEyePosW;
-// };
+cbuffer cbPerFrame : register(b1) {
+	//DirectionalLight gDirLight;
+	float3 gEyePosW;
+};
 
 Texture2D gDiffuseMap;
 Texture2D gNormalMap;
 Texture2D gShadowMap;
 Texture2D gBumpMap;
 TextureCube gCubeMap;
+
+SamplerState gDiffuseMapSampler;
 
 SamplerState samLinear
 {
@@ -101,8 +103,8 @@ PixelOut main(VertexOut pin)
 	PixelOut pout;
 	pin.PosW /= pin.PosW.w;
 
-// 	float3 eyeRay = normalize(pin.PosW - gEyePosW);
-// 	float3 refRay = reflect(eyeRay, pin.NormalW);
+	float3 eyeRay = normalize(pin.PosW - gEyePosW);
+	float3 refRay = reflect(eyeRay, pin.NormalW);
 	//float3 refRay = refract(eyeRay, pin.NormalW, 1.5);
 
 	pin.ShadowPosH.xyz /= pin.ShadowPosH.w;
@@ -114,7 +116,7 @@ PixelOut main(VertexOut pin)
 
 
 
-	pout.diffuseH = (/*(1 - gDiffX_NormY_ShadZ.x) * gCubeMap.Sample(samAnisotropic, refRay) +*/ gDiffX_NormY_ShadZ.x * gDiffuseMap.Sample(samAnisotropic, pin.TexUV)) * gMaterial.diffuse;
+	pout.diffuseH = gDiffuseMap.Sample(gDiffuseMapSampler, pin.TexUV) /*((1 - gDiffX_NormY_ShadZ.x) * gCubeMap.Sample(gDiffuseMapSampler, refRay) + gDiffX_NormY_ShadZ.x * gDiffuseMap.Sample(gDiffuseMapSampler, pin.TexUV)) * gMaterial.diffuse*/;
 	//pout.diffuseH = gCubeMap.Sample(samAnisotropic, refRay);
 	pout.diffuseH.w = saturate(shadowLit);
 	pout.specularH = gMaterial.specular;
@@ -122,7 +124,7 @@ PixelOut main(VertexOut pin)
 	pout.normalV = normalize(pin.NormalV).xy;
 
 	if (gDiffX_NormY_ShadZ.y > 0) {
-		float3 normalMapNormal = gNormalMap.Sample(samAnisotropic, pin.TexUV);
+		float3 normalMapNormal = gNormalMap.Sample(gDiffuseMapSampler, pin.TexUV);
 			normalMapNormal = 2.0f * normalMapNormal - 1.0;
 
 		float3 N = normalize(pin.NormalV);
