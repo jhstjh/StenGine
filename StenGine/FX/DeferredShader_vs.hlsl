@@ -24,7 +24,7 @@ cbuffer cbPerObject : register(b0) {
 
 cbuffer cbPerFrame : register(b1) {
 	//DirectionalLight gDirLight;
-	float3 gEyePosW;
+	float4 gEyePosW;
 };
 
 Texture2D gDiffuseMap;

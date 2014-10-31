@@ -217,7 +217,7 @@ DeferredShaderEffect::DeferredShaderEffect(const std::wstring& filename)
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 4, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
-	m_activeTech = DeferredShaderTech;
+	//m_activeTech = DeferredShaderTech;
 
 	for (int i = 0; i < 5; i++) {
 		m_shaderResources[i] = 0;
@@ -231,7 +231,8 @@ DeferredShaderEffect::~DeferredShaderEffect()
 
 void DeferredShaderEffect::CreateConstantBuffer() {
 	{
-		// Fill in a buffer description.
+		// TODO: use Map to update!!!! not creating a new buffer every frame
+
 		D3D11_BUFFER_DESC cbDesc;
 		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
 		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -240,7 +241,6 @@ void DeferredShaderEffect::CreateConstantBuffer() {
 		cbDesc.MiscFlags = 0;
 		cbDesc.StructureByteStride = 0;
 
-		// Fill in the subresource data.
 		D3D11_SUBRESOURCE_DATA InitData;
 		InitData.pSysMem = &m_perObjConstantBuffer;
 		InitData.SysMemPitch = 0;
