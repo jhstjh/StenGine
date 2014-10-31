@@ -205,13 +205,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		PostQuitMessage(0);
 		break;
 	case WM_RBUTTONDOWN:
-		CameraManager::Instance()->GetActiveCamera()->OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+//		CameraManager::Instance()->GetActiveCamera()->OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 	case WM_RBUTTONUP:
-		CameraManager::Instance()->GetActiveCamera()->OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+//		CameraManager::Instance()->GetActiveCamera()->OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 	case WM_MOUSEMOVE:
-		CameraManager::Instance()->GetActiveCamera()->OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+//		CameraManager::Instance()->GetActiveCamera()->OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);

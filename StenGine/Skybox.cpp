@@ -3,9 +3,11 @@
 #include "CameraManager.h"
 
 Skybox::Skybox(std::wstring &cubeMapPath) {
-	HR(D3DX11CreateShaderResourceViewFromFile(
-		D3D11Renderer::Instance()->GetD3DDevice(), 
-		cubeMapPath.c_str(), 0, 0, &m_cubeMapSRV, 0));
+// 	HR(D3DX11CreateShaderResourceViewFromFile(
+// 		D3D11Renderer::Instance()->GetD3DDevice(), 
+// 		cubeMapPath.c_str(), 0, 0, &m_cubeMapSRV, 0));
+	CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
+		cubeMapPath.c_str(), nullptr, &m_cubeMapSRV);
 }
 
 Skybox::~Skybox() {

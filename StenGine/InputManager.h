@@ -8,17 +8,14 @@ class InputManager {
 private:
 	static InputManager* _instance;
 
-// 	struct CONTROLLER_STATE
-// 	{
-// 		XINPUT_STATE lastState;
-// 		XINPUT_STATE state;
-// 		DWORD dwResult;
-// 		bool bLockVibration;
-// 		XINPUT_VIBRATION vibration;
-// 	} m_controller;
-
-	//SHORT m_keyState[256];
-	//SHORT m_lastKeyState[256];
+//  	struct CONTROLLER_STATE
+//  	{
+//  		XINPUT_STATE lastState;
+//  		XINPUT_STATE state;
+//  		DWORD dwResult;
+//  		bool bLockVibration;
+//  		XINPUT_VIBRATION vibration;
+//  	} m_controller;
 
 	std::bitset<256> m_keyState;
 	std::bitset<256> m_lastKeyState;

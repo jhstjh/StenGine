@@ -1,7 +1,10 @@
 #ifndef __CAMERA_MANAGER__
 #define __CAMERA_MANAGER__
 
-#include "D3DIncludes.h"
+//#include "D3DIncludes.h"
+#include <DirectXMath.h>
+#include <windows.h>
+using namespace DirectX;
 
 class Camera {
 	XMFLOAT4 m_pos;
@@ -27,9 +30,9 @@ public:
 	XMMATRIX GetViewMatrix();
 	XMMATRIX GetProjMatrix();
 	XMFLOAT4 GetPos() { /*return m_pos;*/return XMFLOAT4(m_worldTransform._41, m_worldTransform._42, m_worldTransform._43, 0.0); }
-	void OnMouseDown(WPARAM btnState, int x, int y);
-	void OnMouseUp(WPARAM btnState, int x, int y);
-	void OnMouseMove(WPARAM btnState, int x, int y);
+// 	void OnMouseDown(WPARAM btnState, int x, int y);
+// 	void OnMouseUp(WPARAM btnState, int x, int y);
+// 	void OnMouseMove(WPARAM btnState, int x, int y);
 	void Update();
 };
 

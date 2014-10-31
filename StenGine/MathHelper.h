@@ -1,7 +1,9 @@
 #ifndef __MATH_HELPER__
 #define __MATH_HELPER__
 
-#include <xnamath.h>
+#include <DirectXMath.h>
+
+using namespace DirectX;
 
 class MatrixHelper {
 public:

@@ -196,13 +196,16 @@ void Mesh::CreateBoxPrimitive() {
 	m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
 	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
 
-	HR(D3DX11CreateShaderResourceViewFromFile(
-		D3D11Renderer::Instance()->GetD3DDevice(),
-		L"./Model/WoodCrate02.dds", 0, 0, &m_diffuseMapSRV, 0));
-
-	HR(D3DX11CreateShaderResourceViewFromFile(
-		D3D11Renderer::Instance()->GetD3DDevice(),
-		L"./Model/WoodCrate02_normal.dds", 0, 0, &m_normalMapSRV, 0));
+// 	HR(D3DX11CreateShaderResourceViewFromFile(
+// 		D3D11Renderer::Instance()->GetD3DDevice(),
+// 		L"./Model/WoodCrate02.dds", 0, 0, &m_diffuseMapSRV, 0));
+	CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
+		L"./Model/WoodCrate02.dds", nullptr, &m_diffuseMapSRV);
+// 	HR(D3DX11CreateShaderResourceViewFromFile(
+// 		D3D11Renderer::Instance()->GetD3DDevice(),
+// 		L"./Model/WoodCrate02_normal.dds", 0, 0, &m_normalMapSRV, 0));
+	CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
+		L"./Model/WoodCrate02_normal.dds", nullptr, &m_normalMapSRV);
 }
 
 void Mesh::CreatePlanePrimitive() {
@@ -249,17 +252,23 @@ void Mesh::CreatePlanePrimitive() {
 	m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
 	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 16.0f);
 
-	HR(D3DX11CreateShaderResourceViewFromFile(
-		D3D11Renderer::Instance()->GetD3DDevice(),
-		L"./Model/darkbrickdxt1.dds", 0, 0, &m_diffuseMapSRV, 0));
+// 	HR(D3DX11CreateShaderResourceViewFromFile(
+// 		D3D11Renderer::Instance()->GetD3DDevice(),
+// 		L"./Model/darkbrickdxt1.dds", 0, 0, &m_diffuseMapSRV, 0));
+	CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
+		L"./Model/darkbrickdxt1.dds", nullptr, &m_diffuseMapSRV);
 
-	HR(D3DX11CreateShaderResourceViewFromFile(
-		D3D11Renderer::Instance()->GetD3DDevice(),
-		L"./Model/darkbrickdxt1_normal.dds", 0, 0, &m_normalMapSRV, 0));
+// 	HR(D3DX11CreateShaderResourceViewFromFile(
+// 		D3D11Renderer::Instance()->GetD3DDevice(),
+// 		L"./Model/darkbrickdxt1_normal.dds", 0, 0, &m_normalMapSRV, 0));
+	CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
+		L"./Model/darkbrickdxt1_normal.dds", nullptr, &m_normalMapSRV);
 
-	HR(D3DX11CreateShaderResourceViewFromFile(
-		D3D11Renderer::Instance()->GetD3DDevice(),
-		L"./Model/darkbrickdxt1_bump.dds", 0, 0, &m_bumpMapSRV, 0));
+// 	HR(D3DX11CreateShaderResourceViewFromFile(
+// 		D3D11Renderer::Instance()->GetD3DDevice(),
+// 		L"./Model/darkbrickdxt1_bump.dds", 0, 0, &m_bumpMapSRV, 0));
+	CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
+		L"./Model/darkbrickdxt1_bump.dds", nullptr, &m_bumpMapSRV);
 }
 
 void Mesh::PrepareGPUBuffer() {

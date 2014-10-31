@@ -4,6 +4,7 @@
 #include "D3DIncludes.h"
 #include "EffectsManager.h"
 #include "Component.h"
+#include "Material.h"
 
 class Effect;
 
@@ -19,12 +20,6 @@ namespace Vertex {
 		XMFLOAT3 Pos;
 	};
 }
-
-struct Material {
-	XMFLOAT4 ambient;
-	XMFLOAT4 diffuse;
-	XMFLOAT4 specular;
-};
 
 class Mesh: public Component {
 private:

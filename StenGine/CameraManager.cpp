@@ -2,6 +2,7 @@
 #include "InputManager.h"
 
 #include "D3D11Renderer.h"
+using namespace DirectX;
 
 Camera::Camera(float px, float py, float pz,
 	float tx, float ty, float tz,
@@ -41,16 +42,16 @@ XMMATRIX Camera::GetProjMatrix() {
 	return XMLoadFloat4x4(&m_proj);
 }
 
-void Camera::OnMouseDown(WPARAM btnState, int x, int y) {
-	m_lastMousePos.x = x;
-	m_lastMousePos.y = y;
-}
-
-void Camera::OnMouseUp(WPARAM btnState, int x, int y) {
-
-}
-
-void Camera::OnMouseMove(WPARAM btnState, int x, int y) {
+// void Camera::OnMouseDown(WPARAM btnState, int x, int y) {
+// 	m_lastMousePos.x = x;
+// 	m_lastMousePos.y = y;
+// }
+// 
+// void Camera::OnMouseUp(WPARAM btnState, int x, int y) {
+// 
+// }
+// 
+// void Camera::OnMouseMove(WPARAM btnState, int x, int y) {
 // 	if ((btnState & MK_LBUTTON)) {
 // 		float dx = XMConvertToRadians(0.25f*static_cast<float>(x - m_lastMousePos.x));
 // 		float dy = XMConvertToRadians(0.25f*static_cast<float>(y - m_lastMousePos.y));
@@ -73,7 +74,7 @@ void Camera::OnMouseMove(WPARAM btnState, int x, int y) {
 // 
 // 	XMMATRIX V = XMMatrixLookAtLH(pos, m_target, m_up);
 // 	XMStoreFloat4x4(&m_view, V);
-}
+//}
 
 void Camera::Update() {
 	if (InputManager::Instance()->GetKeyHold('W')) {

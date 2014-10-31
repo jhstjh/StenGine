@@ -41,8 +41,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(IncludePath)</IncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <IncludePath>$(IncludePath);C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Include;</IncludePath>
+    <LibraryPath>$(LibraryPath);C:\Program Files %28x86%29\Microsoft DirectX SDK %28June 2010%29\Lib\x86;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -88,14 +88,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraManager.h" />
+    <ClInclude Include="Color.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="D3D11Renderer.h" />
     <ClInclude Include="D3DIncludes.h" />
     <ClInclude Include="d3dx11effect.h" />
+    <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="EffectsManager.h" />
     <ClInclude Include="FbxReaderSG.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="LightManager.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="MathHelper.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="ObjReader.h" />
@@ -113,6 +116,7 @@
     <ClCompile Include="CameraManager.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="D3D11Renderer.cpp" />
+    <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="EffectsManager.cpp" />
     <ClCompile Include="FbxReaderSG.cpp" />
     <ClCompile Include="GameObject.cpp" />
@@ -197,6 +201,16 @@
       <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </TreatOutputAsContent>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="FX\DeferredShader_ps.hlsl">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="FX\DeferredShader_vs.hlsl">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

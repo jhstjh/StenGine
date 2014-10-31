@@ -57,27 +57,34 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 	imgPath[len - 3] = 'd';
 
 	if (PathFileExists(imgPath.c_str())) {
-		HR(D3DX11CreateShaderResourceViewFromFile(
-			D3D11Renderer::Instance()->GetD3DDevice(),
-			imgPath.c_str(), 0, 0, &(mesh->m_diffuseMapSRV), 0));
+// 		HR(D3DX11CreateShaderResourceViewFromFile(
+// 			D3D11Renderer::Instance()->GetD3DDevice(),
+// 			imgPath.c_str(), 0, 0, &(mesh->m_diffuseMapSRV), 0));
+		CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
+			imgPath.c_str(), nullptr, &(mesh->m_diffuseMapSRV));
 	}
+
 
 	imgPath.resize(len - 4);
 	imgPath += L"_normal.dds";
 
 	if (PathFileExists(imgPath.c_str())) {
-		HR(D3DX11CreateShaderResourceViewFromFile(
-			D3D11Renderer::Instance()->GetD3DDevice(),
-			imgPath.c_str(), 0, 0, &(mesh->m_normalMapSRV), 0));
+// 		HR(D3DX11CreateShaderResourceViewFromFile(
+// 			D3D11Renderer::Instance()->GetD3DDevice(),
+// 			imgPath.c_str(), 0, 0, &(mesh->m_normalMapSRV), 0));
+		CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
+			imgPath.c_str(), nullptr, &(mesh->m_normalMapSRV));
 	}
 
 	imgPath.resize(len - 4);
 	imgPath += L"_bump.dds";
 
 	if (PathFileExists(imgPath.c_str())) {
-		HR(D3DX11CreateShaderResourceViewFromFile(
-			D3D11Renderer::Instance()->GetD3DDevice(),
-			imgPath.c_str(), 0, 0, &(mesh->m_bumpMapSRV), 0));
+// 		HR(D3DX11CreateShaderResourceViewFromFile(
+// 			D3D11Renderer::Instance()->GetD3DDevice(),
+// 			imgPath.c_str(), 0, 0, &(mesh->m_bumpMapSRV), 0));
+		CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
+			imgPath.c_str(), nullptr, &(mesh->m_bumpMapSRV));
 	}
 
 	return true;

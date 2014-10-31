@@ -5,6 +5,7 @@
 #include "LightManager.h"
 #include "MathHelper.h"
 #include "CameraManager.h"
+#include "Color.h"
 
 D3D11Renderer* D3D11Renderer::_instance = nullptr;
 

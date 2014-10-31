@@ -2,18 +2,43 @@
 #define __EFFECTS_MANAGER__
 #include "D3DIncludes.h"
 #include "MeshRenderer.h"
+#include "Material.h"
+
+#define D3D_COMPILE_STANDARD_FILE_INCLUDE ((ID3DInclude*)(UINT_PTR)1)
 
 class Mesh;
 
 class Effect {
 protected:
+	ID3D11VertexShader* m_vertexShader;
+	ID3D11PixelShader* m_pixelShader;
+	ID3D11GeometryShader* m_geometryShader;
+	ID3D11HullShader* m_hullShader;
+	ID3D11DomainShader* m_domainShader;
+	
+	ID3DBlob *m_vsBlob;
+	ID3DBlob *m_psBlob;
+	ID3DBlob *m_gsBlob;
+	ID3DBlob *m_hsBlob;
+	ID3DBlob *m_dsBlob;
+
 	ID3DX11Effect* m_fx;
 	ID3D11InputLayout* m_inputLayout;
 	ID3DX11EffectTechnique* m_activeTech;
 	std::vector<D3D11_INPUT_ELEMENT_DESC> m_vertexDesc;
 public:
 	Effect(const std::wstring& filename);
+	Effect(const std::wstring& vsPath,
+		   const std::wstring& psPath,
+		   const std::wstring& gsPath,
+		   const std::wstring& hsPath,
+		   const std::wstring& dsPath);
 	virtual ~Effect();
+	virtual void CreateConstantBuffer() = 0;
+	virtual void BindConstantBuffer() = 0;
+	virtual void BindShaderResource() = 0;
+	virtual void UnBindConstantBuffer() = 0;
+	virtual void UnBindShaderResource() = 0;
 	ID3D11InputLayout* GetInputLayout() { return m_inputLayout; }
 	ID3DX11EffectTechnique* GetActiveTech() { return m_activeTech; }
 	std::vector<Mesh*> m_associatedMeshes;
@@ -45,6 +70,10 @@ public:
 
 
 class DeferredShaderEffect : public Effect {
+private:
+	ID3D11Buffer* m_perFrameCB;
+	ID3D11Buffer* m_perObjectCB;
+
 public:
 	DeferredShaderEffect(const std::wstring& filename);
 	~DeferredShaderEffect();
@@ -67,6 +96,38 @@ public:
 	ID3DX11EffectShaderResourceVariable* NormalMap;
 	ID3DX11EffectShaderResourceVariable* TheShadowMap;
 	ID3DX11EffectShaderResourceVariable* BumpMap;
+
+	virtual void CreateConstantBuffer();
+	virtual void BindConstantBuffer();
+	virtual void BindShaderResource();
+	virtual void UnBindConstantBuffer();
+	virtual void UnBindShaderResource();
+
+	struct PERFRAME_CONSTANT_BUFFER
+	{
+		XMFLOAT4X4 WorldViewProj;
+		XMFLOAT4X4 WorldInvTranspose;
+		XMFLOAT4X4 WorldView;
+		XMFLOAT4X4 World;
+		XMFLOAT4X4 ViewProj;
+		XMFLOAT4X4 ShadowTransform;
+		XMFLOAT4X4 WorldViewInvTranspose;
+
+		Material Mat;
+		XMFLOAT4 DiffX_NormY_ShadZ;
+	} m_perFrameConstantBuffer;
+
+	struct PEROBJECT_CONSTANT_BUFFER
+	{
+		XMFLOAT4 EyePosW;
+	} m_perObjectConstantBuffer;
+
+	ID3D11ShaderResourceView **m_shaderResources;
+// 	ID3DX11EffectShaderResourceVariable* CubeMap;
+// 	ID3DX11EffectShaderResourceVariable* DiffuseMap;
+// 	ID3DX11EffectShaderResourceVariable* NormalMap;
+// 	ID3DX11EffectShaderResourceVariable* TheShadowMap;
+// 	ID3DX11EffectShaderResourceVariable* BumpMap;
 };
 
 

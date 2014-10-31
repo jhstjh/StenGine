@@ -1,5 +1,6 @@
 #include "EffectsManager.h"
 #include "D3D11Renderer.h"
+#include "D3DCompiler.h"
 
 Effect::Effect(const std::wstring& filename)
 	: m_fx(0)
@@ -16,6 +17,60 @@ Effect::Effect(const std::wstring& filename)
 
 	HR(D3DX11CreateEffectFromMemory(&compiledShader[0], size,
 		0, D3D11Renderer::Instance()->GetD3DDevice(), &m_fx));
+}
+
+Effect::Effect(const std::wstring& vsPath,
+			   const std::wstring& psPath,
+			   const std::wstring& gsPath = L"",
+			   const std::wstring& hsPath = L"",
+			   const std::wstring& dsPath = L"")
+{
+	// Add error checking
+	HRESULT hr;
+
+	if (vsPath.length()) {
+		hr = D3DCompileFromFile(
+			vsPath.c_str(), 
+			nullptr,
+			D3D_COMPILE_STANDARD_FILE_INCLUDE,
+			"main",
+			"vs_5_0",
+			D3DCOMPILE_DEBUG,
+			0,
+			&m_vsBlob,
+			nullptr
+		);
+		assert(SUCCEEDED(hr));
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateVertexShader(
+			m_vsBlob->GetBufferPointer(),
+			m_vsBlob->GetBufferSize(),
+			nullptr,
+			&m_vertexShader
+		);
+		assert(SUCCEEDED(hr));
+	}
+
+	if (psPath.length()) {
+		hr = D3DCompileFromFile(
+			psPath.c_str(),
+			nullptr,
+			D3D_COMPILE_STANDARD_FILE_INCLUDE,
+			"main",
+			"ps_5_0",
+			D3DCOMPILE_DEBUG,
+			0,
+			&m_psBlob,
+			nullptr
+		);
+		assert(SUCCEEDED(hr));
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreatePixelShader(
+			m_psBlob->GetBufferPointer(),
+			m_psBlob->GetBufferSize(),
+			nullptr,
+			&m_pixelShader
+		);
+		assert(SUCCEEDED(hr));
+	}
 }
 
 Effect::~Effect()
@@ -95,26 +150,26 @@ ShadowMapEffect::~ShadowMapEffect()
 
 
 DeferredShaderEffect::DeferredShaderEffect(const std::wstring& filename)
-	: Effect(filename)
+	: Effect(filename + L"_vs.hlsl", filename + L"_ps.hlsl")
 {
-	DeferredShaderTech = m_fx->GetTechniqueByName("DeferredShaderTech");
-	DeferredShaderTessTech = m_fx->GetTechniqueByName("DeferredShaderTessTech");
-	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
-	WorldInvTranspose = m_fx->GetVariableByName("gWorldInvTranspose")->AsMatrix();
-	WorldView = m_fx->GetVariableByName("gWorldView")->AsMatrix();
-	WorldViewInvTranspose = m_fx->GetVariableByName("gWorldViewInvTranspose")->AsMatrix();
-	ShadowTransform = m_fx->GetVariableByName("gShadowTransform")->AsMatrix();
-	World = m_fx->GetVariableByName("gWorld")->AsMatrix();
-	ViewProj = m_fx->GetVariableByName("gViewProj")->AsMatrix();
-	//DirLight = m_fx->GetVariableByName("gDirLight");
-	Mat = m_fx->GetVariableByName("gMaterial");
-	EyePosW = m_fx->GetVariableByName("gEyePosW")->AsVector();
-	DiffuseMap = m_fx->GetVariableByName("gDiffuseMap")->AsShaderResource();
-	BumpMap = m_fx->GetVariableByName("gBumpMap")->AsShaderResource();
-	NormalMap = m_fx->GetVariableByName("gNormalMap")->AsShaderResource();
-	TheShadowMap = m_fx->GetVariableByName("gShadowMap")->AsShaderResource();
-	DiffX_NormY_ShadZ = m_fx->GetVariableByName("gDiffX_NormY_ShadZ")->AsVector();
-	CubeMap = m_fx->GetVariableByName("gCubeMap")->AsShaderResource();
+// 	DeferredShaderTech = m_fx->GetTechniqueByName("DeferredShaderTech");
+// 	DeferredShaderTessTech = m_fx->GetTechniqueByName("DeferredShaderTessTech");
+// 	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
+// 	WorldInvTranspose = m_fx->GetVariableByName("gWorldInvTranspose")->AsMatrix();
+// 	WorldView = m_fx->GetVariableByName("gWorldView")->AsMatrix();
+// 	WorldViewInvTranspose = m_fx->GetVariableByName("gWorldViewInvTranspose")->AsMatrix();
+// 	ShadowTransform = m_fx->GetVariableByName("gShadowTransform")->AsMatrix();
+// 	World = m_fx->GetVariableByName("gWorld")->AsMatrix();
+// 	ViewProj = m_fx->GetVariableByName("gViewProj")->AsMatrix();
+// 	//DirLight = m_fx->GetVariableByName("gDirLight");
+// 	Mat = m_fx->GetVariableByName("gMaterial");
+// 	EyePosW = m_fx->GetVariableByName("gEyePosW")->AsVector();
+// 	DiffuseMap = m_fx->GetVariableByName("gDiffuseMap")->AsShaderResource();
+// 	BumpMap = m_fx->GetVariableByName("gBumpMap")->AsShaderResource();
+// 	NormalMap = m_fx->GetVariableByName("gNormalMap")->AsShaderResource();
+// 	TheShadowMap = m_fx->GetVariableByName("gShadowMap")->AsShaderResource();
+// 	DiffX_NormY_ShadZ = m_fx->GetVariableByName("gDiffX_NormY_ShadZ")->AsVector();
+// 	CubeMap = m_fx->GetVariableByName("gCubeMap")->AsShaderResource();
 
 
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
@@ -138,7 +193,71 @@ DeferredShaderEffect::~DeferredShaderEffect()
 	ReleaseCOM(m_inputLayout);
 }
 
+void DeferredShaderEffect::CreateConstantBuffer() {
+	{
+		// Fill in a buffer description.
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
 
+		// Fill in the subresource data.
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = &m_perFrameConstantBuffer;
+		InitData.SysMemPitch = 0;
+		InitData.SysMemSlicePitch = 0;
+
+		HRESULT hr;
+		// Create the buffer.
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+			&m_perFrameCB);
+
+		assert(SUCCEEDED(hr));
+	}
+
+	{
+		// Fill in a buffer description.
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(PEROBJECT_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		// Fill in the subresource data.
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = &m_perObjectConstantBuffer;
+		InitData.SysMemPitch = 0;
+		InitData.SysMemSlicePitch = 0;
+
+		HRESULT hr;
+		// Create the buffer.
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+			&m_perObjectCB);
+
+		assert(SUCCEEDED(hr));
+	}
+}
+
+void DeferredShaderEffect::BindConstantBuffer() {
+
+}
+
+void DeferredShaderEffect::BindShaderResource() {
+
+}
+
+void DeferredShaderEffect::UnBindConstantBuffer() {
+
+}
+
+void DeferredShaderEffect::UnBindShaderResource() {
+
+}
 //----------------------------------------------------------//
 
 
@@ -245,12 +364,12 @@ SkyboxEffect::~SkyboxEffect()
 //----------------------------------------------------------//
 EffectsManager* EffectsManager::_instance = nullptr;
 EffectsManager::EffectsManager() {
-	m_stdMeshEffect = new StdMeshEffect(L"FX/StdMesh.fxo");
-	m_shadowMapEffect = new ShadowMapEffect(L"FX/ShadowMap.fxo");
-	m_deferredShaderEffect = new DeferredShaderEffect(L"FX/DeferredShader.fxo");
-	m_screenQuadEffect = new ScreenQuadEffect(L"FX/ScreenQuad.fxo");
-	m_godrayEffect = new GodRayEffect(L"FX/GodRay.fxo");
-	m_skyboxEffect = new SkyboxEffect(L"FX/Skybox.fxo");
+	//m_stdMeshEffect = new StdMeshEffect(L"FX/StdMesh.fxo");
+	//m_shadowMapEffect = new ShadowMapEffect(L"FX/ShadowMap.fxo");
+	m_deferredShaderEffect = new DeferredShaderEffect(L"FX/DeferredShader");
+	//m_screenQuadEffect = new ScreenQuadEffect(L"FX/ScreenQuad.fxo");
+	//m_godrayEffect = new GodRayEffect(L"FX/GodRay.fxo");
+	//m_skyboxEffect = new SkyboxEffect(L"FX/Skybox.fxo");
 	//m_effects.push_back(PosColor);
 }
 
