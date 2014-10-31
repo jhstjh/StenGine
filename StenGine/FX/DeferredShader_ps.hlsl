@@ -10,7 +10,7 @@ struct Material {
 	float4 specular;
 };
 
-cbuffer cbPerObject {
+cbuffer cbPerObject : register(b0) {
 	float4x4 gWorldViewProj; 
 	float4x4 gWorldViewInvTranspose;
 	float4x4 gWorldInvTranspose;
@@ -22,10 +22,10 @@ cbuffer cbPerObject {
 	int4 gDiffX_NormY_ShadZ;
 };
 
-cbuffer cbPerFrame {
-	//DirectionalLight gDirLight;
-	float3 gEyePosW;
-};
+// cbuffer cbPerFrame : register(b1) {
+// 	//DirectionalLight gDirLight;
+// 	float3 gEyePosW;
+// };
 
 Texture2D gDiffuseMap;
 Texture2D gNormalMap;
@@ -101,20 +101,20 @@ PixelOut main(VertexOut pin)
 	PixelOut pout;
 	pin.PosW /= pin.PosW.w;
 
-	float3 eyeRay = normalize(pin.PosW - gEyePosW);
-	float3 refRay = reflect(eyeRay, pin.NormalW);
+// 	float3 eyeRay = normalize(pin.PosW - gEyePosW);
+// 	float3 refRay = reflect(eyeRay, pin.NormalW);
 	//float3 refRay = refract(eyeRay, pin.NormalW, 1.5);
 
 	pin.ShadowPosH.xyz /= pin.ShadowPosH.w;
 	float depth = pin.ShadowPosH.z;
 	float shadowLit = 1 - gDiffX_NormY_ShadZ.z;
 
-	shadowLit += gShadowMap.SampleCmpLevelZero(samShadow,
-		pin.ShadowPosH.xy, depth).r;
+// 	shadowLit += gShadowMap.SampleCmpLevelZero(samShadow,
+// 		pin.ShadowPosH.xy, depth).r;
 
 
 
-	pout.diffuseH = ((1 - gDiffX_NormY_ShadZ.x) * gCubeMap.Sample(samAnisotropic, refRay) + gDiffX_NormY_ShadZ.x * gDiffuseMap.Sample(samAnisotropic, pin.TexUV)) * gMaterial.diffuse;
+	pout.diffuseH = (/*(1 - gDiffX_NormY_ShadZ.x) * gCubeMap.Sample(samAnisotropic, refRay) +*/ gDiffX_NormY_ShadZ.x * gDiffuseMap.Sample(samAnisotropic, pin.TexUV)) * gMaterial.diffuse;
 	//pout.diffuseH = gCubeMap.Sample(samAnisotropic, refRay);
 	pout.diffuseH.w = saturate(shadowLit);
 	pout.specularH = gMaterial.specular;

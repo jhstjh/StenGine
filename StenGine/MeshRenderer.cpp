@@ -34,7 +34,7 @@ Mesh::~Mesh() {
 
 void Mesh::Prepare() {
 	PrepareGPUBuffer();
-	PrepareShadowMapBuffer();
+//	PrepareShadowMapBuffer();
 }
 
 void Mesh::CreateBoxPrimitive() {
@@ -305,8 +305,8 @@ void Mesh::PrepareGPUBuffer() {
 	iinitData.pSysMem = &m_indexBufferCPU[0];
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&ibd, &iinitData, &m_indexBufferGPU));
 
-	m_associatedEffect = EffectsManager::Instance()->m_stdMeshEffect;
-	m_associatedEffect->m_associatedMeshes.push_back(this);
+	//m_associatedEffect = EffectsManager::Instance()->m_stdMeshEffect;
+	//m_associatedEffect->m_associatedMeshes.push_back(this);
 #if !FORWARD
 	m_associatedDeferredEffect = EffectsManager::Instance()->m_deferredShaderEffect;
 	m_associatedDeferredEffect->m_associatedMeshes.push_back(this);
@@ -383,44 +383,51 @@ void Mesh::Draw() {
 		D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
 		D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
-		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->Mat->SetRawValue(&m_material, 0, sizeof(Material));
+// 		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->Mat->SetRawValue(&m_material, 0, sizeof(Material));
+		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.Mat = m_material;
+// 		int resourceMask[3] = { 0 };
+// 		if (m_diffuseMapSRV) {
+// 			resourceMask[0] = 1;
+// 			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->DiffuseMap->SetResource(m_diffuseMapSRV);
+// 		}
+// 		if (m_normalMapSRV) {
+// 			resourceMask[1] = 1;
+// 			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->NormalMap->SetResource(m_normalMapSRV);
+// 		}
+// 		if (m_receiveShadow)
+// 			resourceMask[2] = 1;
+// 		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->DiffX_NormY_ShadZ->SetRawValue(resourceMask, 0, sizeof(int) * 3);
+		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.DiffX_NormY_ShadZ = XMFLOAT4(0, 0, 0, 0);
+// 		
+// 		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->CubeMap->SetResource(D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV);
+// 
+// 		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->ViewProj->SetMatrix(reinterpret_cast<float*>(&CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix()));
+		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
-		int resourceMask[3] = { 0 };
-		if (m_diffuseMapSRV) {
-			resourceMask[0] = 1;
-			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->DiffuseMap->SetResource(m_diffuseMapSRV);
-		}
-		if (m_normalMapSRV) {
-			resourceMask[1] = 1;
-			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->NormalMap->SetResource(m_normalMapSRV);
-		}
-		if (m_receiveShadow)
-			resourceMask[2] = 1;
-		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->DiffX_NormY_ShadZ->SetRawValue(resourceMask, 0, sizeof(int) * 3);
-		
-		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->CubeMap->SetResource(D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV);
-
-		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->ViewProj->SetMatrix(reinterpret_cast<float*>(&CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix()));
-		
 		for (int iP = 0; iP < m_parents.size(); iP++) {
 
 			XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
-			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
-			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->World->SetMatrix(reinterpret_cast<float*>(m_parents[iP]->GetWorldTransform()));
+			//(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
+			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.WorldViewProj = XMMatrixTranspose(worldViewProj);
+			//(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->World->SetMatrix(reinterpret_cast<float*>(m_parents[iP]->GetWorldTransform()));
+			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.World = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
 			XMMATRIX worldInvTranspose = MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
-			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->WorldInvTranspose->SetMatrix(reinterpret_cast<float*>(&worldInvTranspose));
-			
+			//(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->WorldInvTranspose->SetMatrix(reinterpret_cast<float*>(&worldInvTranspose));
+			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.WorldInvTranspose = XMMatrixTranspose(worldInvTranspose);
+
 			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
-			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->WorldView->SetMatrix(reinterpret_cast<float*>(&worldView));
+			//(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->WorldView->SetMatrix(reinterpret_cast<float*>(&worldView));
+			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.WorldView = XMMatrixTranspose(worldView);
 
 			XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
-			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->WorldViewInvTranspose->SetMatrix(reinterpret_cast<float*>(&worldViewInvTranspose));
+			//(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->WorldViewInvTranspose->SetMatrix(reinterpret_cast<float*>(&worldViewInvTranspose));
+			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.WorldViewInvTranspose = XMMatrixTranspose(worldViewInvTranspose);
 
 			XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
-			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->ShadowTransform->SetMatrix(reinterpret_cast<float*>(&worldShadowMapTransform));
+			//(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->ShadowTransform->SetMatrix(reinterpret_cast<float*>(&worldShadowMapTransform));
+			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.ShadowTransform = XMMatrixTranspose(worldShadowMapTransform);
 
-
-			if (m_bumpMapSRV) {
+			if (0 && m_bumpMapSRV) {
 				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->BumpMap->SetResource(m_bumpMapSRV);
 				tech = dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect)->DeferredShaderTessTech;
@@ -437,13 +444,10 @@ void Mesh::Draw() {
 			}
 			else {
 				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-				D3DX11_TECHNIQUE_DESC techDesc;
-				tech->GetDesc(&techDesc);
-				for (UINT p = 0; p < techDesc.Passes; ++p)
-				{
-					tech->GetPassByIndex(p)->Apply(0, D3D11Renderer::Instance()->GetD3DContext());
-					D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
-				}
+				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->CreateConstantBuffer();
+				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->BindConstantBuffer();
+				D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
+				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->UnBindConstantBuffer();
 			}
 		}
 

@@ -212,10 +212,10 @@ DeferredShaderEffect::DeferredShaderEffect(const std::wstring& filename)
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
-	D3DX11_PASS_DESC passDesc;
-	DeferredShaderTech->GetPassByIndex(0)->GetDesc(&passDesc);
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 4, passDesc.pIAInputSignature,
-		passDesc.IAInputSignatureSize, &m_inputLayout));
+	//D3DX11_PASS_DESC passDesc;
+	//DeferredShaderTech->GetPassByIndex(0)->GetDesc(&passDesc);
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 4, m_vsBlob->GetBufferPointer(),
+		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
 	m_activeTech = DeferredShaderTech;
 }
@@ -226,6 +226,30 @@ DeferredShaderEffect::~DeferredShaderEffect()
 }
 
 void DeferredShaderEffect::CreateConstantBuffer() {
+	{
+		// Fill in a buffer description.
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		// Fill in the subresource data.
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = &m_perObjConstantBuffer;
+		InitData.SysMemPitch = 0;
+		InitData.SysMemSlicePitch = 0;
+
+		HRESULT hr;
+		// Create the buffer.
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+			&m_perObjectCB);
+
+		assert(SUCCEEDED(hr));
+	}
+
 	{
 		// Fill in a buffer description.
 		D3D11_BUFFER_DESC cbDesc;
@@ -249,39 +273,15 @@ void DeferredShaderEffect::CreateConstantBuffer() {
 
 		assert(SUCCEEDED(hr));
 	}
-
-	{
-		// Fill in a buffer description.
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PEROBJECT_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		// Fill in the subresource data.
-		D3D11_SUBRESOURCE_DATA InitData;
-		InitData.pSysMem = &m_perObjectConstantBuffer;
-		InitData.SysMemPitch = 0;
-		InitData.SysMemSlicePitch = 0;
-
-		HRESULT hr;
-		// Create the buffer.
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
-			&m_perObjectCB);
-
-		assert(SUCCEEDED(hr));
-	}
 }
 
 void DeferredShaderEffect::BindConstantBuffer() {
-	ID3D11Buffer* cbuf[] = { m_perFrameCB, m_perObjectCB };
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 2, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 2, cbuf);
+	ID3D11Buffer* cbuf[] = { m_perObjectCB };
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 1, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 1, cbuf);
 
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 2, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 2, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 1, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 1, cbuf);
 }
 
 void DeferredShaderEffect::BindShaderResource() {

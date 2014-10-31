@@ -105,24 +105,23 @@ public:
 // 	virtual void UnBindConstantBuffer();
 // 	virtual void UnBindShaderResource();
 
+	struct PEROBJ_CONSTANT_BUFFER
+	{
+		XMMATRIX WorldViewProj;
+		XMMATRIX WorldViewInvTranspose;
+		XMMATRIX WorldInvTranspose;
+		XMMATRIX WorldView;
+		XMMATRIX World;
+		XMMATRIX ViewProj;
+		Material Mat;
+		XMMATRIX ShadowTransform;
+		XMFLOAT4 DiffX_NormY_ShadZ;
+	} m_perObjConstantBuffer;
+
 	struct PERFRAME_CONSTANT_BUFFER
 	{
-		XMFLOAT4X4 WorldViewProj;
-		XMFLOAT4X4 WorldInvTranspose;
-		XMFLOAT4X4 WorldView;
-		XMFLOAT4X4 World;
-		XMFLOAT4X4 ViewProj;
-		XMFLOAT4X4 ShadowTransform;
-		XMFLOAT4X4 WorldViewInvTranspose;
-
-		Material Mat;
-		XMFLOAT4 DiffX_NormY_ShadZ;
-	} m_perFrameConstantBuffer;
-
-	struct PEROBJECT_CONSTANT_BUFFER
-	{
 		XMFLOAT4 EyePosW;
-	} m_perObjectConstantBuffer;
+	} m_perFrameConstantBuffer;
 
 	ID3D11ShaderResourceView **m_shaderResources;
 // 	ID3DX11EffectShaderResourceVariable* CubeMap;

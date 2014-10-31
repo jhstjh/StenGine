@@ -10,7 +10,7 @@ struct Material {
 	float4 specular;
 };
 
-cbuffer cbPerObject {
+cbuffer cbPerObject : register(b0) {
 	float4x4 gWorldViewProj; 
 	float4x4 gWorldViewInvTranspose;
 	float4x4 gWorldInvTranspose;
@@ -22,10 +22,10 @@ cbuffer cbPerObject {
 	int4 gDiffX_NormY_ShadZ;
 };
 
-cbuffer cbPerFrame {
-	//DirectionalLight gDirLight;
-	float3 gEyePosW;
-};
+// cbuffer cbPerFrame : register(b1) {
+// 	//DirectionalLight gDirLight;
+// 	float3 gEyePosW;
+// };
 
 Texture2D gDiffuseMap;
 Texture2D gNormalMap;
