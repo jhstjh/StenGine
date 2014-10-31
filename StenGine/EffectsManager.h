@@ -34,11 +34,13 @@ public:
 		   const std::wstring& hsPath,
 		   const std::wstring& dsPath);
 	virtual ~Effect();
+	virtual void SetShader();
 	virtual void CreateConstantBuffer() = 0;
 	virtual void BindConstantBuffer() = 0;
 	virtual void BindShaderResource() = 0;
-	virtual void UnBindConstantBuffer() = 0;
-	virtual void UnBindShaderResource() = 0;
+	virtual void UnBindConstantBuffer();
+	virtual void UnBindShaderResource();
+	virtual void UnSetShader();
 	ID3D11InputLayout* GetInputLayout() { return m_inputLayout; }
 	ID3DX11EffectTechnique* GetActiveTech() { return m_activeTech; }
 	std::vector<Mesh*> m_associatedMeshes;
@@ -100,8 +102,8 @@ public:
 	virtual void CreateConstantBuffer();
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
-	virtual void UnBindConstantBuffer();
-	virtual void UnBindShaderResource();
+// 	virtual void UnBindConstantBuffer();
+// 	virtual void UnBindShaderResource();
 
 	struct PERFRAME_CONSTANT_BUFFER
 	{

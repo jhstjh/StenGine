@@ -23,7 +23,17 @@ Effect::Effect(const std::wstring& vsPath,
 			   const std::wstring& psPath,
 			   const std::wstring& gsPath = L"",
 			   const std::wstring& hsPath = L"",
-			   const std::wstring& dsPath = L"")
+			   const std::wstring& dsPath = L""):
+			   m_vertexShader(0),
+			   m_pixelShader(0),
+			   m_geometryShader(0),
+			   m_hullShader(0),
+			   m_domainShader(0),
+			   m_vsBlob(0),
+			   m_psBlob(0),
+			   m_gsBlob(0),
+			   m_hsBlob(0),
+			   m_dsBlob(0)
 {
 	// Add error checking
 	HRESULT hr;
@@ -78,7 +88,29 @@ Effect::~Effect()
 	ReleaseCOM(m_fx);
 }
 
+void Effect::UnBindConstantBuffer() {
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 0, nullptr);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 0, nullptr);
+}
 
+void Effect::UnBindShaderResource() {
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 0, nullptr);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 0, nullptr);
+}
+
+void Effect::SetShader() {
+	// TODO: check if shader exists first
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetShader(m_vertexShader, 0, 0);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetShader(m_pixelShader, 0, 0);
+}
+
+void Effect::UnSetShader() {
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetShader(nullptr, 0, 0);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetShader(nullptr, 0, 0);
+	D3D11Renderer::Instance()->GetD3DContext()->HSSetShader(nullptr, 0, 0);
+	D3D11Renderer::Instance()->GetD3DContext()->GSSetShader(nullptr, 0, 0);
+	D3D11Renderer::Instance()->GetD3DContext()->DSSetShader(nullptr, 0, 0);
+}
 //------------------------------------------------------------//
 
 
@@ -244,19 +276,17 @@ void DeferredShaderEffect::CreateConstantBuffer() {
 }
 
 void DeferredShaderEffect::BindConstantBuffer() {
+	ID3D11Buffer* cbuf[] = { m_perFrameCB, m_perObjectCB };
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 2, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 2, cbuf);
 
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 2, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 2, cbuf);
 }
 
 void DeferredShaderEffect::BindShaderResource() {
-
-}
-
-void DeferredShaderEffect::UnBindConstantBuffer() {
-
-}
-
-void DeferredShaderEffect::UnBindShaderResource() {
-
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 5, m_shaderResources);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 5, m_shaderResources);
 }
 //----------------------------------------------------------//
 
