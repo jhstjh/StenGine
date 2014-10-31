@@ -184,26 +184,6 @@ ShadowMapEffect::~ShadowMapEffect()
 DeferredShaderEffect::DeferredShaderEffect(const std::wstring& filename)
 	: Effect(filename + L"_vs.hlsl", filename + L"_ps.hlsl")
 {
-// 	DeferredShaderTech = m_fx->GetTechniqueByName("DeferredShaderTech");
-// 	DeferredShaderTessTech = m_fx->GetTechniqueByName("DeferredShaderTessTech");
-// 	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
-// 	WorldInvTranspose = m_fx->GetVariableByName("gWorldInvTranspose")->AsMatrix();
-// 	WorldView = m_fx->GetVariableByName("gWorldView")->AsMatrix();
-// 	WorldViewInvTranspose = m_fx->GetVariableByName("gWorldViewInvTranspose")->AsMatrix();
-// 	ShadowTransform = m_fx->GetVariableByName("gShadowTransform")->AsMatrix();
-// 	World = m_fx->GetVariableByName("gWorld")->AsMatrix();
-// 	ViewProj = m_fx->GetVariableByName("gViewProj")->AsMatrix();
-// 	//DirLight = m_fx->GetVariableByName("gDirLight");
-// 	Mat = m_fx->GetVariableByName("gMaterial");
-// 	EyePosW = m_fx->GetVariableByName("gEyePosW")->AsVector();
-// 	DiffuseMap = m_fx->GetVariableByName("gDiffuseMap")->AsShaderResource();
-// 	BumpMap = m_fx->GetVariableByName("gBumpMap")->AsShaderResource();
-// 	NormalMap = m_fx->GetVariableByName("gNormalMap")->AsShaderResource();
-// 	TheShadowMap = m_fx->GetVariableByName("gShadowMap")->AsShaderResource();
-// 	DiffX_NormY_ShadZ = m_fx->GetVariableByName("gDiffX_NormY_ShadZ")->AsVector();
-// 	CubeMap = m_fx->GetVariableByName("gCubeMap")->AsShaderResource();
-
-
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -212,26 +192,14 @@ DeferredShaderEffect::DeferredShaderEffect(const std::wstring& filename)
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
-	//D3DX11_PASS_DESC passDesc;
-	//DeferredShaderTech->GetPassByIndex(0)->GetDesc(&passDesc);
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 4, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
-
-	//m_activeTech = DeferredShaderTech;
 
 	for (int i = 0; i < 5; i++) {
 		m_shaderResources[i] = 0;
 	}
-}
 
-DeferredShaderEffect::~DeferredShaderEffect()
-{
-	ReleaseCOM(m_inputLayout);
-}
-
-void DeferredShaderEffect::CreateConstantBuffer() {
 	{
-		// TODO: use Map to update!!!! not creating a new buffer every frame
 
 		D3D11_BUFFER_DESC cbDesc;
 		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
@@ -276,6 +244,27 @@ void DeferredShaderEffect::CreateConstantBuffer() {
 			&m_perFrameCB);
 
 		assert(SUCCEEDED(hr));
+	}
+}
+
+DeferredShaderEffect::~DeferredShaderEffect()
+{
+	ReleaseCOM(m_inputLayout);
+}
+
+void DeferredShaderEffect::UpdateConstantBuffer() {
+	{
+		D3D11_MAPPED_SUBRESOURCE ms;
+		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
+		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perObjectCB, NULL);
+	}
+
+	{
+		D3D11_MAPPED_SUBRESOURCE ms;
+		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
+		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perFrameCB, NULL);
 	}
 }
 

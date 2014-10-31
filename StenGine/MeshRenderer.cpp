@@ -434,7 +434,7 @@ void Mesh::Draw() {
 			}
 			else {
 				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->CreateConstantBuffer();
+				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->UpdateConstantBuffer();
 				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->BindConstantBuffer();
 				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->BindShaderResource();
 				D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);

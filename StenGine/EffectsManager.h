@@ -35,7 +35,7 @@ public:
 		   const std::wstring& dsPath);
 	virtual ~Effect();
 	virtual void SetShader();
-	virtual void CreateConstantBuffer() = 0;
+	virtual void UpdateConstantBuffer() = 0;
 	virtual void BindConstantBuffer() = 0;
 	virtual void BindShaderResource() = 0;
 	virtual void UnBindConstantBuffer();
@@ -99,7 +99,7 @@ public:
 // 	ID3DX11EffectShaderResourceVariable* TheShadowMap;
 // 	ID3DX11EffectShaderResourceVariable* BumpMap;
 
-	virtual void CreateConstantBuffer();
+	virtual void UpdateConstantBuffer();
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
 // 	virtual void UnBindConstantBuffer();
