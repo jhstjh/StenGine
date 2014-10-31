@@ -189,16 +189,16 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="FX\DeferredShader_ps.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredShader_vs.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredShaingPass_ps.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
     <FxCompile Include="FX\ScreenQuad_vs.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\DeferredGeometryPass_vs.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\DeferredGeometryPass_ps.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\DeferredShadingPass_ps.hlsl">
       <Filter>FX</Filter>
     </FxCompile>
   </ItemGroup>

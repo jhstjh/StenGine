@@ -3,6 +3,7 @@
 #include "D3DIncludes.h"
 #include "MeshRenderer.h"
 #include "Material.h"
+#include "LightManager.h"
 
 #define D3D_COMPILE_STANDARD_FILE_INCLUDE ((ID3DInclude*)(UINT_PTR)1)
 
@@ -71,39 +72,18 @@ public:
 //--------------------------------------------------------------------//
 
 
-class DeferredShaderEffect : public Effect {
+class DeferredGeometryPassEffect : public Effect {
 private:
 	ID3D11Buffer* m_perFrameCB;
 	ID3D11Buffer* m_perObjectCB;
 
 public:
-	DeferredShaderEffect(const std::wstring& filename);
-	~DeferredShaderEffect();
-
-// 	ID3DX11EffectTechnique* DeferredShaderTech;
-// 	ID3DX11EffectTechnique* DeferredShaderTessTech;
-// 	ID3DX11EffectMatrixVariable* WorldViewProj;
-// 	ID3DX11EffectMatrixVariable* WorldInvTranspose;
-// 	ID3DX11EffectMatrixVariable* WorldView;
-// 	ID3DX11EffectMatrixVariable* World;
-// 	ID3DX11EffectMatrixVariable* ViewProj;
-// 	ID3DX11EffectMatrixVariable* ShadowTransform;
-// 	ID3DX11EffectMatrixVariable* WorldViewInvTranspose;
-// 	//ID3DX11EffectVariable* DirLight;
-// 	ID3DX11EffectVariable* Mat;
-// 	ID3DX11EffectVectorVariable* EyePosW;
-// 	ID3DX11EffectVectorVariable* DiffX_NormY_ShadZ;
-// 	ID3DX11EffectShaderResourceVariable* CubeMap;
-// 	ID3DX11EffectShaderResourceVariable* DiffuseMap;
-// 	ID3DX11EffectShaderResourceVariable* NormalMap;
-// 	ID3DX11EffectShaderResourceVariable* TheShadowMap;
-// 	ID3DX11EffectShaderResourceVariable* BumpMap;
+	DeferredGeometryPassEffect(const std::wstring& filename);
+	~DeferredGeometryPassEffect();
 
 	virtual void UpdateConstantBuffer();
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
-// 	virtual void UnBindConstantBuffer();
-// 	virtual void UnBindShaderResource();
 
 	struct PEROBJ_CONSTANT_BUFFER
 	{
@@ -124,12 +104,38 @@ public:
 	} m_perFrameConstantBuffer;
 
 	ID3D11ShaderResourceView *m_shaderResources[5];
+};
 
-// 	ID3DX11EffectShaderResourceVariable* DiffuseMap;
-// 	ID3DX11EffectShaderResourceVariable* NormalMap;
-// 	ID3DX11EffectShaderResourceVariable* TheShadowMap;
-// 	ID3DX11EffectShaderResourceVariable* BumpMap;
-// 	ID3DX11EffectShaderResourceVariable* CubeMap;
+
+//--------------------------------------------------------------------//
+
+
+class DeferredShadingPassEffect : public Effect {
+private:
+	ID3D11Buffer* m_perFrameCB;
+
+public:
+	DeferredShadingPassEffect(const std::wstring& filename);
+	~DeferredShadingPassEffect();
+
+	virtual void UpdateConstantBuffer();
+	virtual void BindConstantBuffer();
+	virtual void BindShaderResource();
+
+	struct PERFRAME_CONSTANT_BUFFER
+	{
+		DirectionalLight gDirLight;
+		XMFLOAT4 gEyePosW;
+		XMMATRIX gProjInv;
+		XMMATRIX gProj;
+	} m_perFrameConstantBuffer;
+
+	/// Texture Ordering:
+	/// Texture2D gDiffuseGB;
+	/// Texture2D gNormalGB;
+	/// Texture2D gSpecularGB;
+	/// Texture2D gDepthGB;
+	ID3D11ShaderResourceView *m_shaderResources[4];
 };
 
 
@@ -219,7 +225,8 @@ public:
 
 	StdMeshEffect* m_stdMeshEffect;
 	ShadowMapEffect* m_shadowMapEffect;
-	DeferredShaderEffect* m_deferredShaderEffect; 
+	DeferredGeometryPassEffect* m_deferredGeometryPassEffect; 
+	DeferredShadingPassEffect* m_deferredShadingPassEffect;
 	ScreenQuadEffect* m_screenQuadEffect;
 	GodRayEffect* m_godrayEffect;
 	SkyboxEffect* m_skyboxEffect;

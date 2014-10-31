@@ -308,7 +308,7 @@ void Mesh::PrepareGPUBuffer() {
 	//m_associatedEffect = EffectsManager::Instance()->m_stdMeshEffect;
 	//m_associatedEffect->m_associatedMeshes.push_back(this);
 #if !FORWARD
-	m_associatedDeferredEffect = EffectsManager::Instance()->m_deferredShaderEffect;
+	m_associatedDeferredEffect = EffectsManager::Instance()->m_deferredGeometryPassEffect;
 	m_associatedDeferredEffect->m_associatedMeshes.push_back(this);
 #endif
 }
@@ -383,43 +383,43 @@ void Mesh::Draw() {
 		D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
 		D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
-		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.Mat = m_material;
+		(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.Mat = m_material;
 		XMFLOAT4 resourceMask(0, 0, 0, 0);
 		if (m_diffuseMapSRV) {
 			resourceMask.x = 1;
-			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_shaderResources[0] = m_diffuseMapSRV;
+			(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_shaderResources[0] = m_diffuseMapSRV;
 		}
 		if (m_normalMapSRV) {
 			resourceMask.y = 1;
-			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_shaderResources[1] = m_normalMapSRV;
+			(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_shaderResources[1] = m_normalMapSRV;
 		}
 		if (m_receiveShadow)
 			resourceMask.z = 1;
-		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.DiffX_NormY_ShadZ = resourceMask;
+		(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.DiffX_NormY_ShadZ = resourceMask;
 	
-		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_shaderResources[4] = D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV;
-		(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+		(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_shaderResources[4] = D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV;
+		(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
 		for (int iP = 0; iP < m_parents.size(); iP++) {
 
 			XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
-			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.WorldViewProj = XMMatrixTranspose(worldViewProj);
-			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.World = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
+			(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.WorldViewProj = XMMatrixTranspose(worldViewProj);
+			(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.World = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
 			XMMATRIX worldInvTranspose = MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
-			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.WorldInvTranspose = XMMatrixTranspose(worldInvTranspose);
+			(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.WorldInvTranspose = XMMatrixTranspose(worldInvTranspose);
 
 			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
-			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.WorldView = XMMatrixTranspose(worldView);
+			(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.WorldView = XMMatrixTranspose(worldView);
 
 			XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
-			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.WorldViewInvTranspose = XMMatrixTranspose(worldViewInvTranspose);
+			(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.WorldViewInvTranspose = XMMatrixTranspose(worldViewInvTranspose);
 
 			XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
-			(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.ShadowTransform = XMMatrixTranspose(worldShadowMapTransform);
+			(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.ShadowTransform = XMMatrixTranspose(worldShadowMapTransform);
 
 			if (0 && m_bumpMapSRV) {
 				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->m_shaderResources[3] = m_bumpMapSRV;
+				(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_shaderResources[3] = m_bumpMapSRV;
 				//tech = dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect)->DeferredShaderTessTech;
 				//D3DX11_TECHNIQUE_DESC techDesc;
 				//tech->GetDesc(&techDesc);
@@ -434,12 +434,12 @@ void Mesh::Draw() {
 			}
 			else {
 				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->UpdateConstantBuffer();
-				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->BindConstantBuffer();
-				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->BindShaderResource();
+				(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->UpdateConstantBuffer();
+				(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->BindConstantBuffer();
+				(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->BindShaderResource();
 				D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
-				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->UnBindShaderResource();
-				(dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect))->UnBindConstantBuffer();
+				(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->UnBindShaderResource();
+				(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->UnBindConstantBuffer();
 			}
 		}
 

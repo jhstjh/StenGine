@@ -9,14 +9,21 @@ cbuffer cbPerFrame {
 	float3 gEyePosW;
 	float4x4 gProjInv;
 	float4x4 gProj;
+};
 
+Texture2D gDiffuseGB;
+Texture2D gNormalGB;
+Texture2D gSpecularGB;
+Texture2D gDepthGB;
+
+SamplerState gSamplerStateLinear;
+
+cbuffer cbFixed {
 	float    gOcclusionRadius = 0.2f;
 	float    gOcclusionFadeStart = 0.1f;
 	float    gOcclusionFadeEnd = 2.0f;
 	float    gSurfaceEpsilon = 0.005f;
-};
 
-cbuffer cbFixed {
 	half4 vertexArray[6] = {
 		half4(-1.0, -1.0, 0.0, 1.0),
 		half4(-1.0, 1.0, 0.0, 1.0),
@@ -51,6 +58,8 @@ cbuffer cbFixed {
 			{ 0.0f, 0.0f, -1.0f, 0.0f },
 			{ 0.0f, 0.0f, +1.0f, 0.0f },
 	};
+
+	static const int gBlurRadius = 10;
 };
 
 struct PSOut
@@ -86,19 +95,6 @@ SamplerState samNormalDepth
 	BorderColor = float4(0.0f, 0.0f, 0.0f, 1e5f);
 };
 
-cbuffer cbFixed
-{
-	static const int gBlurRadius = 10;
-};
-
-Texture2D gScreenMap;
-Texture2D gSSAOMap;
-
-Texture2D gDiffuseGB;
-Texture2D gPositionGB;
-Texture2D gNormalGB;
-Texture2D gSpecularGB;
-Texture2D gDepthGB;
 
 struct PSIn
 {
@@ -117,9 +113,7 @@ PSOut main(PSIn input)
 	float x = input.Tex.x * 2 - 1;
 	float y = (1 - input.Tex.y) * 2 - 1;
 	float4 vProjectedPos = float4(x, y, z, 1.0f);
-		// Transform by the inverse projection matrix
 	float4 vPositionVS = mul(vProjectedPos, gProjInv);
-		// Divide by w to get the view-space position
 	vPositionVS.xyz /= vPositionVS.w;
 
 	//return vPositionVS;
@@ -138,7 +132,7 @@ PSOut main(PSIn input)
 
 
 	float diffuseK = dot(-gDirLight.direction, normalV);
-	float shadowLit = gDiffuseGB.Sample(samAnisotropic, input.Tex).w;
+	float shadowLit = 1; gDiffuseGB.Sample(samAnisotropic, input.Tex).w;
 
 	if (diffuseK > 0) {
 		diffColor += diffuseK * gDirLight.intensity;

@@ -8,7 +8,7 @@ struct DirectionalLight {
 
 	XMFLOAT4 intensity;
 	XMFLOAT3 direction;
-	int castShadow;
+	float castShadow;
 };
 
 

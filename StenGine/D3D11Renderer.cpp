@@ -372,10 +372,10 @@ void D3D11Renderer::Draw() {
 		}
 #else
 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
-	//ID3D11RenderTargetView* rtvs[4] = { m_diffuseBufferRTV, m_normalBufferRTV, m_specularBufferRTV, m_positionBufferRTV };
-	ID3D11RenderTargetView* rtvs[4] = { m_renderTargetView, m_normalBufferRTV, m_specularBufferRTV, m_positionBufferRTV };
+	ID3D11RenderTargetView* rtvs[4] = { m_diffuseBufferRTV, m_normalBufferRTV, m_specularBufferRTV, m_positionBufferRTV };
+	//ID3D11RenderTargetView* rtvs[4] = { m_renderTargetView, m_normalBufferRTV, m_specularBufferRTV, m_positionBufferRTV };
 	m_d3d11DeviceContext->OMSetRenderTargets(3, rtvs, m_deferredRenderDepthStencilView);
-	m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	//m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearRenderTargetView(m_diffuseBufferRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearRenderTargetView(m_positionBufferRTV, reinterpret_cast<const float*>(&Colors::White));
 	m_d3d11DeviceContext->ClearRenderTargetView(m_normalBufferRTV, reinterpret_cast<const float*>(&Colors::Black));
@@ -384,21 +384,20 @@ void D3D11Renderer::Draw() {
 	m_d3d11DeviceContext->ClearDepthStencilView(m_deferredRenderDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		m_d3d11DeviceContext->RSSetState(0);
-		EffectsManager::Instance()->m_deferredShaderEffect->SetShader(); 
-		//DeferredShaderEffect* activeFX = EffectsManager::Instance()->m_deferredShaderEffect;
-		m_d3d11DeviceContext->IASetInputLayout(EffectsManager::Instance()->m_deferredShaderEffect->GetInputLayout());
+		EffectsManager::Instance()->m_deferredGeometryPassEffect->SetShader(); 
+		m_d3d11DeviceContext->IASetInputLayout(EffectsManager::Instance()->m_deferredGeometryPassEffect->GetInputLayout());
 		DirectionalLight* d = LightManager::Instance()->m_dirLights[0];
 		//activeFX->TheShadowMap->SetResource(LightManager::Instance()->m_shadowMap->GetDepthSRV());
 
 		XMFLOAT4 pos = CameraManager::Instance()->GetActiveCamera()->GetPos();
 		//activeFX->EyePosW->SetRawValue(&pos, 0, 3 * sizeof(float));
-		EffectsManager::Instance()->m_deferredShaderEffect->m_perFrameConstantBuffer.EyePosW = pos;
+		EffectsManager::Instance()->m_deferredGeometryPassEffect->m_perFrameConstantBuffer.EyePosW = pos;
 
 		m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_samplerState);
-		for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredShaderEffect->m_associatedMeshes.size(); iMesh++) {
-			EffectsManager::Instance()->m_deferredShaderEffect->m_associatedMeshes[iMesh]->Draw();
+		for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
+			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->Draw();
 		}
-		EffectsManager::Instance()->m_deferredShaderEffect->UnSetShader();
+		EffectsManager::Instance()->m_deferredGeometryPassEffect->UnSetShader();
 // 	// --------- skybox --------- //
 // 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
 // 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_deferredShadingRTV, m_depthStencilView);
@@ -411,56 +410,63 @@ void D3D11Renderer::Draw() {
 // 	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
 // 	m_d3d11DeviceContext->OMSetRenderTargets(0, NULL, NULL);
 // 
-// 	//-------------- composite deferred render target views AND SSAO-------------------//
-// 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
-// 
-// 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
-// 	//m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-// 	ID3D11RenderTargetView* crtvs[2] = { m_deferredShadingRTV, m_SSAORTV };
-// 	m_d3d11DeviceContext->OMSetRenderTargets(2, crtvs, m_depthStencilView);
-// 	m_d3d11DeviceContext->ClearRenderTargetView(m_SSAORTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
-// 	//m_d3d11DeviceContext->ClearRenderTargetView(m_deferredShadingRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
-// 	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-// 
-// 	D3DX11_TECHNIQUE_DESC techDesc;
-// 	ID3DX11EffectTechnique* screenQuadTech = EffectsManager::Instance()->m_screenQuadEffect->GetActiveTech();
-// 	m_d3d11DeviceContext->IASetInputLayout(NULL);
-// 	screenQuadTech->GetDesc(&techDesc);
-// 
-// 	DirectionalLight viewDirLight;
-// 	memcpy(&viewDirLight, LightManager::Instance()->m_dirLights[0], sizeof(DirectionalLight));
-// 
-// 	XMMATRIX ViewInvTranspose = MatrixHelper::InverseTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
-// 	XMStoreFloat3(&viewDirLight.direction, XMVector3Transform(XMLoadFloat3(&viewDirLight.direction), ViewInvTranspose));
-// 	EffectsManager::Instance()->m_screenQuadEffect->DirLight->SetRawValue(&viewDirLight, 0, sizeof(DirectionalLight));
-// 
-// 
-// 	XMFLOAT4 camPos = CameraManager::Instance()->GetActiveCamera()->GetPos();
-// 	XMStoreFloat4(&camPos, XMVector3Transform(XMLoadFloat4(&camPos), CameraManager::Instance()->GetActiveCamera()->GetViewMatrix()));
-// 	EffectsManager::Instance()->m_screenQuadEffect->EyePosW->SetRawValue(&camPos, 0, 3 * sizeof(float));
-// 
-// 
-// 	XMMATRIX projMat = CameraManager::Instance()->GetActiveCamera()->GetProjMatrix();
-// 	XMVECTOR det = XMMatrixDeterminant(projMat);
-// 	EffectsManager::Instance()->m_screenQuadEffect->ProjInv->SetMatrix(reinterpret_cast<float*>(&XMMatrixInverse(&det, projMat)));
-// 	
-// 
-// 	EffectsManager::Instance()->m_screenQuadEffect->Proj->SetMatrix(reinterpret_cast<float*>(&projMat));
-// 
-// 
-// 	EffectsManager::Instance()->m_screenQuadEffect->DiffuseGB->SetResource(m_diffuseBufferSRV);
-// 	EffectsManager::Instance()->m_screenQuadEffect->NormalGB->SetResource(m_normalBufferSRV);
-// 	EffectsManager::Instance()->m_screenQuadEffect->SpecularGB->SetResource(m_specularBufferSRV);
-// 	EffectsManager::Instance()->m_screenQuadEffect->DepthGB->SetResource(m_deferredRenderShaderResourceView);
-// 	//EffectsManager::Instance()->m_screenQuadEffect->PositionGB->SetResource(m_positionBufferSRV);
-// 
-// 	for (UINT p = 0; p < techDesc.Passes; ++p)
-// 	{
-// 		screenQuadTech->GetPassByIndex(p)->Apply(0, m_d3d11DeviceContext);
-// 		m_d3d11DeviceContext->Draw(6, 0);
-// 	}
-// 
-// 
+	//-------------- composite deferred render target views AND SSAO-------------------//
+	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
+	m_d3d11DeviceContext->VSSetShaderResources(0, 16, nullSRV);
+
+	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
+	//ID3D11RenderTargetView* crtvs[2] = { m_deferredShadingRTV, m_SSAORTV };
+	ID3D11RenderTargetView* crtvs[2] = { m_renderTargetView, m_SSAORTV };
+	m_d3d11DeviceContext->OMSetRenderTargets(2, crtvs, m_depthStencilView);
+	m_d3d11DeviceContext->ClearRenderTargetView(m_SSAORTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	m_d3d11DeviceContext->IASetInputLayout(NULL);
+
+	DeferredShadingPassEffect* deferredShadingEffect = EffectsManager::Instance()->m_deferredShadingPassEffect;
+	deferredShadingEffect->SetShader();
+
+	DirectionalLight viewDirLight;
+	memcpy(&viewDirLight, LightManager::Instance()->m_dirLights[0], sizeof(DirectionalLight));
+
+	XMMATRIX ViewInvTranspose = MatrixHelper::InverseTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
+	XMStoreFloat3(&viewDirLight.direction, XMVector3Transform(XMLoadFloat3(&viewDirLight.direction), ViewInvTranspose));
+	deferredShadingEffect->m_perFrameConstantBuffer.gDirLight = viewDirLight;
+
+
+	XMFLOAT4 camPos = CameraManager::Instance()->GetActiveCamera()->GetPos();
+	XMStoreFloat4(&camPos, XMVector3Transform(XMLoadFloat4(&camPos), CameraManager::Instance()->GetActiveCamera()->GetViewMatrix()));
+	//EffectsManager::Instance()->m_screenQuadEffect->EyePosW->SetRawValue(&camPos, 0, 3 * sizeof(float));
+	deferredShadingEffect->m_perFrameConstantBuffer.gEyePosW = camPos;
+
+	XMMATRIX projMat = CameraManager::Instance()->GetActiveCamera()->GetProjMatrix();
+	XMVECTOR det = XMMatrixDeterminant(projMat);
+	//EffectsManager::Instance()->m_screenQuadEffect->ProjInv->SetMatrix(reinterpret_cast<float*>(&XMMatrixInverse(&det, projMat)));
+	deferredShadingEffect->m_perFrameConstantBuffer.gProj = XMMatrixTranspose(projMat);
+
+	//EffectsManager::Instance()->m_screenQuadEffect->Proj->SetMatrix(reinterpret_cast<float*>(&projMat));
+	deferredShadingEffect->m_perFrameConstantBuffer.gProjInv = XMMatrixTranspose(XMMatrixInverse(&det, projMat));
+
+	//EffectsManager::Instance()->m_screenQuadEffect->DiffuseGB->SetResource(m_diffuseBufferSRV);
+	//EffectsManager::Instance()->m_screenQuadEffect->NormalGB->SetResource(m_normalBufferSRV);
+	//EffectsManager::Instance()->m_screenQuadEffect->SpecularGB->SetResource(m_specularBufferSRV);
+	//EffectsManager::Instance()->m_screenQuadEffect->DepthGB->SetResource(m_deferredRenderShaderResourceView);
+	deferredShadingEffect->m_shaderResources[0] = m_diffuseBufferSRV;
+	deferredShadingEffect->m_shaderResources[1] = m_normalBufferSRV;
+	deferredShadingEffect->m_shaderResources[2] = m_specularBufferSRV;
+	deferredShadingEffect->m_shaderResources[3] = m_deferredRenderShaderResourceView;
+
+	m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_samplerState);
+	deferredShadingEffect->UpdateConstantBuffer();
+	deferredShadingEffect->BindConstantBuffer();
+	deferredShadingEffect->BindShaderResource();
+	m_d3d11DeviceContext->Draw(6, 0);
+	deferredShadingEffect->UnBindShaderResource();
+	deferredShadingEffect->UnBindConstantBuffer();
+	
+	deferredShadingEffect->UnSetShader();
+
 // 	// ------ VBlur -------//
 // 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
 // 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_SSAORTV2, m_depthStencilView);
@@ -539,6 +545,7 @@ void D3D11Renderer::Draw() {
 
 //	ID3D11ShaderResourceView* nullSRV[16] = { 0 };
 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
+	m_d3d11DeviceContext->VSSetShaderResources(0, 16, nullSRV);
 
 	HR(m_swapChain->Present(0, 0));
 }

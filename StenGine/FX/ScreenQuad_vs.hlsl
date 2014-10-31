@@ -4,20 +4,8 @@ struct DirectionalLight {
 	float pad;
 };
 
-cbuffer cbPerFrame {
-	DirectionalLight gDirLight;
-	float3 gEyePosW;
-	float4x4 gProjInv;
-	float4x4 gProj;
-
-	float    gOcclusionRadius = 0.2f;
-	float    gOcclusionFadeStart = 0.1f;
-	float    gOcclusionFadeEnd = 2.0f;
-	float    gSurfaceEpsilon = 0.005f;
-};
-
-cbuffer cbFixed {
-	half4 vertexArray[6] = {
+cbuffer cbuFixed: register(b13) {
+	static const half4 vertexArray[6] = {
 		half4(-1.0, -1.0, 0.0, 1.0),
 		half4(-1.0, 1.0, 0.0, 1.0),
 		half4(1.0, 1.0, 0.0, 1.0),
@@ -26,7 +14,7 @@ cbuffer cbFixed {
 		half4(-1.0, -1.0, 0.0, 1.0),
 	};
 
-	half2 uvArray[6] = {
+	static const half2 uvArray[6] = {
 		half2(0, 1),
 		half2(0, 0),
 		half2(1, 0),
@@ -34,24 +22,15 @@ cbuffer cbFixed {
 		half2(1, 1),
 		half2(0, 1),
 	};
-
-	float4 OffsetVect[] = {
-			{ +1.0f, +1.0f, +1.0f, 0.0f },
-			{ -1.0f, -1.0f, -1.0f, 0.0f },
-			{ -1.0f, +1.0f, +1.0f, 0.0f },
-			{ +1.0f, -1.0f, -1.0f, 0.0f },
-			{ +1.0f, +1.0f, -1.0f, 0.0f },
-			{ -1.0f, -1.0f, +1.0f, 0.0f },
-			{ -1.0f, +1.0f, -1.0f, 0.0f },
-			{ +1.0f, -1.0f, +1.0f, 0.0f },
-			{ -1.0f, 0.0f, 0.0f, 0.0f },
-			{ +1.0f, 0.0f, 0.0f, 0.0f },
-			{ 0.0f, -1.0f, 0.0f, 0.0f },
-			{ 0.0f, +1.0f, 0.0f, 0.0f },
-			{ 0.0f, 0.0f, -1.0f, 0.0f },
-			{ 0.0f, 0.0f, +1.0f, 0.0f },
-	};
 };
+
+
+Texture2D gDiffuseGB;
+Texture2D gNormalGB;
+Texture2D gSpecularGB;
+Texture2D gDepthGB;
+
+SamplerState gSamplerStateLinear;
 
 struct VSOut
 {
@@ -86,14 +65,6 @@ SamplerState samNormalDepth
 	BorderColor = float4(0.0f, 0.0f, 0.0f, 1e5f);
 };
 
-//Texture2D gScreenMap;
-//Texture2D gSSAOMap;
-
-Texture2D gDiffuseGB;
-//Texture2D gPositionGB;
-Texture2D gNormalGB;
-Texture2D gSpecularGB;
-Texture2D gDepthGB;
 
 VSOut main(uint vertexId : SV_VertexID)
 {
