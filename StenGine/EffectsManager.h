@@ -23,9 +23,7 @@ protected:
 	ID3DBlob *m_hsBlob;
 	ID3DBlob *m_dsBlob;
 
-	ID3DX11Effect* m_fx;
 	ID3D11InputLayout* m_inputLayout;
-	ID3DX11EffectTechnique* m_activeTech;
 	std::vector<D3D11_INPUT_ELEMENT_DESC> m_vertexDesc;
 public:
 	Effect(const std::wstring& filename);
@@ -43,7 +41,6 @@ public:
 	virtual void UnBindShaderResource();
 	virtual void UnSetShader();
 	ID3D11InputLayout* GetInputLayout() { return m_inputLayout; }
-	ID3DX11EffectTechnique* GetActiveTech() { return m_activeTech; }
 	std::vector<Mesh*> m_associatedMeshes;
 };
 
@@ -51,22 +48,22 @@ public:
 //--------------------------------------------------------------------//
 
 
-class StdMeshEffect : public Effect {
-public:
-	StdMeshEffect(const std::wstring& filename);
-	~StdMeshEffect();
-
-	ID3DX11EffectTechnique* StdMeshTech;
-	ID3DX11EffectMatrixVariable* WorldViewProj;
-	ID3DX11EffectMatrixVariable* WorldInvTranspose;
-	ID3DX11EffectMatrixVariable* World;
-	ID3DX11EffectMatrixVariable* ShadowTransform;
-	ID3DX11EffectVariable* DirLight;
-	ID3DX11EffectVariable* Mat;
-	ID3DX11EffectVectorVariable* EyePosW;
-	ID3DX11EffectShaderResourceVariable* DiffuseMap;
-	ID3DX11EffectShaderResourceVariable* TheShadowMap;
-};
+// class StdMeshEffect : public Effect {
+// public:
+// 	StdMeshEffect(const std::wstring& filename);
+// 	~StdMeshEffect();
+// 
+// 	ID3DX11EffectTechnique* StdMeshTech;
+// 	ID3DX11EffectMatrixVariable* WorldViewProj;
+// 	ID3DX11EffectMatrixVariable* WorldInvTranspose;
+// 	ID3DX11EffectMatrixVariable* World;
+// 	ID3DX11EffectMatrixVariable* ShadowTransform;
+// 	ID3DX11EffectVariable* DirLight;
+// 	ID3DX11EffectVariable* Mat;
+// 	ID3DX11EffectVectorVariable* EyePosW;
+// 	ID3DX11EffectShaderResourceVariable* DiffuseMap;
+// 	ID3DX11EffectShaderResourceVariable* TheShadowMap;
+// };
 
 
 //--------------------------------------------------------------------//
@@ -163,42 +160,42 @@ public:
 //--------------------------------------------------------------------//
 
 
-class ScreenQuadEffect : public Effect {
-public:
-	ScreenQuadEffect(const std::wstring& filename);
-	~ScreenQuadEffect();
-
-	ID3DX11EffectTechnique* FullScreenQuadTech;
-	ID3DX11EffectTechnique* DeferredLightingTech;
-	ID3DX11EffectTechnique* HBlurTech;
-	ID3DX11EffectTechnique* VBlurTech;
-	ID3DX11EffectShaderResourceVariable* ScreenMap;
-	ID3DX11EffectShaderResourceVariable* SSAOMap;
-	ID3DX11EffectShaderResourceVariable* DiffuseGB;
-	ID3DX11EffectShaderResourceVariable* PositionGB;
-	ID3DX11EffectShaderResourceVariable* NormalGB;
-	ID3DX11EffectShaderResourceVariable* SpecularGB;
-	ID3DX11EffectShaderResourceVariable* DepthGB;
-	ID3DX11EffectVariable* DirLight;
-	//ID3DX11EffectVariable* Mat;
-	ID3DX11EffectVectorVariable* EyePosW;
-	ID3DX11EffectMatrixVariable* ProjInv;
-	ID3DX11EffectMatrixVariable* Proj;
-};
+// class ScreenQuadEffect : public Effect {
+// public:
+// 	ScreenQuadEffect(const std::wstring& filename);
+// 	~ScreenQuadEffect();
+// 
+// 	ID3DX11EffectTechnique* FullScreenQuadTech;
+// 	ID3DX11EffectTechnique* DeferredLightingTech;
+// 	ID3DX11EffectTechnique* HBlurTech;
+// 	ID3DX11EffectTechnique* VBlurTech;
+// 	ID3DX11EffectShaderResourceVariable* ScreenMap;
+// 	ID3DX11EffectShaderResourceVariable* SSAOMap;
+// 	ID3DX11EffectShaderResourceVariable* DiffuseGB;
+// 	ID3DX11EffectShaderResourceVariable* PositionGB;
+// 	ID3DX11EffectShaderResourceVariable* NormalGB;
+// 	ID3DX11EffectShaderResourceVariable* SpecularGB;
+// 	ID3DX11EffectShaderResourceVariable* DepthGB;
+// 	ID3DX11EffectVariable* DirLight;
+// 	//ID3DX11EffectVariable* Mat;
+// 	ID3DX11EffectVectorVariable* EyePosW;
+// 	ID3DX11EffectMatrixVariable* ProjInv;
+// 	ID3DX11EffectMatrixVariable* Proj;
+// };
 
 
 //--------------------------------------------------------------------//
 
 
-class GodRayEffect : public Effect {
-public:
-	GodRayEffect(const std::wstring& filename);
-	~GodRayEffect();
-
-	ID3DX11EffectTechnique* GodRayTech;
-	ID3DX11EffectShaderResourceVariable* OcclusionMap;
-	ID3DX11EffectVariable* LightPosH;
-};
+// class GodRayEffect : public Effect {
+// public:
+// 	GodRayEffect(const std::wstring& filename);
+// 	~GodRayEffect();
+// 
+// 	ID3DX11EffectTechnique* GodRayTech;
+// 	ID3DX11EffectShaderResourceVariable* OcclusionMap;
+// 	ID3DX11EffectVariable* LightPosH;
+// };
 
 
 //--------------------------------------------------------------------//
@@ -270,12 +267,11 @@ public:
 	EffectsManager();
 	~EffectsManager();
 
-	StdMeshEffect* m_stdMeshEffect;
+	//StdMeshEffect* m_stdMeshEffect;
 	ShadowMapEffect* m_shadowMapEffect;
 	DeferredGeometryPassEffect* m_deferredGeometryPassEffect; 
 	DeferredShadingPassEffect* m_deferredShadingPassEffect;
-	ScreenQuadEffect* m_screenQuadEffect;
-	GodRayEffect* m_godrayEffect;
+	//GodRayEffect* m_godrayEffect;
 	SkyboxEffect* m_skyboxEffect;
 	BlurEffect* m_blurEffect;
 };

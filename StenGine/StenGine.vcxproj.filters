@@ -45,9 +45,6 @@
     <ClInclude Include="MeshRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="d3dx11effect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="EffectsManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
