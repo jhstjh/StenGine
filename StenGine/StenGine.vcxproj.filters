@@ -204,5 +204,11 @@
     <FxCompile Include="FX\ShadowMap_vs.hlsl">
       <Filter>FX</Filter>
     </FxCompile>
+    <FxCompile Include="FX\Skybox_ps.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\Skybox_vs.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

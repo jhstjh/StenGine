@@ -478,33 +478,101 @@ GodRayEffect::~GodRayEffect()
 }
 
 
+
 //----------------------------------------------------------//
 
 
 SkyboxEffect::SkyboxEffect(const std::wstring& filename)
-	: Effect(filename)
+	: Effect(filename + L"_vs.hlsl", filename + L"_ps.hlsl")
 {
-	SkyboxTech = m_fx->GetTechniqueByName("SkyboxTech");
-	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
-	CubeMap = m_fx->GetVariableByName("gCubeMap")->AsShaderResource();
-
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	D3DX11_PASS_DESC passDesc;
-	SkyboxTech->GetPassByIndex(0)->GetDesc(&passDesc);
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, passDesc.pIAInputSignature,
-		passDesc.IAInputSignatureSize, &m_inputLayout));
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
-	m_activeTech = SkyboxTech;
+	{
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = &m_perObjConstantBuffer;
+		InitData.SysMemPitch = 0;
+		InitData.SysMemSlicePitch = 0;
+
+		HRESULT hr;
+		// Create the buffer.
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+			&m_perObjectCB);
+
+		assert(SUCCEEDED(hr));
+	}
+
+	ReleaseCOM(m_vsBlob);
+	ReleaseCOM(m_psBlob);
+	ReleaseCOM(m_gsBlob);
+	ReleaseCOM(m_hsBlob);
+	ReleaseCOM(m_dsBlob);
+}
+
+void SkyboxEffect::UpdateConstantBuffer() {
+	{
+		D3D11_MAPPED_SUBRESOURCE ms;
+		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
+		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perObjectCB, NULL);
+	}
+}
+
+void SkyboxEffect::BindConstantBuffer() {
+	ID3D11Buffer* cbuf[] = { m_perObjectCB };
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 1, cbuf);
 }
 
 SkyboxEffect::~SkyboxEffect()
 {
 	ReleaseCOM(m_inputLayout);
 }
+
+void SkyboxEffect::BindShaderResource() {
+	//D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 4, m_shaderResources);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 1, m_shaderResources);
+}
+
+//----------------------------------------------------------//
+
+
+// SkyboxEffect::SkyboxEffect(const std::wstring& filename)
+// 	: Effect(filename)
+// {
+// 	SkyboxTech = m_fx->GetTechniqueByName("SkyboxTech");
+// 	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
+// 	CubeMap = m_fx->GetVariableByName("gCubeMap")->AsShaderResource();
+// 
+// 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+// 	{
+// 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+// 	};
+// 
+// 	D3DX11_PASS_DESC passDesc;
+// 	SkyboxTech->GetPassByIndex(0)->GetDesc(&passDesc);
+// 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, passDesc.pIAInputSignature,
+// 		passDesc.IAInputSignatureSize, &m_inputLayout));
+// 
+// 	m_activeTech = SkyboxTech;
+// }
+// 
+// SkyboxEffect::~SkyboxEffect()
+// {
+// 	ReleaseCOM(m_inputLayout);
+// }
 
 
 
@@ -518,7 +586,7 @@ EffectsManager::EffectsManager() {
 
 	//m_screenQuadEffect = new ScreenQuadEffect(L"FX/ScreenQuad.fxo");
 	//m_godrayEffect = new GodRayEffect(L"FX/GodRay.fxo");
-	//m_skyboxEffect = new SkyboxEffect(L"FX/Skybox.fxo");
+	m_skyboxEffect = new SkyboxEffect(L"FX/Skybox");
 	//m_effects.push_back(PosColor);
 }
 

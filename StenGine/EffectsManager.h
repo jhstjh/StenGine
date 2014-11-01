@@ -152,11 +152,13 @@ public:
 
 	virtual void UpdateConstantBuffer();
 	virtual void BindConstantBuffer();
-
+	
 	struct PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX gWorldViewProj;
 	} m_perObjConstantBuffer;
+
+	
 };
 
 
@@ -206,12 +208,23 @@ public:
 
 class SkyboxEffect : public Effect {
 public:
+private:
+	ID3D11Buffer* m_perObjectCB;
+
+public:
 	SkyboxEffect(const std::wstring& filename);
 	~SkyboxEffect();
 
-	ID3DX11EffectTechnique* SkyboxTech;
-	ID3DX11EffectMatrixVariable* WorldViewProj;
-	ID3DX11EffectShaderResourceVariable* CubeMap;
+	virtual void UpdateConstantBuffer();
+	virtual void BindConstantBuffer();
+	virtual void BindShaderResource();
+
+	struct PEROBJ_CONSTANT_BUFFER
+	{
+		XMMATRIX gWorldViewProj;
+	} m_perObjConstantBuffer;
+
+	ID3D11ShaderResourceView *m_shaderResources[1];
 };
 
 //--------------------------------------------------------------------//

@@ -15,22 +15,24 @@ Skybox::~Skybox() {
 }
 
 void Skybox::Draw() {
-	D3DX11_TECHNIQUE_DESC techDesc;
-	ID3DX11EffectTechnique* SkyboxTech = EffectsManager::Instance()->m_skyboxEffect->SkyboxTech;
-	SkyboxTech->GetDesc(&techDesc);
-	EffectsManager::Instance()->m_skyboxEffect->CubeMap->SetResource(m_cubeMapSRV);
+
+	SkyboxEffect* skyboxEffect = EffectsManager::Instance()->m_skyboxEffect;
+	skyboxEffect->m_shaderResources[0] = m_cubeMapSRV;
+	skyboxEffect->SetShader();
 
 	XMFLOAT4 eyePos = CameraManager::Instance()->GetActiveCamera()->GetPos();
 	XMMATRIX T = XMMatrixTranslation(eyePos.x, eyePos.y, eyePos.z);
 	XMMATRIX WVP = XMMatrixMultiply(T, CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
-	EffectsManager::Instance()->m_skyboxEffect->WorldViewProj->SetMatrix(reinterpret_cast<const float*>(&WVP));
 
+	skyboxEffect->m_perObjConstantBuffer.gWorldViewProj = XMMatrixTranspose(WVP);
 
-	//EffectsManager::Instance()->m_skyboxEffect->ScreenMap->SetResource(m_deferredShadingSRV);
-	for (UINT p = 0; p < techDesc.Passes; ++p)
-	{
-		SkyboxTech->GetPassByIndex(p)->Apply(0, D3D11Renderer::Instance()->GetD3DContext());
-		D3D11Renderer::Instance()->GetD3DContext()->Draw(36, 0);
-	}
+	skyboxEffect->UpdateConstantBuffer();
+	skyboxEffect->BindConstantBuffer();
+	skyboxEffect->BindShaderResource();
+	D3D11Renderer::Instance()->GetD3DContext()->Draw(36, 0);
+	skyboxEffect->UnBindShaderResource();
+	skyboxEffect->UnBindConstantBuffer();
+
+	skyboxEffect->UnSetShader();
 
 }

@@ -431,18 +431,20 @@ void D3D11Renderer::Draw() {
 			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->Draw();
 		}
 		EffectsManager::Instance()->m_deferredGeometryPassEffect->UnSetShader();
-// 	// --------- skybox --------- //
-// 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
-// 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_deferredShadingRTV, m_depthStencilView);
-// 	m_d3d11DeviceContext->ClearRenderTargetView(m_deferredShadingRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
-// 	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-// 
-// 	m_SkyBox->Draw();
-// 
-// 	m_d3d11DeviceContext->RSSetState(0);
-// 	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
-// 	m_d3d11DeviceContext->OMSetRenderTargets(0, NULL, NULL);
-// 
+
+	// --------- skybox --------- //
+	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
+	//m_d3d11DeviceContext->OMSetRenderTargets(1, &m_deferredShadingRTV, m_depthStencilView);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
+	m_d3d11DeviceContext->ClearRenderTargetView(m_deferredShadingRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	m_SkyBox->Draw();
+
+	m_d3d11DeviceContext->RSSetState(0);
+	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
+	m_d3d11DeviceContext->OMSetRenderTargets(0, NULL, NULL);
+
 	//-------------- composite deferred render target views AND SSAO-------------------//
 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
 	m_d3d11DeviceContext->VSSetShaderResources(0, 16, nullSRV);
@@ -452,7 +454,7 @@ void D3D11Renderer::Draw() {
 	ID3D11RenderTargetView* crtvs[2] = { m_renderTargetView, m_SSAORTV };
 	m_d3d11DeviceContext->OMSetRenderTargets(2, crtvs, m_depthStencilView);
 	m_d3d11DeviceContext->ClearRenderTargetView(m_SSAORTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
-	m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	//m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	m_d3d11DeviceContext->IASetInputLayout(NULL);
