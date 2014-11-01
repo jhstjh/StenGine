@@ -162,6 +162,39 @@
     <Image Include="StenGine.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Model\darkbrickdxt1.dds">
+      <Filter>Model</Filter>
+    </Image>
+    <Image Include="Model\darkbrickdxt1_bump.dds">
+      <Filter>Model</Filter>
+    </Image>
+    <Image Include="Model\darkbrickdxt1_normal.dds">
+      <Filter>Model</Filter>
+    </Image>
+    <Image Include="Model\earth.dds">
+      <Filter>Model</Filter>
+    </Image>
+    <Image Include="Model\earth_normal.dds">
+      <Filter>Model</Filter>
+    </Image>
+    <Image Include="Model\plane.dds">
+      <Filter>Model</Filter>
+    </Image>
+    <Image Include="Model\plane_bump.dds">
+      <Filter>Model</Filter>
+    </Image>
+    <Image Include="Model\plane_normal.dds">
+      <Filter>Model</Filter>
+    </Image>
+    <Image Include="Model\sunsetcube1024.dds">
+      <Filter>Model</Filter>
+    </Image>
+    <Image Include="Model\WoodCrate02.dds">
+      <Filter>Model</Filter>
+    </Image>
+    <Image Include="Model\WoodCrate02_normal.dds">
+      <Filter>Model</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="FX\StdMesh.fx">
@@ -187,6 +220,15 @@
     <None Include="Model\ball.obj">
       <Filter>Model</Filter>
     </None>
+    <None Include="Model\dragon.fbx">
+      <Filter>Model</Filter>
+    </None>
+    <None Include="Model\earth.fbx">
+      <Filter>Model</Filter>
+    </None>
+    <None Include="Model\plane.fbx">
+      <Filter>Model</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="FX\ScreenQuad_vs.hlsl">
@@ -208,6 +250,9 @@
       <Filter>FX</Filter>
     </FxCompile>
     <FxCompile Include="FX\Skybox_vs.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\Blur_ps.hlsl">
       <Filter>FX</Filter>
     </FxCompile>
   </ItemGroup>

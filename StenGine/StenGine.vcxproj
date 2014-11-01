@@ -138,6 +138,17 @@
     <ResourceCompile Include="StenGine.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Model\darkbrickdxt1.dds" />
+    <Image Include="Model\darkbrickdxt1_bump.dds" />
+    <Image Include="Model\darkbrickdxt1_normal.dds" />
+    <Image Include="Model\earth.dds" />
+    <Image Include="Model\earth_normal.dds" />
+    <Image Include="Model\plane.dds" />
+    <Image Include="Model\plane_bump.dds" />
+    <Image Include="Model\plane_normal.dds" />
+    <Image Include="Model\sunsetcube1024.dds" />
+    <Image Include="Model\WoodCrate02.dds" />
+    <Image Include="Model\WoodCrate02_normal.dds" />
     <Image Include="small.ico" />
     <Image Include="StenGine.ico" />
   </ItemGroup>
@@ -153,6 +164,9 @@
     <None Include="Model\ball.obj">
       <FileType>Document</FileType>
     </None>
+    <None Include="Model\dragon.fbx" />
+    <None Include="Model\earth.fbx" />
+    <None Include="Model\plane.fbx" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="FX\ShadowMap.fx">
@@ -203,6 +217,10 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="FX\Blur_ps.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+    </FxCompile>
     <FxCompile Include="FX\DeferredGeometryPass_ps.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>

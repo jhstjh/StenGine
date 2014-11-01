@@ -157,8 +157,6 @@ public:
 	{
 		XMMATRIX gWorldViewProj;
 	} m_perObjConstantBuffer;
-
-	
 };
 
 
@@ -227,6 +225,34 @@ public:
 	ID3D11ShaderResourceView *m_shaderResources[1];
 };
 
+
+//--------------------------------------------------------------------//
+
+
+class BlurEffect : public Effect {
+private:
+	ID3D11Buffer* m_settingCB;
+
+public:
+	BlurEffect(const std::wstring& filename);
+	~BlurEffect();
+
+	virtual void UpdateConstantBuffer();
+	virtual void BindConstantBuffer();
+	virtual void BindShaderResource();
+
+	struct SETTING_CONSTANT_BUFFER
+	{
+		XMFLOAT2 texOffset;
+		XMFLOAT2 pad;
+	} m_settingConstantBuffer;
+
+	/// Texture2D gScreenMap;
+	/// Texture2D gSSAOMap;
+	ID3D11ShaderResourceView *m_shaderResources[2];
+};
+
+
 //--------------------------------------------------------------------//
 
 
@@ -251,6 +277,7 @@ public:
 	ScreenQuadEffect* m_screenQuadEffect;
 	GodRayEffect* m_godrayEffect;
 	SkyboxEffect* m_skyboxEffect;
+	BlurEffect* m_blurEffect;
 };
 
 #endif

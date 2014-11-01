@@ -406,6 +406,8 @@ void DeferredShadingPassEffect::BindShaderResource() {
 	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 4, m_shaderResources);
 	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 4, m_shaderResources);
 }
+
+
 //----------------------------------------------------------//
 
 ScreenQuadEffect::ScreenQuadEffect(const std::wstring& filename)
@@ -549,30 +551,76 @@ void SkyboxEffect::BindShaderResource() {
 //----------------------------------------------------------//
 
 
-// SkyboxEffect::SkyboxEffect(const std::wstring& filename)
-// 	: Effect(filename)
-// {
-// 	SkyboxTech = m_fx->GetTechniqueByName("SkyboxTech");
-// 	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
-// 	CubeMap = m_fx->GetVariableByName("gCubeMap")->AsShaderResource();
-// 
-// 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
-// 	{
-// 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-// 	};
-// 
-// 	D3DX11_PASS_DESC passDesc;
-// 	SkyboxTech->GetPassByIndex(0)->GetDesc(&passDesc);
-// 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, passDesc.pIAInputSignature,
-// 		passDesc.IAInputSignatureSize, &m_inputLayout));
-// 
-// 	m_activeTech = SkyboxTech;
-// }
-// 
-// SkyboxEffect::~SkyboxEffect()
-// {
-// 	ReleaseCOM(m_inputLayout);
-// }
+BlurEffect::BlurEffect(const std::wstring& filename)
+	: Effect(L"FX/ScreenQuad_vs.hlsl", filename + L"_ps.hlsl")
+{
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+		m_vsBlob->GetBufferSize(), &m_inputLayout));
+
+	for (int i = 0; i < 2; i++) {
+		m_shaderResources[i] = 0;
+	}
+
+	{
+		// Fill in a buffer description.
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(SETTING_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		// Fill in the subresource data.
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = &m_settingConstantBuffer;
+		InitData.SysMemPitch = 0;
+		InitData.SysMemSlicePitch = 0;
+
+		HRESULT hr;
+		// Create the buffer.
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+			&m_settingCB);
+
+		assert(SUCCEEDED(hr));
+	}
+
+	ReleaseCOM(m_vsBlob);
+	ReleaseCOM(m_psBlob);
+	ReleaseCOM(m_gsBlob);
+	ReleaseCOM(m_hsBlob);
+	ReleaseCOM(m_dsBlob);
+}
+
+BlurEffect::~BlurEffect()
+{
+	ReleaseCOM(m_inputLayout);
+}
+
+void BlurEffect::UpdateConstantBuffer() {
+	{
+		D3D11_MAPPED_SUBRESOURCE ms;
+		D3D11Renderer::Instance()->GetD3DContext()->Map(m_settingCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		memcpy(ms.pData, &m_settingConstantBuffer, sizeof(SETTING_CONSTANT_BUFFER));
+		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_settingCB, NULL);
+	}
+}
+
+void BlurEffect::BindConstantBuffer() {
+	ID3D11Buffer* cbuf[] = { m_settingCB };
+	//D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 1, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 1, cbuf);
+}
+
+void BlurEffect::BindShaderResource() {
+//	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 2, m_shaderResources);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 2, m_shaderResources);
+}
 
 
 
@@ -583,7 +631,7 @@ EffectsManager::EffectsManager() {
 	m_shadowMapEffect = new ShadowMapEffect(L"FX/ShadowMap");
 	m_deferredGeometryPassEffect = new DeferredGeometryPassEffect(L"FX/DeferredGeometryPass");
 	m_deferredShadingPassEffect = new DeferredShadingPassEffect(L"FX/DeferredShadingPass");
-
+	m_blurEffect = new BlurEffect(L"FX/Blur");
 	//m_screenQuadEffect = new ScreenQuadEffect(L"FX/ScreenQuad.fxo");
 	//m_godrayEffect = new GodRayEffect(L"FX/GodRay.fxo");
 	m_skyboxEffect = new SkyboxEffect(L"FX/Skybox");
