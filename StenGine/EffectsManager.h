@@ -38,7 +38,7 @@ public:
 	virtual void SetShader();
 	virtual void UpdateConstantBuffer() = 0;
 	virtual void BindConstantBuffer() = 0;
-	virtual void BindShaderResource() = 0;
+	virtual void BindShaderResource() {} 
 	virtual void UnBindConstantBuffer();
 	virtual void UnBindShaderResource();
 	virtual void UnSetShader();
@@ -93,8 +93,8 @@ public:
 		XMMATRIX WorldView;
 		XMMATRIX World;
 		XMMATRIX ViewProj;
-		Material Mat;
 		XMMATRIX ShadowTransform;
+		Material Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
 	} m_perObjConstantBuffer;
 
@@ -143,12 +143,20 @@ public:
 
 
 class ShadowMapEffect : public Effect {
+private:
+	ID3D11Buffer* m_perObjectCB;
+
 public:
 	ShadowMapEffect(const std::wstring& filename);
 	~ShadowMapEffect();
 
-	ID3DX11EffectTechnique* ShadowMapTech;
-	ID3DX11EffectMatrixVariable* WorldViewProj;
+	virtual void UpdateConstantBuffer();
+	virtual void BindConstantBuffer();
+
+	struct PEROBJ_CONSTANT_BUFFER
+	{
+		XMMATRIX gWorldViewProj;
+	} m_perObjConstantBuffer;
 };
 
 

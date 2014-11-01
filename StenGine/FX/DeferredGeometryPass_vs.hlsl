@@ -17,8 +17,8 @@ cbuffer cbPerObject : register(b0) {
 	float4x4 gWorldView;
 	float4x4 gWorld;
 	float4x4 gViewProj;
-	Material gMaterial;
 	float4x4 gShadowTransform;
+	Material gMaterial;
 	int4 gDiffX_NormY_ShadZ;
 };
 
@@ -27,11 +27,12 @@ cbuffer cbPerFrame : register(b1) {
 	float4 gEyePosW;
 };
 
-Texture2D gDiffuseMap;
-Texture2D gNormalMap;
-Texture2D gShadowMap;
-Texture2D gBumpMap;
-TextureCube gCubeMap;
+Texture2D gDiffuseMap: register(t0);
+Texture2D gNormalMap: register(t1);
+Texture2D gBumpMap: register(t2);
+TextureCube gCubeMap: register(t4);
+
+Texture2D gShadowMap: register(t3);
 
 SamplerState samLinear
 {

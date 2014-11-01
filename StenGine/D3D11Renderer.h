@@ -18,6 +18,7 @@ public:
 	ID3D11DeviceContext* GetD3DContext() { return m_d3d11DeviceContext; }
 	float GetAspectRatio() { return static_cast<float>(m_clientWidth) / static_cast<float>(m_clientHeight); }
 	Skybox* m_SkyBox;
+	ID3D11RasterizerState* m_depthRS;
 
 private:
 	static D3D11Renderer* _instance;
@@ -37,9 +38,9 @@ private:
 
 	D3D11_VIEWPORT m_screenViewpot;
 	D3D11_VIEWPORT m_screenSuperSampleViewpot;
-	ID3D11RasterizerState * m_wireFrameRS;
+	ID3D11RasterizerState* m_wireFrameRS;
 	ID3D11SamplerState* m_samplerState;
-	
+	ID3D11SamplerState* m_shadowSamplerState;
 
 #pragma region DEDERRED_RENDER
 	ID3D11RenderTargetView* m_diffuseBufferRTV;

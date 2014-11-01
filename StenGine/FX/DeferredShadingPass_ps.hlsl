@@ -108,7 +108,7 @@ PSOut main(PSIn input)
 	//---------------------- below for screen composition -----------------------//
 	PSOut pOut;
 
-	float z = gDepthGB.Sample(samAnisotropic, input.Tex);// tex2D(DepthSampler, vTexCoord);
+	float z = gDepthGB.Sample(gSamplerStateLinear, input.Tex);// tex2D(DepthSampler, vTexCoord);
 
 	float x = input.Tex.x * 2 - 1;
 	float y = (1 - input.Tex.y) * 2 - 1;
@@ -126,23 +126,23 @@ PSOut main(PSIn input)
 	float4 specColor = float4(0, 0, 0, 0);
 
 	float3 normalV;
-	normalV.xy = gNormalGB.Sample(samAnisotropic, input.Tex).xy;
+	normalV.xy = gNormalGB.Sample(gSamplerStateLinear, input.Tex).xy;
 	normalV.z = - sqrt(1 - dot(normalV.xy, normalV.xy));
 
 
 
 	float diffuseK = dot(-gDirLight.direction, normalV);
-	float shadowLit = 1; gDiffuseGB.Sample(samAnisotropic, input.Tex).w;
+	float shadowLit = /*1; */gDiffuseGB.Sample(gSamplerStateLinear, input.Tex).w;
 
 	if (diffuseK > 0) {
 		diffColor += diffuseK * gDirLight.intensity;
 		float3 refLight = reflect(gDirLight.direction, normalV);
 		float3 viewRay = gEyePosW - vPositionVS.xyz;
 		viewRay = normalize(viewRay);
-		specColor += gSpecularGB.Sample(samAnisotropic, input.Tex) * pow(max(dot(refLight, viewRay), 0), gSpecularGB.Sample(samAnisotropic, input.Tex).w * 255.0f);
+		specColor += gSpecularGB.Sample(gSamplerStateLinear, input.Tex) * pow(max(dot(refLight, viewRay), 0), gSpecularGB.Sample(gSamplerStateLinear, input.Tex).w * 255.0f);
 	}
 
-	pOut.DeferredShade = (float4(0.2, 0.2, 0.2, 0) + diffColor * shadowLit) * gDiffuseGB.Sample(samAnisotropic, input.Tex) + specColor * shadowLit /*+ float4(1, 1, 1, 1) * vPositionVS.z / 20*/;
+	pOut.DeferredShade = (float4(0.2, 0.2, 0.2, 0) + diffColor * shadowLit) * gDiffuseGB.Sample(gSamplerStateLinear, input.Tex) + specColor * shadowLit /*+ float4(1, 1, 1, 1) * vPositionVS.z / 20*/;
 	
 	// ---------------- SSAO ---------------//
 

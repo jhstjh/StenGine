@@ -103,9 +103,9 @@ void ShadowMap::RenderShadowMap() {
 	D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 
-	for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_stdMeshEffect->m_associatedMeshes.size(); iMesh++) {
-		if (EffectsManager::Instance()->m_stdMeshEffect->m_associatedMeshes[iMesh]->m_castShadow)
-			EffectsManager::Instance()->m_stdMeshEffect->m_associatedMeshes[iMesh]->DrawOnShadowMap();
+	for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
+		if (EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->m_castShadow)
+			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->DrawOnShadowMap();
 	}
 
 }

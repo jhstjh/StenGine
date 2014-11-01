@@ -184,7 +184,21 @@ bool D3D11Renderer::Init() {
 	hr = m_d3d11Device->CreateSamplerState(&samplerDesc, &m_samplerState);
 	assert(SUCCEEDED(hr));
 
+	D3D11_SAMPLER_DESC shadowSamplerDesc;
+	ZeroMemory(&shadowSamplerDesc, sizeof(D3D11_SAMPLER_DESC));
+	shadowSamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+	shadowSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSamplerDesc.BorderColor[0] = 0;
+	shadowSamplerDesc.BorderColor[1] = 0;
+	shadowSamplerDesc.BorderColor[2] = 0;
+	shadowSamplerDesc.BorderColor[3] = 0;
+	shadowSamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
 
+	// Create the texture shadowSampler state.
+	hr = m_d3d11Device->CreateSamplerState(&shadowSamplerDesc, &m_shadowSamplerState);
+	assert(SUCCEEDED(hr));
 
 
 	//-----------------setup MRT---------------------
@@ -327,6 +341,19 @@ bool D3D11Renderer::Init() {
 
 	HR(m_d3d11Device->CreateRasterizerState(&wireframeDesc, &m_wireFrameRS));
 
+	D3D11_RASTERIZER_DESC depthDesc;
+	ZeroMemory(&depthDesc, sizeof(D3D11_RASTERIZER_DESC));
+	depthDesc.FillMode = D3D11_FILL_SOLID;
+	depthDesc.CullMode = D3D11_CULL_BACK;
+	depthDesc.DepthBias = 100000;
+	depthDesc.FrontCounterClockwise = false;
+	depthDesc.DepthClipEnable = true;
+	depthDesc.DepthBiasClamp = 0.0f;
+	depthDesc.SlopeScaledDepthBias = 1.0f;
+
+	HR(m_d3d11Device->CreateRasterizerState(&depthDesc, &m_depthRS));
+
+
 	DirectionalLight* dLight = new DirectionalLight();
 	dLight->intensity = XMFLOAT4(1, 1, 1, 1);
 	dLight->direction = MatrixHelper::NormalizeFloat3(XMFLOAT3(-0.5, -2, 1));
@@ -344,7 +371,7 @@ bool D3D11Renderer::Init() {
 
 void D3D11Renderer::Draw() {
 
-//	LightManager::Instance()->m_shadowMap->RenderShadowMap();
+	LightManager::Instance()->m_shadowMap->RenderShadowMap();
 
  	ID3D11ShaderResourceView* nullSRV[16] = { 0 };
  	
@@ -388,12 +415,16 @@ void D3D11Renderer::Draw() {
 		m_d3d11DeviceContext->IASetInputLayout(EffectsManager::Instance()->m_deferredGeometryPassEffect->GetInputLayout());
 		DirectionalLight* d = LightManager::Instance()->m_dirLights[0];
 		//activeFX->TheShadowMap->SetResource(LightManager::Instance()->m_shadowMap->GetDepthSRV());
+		EffectsManager::Instance()->m_deferredGeometryPassEffect->m_shaderResources[3] = LightManager::Instance()->m_shadowMap->GetDepthSRV();
 
 		XMFLOAT4 pos = CameraManager::Instance()->GetActiveCamera()->GetPos();
 		//activeFX->EyePosW->SetRawValue(&pos, 0, 3 * sizeof(float));
 		EffectsManager::Instance()->m_deferredGeometryPassEffect->m_perFrameConstantBuffer.EyePosW = pos;
 
-		m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_samplerState);
+		ID3D11SamplerState* samplerState[] = { m_samplerState, m_shadowSamplerState };
+		m_d3d11DeviceContext->PSSetSamplers(0, 2, samplerState);
+		m_d3d11DeviceContext->VSSetSamplers(0, 2, samplerState);
+
 		for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
 			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->Draw();
 		}
@@ -458,6 +489,7 @@ void D3D11Renderer::Draw() {
 	deferredShadingEffect->m_shaderResources[3] = m_deferredRenderShaderResourceView;
 
 	m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_samplerState);
+
 	deferredShadingEffect->UpdateConstantBuffer();
 	deferredShadingEffect->BindConstantBuffer();
 	deferredShadingEffect->BindShaderResource();

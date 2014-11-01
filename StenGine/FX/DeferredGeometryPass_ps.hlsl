@@ -17,8 +17,8 @@ cbuffer cbPerObject : register(b0) {
 	float4x4 gWorldView;
 	float4x4 gWorld;
 	float4x4 gViewProj;
-	Material gMaterial;
 	float4x4 gShadowTransform;
+	Material gMaterial;
 	float4 gDiffX_NormY_ShadZ;
 };
 
@@ -27,13 +27,15 @@ cbuffer cbPerFrame : register(b1) {
 	float4 gEyePosW;
 };
 
-Texture2D gDiffuseMap;
-Texture2D gNormalMap;
-Texture2D gShadowMap;
-Texture2D gBumpMap;
-TextureCube gCubeMap;
+Texture2D gDiffuseMap: register(t0);
+Texture2D gNormalMap: register(t1);
+Texture2D gBumpMap: register(t2);
+TextureCube gCubeMap: register(t4);
 
-SamplerState gDiffuseMapSampler;
+Texture2D gShadowMap: register(t3);
+
+SamplerState gDiffuseMapSampler: register(s0);
+SamplerComparisonState gShadowSampler: register(s1);
 
 SamplerState samLinear
 {
@@ -111,8 +113,8 @@ PixelOut main(VertexOut pin)
 	float depth = pin.ShadowPosH.z;
 	float shadowLit = 1 - gDiffX_NormY_ShadZ.z;
 
-// 	shadowLit += gShadowMap.SampleCmpLevelZero(samShadow,
-// 		pin.ShadowPosH.xy, depth).r;
+	shadowLit += gShadowMap.SampleCmpLevelZero(gShadowSampler,
+ 		pin.ShadowPosH.xy, depth).r;
 
 
 

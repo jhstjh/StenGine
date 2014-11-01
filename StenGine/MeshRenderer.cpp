@@ -371,55 +371,53 @@ void Mesh::Draw() {
 		}
  	}
 #else
-	ID3DX11EffectTechnique* tech = m_associatedDeferredEffect->GetActiveTech();
+
 		UINT stride = sizeof(Vertex::StdMeshVertex);
 		UINT offset = 0;
-		if (m_bumpMapSRV) {
-			
-		}
-		else {
-			
-		}
+
 		D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
 		D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
-		(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.Mat = m_material;
+		DeferredGeometryPassEffect* deferredGeoEffect = (dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect));
+
+		deferredGeoEffect->m_perObjConstantBuffer.Mat = m_material;
 		XMFLOAT4 resourceMask(0, 0, 0, 0);
 		if (m_diffuseMapSRV) {
 			resourceMask.x = 1;
-			(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_shaderResources[0] = m_diffuseMapSRV;
+			deferredGeoEffect->m_shaderResources[0] = m_diffuseMapSRV;
 		}
 		if (m_normalMapSRV) {
 			resourceMask.y = 1;
-			(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_shaderResources[1] = m_normalMapSRV;
+			deferredGeoEffect->m_shaderResources[1] = m_normalMapSRV;
 		}
 		if (m_receiveShadow)
 			resourceMask.z = 1;
-		(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.DiffX_NormY_ShadZ = resourceMask;
-	
-		(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_shaderResources[4] = D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV;
-		(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+		deferredGeoEffect->m_perObjConstantBuffer.DiffX_NormY_ShadZ = resourceMask;
+
+		deferredGeoEffect->m_shaderResources[4] = D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV;
+		deferredGeoEffect->m_shaderResources[3] = LightManager::Instance()->m_shadowMap->GetDepthSRV();
+		deferredGeoEffect->m_perObjConstantBuffer.ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
 		for (int iP = 0; iP < m_parents.size(); iP++) {
 
 			XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
-			(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.WorldViewProj = XMMatrixTranspose(worldViewProj);
-			(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.World = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
+			deferredGeoEffect->m_perObjConstantBuffer.WorldViewProj = XMMatrixTranspose(worldViewProj);
+			deferredGeoEffect->m_perObjConstantBuffer.World = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
 			XMMATRIX worldInvTranspose = MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
-			(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.WorldInvTranspose = XMMatrixTranspose(worldInvTranspose);
+			deferredGeoEffect->m_perObjConstantBuffer.WorldInvTranspose = XMMatrixTranspose(worldInvTranspose);
 
 			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
-			(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.WorldView = XMMatrixTranspose(worldView);
+			deferredGeoEffect->m_perObjConstantBuffer.WorldView = XMMatrixTranspose(worldView);
 
 			XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
-			(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.WorldViewInvTranspose = XMMatrixTranspose(worldViewInvTranspose);
+			deferredGeoEffect->m_perObjConstantBuffer.WorldViewInvTranspose = XMMatrixTranspose(worldViewInvTranspose);
 
 			XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
-			(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_perObjConstantBuffer.ShadowTransform = XMMatrixTranspose(worldShadowMapTransform);
+			deferredGeoEffect->m_perObjConstantBuffer.ShadowTransform = XMMatrixTranspose(worldShadowMapTransform);
 
 			if (0 && m_bumpMapSRV) {
 				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-				(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->m_shaderResources[3] = m_bumpMapSRV;
+				deferredGeoEffect->m_shaderResources[3] = m_bumpMapSRV;
 				//tech = dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect)->DeferredShaderTessTech;
 				//D3DX11_TECHNIQUE_DESC techDesc;
 				//tech->GetDesc(&techDesc);
@@ -434,12 +432,12 @@ void Mesh::Draw() {
 			}
 			else {
 				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-				(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->UpdateConstantBuffer();
-				(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->BindConstantBuffer();
-				(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->BindShaderResource();
+				deferredGeoEffect->UpdateConstantBuffer();
+				deferredGeoEffect->BindConstantBuffer();
+				deferredGeoEffect->BindShaderResource();
 				D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
-				(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->UnBindShaderResource();
-				(dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect))->UnBindConstantBuffer();
+				deferredGeoEffect->UnBindShaderResource();
+				deferredGeoEffect->UnBindConstantBuffer();
 			}
 		}
 
@@ -447,24 +445,21 @@ void Mesh::Draw() {
 }
 
 void Mesh::DrawOnShadowMap() {
-	ID3DX11EffectTechnique* tech = EffectsManager::Instance()->m_shadowMapEffect->GetActiveTech();
-
 	UINT stride = sizeof(Vertex::ShadowMapVertex);
 	UINT offset = 0;
+	EffectsManager::Instance()->m_shadowMapEffect->SetShader();
+	//D3D11Renderer::Instance()->GetD3DContext()->RSSetState(D3D11Renderer::Instance()->m_depthRS);
 	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_shadowMapVertexBufferGPU, &stride, &offset);
 	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
 	for (int iP = 0; iP < m_parents.size(); iP++) {
 		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
-		EffectsManager::Instance()->m_shadowMapEffect->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
-
-		D3DX11_TECHNIQUE_DESC techDesc;
-		tech->GetDesc(&techDesc);
-		for (UINT p = 0; p < techDesc.Passes; ++p)
-		{
-			tech->GetPassByIndex(p)->Apply(0, D3D11Renderer::Instance()->GetD3DContext());
-
-			D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
-		}
+		EffectsManager::Instance()->m_shadowMapEffect->m_perObjConstantBuffer.gWorldViewProj = XMMatrixTranspose(worldViewProj);
+		EffectsManager::Instance()->m_shadowMapEffect->UpdateConstantBuffer();
+		EffectsManager::Instance()->m_shadowMapEffect->BindConstantBuffer();
+		D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
+		EffectsManager::Instance()->m_shadowMapEffect->UnBindConstantBuffer();
 	}
+	EffectsManager::Instance()->m_shadowMapEffect->UnSetShader();
+	D3D11Renderer::Instance()->GetD3DContext()->RSSetState(0);
 }

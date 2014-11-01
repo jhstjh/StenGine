@@ -166,22 +166,52 @@ StdMeshEffect::~StdMeshEffect()
 
 
 ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
-	: Effect(filename)
+	: Effect(filename + L"_vs.hlsl", L"")
 {
-	ShadowMapTech = m_fx->GetTechniqueByName("BuildShadowMapTech");
-	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
 
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	D3DX11_PASS_DESC passDesc;
-	ShadowMapTech->GetPassByIndex(0)->GetDesc(&passDesc);
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, passDesc.pIAInputSignature,
-		passDesc.IAInputSignatureSize, &m_inputLayout));
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
-	m_activeTech = ShadowMapTech;
+	{
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = &m_perObjConstantBuffer;
+		InitData.SysMemPitch = 0;
+		InitData.SysMemSlicePitch = 0;
+
+		HRESULT hr;
+		// Create the buffer.
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+			&m_perObjectCB);
+
+		assert(SUCCEEDED(hr));
+	}
+}
+
+void ShadowMapEffect::UpdateConstantBuffer() {
+	{
+		D3D11_MAPPED_SUBRESOURCE ms;
+		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
+		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perObjectCB, NULL);
+	}
+}
+
+void ShadowMapEffect::BindConstantBuffer() {
+	ID3D11Buffer* cbuf[] = { m_perObjectCB };
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 1, cbuf);
 }
 
 ShadowMapEffect::~ShadowMapEffect()
@@ -476,7 +506,7 @@ SkyboxEffect::~SkyboxEffect()
 EffectsManager* EffectsManager::_instance = nullptr;
 EffectsManager::EffectsManager() {
 	//m_stdMeshEffect = new StdMeshEffect(L"FX/StdMesh.fxo");
-	//m_shadowMapEffect = new ShadowMapEffect(L"FX/ShadowMap.fxo");
+	m_shadowMapEffect = new ShadowMapEffect(L"FX/ShadowMap");
 	m_deferredGeometryPassEffect = new DeferredGeometryPassEffect(L"FX/DeferredGeometryPass");
 	m_deferredShadingPassEffect = new DeferredShadingPassEffect(L"FX/DeferredShadingPass");
 

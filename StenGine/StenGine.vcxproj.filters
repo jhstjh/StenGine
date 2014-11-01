@@ -201,5 +201,8 @@
     <FxCompile Include="FX\DeferredShadingPass_ps.hlsl">
       <Filter>FX</Filter>
     </FxCompile>
+    <FxCompile Include="FX\ShadowMap_vs.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
