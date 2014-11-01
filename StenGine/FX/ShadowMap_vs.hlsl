@@ -19,6 +19,7 @@ struct VertexOut {
 VertexOut main(VertexIn vin) {
 	VertexOut vout;
 	vout.PosH = mul(float4(vin.PosL, 1.0f), gWorldViewProj);
+	//vout.PosH.z = 0;
 	return vout;
 }
 

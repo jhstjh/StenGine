@@ -34,7 +34,7 @@ Mesh::~Mesh() {
 
 void Mesh::Prepare() {
 	PrepareGPUBuffer();
-//	PrepareShadowMapBuffer();
+	PrepareShadowMapBuffer();
 }
 
 void Mesh::CreateBoxPrimitive() {
@@ -447,8 +447,7 @@ void Mesh::Draw() {
 void Mesh::DrawOnShadowMap() {
 	UINT stride = sizeof(Vertex::ShadowMapVertex);
 	UINT offset = 0;
-	EffectsManager::Instance()->m_shadowMapEffect->SetShader();
-	//D3D11Renderer::Instance()->GetD3DContext()->RSSetState(D3D11Renderer::Instance()->m_depthRS);
+	
 	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_shadowMapVertexBufferGPU, &stride, &offset);
 	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
@@ -460,6 +459,4 @@ void Mesh::DrawOnShadowMap() {
 		D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
 		EffectsManager::Instance()->m_shadowMapEffect->UnBindConstantBuffer();
 	}
-	EffectsManager::Instance()->m_shadowMapEffect->UnSetShader();
-	D3D11Renderer::Instance()->GetD3DContext()->RSSetState(0);
 }

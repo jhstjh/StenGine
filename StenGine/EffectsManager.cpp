@@ -104,15 +104,15 @@ void Effect::UnBindShaderResource() {
 }
 
 void Effect::SetShader() {
-	if (m_vertexShader)
+	//if (m_vertexShader)
 		D3D11Renderer::Instance()->GetD3DContext()->VSSetShader(m_vertexShader, 0, 0);
-	if (m_pixelShader)
+	//if (m_pixelShader)
 		D3D11Renderer::Instance()->GetD3DContext()->PSSetShader(m_pixelShader, 0, 0);
-	if (m_geometryShader)
+	//if (m_geometryShader)
 		D3D11Renderer::Instance()->GetD3DContext()->GSSetShader(m_geometryShader, 0, 0);
-	if (m_hullShader)
+	//if (m_hullShader)
 		D3D11Renderer::Instance()->GetD3DContext()->HSSetShader(m_hullShader, 0, 0);
-	if (m_domainShader)
+	//if (m_domainShader)
 		D3D11Renderer::Instance()->GetD3DContext()->DSSetShader(m_domainShader, 0, 0);
 }
 
@@ -198,6 +198,12 @@ ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
 
 		assert(SUCCEEDED(hr));
 	}
+
+	ReleaseCOM(m_vsBlob);
+	ReleaseCOM(m_psBlob);
+	ReleaseCOM(m_gsBlob);
+	ReleaseCOM(m_hsBlob);
+	ReleaseCOM(m_dsBlob);
 }
 
 void ShadowMapEffect::UpdateConstantBuffer() {

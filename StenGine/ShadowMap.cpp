@@ -99,6 +99,9 @@ void ShadowMap::RenderShadowMap() {
 	XMStoreFloat4x4(&m_lightProj, P);
 	XMStoreFloat4x4(&m_shadowTransform, S);
 
+	D3D11Renderer::Instance()->GetD3DContext()->RSSetState(D3D11Renderer::Instance()->m_depthRS);
+
+	EffectsManager::Instance()->m_shadowMapEffect->SetShader();
 	D3D11Renderer::Instance()->GetD3DContext()->IASetInputLayout(EffectsManager::Instance()->m_shadowMapEffect->GetInputLayout());
 	D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -108,4 +111,6 @@ void ShadowMap::RenderShadowMap() {
 			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->DrawOnShadowMap();
 	}
 
+	EffectsManager::Instance()->m_shadowMapEffect->UnSetShader();
+	D3D11Renderer::Instance()->GetD3DContext()->RSSetState(0);
 }
