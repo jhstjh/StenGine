@@ -16,23 +16,31 @@ protected:
 	ID3D11GeometryShader* m_geometryShader;
 	ID3D11HullShader* m_hullShader;
 	ID3D11DomainShader* m_domainShader;
-	
+	ID3D11ComputeShader* m_computeShader;
+
 	ID3DBlob *m_vsBlob;
 	ID3DBlob *m_psBlob;
 	ID3DBlob *m_gsBlob;
 	ID3DBlob *m_hsBlob;
 	ID3DBlob *m_dsBlob;
+	ID3DBlob *m_csBlob;
 
 	ID3D11InputLayout* m_inputLayout;
 	std::vector<D3D11_INPUT_ELEMENT_DESC> m_vertexDesc;
 	ID3D11ShaderResourceView** m_shaderResources;
+	ID3D11ShaderResourceView** m_outputShaderResources;
+	ID3D11UnorderedAccessView** m_unorderedAccessViews;
+
+	void ReadShaderFile(std::wstring filename, ID3DBlob **blob, char* target, char* entryPoint = "main");
+
 public:
 	Effect(const std::wstring& filename);
 	Effect(const std::wstring& vsPath,
 		   const std::wstring& psPath,
 		   const std::wstring& gsPath,
 		   const std::wstring& hsPath,
-		   const std::wstring& dsPath);
+		   const std::wstring& dsPath,
+		   const std::wstring& csPath);
 	virtual ~Effect();
 	virtual void SetShader();
 	virtual void UpdateConstantBuffer() = 0;
@@ -42,6 +50,8 @@ public:
 	virtual void UnBindShaderResource();
 	virtual void UnSetShader();
 	virtual void SetShaderResources(ID3D11ShaderResourceView* res, int idx);
+	virtual ID3D11ShaderResourceView* GetOutputShaderResource(int idx);
+	//virtual void GetUAVResources(ID3D11UnorderedAccessView* res, int idx) {}
 	ID3D11InputLayout* GetInputLayout() { return m_inputLayout; }
 	std::vector<Mesh*> m_associatedMeshes;
 };
@@ -279,6 +289,33 @@ public:
 //--------------------------------------------------------------------//
 
 
+class CBlurEffect : public Effect {
+private:
+	ID3D11Buffer* m_settingCB;
+
+public:
+	CBlurEffect(const std::wstring& filename);
+	~CBlurEffect();
+
+	virtual void UpdateConstantBuffer();
+	virtual void BindConstantBuffer();
+	virtual void BindShaderResource();
+
+	struct SETTING_CONSTANT_BUFFER
+	{
+		XMFLOAT2 texOffset;
+		XMFLOAT2 pad;
+	} m_settingConstantBuffer;
+
+	/// Texture2D gScreenMap;
+	/// Texture2D gSSAOMap;
+	//ID3D11ShaderResourceView *m_shaderResources[2];
+};
+
+
+//--------------------------------------------------------------------//
+
+
 class EffectsManager {
 private:
 	static EffectsManager* _instance;
@@ -301,6 +338,7 @@ public:
 	//GodRayEffect* m_godrayEffect;
 	SkyboxEffect* m_skyboxEffect;
 	BlurEffect* m_blurEffect;
+	CBlurEffect* m_cblurEffect;
 };
 
 #endif

@@ -17,6 +17,8 @@ public:
 	ID3D11Device* GetD3DDevice() { return m_d3d11Device; }
 	ID3D11DeviceContext* GetD3DContext() { return m_d3d11DeviceContext; }
 	float GetAspectRatio() { return static_cast<float>(m_clientWidth) / static_cast<float>(m_clientHeight); }
+	int GetScreenWidth() { return m_clientWidth; }
+	int GetScreenHeight() { return m_clientHeight; }
 	Skybox* m_SkyBox;
 	ID3D11RasterizerState* m_depthRS;
 

@@ -264,5 +264,8 @@
     <FxCompile Include="FX\DeferredGeometryTessPass_vs.hlsl">
       <Filter>FX</Filter>
     </FxCompile>
+    <FxCompile Include="FX\CBlur_cs.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
