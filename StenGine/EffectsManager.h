@@ -107,6 +107,8 @@ public:
 		XMFLOAT4 EyePosW;
 	} m_perFrameConstantBuffer;
 
+	virtual PEROBJ_CONSTANT_BUFFER* GetPerObjConstantBuffer() { return &m_perObjConstantBuffer; }
+	virtual PERFRAME_CONSTANT_BUFFER* GetPerFrameConstantBuffer() { return &m_perFrameConstantBuffer; }
 	//ID3D11ShaderResourceView *m_shaderResources[5];
 };
 
@@ -126,26 +128,6 @@ public:
 	virtual void UpdateConstantBuffer();
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
-
-	struct PEROBJ_CONSTANT_BUFFER
-	{
-		XMMATRIX WorldViewProj;
-		XMMATRIX WorldViewInvTranspose;
-		XMMATRIX WorldInvTranspose;
-		XMMATRIX WorldView;
-		XMMATRIX World;
-		XMMATRIX ViewProj;
-		XMMATRIX ShadowTransform;
-		Material Mat;
-		XMFLOAT4 DiffX_NormY_ShadZ;
-	} m_perObjConstantBuffer;
-
-	struct PERFRAME_CONSTANT_BUFFER
-	{
-		XMFLOAT4 EyePosW;
-	} m_perFrameConstantBuffer;
-
-	//ID3D11ShaderResourceView *m_shaderResources[5];
 };
 
 

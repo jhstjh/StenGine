@@ -421,8 +421,8 @@ void D3D11Renderer::Draw() {
 		EffectsManager::Instance()->m_deferredGeometryTessPassEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
 
 		XMFLOAT4 pos = CameraManager::Instance()->GetActiveCamera()->GetPos();
-		EffectsManager::Instance()->m_deferredGeometryPassEffect->m_perFrameConstantBuffer.EyePosW = pos;
-		EffectsManager::Instance()->m_deferredGeometryTessPassEffect->m_perFrameConstantBuffer.EyePosW = pos;
+		EffectsManager::Instance()->m_deferredGeometryPassEffect->GetPerFrameConstantBuffer()->EyePosW = pos;
+		EffectsManager::Instance()->m_deferredGeometryTessPassEffect->GetPerFrameConstantBuffer()->EyePosW = pos;
 
 		ID3D11SamplerState* samplerState[] = { m_samplerState, m_shadowSamplerState };
 		m_d3d11DeviceContext->PSSetSamplers(0, 2, samplerState);
