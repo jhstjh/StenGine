@@ -141,14 +141,17 @@ void Effect::UnBindConstantBuffer() {
 	D3D11Renderer::Instance()->GetD3DContext()->HSSetConstantBuffers(0, 0, nullptr);
 	D3D11Renderer::Instance()->GetD3DContext()->DSSetConstantBuffers(0, 0, nullptr);
 	D3D11Renderer::Instance()->GetD3DContext()->GSSetConstantBuffers(0, 0, nullptr);
+	D3D11Renderer::Instance()->GetD3DContext()->CSSetConstantBuffers(0, 0, nullptr);
 }
 
 void Effect::UnBindShaderResource() {
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 0, nullptr);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 0, nullptr);
-	D3D11Renderer::Instance()->GetD3DContext()->HSSetShaderResources(0, 0, nullptr);
-	D3D11Renderer::Instance()->GetD3DContext()->DSSetShaderResources(0, 0, nullptr);
-	D3D11Renderer::Instance()->GetD3DContext()->GSSetShaderResources(0, 0, nullptr);
+	static ID3D11ShaderResourceView* nullSRV[16] = { 0 };
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 16, nullSRV);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 16, nullSRV);
+	D3D11Renderer::Instance()->GetD3DContext()->HSSetShaderResources(0, 16, nullSRV);
+	D3D11Renderer::Instance()->GetD3DContext()->DSSetShaderResources(0, 16, nullSRV);
+	D3D11Renderer::Instance()->GetD3DContext()->GSSetShaderResources(0, 16, nullSRV);
+	D3D11Renderer::Instance()->GetD3DContext()->CSSetShaderResources(0, 16, nullSRV);
 }
 
 void Effect::SetShader() {
@@ -162,6 +165,8 @@ void Effect::SetShader() {
 		D3D11Renderer::Instance()->GetD3DContext()->HSSetShader(m_hullShader, 0, 0);
 	//if (m_domainShader)
 		D3D11Renderer::Instance()->GetD3DContext()->DSSetShader(m_domainShader, 0, 0);
+		//if (m_domainShader)
+		D3D11Renderer::Instance()->GetD3DContext()->CSSetShader(m_computeShader, 0, 0);
 }
 
 void Effect::UnSetShader() {
@@ -170,6 +175,7 @@ void Effect::UnSetShader() {
 	D3D11Renderer::Instance()->GetD3DContext()->HSSetShader(nullptr, 0, 0);
 	D3D11Renderer::Instance()->GetD3DContext()->GSSetShader(nullptr, 0, 0);
 	D3D11Renderer::Instance()->GetD3DContext()->DSSetShader(nullptr, 0, 0);
+	D3D11Renderer::Instance()->GetD3DContext()->CSSetShader(nullptr, 0, 0);
 }
 
 void Effect::SetShaderResources(ID3D11ShaderResourceView* res, int idx) {
@@ -829,13 +835,12 @@ void CBlurEffect::UpdateConstantBuffer() {
 
 void CBlurEffect::BindConstantBuffer() {
 	ID3D11Buffer* cbuf[] = { m_settingCB };
-	//D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 1, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 1, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->CSSetConstantBuffers(0, 1, cbuf);
 }
 
 void CBlurEffect::BindShaderResource() {
-//	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 2, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 2, m_shaderResources);
+	D3D11Renderer::Instance()->GetD3DContext()->CSSetShaderResources(0, 1, m_shaderResources);
+	D3D11Renderer::Instance()->GetD3DContext()->CSSetUnorderedAccessViews(0, 1, m_unorderedAccessViews, 0);
 }
 
 
@@ -925,7 +930,7 @@ EffectsManager::EffectsManager() {
 	m_deferredShadingPassEffect = new DeferredShadingPassEffect(L"FX/DeferredShadingPass");
 
 	m_blurEffect = new BlurEffect(L"FX/Blur");
-	//m_cblurEffect = new CBlurEffect(L"FX/CBlur");
+	m_cblurEffect = new CBlurEffect(L"FX/CBlur");
 	//m_screenQuadEffect = new ScreenQuadEffect(L"FX/ScreenQuad.fxo");
 	//m_godrayEffect = new GodRayEffect(L"FX/GodRay.fxo");
 	m_skyboxEffect = new SkyboxEffect(L"FX/Skybox");

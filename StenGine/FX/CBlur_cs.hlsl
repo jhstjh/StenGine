@@ -13,7 +13,7 @@ cbuffer cbFixed: register(b13)
 	static const int gBlurRadius = 5;
 };
 
-Texture2D gInput: register(t5);
+Texture2D gInput: register(t0);
 RWTexture2D<float4> gOutput: register(u0);
 
 #define N 256

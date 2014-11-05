@@ -493,33 +493,57 @@ void D3D11Renderer::Draw() {
 	
 	deferredShadingEffect->UnSetShader();
 
+	// --------------------//
+
+	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
+
+	CBlurEffect* CBlurEffect = EffectsManager::Instance()->m_cblurEffect;
+	CBlurEffect->SetShader();
+	CBlurEffect->UpdateConstantBuffer();
+	CBlurEffect->BindConstantBuffer();
+	CBlurEffect->SetShaderResources(m_deferredShadingSRV, 0);
+	CBlurEffect->BindShaderResource();
+	UINT numGroupsX = (UINT)ceilf(m_clientWidth / 256.0f);
+
+	m_d3d11DeviceContext->Dispatch(numGroupsX, m_clientHeight, 1);
+
+	m_d3d11DeviceContext->CSSetShaderResources(0, 1, nullSRV);
+	ID3D11UnorderedAccessView* nullUAV[1] = { 0 };
+	m_d3d11DeviceContext->CSSetUnorderedAccessViews(0, 1, nullUAV, 0);
+
+	CBlurEffect->UnBindConstantBuffer();
+	CBlurEffect->UnBindShaderResource();
+	CBlurEffect->UnSetShader();
 
 	// ------ VBlur -------//
 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
-	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_SSAORTV2, m_depthStencilView);
-	m_d3d11DeviceContext->ClearRenderTargetView(m_SSAORTV2, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
-	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+// 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_SSAORTV2, m_depthStencilView);
+// 	m_d3d11DeviceContext->ClearRenderTargetView(m_SSAORTV2, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+// 	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	BlurEffect* blurEffect = EffectsManager::Instance()->m_blurEffect;
 	blurEffect->SetShader();
 
-	blurEffect->SetShaderResources(m_SSAOSRV, 1);
-	blurEffect->m_settingConstantBuffer.texOffset = XMFLOAT2(0.0f, 1.0 / D3D11Renderer::Instance()->m_clientHeight);
-	m_d3d11DeviceContext->PSSetSamplers(0, 1, samplerState);
+// 	blurEffect->SetShaderResources(m_SSAOSRV, 1);
+// 	blurEffect->m_settingConstantBuffer.texOffset = XMFLOAT2(0.0f, 1.0 / D3D11Renderer::Instance()->m_clientHeight);
+ 	m_d3d11DeviceContext->PSSetSamplers(0, 1, samplerState);
+// 
+// 	blurEffect->UpdateConstantBuffer();
+// 	blurEffect->BindConstantBuffer();
+// 	blurEffect->BindShaderResource();
+// 	m_d3d11DeviceContext->Draw(6, 0);
+// 
+// 	blurEffect->UnBindShaderResource();
+// 	blurEffect->UnBindConstantBuffer();
 
-	blurEffect->UpdateConstantBuffer();
-	blurEffect->BindConstantBuffer();
-	blurEffect->BindShaderResource();
-	m_d3d11DeviceContext->Draw(6, 0);
-
-	blurEffect->UnBindShaderResource();
-	blurEffect->UnBindConstantBuffer();
+	// ------ HBlur -------//
 
 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
 	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	blurEffect->SetShaderResources(m_deferredShadingSRV, 0);
+	blurEffect->SetShaderResources(CBlurEffect->GetOutputShaderResource(0), 0);
 	blurEffect->SetShaderResources(m_SSAOSRV2, 1);
 	blurEffect->m_settingConstantBuffer.texOffset = XMFLOAT2(1.0 / D3D11Renderer::Instance()->m_clientWidth, 0.0f);
 	m_d3d11DeviceContext->PSSetSamplers(0, 1, samplerState);
