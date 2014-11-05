@@ -378,24 +378,35 @@ void Mesh::Draw() {
 		D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
 		D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
-		DeferredGeometryPassEffect* deferredGeoEffect = (dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect));
+		DeferredGeometryPassEffect* deferredGeoEffect;
+
+		if (!m_bumpMapSRV) 
+			deferredGeoEffect = (dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect));
+		else
+			deferredGeoEffect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect;
+
+		deferredGeoEffect->SetShader();
 
 		deferredGeoEffect->m_perObjConstantBuffer.Mat = m_material;
 		XMFLOAT4 resourceMask(0, 0, 0, 0);
 		if (m_diffuseMapSRV) {
 			resourceMask.x = 1;
-			deferredGeoEffect->m_shaderResources[0] = m_diffuseMapSRV;
+			//deferredGeoEffect->m_shaderResources[0] = m_diffuseMapSRV;
+			deferredGeoEffect->SetShaderResources(m_diffuseMapSRV, 0);
 		}
 		if (m_normalMapSRV) {
 			resourceMask.y = 1;
-			deferredGeoEffect->m_shaderResources[1] = m_normalMapSRV;
+			//deferredGeoEffect->m_shaderResources[1] = m_normalMapSRV;
+			deferredGeoEffect->SetShaderResources(m_normalMapSRV, 1);
 		}
 		if (m_receiveShadow)
 			resourceMask.z = 1;
 		deferredGeoEffect->m_perObjConstantBuffer.DiffX_NormY_ShadZ = resourceMask;
 
-		deferredGeoEffect->m_shaderResources[4] = D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV;
-		deferredGeoEffect->m_shaderResources[3] = LightManager::Instance()->m_shadowMap->GetDepthSRV();
+		//deferredGeoEffect->m_shaderResources[4] = D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV;
+		deferredGeoEffect->SetShaderResources(D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV, 4);
+		//deferredGeoEffect->m_shaderResources[3] = LightManager::Instance()->m_shadowMap->GetDepthSRV();
+		deferredGeoEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
 		deferredGeoEffect->m_perObjConstantBuffer.ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
 		for (int iP = 0; iP < m_parents.size(); iP++) {
@@ -415,19 +426,20 @@ void Mesh::Draw() {
 			XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
 			deferredGeoEffect->m_perObjConstantBuffer.ShadowTransform = XMMatrixTranspose(worldShadowMapTransform);
 
-			if (0 && m_bumpMapSRV) {
+			if (m_bumpMapSRV) {
+
 				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-				deferredGeoEffect->m_shaderResources[3] = m_bumpMapSRV;
-				//tech = dynamic_cast<DeferredShaderEffect*>(m_associatedDeferredEffect)->DeferredShaderTessTech;
-				//D3DX11_TECHNIQUE_DESC techDesc;
-				//tech->GetDesc(&techDesc);
-				//for (UINT p = 0; p < techDesc.Passes; ++p)
-				//{
-					//tech->GetPassByIndex(p)->Apply(0, D3D11Renderer::Instance()->GetD3DContext());
-					D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
-				//}
-				D3D11Renderer::Instance()->GetD3DContext()->HSSetShader(0, 0, 0);
-				D3D11Renderer::Instance()->GetD3DContext()->DSSetShader(0, 0, 0);
+				//deferredGeoEffect->m_shaderResources[3] = m_bumpMapSRV;
+				DeferredGeometryTessPassEffect* realShader = dynamic_cast<DeferredGeometryTessPassEffect*>(deferredGeoEffect);
+				memcpy(&(realShader->m_perObjConstantBuffer), &(deferredGeoEffect->m_perObjConstantBuffer), sizeof(DeferredGeometryTessPassEffect::PEROBJ_CONSTANT_BUFFER));
+				deferredGeoEffect->SetShaderResources(m_bumpMapSRV, 2);
+				deferredGeoEffect->UpdateConstantBuffer();
+				deferredGeoEffect->BindConstantBuffer();
+				deferredGeoEffect->BindShaderResource();
+				D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
+				deferredGeoEffect->UnBindShaderResource();
+				deferredGeoEffect->UnBindConstantBuffer();
+
 				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			}
 			else {
@@ -440,7 +452,7 @@ void Mesh::Draw() {
 				deferredGeoEffect->UnBindConstantBuffer();
 			}
 		}
-
+		deferredGeoEffect->UnSetShader();
 #endif
 }
 

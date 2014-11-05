@@ -80,10 +80,77 @@ Effect::Effect(const std::wstring& vsPath,
 		);
 		assert(SUCCEEDED(hr));
 	}
+
+	if (gsPath.length()) {
+		hr = D3DCompileFromFile(
+			psPath.c_str(),
+			nullptr,
+			D3D_COMPILE_STANDARD_FILE_INCLUDE,
+			"main",
+			"gs_5_0",
+			D3DCOMPILE_DEBUG,
+			0,
+			&m_gsBlob,
+			nullptr
+			);
+		assert(SUCCEEDED(hr));
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateGeometryShader(
+			m_gsBlob->GetBufferPointer(),
+			m_gsBlob->GetBufferSize(),
+			nullptr,
+			&m_geometryShader
+			);
+		assert(SUCCEEDED(hr));
+	}
+
+	if (hsPath.length()) {
+		hr = D3DCompileFromFile(
+			hsPath.c_str(),
+			nullptr,
+			D3D_COMPILE_STANDARD_FILE_INCLUDE,
+			"main",
+			"hs_5_0",
+			D3DCOMPILE_DEBUG,
+			0,
+			&m_hsBlob,
+			nullptr
+			);
+		assert(SUCCEEDED(hr));
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateHullShader(
+			m_hsBlob->GetBufferPointer(),
+			m_hsBlob->GetBufferSize(),
+			nullptr,
+			&m_hullShader
+			);
+		assert(SUCCEEDED(hr));
+	}
+
+	if (dsPath.length()) {
+		hr = D3DCompileFromFile(
+			dsPath.c_str(),
+			nullptr,
+			D3D_COMPILE_STANDARD_FILE_INCLUDE,
+			"main",
+			"ds_5_0",
+			D3DCOMPILE_DEBUG,
+			0,
+			&m_dsBlob,
+			nullptr
+			);
+		assert(SUCCEEDED(hr));
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateDomainShader(
+			m_dsBlob->GetBufferPointer(),
+			m_dsBlob->GetBufferSize(),
+			nullptr,
+			&m_domainShader
+			);
+		assert(SUCCEEDED(hr));
+	}
 }
 
 Effect::~Effect()
 {
+	SafeDeleteArray(m_shaderResources);
 	ReleaseCOM(m_vertexShader);
 	ReleaseCOM(m_pixelShader);
 	ReleaseCOM(m_geometryShader);
@@ -94,11 +161,17 @@ Effect::~Effect()
 void Effect::UnBindConstantBuffer() {
 	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 0, nullptr);
 	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 0, nullptr);
+	D3D11Renderer::Instance()->GetD3DContext()->HSSetConstantBuffers(0, 0, nullptr);
+	D3D11Renderer::Instance()->GetD3DContext()->DSSetConstantBuffers(0, 0, nullptr);
+	D3D11Renderer::Instance()->GetD3DContext()->GSSetConstantBuffers(0, 0, nullptr);
 }
 
 void Effect::UnBindShaderResource() {
 	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 0, nullptr);
 	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 0, nullptr);
+	D3D11Renderer::Instance()->GetD3DContext()->HSSetShaderResources(0, 0, nullptr);
+	D3D11Renderer::Instance()->GetD3DContext()->DSSetShaderResources(0, 0, nullptr);
+	D3D11Renderer::Instance()->GetD3DContext()->GSSetShaderResources(0, 0, nullptr);
 }
 
 void Effect::SetShader() {
@@ -121,6 +194,11 @@ void Effect::UnSetShader() {
 	D3D11Renderer::Instance()->GetD3DContext()->GSSetShader(nullptr, 0, 0);
 	D3D11Renderer::Instance()->GetD3DContext()->DSSetShader(nullptr, 0, 0);
 }
+
+void Effect::SetShaderResources(ID3D11ShaderResourceView* res, int idx) {
+	m_shaderResources[idx] = res;
+}
+
 //------------------------------------------------------------//
 
 
@@ -227,6 +305,12 @@ ShadowMapEffect::~ShadowMapEffect()
 //------------------------------------------------------------//
 
 
+DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath) 
+	:Effect(vsPath, psPath, gsPath, hsPath, dsPath)
+{
+
+}
+
 DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filename)
 	: Effect(filename + L"_vs.hlsl", filename + L"_ps.hlsl")
 {
@@ -240,6 +324,8 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filen
 
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 4, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
+
+	m_shaderResources = new ID3D11ShaderResourceView*[5];
 
 	for (int i = 0; i < 5; i++) {
 		m_shaderResources[i] = 0;
@@ -331,6 +417,124 @@ void DeferredGeometryPassEffect::BindShaderResource() {
 }
 
 
+//------------------------------------------------------------//
+
+
+DeferredGeometryTessPassEffect::DeferredGeometryTessPassEffect(const std::wstring& filename)
+	: DeferredGeometryPassEffect(
+	filename + L"_vs.hlsl", 
+	filename + L"_ps.hlsl",
+	L"",
+	filename + L"_hs.hlsl",
+	filename + L"_ds.hlsl")
+{
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 4, m_vsBlob->GetBufferPointer(),
+		m_vsBlob->GetBufferSize(), &m_inputLayout));
+
+	m_shaderResources = new ID3D11ShaderResourceView*[5];
+
+	for (int i = 0; i < 5; i++) {
+		m_shaderResources[i] = 0;
+	}
+
+	{
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = &m_perObjConstantBuffer;
+		InitData.SysMemPitch = 0;
+		InitData.SysMemSlicePitch = 0;
+
+		HRESULT hr;
+		// Create the buffer.
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+			&m_perObjectCB);
+
+		assert(SUCCEEDED(hr));
+	}
+
+	{
+		// Fill in a buffer description.
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		// Fill in the subresource data.
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = &m_perFrameConstantBuffer;
+		InitData.SysMemPitch = 0;
+		InitData.SysMemSlicePitch = 0;
+
+		HRESULT hr;
+		// Create the buffer.
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+			&m_perFrameCB);
+
+		assert(SUCCEEDED(hr));
+	}
+
+	ReleaseCOM(m_vsBlob);
+	ReleaseCOM(m_psBlob);
+	ReleaseCOM(m_gsBlob);
+	ReleaseCOM(m_hsBlob);
+	ReleaseCOM(m_dsBlob);
+}
+
+DeferredGeometryTessPassEffect::~DeferredGeometryTessPassEffect()
+{
+	ReleaseCOM(m_inputLayout);
+}
+
+void DeferredGeometryTessPassEffect::UpdateConstantBuffer() {
+	{
+		D3D11_MAPPED_SUBRESOURCE ms;
+		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
+		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perObjectCB, NULL);
+	}
+
+	{	
+		D3D11_MAPPED_SUBRESOURCE ms;
+		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
+		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perFrameCB, NULL);
+	}
+}
+
+void DeferredGeometryTessPassEffect::BindConstantBuffer() {
+	ID3D11Buffer* cbuf[] = { m_perObjectCB, m_perFrameCB };
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 2, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 2, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->HSSetConstantBuffers(0, 2, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->DSSetConstantBuffers(0, 2, cbuf);
+}
+
+void DeferredGeometryTessPassEffect::BindShaderResource() {
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 5, m_shaderResources);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 5, m_shaderResources);
+	D3D11Renderer::Instance()->GetD3DContext()->HSSetShaderResources(0, 5, m_shaderResources);
+	D3D11Renderer::Instance()->GetD3DContext()->DSSetShaderResources(0, 5, m_shaderResources);
+}
+
+
 //----------------------------------------------------------//
 
 
@@ -345,6 +549,7 @@ DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filenam
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
+	m_shaderResources = new ID3D11ShaderResourceView*[4];
 	for (int i = 0; i < 4; i++) {
 		m_shaderResources[i] = 0;
 	}
@@ -488,6 +693,11 @@ SkyboxEffect::SkyboxEffect(const std::wstring& filename)
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
+	m_shaderResources = new ID3D11ShaderResourceView*[1];
+	for (int i = 0; i < 1; i++) {
+		m_shaderResources[i] = 0;
+	}
+
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
@@ -558,6 +768,7 @@ BlurEffect::BlurEffect(const std::wstring& filename)
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
+	m_shaderResources = new ID3D11ShaderResourceView*[2];
 	for (int i = 0; i < 2; i++) {
 		m_shaderResources[i] = 0;
 	}
@@ -626,7 +837,9 @@ EffectsManager::EffectsManager() {
 	//m_stdMeshEffect = new StdMeshEffect(L"FX/StdMesh.fxo");
 	m_shadowMapEffect = new ShadowMapEffect(L"FX/ShadowMap");
 	m_deferredGeometryPassEffect = new DeferredGeometryPassEffect(L"FX/DeferredGeometryPass");
+	m_deferredGeometryTessPassEffect = new DeferredGeometryTessPassEffect(L"FX/DeferredGeometryTessPass");
 	m_deferredShadingPassEffect = new DeferredShadingPassEffect(L"FX/DeferredShadingPass");
+
 	m_blurEffect = new BlurEffect(L"FX/Blur");
 	//m_screenQuadEffect = new ScreenQuadEffect(L"FX/ScreenQuad.fxo");
 	//m_godrayEffect = new GodRayEffect(L"FX/GodRay.fxo");
@@ -645,4 +858,5 @@ EffectsManager::~EffectsManager() {
 	//SafeDelete(m_screenQuadEffect);
 	//SafeDelete(m_godrayEffect);
 	SafeDelete(m_skyboxEffect);
+	SafeDelete(m_blurEffect);
 }

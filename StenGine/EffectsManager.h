@@ -25,6 +25,7 @@ protected:
 
 	ID3D11InputLayout* m_inputLayout;
 	std::vector<D3D11_INPUT_ELEMENT_DESC> m_vertexDesc;
+	ID3D11ShaderResourceView** m_shaderResources;
 public:
 	Effect(const std::wstring& filename);
 	Effect(const std::wstring& vsPath,
@@ -40,6 +41,7 @@ public:
 	virtual void UnBindConstantBuffer();
 	virtual void UnBindShaderResource();
 	virtual void UnSetShader();
+	virtual void SetShaderResources(ID3D11ShaderResourceView* res, int idx);
 	ID3D11InputLayout* GetInputLayout() { return m_inputLayout; }
 	std::vector<Mesh*> m_associatedMeshes;
 };
@@ -76,6 +78,11 @@ private:
 
 public:
 	DeferredGeometryPassEffect(const std::wstring& filename);
+	DeferredGeometryPassEffect(const std::wstring& vsPath,
+		const std::wstring& psPath,
+		const std::wstring& gsPath,
+		const std::wstring& hsPath,
+		const std::wstring& dsPath);
 	~DeferredGeometryPassEffect();
 
 	virtual void UpdateConstantBuffer();
@@ -100,12 +107,49 @@ public:
 		XMFLOAT4 EyePosW;
 	} m_perFrameConstantBuffer;
 
-	ID3D11ShaderResourceView *m_shaderResources[5];
+	//ID3D11ShaderResourceView *m_shaderResources[5];
 };
 
 
 //--------------------------------------------------------------------//
 
+
+class DeferredGeometryTessPassEffect : public DeferredGeometryPassEffect {
+private:
+	ID3D11Buffer* m_perFrameCB;
+	ID3D11Buffer* m_perObjectCB;
+
+public:
+	DeferredGeometryTessPassEffect(const std::wstring& filename);
+	~DeferredGeometryTessPassEffect();
+
+	virtual void UpdateConstantBuffer();
+	virtual void BindConstantBuffer();
+	virtual void BindShaderResource();
+
+	struct PEROBJ_CONSTANT_BUFFER
+	{
+		XMMATRIX WorldViewProj;
+		XMMATRIX WorldViewInvTranspose;
+		XMMATRIX WorldInvTranspose;
+		XMMATRIX WorldView;
+		XMMATRIX World;
+		XMMATRIX ViewProj;
+		XMMATRIX ShadowTransform;
+		Material Mat;
+		XMFLOAT4 DiffX_NormY_ShadZ;
+	} m_perObjConstantBuffer;
+
+	struct PERFRAME_CONSTANT_BUFFER
+	{
+		XMFLOAT4 EyePosW;
+	} m_perFrameConstantBuffer;
+
+	//ID3D11ShaderResourceView *m_shaderResources[5];
+};
+
+
+//--------------------------------------------------------------------//
 
 class DeferredShadingPassEffect : public Effect {
 private:
@@ -132,7 +176,7 @@ public:
 	/// Texture2D gNormalGB;
 	/// Texture2D gSpecularGB;
 	/// Texture2D gDepthGB;
-	ID3D11ShaderResourceView *m_shaderResources[4];
+	//ID3D11ShaderResourceView *m_shaderResources[4];
 };
 
 
@@ -219,7 +263,7 @@ public:
 		XMMATRIX gWorldViewProj;
 	} m_perObjConstantBuffer;
 
-	ID3D11ShaderResourceView *m_shaderResources[1];
+	//ID3D11ShaderResourceView *m_shaderResources[1];
 };
 
 
@@ -246,7 +290,7 @@ public:
 
 	/// Texture2D gScreenMap;
 	/// Texture2D gSSAOMap;
-	ID3D11ShaderResourceView *m_shaderResources[2];
+	//ID3D11ShaderResourceView *m_shaderResources[2];
 };
 
 
@@ -270,6 +314,7 @@ public:
 	//StdMeshEffect* m_stdMeshEffect;
 	ShadowMapEffect* m_shadowMapEffect;
 	DeferredGeometryPassEffect* m_deferredGeometryPassEffect; 
+	DeferredGeometryTessPassEffect* m_deferredGeometryTessPassEffect;
 	DeferredShadingPassEffect* m_deferredShadingPassEffect;
 	//GodRayEffect* m_godrayEffect;
 	SkyboxEffect* m_skyboxEffect;

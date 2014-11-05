@@ -25,6 +25,14 @@ using namespace DirectX;
 	x = 0;				\
 }
 
+
+#define SafeDeleteArray(x)	\
+{							\
+	if (x)					\
+		delete[] (x);		\
+	x = 0;					\
+}
+
 #define ReleaseCOM(x) { if(x){ x->Release(); x = 0; } }
 
 #if defined(DEBUG) | defined(_DEBUG)

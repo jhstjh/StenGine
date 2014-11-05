@@ -17,7 +17,8 @@ Skybox::~Skybox() {
 void Skybox::Draw() {
 
 	SkyboxEffect* skyboxEffect = EffectsManager::Instance()->m_skyboxEffect;
-	skyboxEffect->m_shaderResources[0] = m_cubeMapSRV;
+	//skyboxEffect->m_shaderResources[0] = m_cubeMapSRV;
+	skyboxEffect->SetShaderResources(m_cubeMapSRV, 0);
 	skyboxEffect->SetShader();
 
 	XMFLOAT4 eyePos = CameraManager::Instance()->GetActiveCamera()->GetPos();

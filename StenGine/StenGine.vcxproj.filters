@@ -252,5 +252,17 @@
     <FxCompile Include="FX\Blur_ps.hlsl">
       <Filter>FX</Filter>
     </FxCompile>
+    <FxCompile Include="FX\DeferredGeometryTessPass_ds.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\DeferredGeometryTessPass_hs.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\DeferredGeometryTessPass_ps.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\DeferredGeometryTessPass_vs.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
