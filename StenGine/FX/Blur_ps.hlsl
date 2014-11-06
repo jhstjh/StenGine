@@ -27,12 +27,13 @@ cbuffer cbFixed: register(b13)
 
 Texture2D gScreenMap: register(t0);
 Texture2D gSSAOMap: register(t1);
+Texture2D gBloomMap: register(t2);
 
 SamplerState gSamplerStateLinear;
 
 float4 main(VSOut input) : SV_Target
 {
-	return gScreenMap.Sample(gSamplerStateLinear, input.Tex) *  gSSAOMap.Sample(gSamplerStateLinear, input.Tex);
+	return (1 - (1 - gScreenMap.Sample(gSamplerStateLinear, input.Tex)) * (1 - gBloomMap.Sample(gSamplerStateLinear, input.Tex))) * gSSAOMap.Sample(gSamplerStateLinear, input.Tex);
 	// The center value always contributes to the sum.
 	float4 color = gWeights[10] * gSSAOMap.Sample(gSamplerStateLinear, input.Tex);
 	float totalWeight = gWeights[10];

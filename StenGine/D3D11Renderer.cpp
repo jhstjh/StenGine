@@ -446,8 +446,6 @@ void D3D11Renderer::Draw() {
 
 
 	//-------------- composite deferred render target views AND SSAO-------------------//
-	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
-	m_d3d11DeviceContext->VSSetShaderResources(0, 16, nullSRV);
 
 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
 	ID3D11RenderTargetView* crtvs[2] = { m_deferredShadingRTV, m_SSAORTV };
@@ -493,7 +491,8 @@ void D3D11Renderer::Draw() {
 	
 	deferredShadingEffect->UnSetShader();
 
-	// --------------------//
+
+	// -------compute shader blur ----------//
 
 
 	m_d3d11DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
@@ -508,10 +507,19 @@ void D3D11Renderer::Draw() {
 	UINT numGroupsX = (UINT)ceilf(m_clientWidth / 256.0f);
 	m_d3d11DeviceContext->Dispatch(numGroupsX, m_clientHeight, 1);
 
+	vBlurEffect->UnbindUnorderedAccessViews();
+	vBlurEffect->UnBindShaderResource();
+
+	vBlurEffect->SetShaderResources(m_deferredShadingSRV, 0);
+	vBlurEffect->BindShaderResource(1);
+
+	m_d3d11DeviceContext->Dispatch(numGroupsX, m_clientHeight, 1);
+
 	vBlurEffect->UnBindConstantBuffer();
 	vBlurEffect->UnbindUnorderedAccessViews();
 	vBlurEffect->UnBindShaderResource();
 	vBlurEffect->UnSetShader();
+
 
 	HBlurEffect* hBlurEffect = EffectsManager::Instance()->m_hblurEffect;
 	hBlurEffect->SetShader();
@@ -523,33 +531,24 @@ void D3D11Renderer::Draw() {
 	UINT numGroupsY = (UINT)ceilf(m_clientHeight / 256.0f);
 	m_d3d11DeviceContext->Dispatch(m_clientWidth, numGroupsY, 1);
 
+	hBlurEffect->UnbindUnorderedAccessViews();
+	hBlurEffect->UnBindShaderResource();
+	hBlurEffect->SetShaderResources(vBlurEffect->GetOutputShaderResource(1), 0);
+	hBlurEffect->BindShaderResource(1);
+
+	m_d3d11DeviceContext->Dispatch(m_clientWidth, numGroupsY, 1);
+
 	hBlurEffect->UnBindConstantBuffer();
 	hBlurEffect->UnbindUnorderedAccessViews();
 	hBlurEffect->UnBindShaderResource();
 	hBlurEffect->UnSetShader();
 
-	// ------ VBlur -------//
-	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
-// 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_SSAORTV2, m_depthStencilView);
-// 	m_d3d11DeviceContext->ClearRenderTargetView(m_SSAORTV2, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
-// 	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
+	// ------ Screen Quad -------//
 	BlurEffect* blurEffect = EffectsManager::Instance()->m_blurEffect;
 	blurEffect->SetShader();
 
-// 	blurEffect->SetShaderResources(m_SSAOSRV, 1);
-// 	blurEffect->m_settingConstantBuffer.texOffset = XMFLOAT2(0.0f, 1.0 / D3D11Renderer::Instance()->m_clientHeight);
  	m_d3d11DeviceContext->PSSetSamplers(0, 1, samplerState);
-// 
-// 	blurEffect->UpdateConstantBuffer();
-// 	blurEffect->BindConstantBuffer();
-// 	blurEffect->BindShaderResource();
-// 	m_d3d11DeviceContext->Draw(6, 0);
-// 
-// 	blurEffect->UnBindShaderResource();
-// 	blurEffect->UnBindConstantBuffer();
-
-	// ------ HBlur -------//
 
 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
@@ -557,6 +556,7 @@ void D3D11Renderer::Draw() {
 
 	blurEffect->SetShaderResources(m_deferredShadingSRV, 0);
 	blurEffect->SetShaderResources(hBlurEffect->GetOutputShaderResource(0), 1);
+	blurEffect->SetShaderResources(hBlurEffect->GetOutputShaderResource(1), 2);
 	blurEffect->m_settingConstantBuffer.texOffset = XMFLOAT2(1.0 / D3D11Renderer::Instance()->m_clientWidth, 0.0f);
 	m_d3d11DeviceContext->PSSetSamplers(0, 1, samplerState);
 
@@ -569,22 +569,8 @@ void D3D11Renderer::Draw() {
 	blurEffect->UnBindConstantBuffer();
 
 	blurEffect->UnSetShader();
-// 
-// 	// ------ HBlur -------//
-// 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
-// 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
-// 	//m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
-// 	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-// 
-// 	ID3DX11EffectTechnique* HBlurTech = EffectsManager::Instance()->m_screenQuadEffect->HBlurTech;
-// 	HBlurTech->GetDesc(&techDesc);
-// 	EffectsManager::Instance()->m_screenQuadEffect->SSAOMap->SetResource(m_SSAOSRV2);
-// 	EffectsManager::Instance()->m_screenQuadEffect->ScreenMap->SetResource(m_deferredShadingSRV);
-// 	for (UINT p = 0; p < techDesc.Passes; ++p)
-// 	{
-// 		HBlurTech->GetPassByIndex(p)->Apply(0, m_d3d11DeviceContext);
-// 		m_d3d11DeviceContext->Draw(6, 0);
-// 	}
+
+
 
 	m_d3d11DeviceContext->RSSetState(0);
 	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
@@ -628,11 +614,6 @@ void D3D11Renderer::Draw() {
 
 #endif
 
-
-
-//	ID3D11ShaderResourceView* nullSRV[16] = { 0 };
-	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
-	m_d3d11DeviceContext->VSSetShaderResources(0, 16, nullSRV);
 #endif
 	HR(m_swapChain->Present(0, 0));
 }

@@ -300,7 +300,7 @@ public:
 
 	virtual void UpdateConstantBuffer();
 	virtual void BindConstantBuffer();
-	virtual void BindShaderResource();
+	virtual void BindShaderResource(int idx = 0);
 
 	struct SETTING_CONSTANT_BUFFER
 	{
@@ -327,7 +327,7 @@ public:
 
 	virtual void UpdateConstantBuffer();
 	virtual void BindConstantBuffer();
-	virtual void BindShaderResource();
+	virtual void BindShaderResource(int idx = 0);
 
 	struct SETTING_CONSTANT_BUFFER
 	{
