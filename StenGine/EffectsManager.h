@@ -48,6 +48,7 @@ public:
 	virtual void BindShaderResource() {} 
 	virtual void UnBindConstantBuffer();
 	virtual void UnBindShaderResource();
+	virtual void UnbindUnorderedAccessViews();
 	virtual void UnSetShader();
 	virtual void SetShaderResources(ID3D11ShaderResourceView* res, int idx);
 	virtual ID3D11ShaderResourceView* GetOutputShaderResource(int idx);
@@ -289,13 +290,40 @@ public:
 //--------------------------------------------------------------------//
 
 
-class CBlurEffect : public Effect {
+class VBlurEffect : public Effect {
 private:
 	ID3D11Buffer* m_settingCB;
 
 public:
-	CBlurEffect(const std::wstring& filename);
-	~CBlurEffect();
+	VBlurEffect(const std::wstring& filename);
+	~VBlurEffect();
+
+	virtual void UpdateConstantBuffer();
+	virtual void BindConstantBuffer();
+	virtual void BindShaderResource();
+
+	struct SETTING_CONSTANT_BUFFER
+	{
+		XMFLOAT2 texOffset;
+		XMFLOAT2 pad;
+	} m_settingConstantBuffer;
+
+	/// Texture2D gScreenMap;
+	/// Texture2D gSSAOMap;
+	//ID3D11ShaderResourceView *m_shaderResources[2];
+};
+
+
+//--------------------------------------------------------------------//
+
+
+class HBlurEffect : public Effect {
+private:
+	ID3D11Buffer* m_settingCB;
+
+public:
+	HBlurEffect(const std::wstring& filename);
+	~HBlurEffect();
 
 	virtual void UpdateConstantBuffer();
 	virtual void BindConstantBuffer();
@@ -338,7 +366,8 @@ public:
 	//GodRayEffect* m_godrayEffect;
 	SkyboxEffect* m_skyboxEffect;
 	BlurEffect* m_blurEffect;
-	CBlurEffect* m_cblurEffect;
+	VBlurEffect* m_vblurEffect;
+	HBlurEffect* m_hblurEffect;
 };
 
 #endif

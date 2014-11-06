@@ -32,7 +32,7 @@ SamplerState gSamplerStateLinear;
 
 float4 main(VSOut input) : SV_Target
 {
-	return gScreenMap.Sample(gSamplerStateLinear, input.Tex);
+	return gScreenMap.Sample(gSamplerStateLinear, input.Tex) *  gSSAOMap.Sample(gSamplerStateLinear, input.Tex);
 	// The center value always contributes to the sum.
 	float4 color = gWeights[10] * gSSAOMap.Sample(gSamplerStateLinear, input.Tex);
 	float totalWeight = gWeights[10];
