@@ -444,9 +444,11 @@ void D3D11Renderer::Draw() {
 	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
 	m_d3d11DeviceContext->OMSetRenderTargets(0, NULL, NULL);
 
-
+#define PS_SHADING 0
+#if PS_SHADING 
 	//-------------- composite deferred render target views AND SSAO-------------------//
 
+	
 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
 	ID3D11RenderTargetView* crtvs[2] = { m_deferredShadingRTV, m_SSAORTV };
 	m_d3d11DeviceContext->OMSetRenderTargets(2, crtvs, m_depthStencilView);
@@ -490,7 +492,52 @@ void D3D11Renderer::Draw() {
 	deferredShadingEffect->UnBindConstantBuffer();
 	
 	deferredShadingEffect->UnSetShader();
+	
 
+#else
+	// -------compute shader deferred shading -------//
+
+
+	m_d3d11DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+	DeferredShadingCS* deferredCSEffect = EffectsManager::Instance()->m_deferredShadingCSEffect;
+	deferredCSEffect->SetShader();
+
+	DirectionalLight viewDirLight;
+	memcpy(&viewDirLight, LightManager::Instance()->m_dirLights[0], sizeof(DirectionalLight));
+
+	XMMATRIX ViewInvTranspose = MatrixHelper::InverseTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
+	XMStoreFloat3(&viewDirLight.direction, XMVector3Transform(XMLoadFloat3(&viewDirLight.direction), ViewInvTranspose));
+	deferredCSEffect->m_perFrameConstantBuffer.gDirLight = viewDirLight;
+
+	XMFLOAT4 camPos = CameraManager::Instance()->GetActiveCamera()->GetPos();
+	XMStoreFloat4(&camPos, XMVector3Transform(XMLoadFloat4(&camPos), CameraManager::Instance()->GetActiveCamera()->GetViewMatrix()));
+	deferredCSEffect->m_perFrameConstantBuffer.gEyePosW = camPos;
+
+	XMMATRIX projMat = CameraManager::Instance()->GetActiveCamera()->GetProjMatrix();
+	XMVECTOR det = XMMatrixDeterminant(projMat);
+	deferredCSEffect->m_perFrameConstantBuffer.gProj = XMMatrixTranspose(projMat);
+
+	deferredCSEffect->m_perFrameConstantBuffer.gProjInv = XMMatrixTranspose(XMMatrixInverse(&det, projMat));
+
+	deferredCSEffect->SetShaderResources(m_diffuseBufferSRV, 0);
+	deferredCSEffect->SetShaderResources(m_normalBufferSRV, 1);
+	deferredCSEffect->SetShaderResources(m_specularBufferSRV, 2);
+	deferredCSEffect->SetShaderResources(m_deferredRenderShaderResourceView, 3);
+
+	m_d3d11DeviceContext->CSSetSamplers(0, 1, &m_samplerState);
+
+	deferredCSEffect->UpdateConstantBuffer();
+	deferredCSEffect->BindConstantBuffer();
+	deferredCSEffect->BindShaderResource();
+
+	m_d3d11DeviceContext->Dispatch(80, 45, 1);
+
+	deferredCSEffect->UnBindConstantBuffer();
+	deferredCSEffect->UnbindUnorderedAccessViews();
+	deferredCSEffect->UnBindShaderResource();
+	deferredCSEffect->UnSetShader();
+
+#endif
 
 	// -------compute shader blur ----------//
 
@@ -553,8 +600,11 @@ void D3D11Renderer::Draw() {
 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
 	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
+#if PS_SHADING
 	blurEffect->SetShaderResources(m_deferredShadingSRV, 0);
+#else
+	blurEffect->SetShaderResources(deferredCSEffect->GetOutputShaderResource(0), 0);
+#endif
 	blurEffect->SetShaderResources(hBlurEffect->GetOutputShaderResource(0), 1);
 	blurEffect->SetShaderResources(hBlurEffect->GetOutputShaderResource(1), 2);
 	blurEffect->m_settingConstantBuffer.texOffset = XMFLOAT2(1.0 / D3D11Renderer::Instance()->m_clientWidth, 0.0f);

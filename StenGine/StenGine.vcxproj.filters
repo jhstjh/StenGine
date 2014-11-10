@@ -200,9 +200,6 @@
     <CustomBuild Include="FX\ShadowMap.fx">
       <Filter>FX</Filter>
     </CustomBuild>
-    <CustomBuild Include="FX\DeferredShader.fx">
-      <Filter>FX</Filter>
-    </CustomBuild>
     <CustomBuild Include="FX\ScreenQuad.fx">
       <Filter>FX</Filter>
     </CustomBuild>
@@ -268,6 +265,9 @@
       <Filter>FX</Filter>
     </FxCompile>
     <FxCompile Include="FX\HBlur_cs.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\DeferredShading_cs.hlsl">
       <Filter>FX</Filter>
     </FxCompile>
   </ItemGroup>

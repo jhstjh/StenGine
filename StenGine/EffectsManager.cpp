@@ -801,29 +801,30 @@ VBlurEffect::VBlurEffect(const std::wstring& filename)
 
 		ReleaseCOM(blurredTex);
 
-		{
-			// Fill in a buffer description.
-			D3D11_BUFFER_DESC cbDesc;
-			cbDesc.ByteWidth = sizeof(SETTING_CONSTANT_BUFFER);
-			cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-			cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-			cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-			cbDesc.MiscFlags = 0;
-			cbDesc.StructureByteStride = 0;
+	}
 
-			// Fill in the subresource data.
-			D3D11_SUBRESOURCE_DATA InitData;
-			InitData.pSysMem = &m_settingConstantBuffer;
-			InitData.SysMemPitch = 0;
-			InitData.SysMemSlicePitch = 0;
+	{
+		// Fill in a buffer description.
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(SETTING_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
 
-			HRESULT hr;
-			// Create the buffer.
-			hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
-				&m_settingCB);
+		// Fill in the subresource data.
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = &m_settingConstantBuffer;
+		InitData.SysMemPitch = 0;
+		InitData.SysMemSlicePitch = 0;
 
-			assert(SUCCEEDED(hr));
-		}
+		HRESULT hr;
+		// Create the buffer.
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+			&m_settingCB);
+
+		assert(SUCCEEDED(hr));
 	}
 
 	ReleaseCOM(m_vsBlob);
@@ -855,6 +856,117 @@ void VBlurEffect::BindConstantBuffer() {
 
 void VBlurEffect::BindShaderResource(int idx) {
 	D3D11Renderer::Instance()->GetD3DContext()->CSSetShaderResources(0, 1, m_shaderResources);
+	D3D11Renderer::Instance()->GetD3DContext()->CSSetUnorderedAccessViews(0, 1, &m_unorderedAccessViews[idx], 0);
+}
+
+
+//----------------------------------------------------------//
+
+
+DeferredShadingCS::DeferredShadingCS(const std::wstring& filename)
+	: Effect(L"", L"", L"", L"", L"", filename + L"_cs" + EXT)
+{
+
+	m_shaderResources = new ID3D11ShaderResourceView*[4];
+	for (int i = 0; i < 4; i++) {
+		m_shaderResources[i] = 0;
+	}
+
+	{
+		// Fill in a buffer description.
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		// Fill in the subresource data.
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = &m_perFrameConstantBuffer;
+		InitData.SysMemPitch = 0;
+		InitData.SysMemSlicePitch = 0;
+
+		HRESULT hr;
+		// Create the buffer.
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+			&m_perFrameCB);
+
+		assert(SUCCEEDED(hr));
+	}
+
+
+	m_outputShaderResources = new ID3D11ShaderResourceView*[1];
+	m_unorderedAccessViews = new ID3D11UnorderedAccessView*[1];
+
+	for (int i = 0; i < 1; i++) {
+
+		D3D11_TEXTURE2D_DESC shadedTexDesc;
+		shadedTexDesc.Width = D3D11Renderer::Instance()->GetScreenWidth();
+		shadedTexDesc.Height = D3D11Renderer::Instance()->GetScreenHeight();
+		shadedTexDesc.MipLevels = 1;
+		shadedTexDesc.ArraySize = 1;
+		shadedTexDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		shadedTexDesc.SampleDesc.Count = 1;
+		shadedTexDesc.SampleDesc.Quality = 0;
+		shadedTexDesc.Usage = D3D11_USAGE_DEFAULT;
+		shadedTexDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+		shadedTexDesc.CPUAccessFlags = 0;
+		shadedTexDesc.MiscFlags = 0;
+
+		ID3D11Texture2D* shadedTex = 0;
+		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateTexture2D(&shadedTexDesc, 0, &shadedTex));
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		srvDesc.Format = shadedTexDesc.Format;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MostDetailedMip = 0;
+		srvDesc.Texture2D.MipLevels = 1;
+
+		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateShaderResourceView(shadedTex, &srvDesc, &m_outputShaderResources[i]));
+
+		D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
+		uavDesc.Format = shadedTexDesc.Format;
+		uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+		uavDesc.Texture2D.MipSlice = 0;
+
+		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateUnorderedAccessView(shadedTex, &uavDesc, &m_unorderedAccessViews[i]));
+
+
+		ReleaseCOM(shadedTex);
+
+	}
+
+	ReleaseCOM(m_vsBlob);
+	ReleaseCOM(m_psBlob);
+	ReleaseCOM(m_gsBlob);
+	ReleaseCOM(m_hsBlob);
+	ReleaseCOM(m_dsBlob);
+	ReleaseCOM(m_csBlob);
+}
+
+DeferredShadingCS::~DeferredShadingCS()
+{
+	ReleaseCOM(m_inputLayout);
+}
+
+void DeferredShadingCS::UpdateConstantBuffer() {
+
+	D3D11_MAPPED_SUBRESOURCE ms;
+	D3D11Renderer::Instance()->GetD3DContext()->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+	memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
+	D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perFrameCB, NULL);
+
+}
+
+void DeferredShadingCS::BindConstantBuffer() {
+	ID3D11Buffer* cbuf[] = { m_perFrameCB };
+	D3D11Renderer::Instance()->GetD3DContext()->CSSetConstantBuffers(0, 1, cbuf);
+}
+
+void DeferredShadingCS::BindShaderResource(int idx) {
+	D3D11Renderer::Instance()->GetD3DContext()->CSSetShaderResources(0, 4, m_shaderResources);
 	D3D11Renderer::Instance()->GetD3DContext()->CSSetUnorderedAccessViews(0, 1, &m_unorderedAccessViews[idx], 0);
 }
 
@@ -1052,6 +1164,7 @@ EffectsManager::EffectsManager() {
 	m_deferredGeometryPassEffect = new DeferredGeometryPassEffect(L"FX/DeferredGeometryPass");
 	m_deferredGeometryTessPassEffect = new DeferredGeometryTessPassEffect(L"FX/DeferredGeometryTessPass");
 	m_deferredShadingPassEffect = new DeferredShadingPassEffect(L"FX/DeferredShadingPass");
+	m_deferredShadingCSEffect = new DeferredShadingCS(L"FX/DeferredShading");
 
 	m_blurEffect = new BlurEffect(L"FX/Blur");
 	m_vblurEffect = new VBlurEffect(L"FX/VBlur");

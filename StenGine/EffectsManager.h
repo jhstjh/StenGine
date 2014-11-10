@@ -344,6 +344,37 @@ public:
 //--------------------------------------------------------------------//
 
 
+class DeferredShadingCS : public Effect {
+private:
+	ID3D11Buffer* m_perFrameCB;
+
+public:
+	DeferredShadingCS(const std::wstring& filename);
+	~DeferredShadingCS();
+
+	virtual void UpdateConstantBuffer();
+	virtual void BindConstantBuffer();
+	virtual void BindShaderResource(int idx = 0);
+
+	struct PERFRAME_CONSTANT_BUFFER
+	{
+		DirectionalLight gDirLight;
+		XMFLOAT4 gEyePosW;
+		XMMATRIX gProjInv;
+		XMMATRIX gProj;
+	} m_perFrameConstantBuffer;
+
+	/// Texture Ordering:
+	/// Texture2D gDiffuseGB;
+	/// Texture2D gNormalGB;
+	/// Texture2D gSpecularGB;
+	/// Texture2D gDepthGB;
+	//ID3D11ShaderResourceView *m_shaderResources[4];
+};
+
+//--------------------------------------------------------------------//
+
+
 class EffectsManager {
 private:
 	static EffectsManager* _instance;
@@ -363,6 +394,7 @@ public:
 	DeferredGeometryPassEffect* m_deferredGeometryPassEffect; 
 	DeferredGeometryTessPassEffect* m_deferredGeometryTessPassEffect;
 	DeferredShadingPassEffect* m_deferredShadingPassEffect;
+	DeferredShadingCS* m_deferredShadingCSEffect;
 	//GodRayEffect* m_godrayEffect;
 	SkyboxEffect* m_skyboxEffect;
 	BlurEffect* m_blurEffect;

@@ -11,10 +11,10 @@ cbuffer cbPerFrame: register(b0) {
 	float4x4 gProj;
 };
 
-Texture2D gDiffuseGB;
-Texture2D gNormalGB;
-Texture2D gSpecularGB;
-Texture2D gDepthGB;
+Texture2D gDiffuseGB: register(t0);
+Texture2D gNormalGB: register(t1);
+Texture2D gSpecularGB: register(t2);
+Texture2D gDepthGB: register(t3);
 
 SamplerState gSamplerStateLinear;
 
@@ -48,33 +48,6 @@ struct PSOut
 {
 	float4 DeferredShade: SV_TARGET0;
 	float4 SSAO: SV_TARGET1;
-};
-
-SamplerState samAnisotropic
-{
-	Filter = ANISOTROPIC;
-	MaxAnisotropy = 4;
-
-	AddressU = WRAP;
-	AddressV = WRAP;
-};
-
-SamplerState samLinear
-{
-	Filter = MIN_MAG_MIP_LINEAR;
-	AddressU = WRAP;
-	AddressV = WRAP;
-};
-
-SamplerState samNormalDepth
-{
-	Filter = MIN_MAG_LINEAR_MIP_POINT;
-
-	// Set a very far depth value if sampling outside of the NormalDepth map
-	// so we do not get false occlusions.
-	AddressU = BORDER;
-	AddressV = BORDER;
-	BorderColor = float4(0.0f, 0.0f, 0.0f, 1e5f);
 };
 
 
