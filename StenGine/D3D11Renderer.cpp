@@ -548,7 +548,11 @@ void D3D11Renderer::Draw() {
 	vBlurEffect->SetShader();
 	vBlurEffect->UpdateConstantBuffer();
 	vBlurEffect->BindConstantBuffer();
+#if PS_SHADING
 	vBlurEffect->SetShaderResources(m_SSAOSRV, 0);
+#else
+	vBlurEffect->SetShaderResources(deferredCSEffect->GetOutputShaderResource(1), 0);
+#endif
 	vBlurEffect->BindShaderResource();
 
 	UINT numGroupsX = (UINT)ceilf(m_clientWidth / 256.0f);
@@ -557,7 +561,11 @@ void D3D11Renderer::Draw() {
 	vBlurEffect->UnbindUnorderedAccessViews();
 	vBlurEffect->UnBindShaderResource();
 
+#if PS_SHADING
 	vBlurEffect->SetShaderResources(m_deferredShadingSRV, 0);
+#else
+	vBlurEffect->SetShaderResources(deferredCSEffect->GetOutputShaderResource(0), 0);
+#endif
 	vBlurEffect->BindShaderResource(1);
 
 	m_d3d11DeviceContext->Dispatch(numGroupsX, m_clientHeight, 1);

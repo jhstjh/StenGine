@@ -155,8 +155,8 @@ void Effect::UnBindShaderResource() {
 }
 
 void Effect::UnbindUnorderedAccessViews() {
-	static ID3D11UnorderedAccessView* nullUAV[1] = { 0 };
-	D3D11Renderer::Instance()->GetD3DContext()->CSSetUnorderedAccessViews(0, 1, nullUAV, 0);
+	static ID3D11UnorderedAccessView* nullUAV[7] = { 0 };
+	D3D11Renderer::Instance()->GetD3DContext()->CSSetUnorderedAccessViews(0, 7, nullUAV, 0);
 }
 
 void Effect::SetShader() {
@@ -897,10 +897,10 @@ DeferredShadingCS::DeferredShadingCS(const std::wstring& filename)
 	}
 
 
-	m_outputShaderResources = new ID3D11ShaderResourceView*[1];
-	m_unorderedAccessViews = new ID3D11UnorderedAccessView*[1];
+	m_outputShaderResources = new ID3D11ShaderResourceView*[2];
+	m_unorderedAccessViews = new ID3D11UnorderedAccessView*[2];
 
-	for (int i = 0; i < 1; i++) {
+	for (int i = 0; i < 2; i++) {
 
 		D3D11_TEXTURE2D_DESC shadedTexDesc;
 		shadedTexDesc.Width = D3D11Renderer::Instance()->GetScreenWidth();
@@ -967,7 +967,7 @@ void DeferredShadingCS::BindConstantBuffer() {
 
 void DeferredShadingCS::BindShaderResource(int idx) {
 	D3D11Renderer::Instance()->GetD3DContext()->CSSetShaderResources(0, 4, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->CSSetUnorderedAccessViews(0, 1, &m_unorderedAccessViews[idx], 0);
+	D3D11Renderer::Instance()->GetD3DContext()->CSSetUnorderedAccessViews(0, 2, &m_unorderedAccessViews[idx], 0);
 }
 
 

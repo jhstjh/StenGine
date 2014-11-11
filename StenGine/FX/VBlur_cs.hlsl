@@ -14,7 +14,7 @@ cbuffer cbFixed : register(b13)
 };
 
 Texture2D gInput: register(t0);
-RWTexture2D<float4> gOutput: register(u0);
+RWTexture2D<float4> gDeferredShaded: register(u0);
 
 #define N 256
 #define CacheSize (N + 2*gBlurRadius)
@@ -65,5 +65,5 @@ void main(int3 groupThreadID : SV_GroupThreadID,
 		blurColor += gWeights[i + gBlurRadius] * gCache[k];
 	}
 
-	gOutput[dispatchThreadID.xy] = blurColor;
+	gDeferredShaded[dispatchThreadID.xy] = blurColor;
 }
