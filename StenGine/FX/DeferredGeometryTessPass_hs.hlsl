@@ -1,19 +1,4 @@
-struct TessVertexOut {
-	//float4 PosH  : SV_POSITION;
-	float4 PosW  : POSITION;
-	float3 NormalV : NORMAL0;
-	float3 NormalW : NORMAL1;
-	float3 TangentV: TANGENT;
-	float2 TexUV : TEXCOORD0;
-	float4 ShadowPosH: TEXCOORD1;
-	float4 TessFactor: TESS;
-};
-
-struct PatchTess
-{
-	float EdgeTess[3] : SV_TessFactor;
-	float InsideTess : SV_InsideTessFactor;
-};
+#include "StandardConstant.fx"
 
 PatchTess PatchHS(InputPatch<TessVertexOut, 3> patch,
 	uint patchID : SV_PrimitiveID)
@@ -32,17 +17,6 @@ PatchTess PatchHS(InputPatch<TessVertexOut, 3> patch,
 
 	return pt;
 }
-
-
-struct HullOut
-{
-	float3 PosW		: POSITION;
-	float3 NormalV  : NORMAL0;
-	float3 NormalW	: NORMAL1;
-	float3 TangentV : TANGENT;
-	float2 TexUV : TEXCOORD0;
-	float4 ShadowPosH: TEXCOORD1;
-};
 
 [domain("tri")]
 [partitioning("fractional_odd")]

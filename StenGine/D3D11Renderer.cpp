@@ -444,7 +444,7 @@ void D3D11Renderer::Draw() {
 	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
 	m_d3d11DeviceContext->OMSetRenderTargets(0, NULL, NULL);
 
-#define PS_SHADING 0
+#define PS_SHADING 1
 #if PS_SHADING 
 	//-------------- composite deferred render target views AND SSAO-------------------//
 
@@ -613,8 +613,8 @@ void D3D11Renderer::Draw() {
 #else
 	blurEffect->SetShaderResources(deferredCSEffect->GetOutputShaderResource(0), 0);
 #endif
-	blurEffect->SetShaderResources(hBlurEffect->GetOutputShaderResource(0), 1);
-	blurEffect->SetShaderResources(hBlurEffect->GetOutputShaderResource(1), 2);
+	blurEffect->SetShaderResources(vBlurEffect->GetOutputShaderResource(0), 1);
+	blurEffect->SetShaderResources(vBlurEffect->GetOutputShaderResource(1), 2);
 	blurEffect->m_settingConstantBuffer.texOffset = XMFLOAT2(1.0 / D3D11Renderer::Instance()->m_clientWidth, 0.0f);
 	m_d3d11DeviceContext->PSSetSamplers(0, 1, samplerState);
 

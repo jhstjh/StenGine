@@ -1,61 +1,4 @@
-Texture2D gBumpMap: register(t2);
-SamplerState gSamplerStateLinear: register(s0);
-
-struct Material {
-	float4 ambient;
-	float4 diffuse;
-	float4 specular;
-};
-
-cbuffer cbPerObject : register(b0) {
-	float4x4 gWorldViewProj;
-	float4x4 gWorldViewInvTranspose;
-	float4x4 gWorldInvTranspose;
-	float4x4 gWorldView;
-	float4x4 gWorld;
-	float4x4 gViewProj;
-	float4x4 gShadowTransform;
-	Material gMaterial;
-	int4 gDiffX_NormY_ShadZ;
-};
-
-struct PatchTess
-{
-	float EdgeTess[3] : SV_TessFactor;
-	float InsideTess : SV_InsideTessFactor;
-};
-
-struct HullOut
-{
-	float3 PosW		: POSITION;
-	float3 NormalV  : NORMAL0;
-	float3 NormalW	: NORMAL1;
-	float3 TangentV : TANGENT;
-	float2 TexUV : TEXCOORD0;
-	float4 ShadowPosH: TEXCOORD1;
-};
-
-struct VertexOut {
-	//float4 PosH  : SV_POSITION;
-	float4 PosW  : POSITION;
-	float3 NormalV : NORMAL0;
-	float3 NormalW : NORMAL1;
-	float3 TangentV: TANGENT;
-	float2 TexUV : TEXCOORD0;
-	float4 ShadowPosH: TEXCOORD1;
-	float4 TessFactor: TESS;
-};
-
-struct DomainOut
-{
-	float4 PosH     : SV_POSITION;
-	float3 PosW		: POSITION;
-	float3 NormalV  : NORMAL0;
-	float3 NormalW	: NORMAL1;
-	float3 TangentV : TANGENT;
-	float2 TexUV : TEXCOORD0;
-	float4 ShadowPosH: TEXCOORD1;
-};
+#include "StandardConstant.fx"
 
 // The domain shader is called for every vertex created by the tessellator.  
 // It is like the vertex shader after tessellation.
@@ -88,7 +31,7 @@ DomainOut main(PatchTess patchTess,
 	//float mipLevel = clamp((distance(dout.PosW, gEyePosW) - MipInterval) / MipInterval, 0.0f, 6.0f);
 
 	// Sample height map (stored in alpha channel).
-	float h = gBumpMap.SampleLevel(gSamplerStateLinear, dout.TexUV, 0).x;
+	float h = gBumpMap.SampleLevel(gDiffuseMapSampler, dout.TexUV, 0).x;
 
 	// Offset vertex along normal.
 	dout.PosW += (/*gHeightScale*/ 0.2 *(h - 1.0))*dout.NormalW;

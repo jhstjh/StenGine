@@ -223,6 +223,9 @@
     <None Include="Model\plane.fbx">
       <Filter>Model</Filter>
     </None>
+    <None Include="FX\StandardConstant.fx">
+      <Filter>FX</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="FX\ScreenQuad_vs.hlsl">
