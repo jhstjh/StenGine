@@ -43,6 +43,8 @@ protected:
 	GLuint m_domainShader;
 	GLuint m_computeShader;
 
+	GLuint m_shaderProgram;
+	bool ReadShaderFile(std::wstring filename, char* shaderContent, int maxLength);
 
 #endif
 public:
@@ -100,8 +102,12 @@ public:
 
 class DeferredGeometryPassEffect : public Effect {
 private:
+#ifdef GRAPHICS_D3D11
 	ID3D11Buffer* m_perFrameCB;
 	ID3D11Buffer* m_perObjectCB;
+#else
+	GLint WorldViewProjPosition;
+#endif
 
 public:
 	DeferredGeometryPassEffect(const std::wstring& filename);
@@ -115,7 +121,7 @@ public:
 	virtual void UpdateConstantBuffer();
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
-
+#ifdef GRAPHICS_D3D11
 	struct PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX WorldViewProj;
@@ -137,6 +143,10 @@ public:
 	virtual PEROBJ_CONSTANT_BUFFER* GetPerObjConstantBuffer() { return &m_perObjConstantBuffer; }
 	virtual PERFRAME_CONSTANT_BUFFER* GetPerFrameConstantBuffer() { return &m_perFrameConstantBuffer; }
 	//ID3D11ShaderResourceView *m_shaderResources[5];
+#else
+	XMMATRIX WorldViewProj;
+
+#endif
 };
 
 

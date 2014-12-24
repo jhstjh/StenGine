@@ -2,12 +2,15 @@
 #include "D3D11Renderer.h"
 #include "D3DCompiler.h"
 
+#ifdef GRAPHICS_D3D11
 #define READ_SHADER_FROM_FILE 0
-
 #if READ_SHADER_FROM_FILE
 #define EXT L".cso"
 #else
 #define EXT L".hlsl"
+#endif
+#else
+#define EXT L".glsl"
 #endif
 
 Effect::Effect(const std::wstring& filename)
@@ -109,7 +112,70 @@ Effect::Effect(const std::wstring& vsPath,
 		assert(SUCCEEDED(hr));
 	}
 #else
-	// gl
+	char shaderbuffer[1024*256];
+	const GLchar* p;
+	int params = -1;
+
+	if (vsPath.length()) {
+		assert(ReadShaderFile(vsPath, shaderbuffer, 1024*256));
+		m_vertexShader = glCreateShader(GL_VERTEX_SHADER);
+		p = (const GLchar*)shaderbuffer;
+		glShaderSource(m_vertexShader, 1, &p, NULL);
+		glCompileShader(m_vertexShader);
+
+		/* check for shader compile errors - very important! */
+
+		glGetShaderiv(m_vertexShader, GL_COMPILE_STATUS, &params);
+		if (GL_TRUE != params) {
+			assert(false);
+// 			fprintf(stderr, "ERROR: GL shader index %i did not compile\n", m_vertexShader);
+// 			_print_shader_info_log(vs);
+		}
+	}
+
+	if (psPath.length()) {
+		assert(ReadShaderFile(psPath, shaderbuffer, 1024 * 256));
+		m_pixelShader = glCreateShader(GL_FRAGMENT_SHADER);
+		p = (const GLchar*)shaderbuffer;
+		glShaderSource(m_pixelShader, 1, &p, NULL);
+		glCompileShader(m_pixelShader);
+
+		/* check for shader compile errors - very important! */
+
+		glGetShaderiv(m_pixelShader, GL_COMPILE_STATUS, &params);
+		if (GL_TRUE != params) {
+			assert(false);
+			// 			fprintf(stderr, "ERROR: GL shader index %i did not compile\n", m_vertexShader);
+			// 			_print_shader_info_log(vs);
+		}
+	}
+
+	m_shaderProgram = glCreateProgram();
+	glAttachShader(m_shaderProgram, m_pixelShader);
+	glAttachShader(m_shaderProgram, m_vertexShader);
+	glLinkProgram(m_shaderProgram);
+
+	/* check for shader linking errors - very important! */
+	glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &params);
+	if (GL_TRUE != params) {
+		assert(false);
+// 		fprintf(
+// 			stderr,
+// 			"ERROR: could not link shader programme GL index %i\n",
+// 			shader_programme
+// 			);
+// 		_print_programme_info_log(shader_programme);
+// 		return 1;
+	}
+
+	glValidateProgram(m_shaderProgram);
+	glGetProgramiv(m_shaderProgram, GL_VALIDATE_STATUS, &params);
+	printf("program %i GL_VALIDATE_STATUS = %i\n", m_shaderProgram, params);
+	if (GL_TRUE != params) {
+		assert(false);
+// 		_print_programme_info_log(sp);
+// 		return false;
+	}
 #endif
 }
 
@@ -173,6 +239,7 @@ void Effect::SetShader() {
 		D3D11Renderer::Instance()->GetD3DContext()->CSSetShader(m_computeShader, 0, 0);
 #else
 	// gl
+	glUseProgram(m_shaderProgram);
 #endif
 }
 
@@ -1188,8 +1255,72 @@ void BlurEffect::BindShaderResource() {
 }
 
 #else
-// glsl here
+DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath)
+	:Effect(vsPath, psPath, gsPath, hsPath, dsPath)
+{
 
+}
+
+DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filename)
+	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT)
+{
+	WorldViewProjPosition = glGetUniformLocation(m_shaderProgram, "gWorldViewProj");
+	assert(WorldViewProjPosition > -1);
+}
+
+DeferredGeometryPassEffect::~DeferredGeometryPassEffect()
+{
+
+}
+
+void DeferredGeometryPassEffect::UpdateConstantBuffer() {
+
+}
+
+void DeferredGeometryPassEffect::BindConstantBuffer() {
+	glUniformMatrix4fv(WorldViewProjPosition, 1, GL_FALSE, reinterpret_cast<GLfloat*> (&WorldViewProj));
+}
+
+void DeferredGeometryPassEffect::BindShaderResource() {
+// 	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 5, m_shaderResources);
+// 	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 5, m_shaderResources);
+}
+
+
+bool Effect::ReadShaderFile(std::wstring filename, char* shaderContent, int maxLength) {
+	std::string s(filename.begin(), filename.end());
+	const char* lFilename = s.c_str();
+	FILE* file = fopen(lFilename, "r");
+	int current_len = 0;
+	char line[2048];
+
+	shaderContent[0] = '\0'; /* reset string */
+	if (!file) {
+		assert(false);
+// 		OutputDebugStringA("ERROR: opening file for reading: %s\n", lFilename);
+// 		return false;
+	}
+	strcpy(line, ""); /* remember to clean up before using for first time! */
+	while (!feof(file)) {
+		if (NULL != fgets(line, 2048, file)) {
+			current_len += strlen(line); /* +1 for \n at end */
+			if (current_len >= maxLength) {
+				assert(false);
+// 				OutputDebugStringA(
+// 					"ERROR: shader length is longer than string buffer length %i\n",
+// 					maxLength
+// 					);
+			}
+			strcat(shaderContent, line);
+		}
+	}
+	if (EOF == fclose(file)) { /* probably unnecesssary validation */
+		assert(false);
+// 		OutputDebugStringA("ERROR: closing file from reading %s\n", lFilename);
+// 		return false;
+	}
+	return true;
+}
 
 #endif
 
@@ -1213,7 +1344,7 @@ EffectsManager::EffectsManager() {
 	m_skyboxEffect = new SkyboxEffect(L"FX/Skybox");
 
 #else
-	// load glsl shader here
+	m_deferredGeometryPassEffect = new DeferredGeometryPassEffect(L"FX/StdMesh");
 #endif
 }
 

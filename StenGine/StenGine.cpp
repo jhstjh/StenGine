@@ -117,8 +117,8 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 			}
 			InputManager::Instance()->Update();
 			CameraManager::Instance()->GetActiveCamera()->Update();			
-#ifdef GRAPHICS_D3D11
 			sphere->Update();
+#ifdef GRAPHICS_D3D11
 			D3D11Renderer::Instance()->Draw();
 #else
 			GLRenderer::Instance()->Draw();
@@ -127,9 +127,9 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 		}
 	}
 
-	SafeDelete(box0);
- 	SafeDelete(sphere);
- 	SafeDelete(plane0);
+ 	SafeDelete(box0);
+  	SafeDelete(sphere);
+  	SafeDelete(plane0);
 //	SafeDelete(dragon);
 
 	return (int) msg.wParam;

@@ -37,10 +37,6 @@ Mesh::~Mesh() {
 
 void Mesh::Prepare() {
 #ifdef GRAPHICS_OPENGL
-	glGenBuffers(1, &m_indexBufferGPU);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferGPU);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(UINT) * m_indexBufferCPU.size(), &(m_indexBufferCPU[0]), GL_STATIC_DRAW);
-
 	glGenBuffers(1, &m_positionBufferGPU);
 	glBindBuffer(GL_ARRAY_BUFFER, m_positionBufferGPU);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(XMFLOAT3) * m_positionBufferCPU.size(), &(m_positionBufferCPU[0]), GL_STATIC_DRAW);
@@ -59,6 +55,9 @@ void Mesh::Prepare() {
 #endif
 	PrepareGPUBuffer();
 	PrepareShadowMapBuffer();
+	glGenBuffers(1, &m_indexBufferGPU);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferGPU);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(UINT) * m_indexBufferCPU.size(), &(m_indexBufferCPU[0]), GL_STATIC_DRAW);
 }
 
 void Mesh::CreateBoxPrimitive() {
@@ -303,6 +302,8 @@ void Mesh::CreatePlanePrimitive() {
 }
 
 void Mesh::PrepareGPUBuffer() {
+	m_associatedDeferredEffect = EffectsManager::Instance()->m_deferredGeometryPassEffect;
+	m_associatedDeferredEffect->m_associatedMeshes.push_back(this);
 #ifdef GRAPHICS_D3D11
 	std::vector<Vertex::StdMeshVertex> vertices(m_positionBufferCPU.size());
 	UINT k = 0;
@@ -338,8 +339,6 @@ void Mesh::PrepareGPUBuffer() {
 
 	//m_associatedEffect = EffectsManager::Instance()->m_stdMeshEffect;
 	//m_associatedEffect->m_associatedMeshes.push_back(this);
-	m_associatedDeferredEffect = EffectsManager::Instance()->m_deferredGeometryPassEffect;
-	m_associatedDeferredEffect->m_associatedMeshes.push_back(this);
 #else
 	glGenVertexArrays(1, &m_vertexArrayObject);
 	glBindVertexArray(m_vertexArrayObject);
@@ -355,6 +354,8 @@ void Mesh::PrepareGPUBuffer() {
 	glEnableVertexAttribArray (1);
 	glEnableVertexAttribArray (2);
 	glEnableVertexAttribArray (3);
+
+	
 #endif
 }
 
@@ -470,7 +471,26 @@ void Mesh::Draw() {
 	}
 	deferredGeoEffect->UnSetShader();
 #else
-	// gl render
+	glBindVertexArray(m_vertexArrayObject);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferGPU);
+	
+
+	DeferredGeometryPassEffect* effect = dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect);
+	for (int iP = 0; iP < m_parents.size(); iP++) {
+
+		effect->WorldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
+		effect->BindConstantBuffer();
+
+		glDrawElements(
+			GL_TRIANGLES,      // mode
+			m_indexBufferCPU.size(),    // count
+			GL_UNSIGNED_INT,   // type
+			(void*)0           // element array buffer offset
+			);
+		
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
+		effect->UnBindConstantBuffer();
+	}
 #endif
 }
 

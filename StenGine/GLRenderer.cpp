@@ -94,11 +94,27 @@ bool GLRenderer::Init() {
 	bool noError = wglMakeCurrent(m_deviceContext, m_renderingContext);
 	assert(noError);
 	
+	glEnable(GL_DEPTH_TEST); // enable depth-testing
+	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
+	glEnable(GL_CULL_FACE); // cull face
+	glCullFace(GL_BACK); // cull back face
+	glFrontFace(GL_CW); // GL_CCW for counter clock-wise
+	glViewport(0, 0, m_clientWidth, m_clientHeight);
+
 	return true;
 }
 
 void GLRenderer::Draw() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+
+	EffectsManager::Instance()->m_deferredGeometryPassEffect->SetShader();
+
+	for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
+		EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->Draw();
+	}
+
+	EffectsManager::Instance()->m_deferredGeometryPassEffect->UnSetShader();
 	SwapBuffers(m_deviceContext);
 }
 
