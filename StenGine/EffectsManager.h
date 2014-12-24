@@ -4,6 +4,7 @@
 #include "MeshRenderer.h"
 #include "Material.h"
 #include "LightManager.h"
+#include "GL/glew.h"
 
 #define D3D_COMPILE_STANDARD_FILE_INCLUDE ((ID3DInclude*)(UINT_PTR)1)
 
@@ -11,6 +12,7 @@ class Mesh;
 
 class Effect {
 protected:
+#ifdef GRAPHICS_D3D11
 	ID3D11VertexShader* m_vertexShader;
 	ID3D11PixelShader* m_pixelShader;
 	ID3D11GeometryShader* m_geometryShader;
@@ -32,7 +34,17 @@ protected:
 	ID3D11UnorderedAccessView** m_unorderedAccessViews;
 
 	void ReadShaderFile(std::wstring filename, ID3DBlob **blob, char* target, char* entryPoint = "main");
+#else
+	// gl effect
+	GLuint m_vertexShader;
+	GLuint m_pixelShader;
+	GLuint m_geometryShader;
+	GLuint m_hullShader;
+	GLuint m_domainShader;
+	GLuint m_computeShader;
 
+
+#endif
 public:
 	Effect(const std::wstring& filename);
 	Effect(const std::wstring& vsPath,
@@ -48,12 +60,16 @@ public:
 	virtual void BindShaderResource() {} 
 	virtual void UnBindConstantBuffer();
 	virtual void UnBindShaderResource();
-	virtual void UnbindUnorderedAccessViews();
 	virtual void UnSetShader();
+#ifdef GRAPHICS_D3D11
+	virtual void UnbindUnorderedAccessViews();
 	virtual void SetShaderResources(ID3D11ShaderResourceView* res, int idx);
 	virtual ID3D11ShaderResourceView* GetOutputShaderResource(int idx);
 	//virtual void GetUAVResources(ID3D11UnorderedAccessView* res, int idx) {}
 	ID3D11InputLayout* GetInputLayout() { return m_inputLayout; }
+#else
+	// gl effect
+#endif
 	std::vector<Mesh*> m_associatedMeshes;
 };
 

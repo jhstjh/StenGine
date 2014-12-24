@@ -15,26 +15,6 @@ Effect::Effect(const std::wstring& filename)
 
 }
 
-void Effect::ReadShaderFile(std::wstring filename, ID3DBlob **blob, char* target, char* entryPoint) {
-	HRESULT hr;
-#if !READ_SHADER_FROM_FILE
-	hr = D3DCompileFromFile(
-		filename.c_str(),
-		nullptr,
-		D3D_COMPILE_STANDARD_FILE_INCLUDE,
-		entryPoint,
-		target,
-		D3DCOMPILE_DEBUG,
-		0,
-		blob,
-		nullptr
-		);
-#else
-	hr = D3DReadFileToBlob(vsPath.c_str(), &m_vsBlob);
-#endif
-	assert(SUCCEEDED(hr));
-}
-
 Effect::Effect(const std::wstring& vsPath,
 			   const std::wstring& psPath,
 			   const std::wstring& gsPath = L"",
@@ -46,14 +26,20 @@ Effect::Effect(const std::wstring& vsPath,
 			   m_geometryShader(0),
 			   m_hullShader(0),
 			   m_domainShader(0),
-			   m_computeShader(0),
+			   m_computeShader(0)
+#ifdef GRAPHICS_D3D11
+			   ,
 			   m_vsBlob(0),
 			   m_psBlob(0),
 			   m_gsBlob(0),
 			   m_hsBlob(0),
 			   m_dsBlob(0),
 			   m_csBlob(0)
+#else
+			   // gl
+#endif
 {
+#ifdef GRAPHICS_D3D11
 	// Add error checking
 	HRESULT hr;
 
@@ -122,10 +108,14 @@ Effect::Effect(const std::wstring& vsPath,
 			);
 		assert(SUCCEEDED(hr));
 	}
+#else
+	// gl
+#endif
 }
 
 Effect::~Effect()
 {
+#ifdef GRAPHICS_D3D11
 	SafeDeleteArray(m_shaderResources);
 	ReleaseCOM(m_vertexShader);
 	ReleaseCOM(m_pixelShader);
@@ -133,18 +123,26 @@ Effect::~Effect()
 	ReleaseCOM(m_hullShader);
 	ReleaseCOM(m_domainShader);
 	ReleaseCOM(m_computeShader);
+#else
+	// gl
+#endif
 }
 
 void Effect::UnBindConstantBuffer() {
+#ifdef GRAPHICS_D3D11
 	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 0, nullptr);
 	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 0, nullptr);
 	D3D11Renderer::Instance()->GetD3DContext()->HSSetConstantBuffers(0, 0, nullptr);
 	D3D11Renderer::Instance()->GetD3DContext()->DSSetConstantBuffers(0, 0, nullptr);
 	D3D11Renderer::Instance()->GetD3DContext()->GSSetConstantBuffers(0, 0, nullptr);
 	D3D11Renderer::Instance()->GetD3DContext()->CSSetConstantBuffers(0, 0, nullptr);
+#else
+// gl
+#endif
 }
 
 void Effect::UnBindShaderResource() {
+#ifdef GRAPHICS_D3D11
 	static ID3D11ShaderResourceView* nullSRV[16] = { 0 };
 	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 16, nullSRV);
 	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 16, nullSRV);
@@ -152,14 +150,15 @@ void Effect::UnBindShaderResource() {
 	D3D11Renderer::Instance()->GetD3DContext()->DSSetShaderResources(0, 16, nullSRV);
 	D3D11Renderer::Instance()->GetD3DContext()->GSSetShaderResources(0, 16, nullSRV);
 	D3D11Renderer::Instance()->GetD3DContext()->CSSetShaderResources(0, 16, nullSRV);
+#else
+// gl
+#endif
 }
 
-void Effect::UnbindUnorderedAccessViews() {
-	static ID3D11UnorderedAccessView* nullUAV[7] = { 0 };
-	D3D11Renderer::Instance()->GetD3DContext()->CSSetUnorderedAccessViews(0, 7, nullUAV, 0);
-}
+
 
 void Effect::SetShader() {
+#ifdef GRAPHICS_D3D11
 	//if (m_vertexShader)
 		D3D11Renderer::Instance()->GetD3DContext()->VSSetShader(m_vertexShader, 0, 0);
 	//if (m_pixelShader)
@@ -172,15 +171,48 @@ void Effect::SetShader() {
 		D3D11Renderer::Instance()->GetD3DContext()->DSSetShader(m_domainShader, 0, 0);
 		//if (m_domainShader)
 		D3D11Renderer::Instance()->GetD3DContext()->CSSetShader(m_computeShader, 0, 0);
+#else
+	// gl
+#endif
 }
 
 void Effect::UnSetShader() {
+#ifdef GRAPHICS_D3D11
 	D3D11Renderer::Instance()->GetD3DContext()->VSSetShader(nullptr, 0, 0);
 	D3D11Renderer::Instance()->GetD3DContext()->PSSetShader(nullptr, 0, 0);
 	D3D11Renderer::Instance()->GetD3DContext()->HSSetShader(nullptr, 0, 0);
 	D3D11Renderer::Instance()->GetD3DContext()->GSSetShader(nullptr, 0, 0);
 	D3D11Renderer::Instance()->GetD3DContext()->DSSetShader(nullptr, 0, 0);
 	D3D11Renderer::Instance()->GetD3DContext()->CSSetShader(nullptr, 0, 0);
+#else
+	// gl
+#endif
+}
+
+#ifdef GRAPHICS_D3D11
+void Effect::UnbindUnorderedAccessViews() {
+	static ID3D11UnorderedAccessView* nullUAV[7] = { 0 };
+	D3D11Renderer::Instance()->GetD3DContext()->CSSetUnorderedAccessViews(0, 7, nullUAV, 0);
+}
+
+void Effect::ReadShaderFile(std::wstring filename, ID3DBlob **blob, char* target, char* entryPoint) {
+	HRESULT hr;
+#if !READ_SHADER_FROM_FILE
+	hr = D3DCompileFromFile(
+		filename.c_str(),
+		nullptr,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		entryPoint,
+		target,
+		D3DCOMPILE_DEBUG,
+		0,
+		blob,
+		nullptr
+		);
+#else
+	hr = D3DReadFileToBlob(vsPath.c_str(), &m_vsBlob);
+#endif
+	assert(SUCCEEDED(hr));
 }
 
 void Effect::SetShaderResources(ID3D11ShaderResourceView* res, int idx) {
@@ -1154,6 +1186,12 @@ void BlurEffect::BindShaderResource() {
 	//	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 2, m_shaderResources);
 	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 3, m_shaderResources);
 }
+
+#else
+// glsl here
+
+
+#endif
 
 
 //----------------------------------------------------------//

@@ -55,7 +55,7 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 	imgPath[len - 1] = 's';
 	imgPath[len - 2] = 'd';
 	imgPath[len - 3] = 'd';
-
+#ifdef GRAPHICS_D3D11
 	if (PathFileExists(imgPath.c_str())) {
 // 		HR(D3DX11CreateShaderResourceViewFromFile(
 // 			D3D11Renderer::Instance()->GetD3DDevice(),
@@ -86,7 +86,9 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 		CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
 			imgPath.c_str(), nullptr, &(mesh->m_bumpMapSRV));
 	}
-
+#else
+	// gl
+#endif
 	return true;
 }
 

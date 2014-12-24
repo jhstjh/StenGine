@@ -5,6 +5,7 @@
 ShadowMap::ShadowMap(UINT width, UINT height)
 	:m_width(width), m_height(height)
 {
+#ifdef GRAPHICS_D3D11
 	m_viewPort.TopLeftX = 0;
 	m_viewPort.TopLeftY = 0;
 	m_viewPort.Height = static_cast<float>(height);
@@ -43,11 +44,14 @@ ShadowMap::ShadowMap(UINT width, UINT height)
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateShaderResourceView(depthMap, &srvDesc, &m_depthSRV));
 
 	ReleaseCOM(depthMap);
+#endif
 }
 
 ShadowMap::~ShadowMap() {
+#ifdef GRAPHICS_D3D11
 	ReleaseCOM(m_depthSRV);
 	ReleaseCOM(m_depthDSV);
+#endif
 }
 
 XMMATRIX ShadowMap::GetViewProjMatrix() {
@@ -59,6 +63,8 @@ XMMATRIX ShadowMap::GetShadowMapTransform() {
 }
 
 void ShadowMap::RenderShadowMap() {
+#ifdef GRAPHICS_D3D11
+
 	ID3D11DeviceContext* dc = D3D11Renderer::Instance()->GetD3DContext();
 
 	dc->RSSetViewports(1, &m_viewPort);
@@ -113,4 +119,7 @@ void ShadowMap::RenderShadowMap() {
 
 	EffectsManager::Instance()->m_shadowMapEffect->UnSetShader();
 	D3D11Renderer::Instance()->GetD3DContext()->RSSetState(0);
+#else
+	// gl render
+#endif
 }

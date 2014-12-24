@@ -6,16 +6,20 @@ Skybox::Skybox(std::wstring &cubeMapPath) {
 // 	HR(D3DX11CreateShaderResourceViewFromFile(
 // 		D3D11Renderer::Instance()->GetD3DDevice(), 
 // 		cubeMapPath.c_str(), 0, 0, &m_cubeMapSRV, 0));
+#ifdef GRAPHICS_D3D11
 	CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
 		cubeMapPath.c_str(), nullptr, &m_cubeMapSRV);
+#endif
 }
 
 Skybox::~Skybox() {
+#ifdef GRAPHICS_D3D11
 	ReleaseCOM(m_cubeMapSRV);
+#endif
 }
 
 void Skybox::Draw() {
-
+#ifdef GRAPHICS_D3D11
 	SkyboxEffect* skyboxEffect = EffectsManager::Instance()->m_skyboxEffect;
 	//skyboxEffect->m_shaderResources[0] = m_cubeMapSRV;
 	skyboxEffect->SetShaderResources(m_cubeMapSRV, 0);
@@ -35,5 +39,8 @@ void Skybox::Draw() {
 	skyboxEffect->UnBindConstantBuffer();
 
 	skyboxEffect->UnSetShader();
+#else
+	// gl render
+#endif
 
 }

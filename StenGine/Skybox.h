@@ -9,7 +9,9 @@ public:
 	~Skybox();
 
 	void Draw(); 
+#ifdef GRAPHICS_D3D11
 	ID3D11ShaderResourceView* m_cubeMapSRV;
+#endif
 };
 
 #endif

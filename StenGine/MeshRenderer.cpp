@@ -195,7 +195,7 @@ void Mesh::CreateBoxPrimitive() {
 	m_material.ambient = XMFLOAT4(0.2, 0.2, 0.2, 1);
 	m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
 	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
-
+#ifdef GRAPHICS_D3D11
 // 	HR(D3DX11CreateShaderResourceViewFromFile(
 // 		D3D11Renderer::Instance()->GetD3DDevice(),
 // 		L"./Model/WoodCrate02.dds", 0, 0, &m_diffuseMapSRV, 0));
@@ -206,6 +206,9 @@ void Mesh::CreateBoxPrimitive() {
 // 		L"./Model/WoodCrate02_normal.dds", 0, 0, &m_normalMapSRV, 0));
 	CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
 		L"./Model/WoodCrate02_normal.dds", nullptr, &m_normalMapSRV);
+#else
+	// gl
+#endif
 }
 
 void Mesh::CreatePlanePrimitive() {
@@ -252,6 +255,7 @@ void Mesh::CreatePlanePrimitive() {
 	m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
 	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 16.0f);
 
+#ifdef GRAPHICS_D3D11
 // 	HR(D3DX11CreateShaderResourceViewFromFile(
 // 		D3D11Renderer::Instance()->GetD3DDevice(),
 // 		L"./Model/darkbrickdxt1.dds", 0, 0, &m_diffuseMapSRV, 0));
@@ -269,10 +273,13 @@ void Mesh::CreatePlanePrimitive() {
 // 		L"./Model/darkbrickdxt1_bump.dds", 0, 0, &m_bumpMapSRV, 0));
 	CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
 		L"./Model/darkbrickdxt1_bump.dds", nullptr, &m_bumpMapSRV);
+#else
+	// gl
+#endif
 }
 
 void Mesh::PrepareGPUBuffer() {
-
+#ifdef GRAPHICS_D3D11
 	std::vector<Vertex::StdMeshVertex> vertices(m_positionBufferCPU.size());
 	UINT k = 0;
 	for (size_t i = 0; i < m_positionBufferCPU.size(); ++i, ++k)
@@ -307,14 +314,15 @@ void Mesh::PrepareGPUBuffer() {
 
 	//m_associatedEffect = EffectsManager::Instance()->m_stdMeshEffect;
 	//m_associatedEffect->m_associatedMeshes.push_back(this);
-#if !FORWARD
 	m_associatedDeferredEffect = EffectsManager::Instance()->m_deferredGeometryPassEffect;
 	m_associatedDeferredEffect->m_associatedMeshes.push_back(this);
+#else
+	// gl
 #endif
 }
 
 void Mesh::PrepareShadowMapBuffer() {
-
+#ifdef GRAPHICS_D3D11
 	std::vector<Vertex::ShadowMapVertex> vertices(m_positionBufferCPU.size());
 	UINT k = 0;
 	for (size_t i = 0; i < m_positionBufferCPU.size(); ++i, ++k)
@@ -332,131 +340,101 @@ void Mesh::PrepareShadowMapBuffer() {
 	D3D11_SUBRESOURCE_DATA vinitData;
 	vinitData.pSysMem = &vertices[0];
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&vbd, &vinitData, &m_shadowMapVertexBufferGPU));
+#else
+	// gl
+#endif
 }
 
 void Mesh::Draw() {
-#if FORWARD
-	ID3DX11EffectTechnique* tech = m_associatedEffect->GetActiveTech();
-	// if it is std mesh
-	if (dynamic_cast<StdMeshEffect*>(m_associatedEffect)) {
-		UINT stride = sizeof(Vertex::StdMeshVertex);
-		UINT offset = 0;
-		D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
-		D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
+#ifdef GRAPHICS_D3D11
+	UINT stride = sizeof(Vertex::StdMeshVertex);
+	UINT offset = 0;
 
-		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->Mat->SetRawValue(&m_material, 0, sizeof(Material));
-		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->DiffuseMap->SetResource(m_diffuseMapSRV);
+	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
+	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
+	DeferredGeometryPassEffect* deferredGeoEffect;
 
-		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parent->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
-		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->WorldViewProj->SetMatrix(reinterpret_cast<float*>(&worldViewProj));
-		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->World->SetMatrix(reinterpret_cast<float*>(m_parent->GetWorldTransform()));
+	if (!m_bumpMapSRV)
+		deferredGeoEffect = (dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect));
+	else
+		deferredGeoEffect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect;
 
+	deferredGeoEffect->SetShader();
 
-		XMMATRIX world = XMLoadFloat4x4(m_parent->GetWorldTransform());
-		XMMATRIX worldInvTranspose = InverseTranspose(world);
-		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->WorldInvTranspose->SetMatrix(reinterpret_cast<float*>(&worldInvTranspose));
+	deferredGeoEffect->GetPerObjConstantBuffer()->Mat = m_material;
+	XMFLOAT4 resourceMask(0, 0, 0, 0);
+	if (m_diffuseMapSRV) {
+		resourceMask.x = 1;
+		//deferredGeoEffect->m_shaderResources[0] = m_diffuseMapSRV;
+		deferredGeoEffect->SetShaderResources(m_diffuseMapSRV, 0);
+	}
+	if (m_normalMapSRV) {
+		resourceMask.y = 1;
+		//deferredGeoEffect->m_shaderResources[1] = m_normalMapSRV;
+		deferredGeoEffect->SetShaderResources(m_normalMapSRV, 1);
+	}
+	if (m_receiveShadow)
+		resourceMask.z = 1;
+	deferredGeoEffect->GetPerObjConstantBuffer()->DiffX_NormY_ShadZ = resourceMask;
 
+	//deferredGeoEffect->m_shaderResources[4] = D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV;
+	deferredGeoEffect->SetShaderResources(D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV, 4);
+	//deferredGeoEffect->m_shaderResources[3] = LightManager::Instance()->m_shadowMap->GetDepthSRV();
+	deferredGeoEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
+	deferredGeoEffect->GetPerObjConstantBuffer()->ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
-		XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(m_parent->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
-		(dynamic_cast<StdMeshEffect*>(m_associatedEffect))->ShadowTransform->SetMatrix(reinterpret_cast<float*>(&worldShadowMapTransform));
+	for (int iP = 0; iP < m_parents.size(); iP++) {
 
+		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
+		deferredGeoEffect->GetPerObjConstantBuffer()->WorldViewProj = XMMatrixTranspose(worldViewProj);
+		deferredGeoEffect->GetPerObjConstantBuffer()->World = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
+		XMMATRIX worldInvTranspose = MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
+		deferredGeoEffect->GetPerObjConstantBuffer()->WorldInvTranspose = XMMatrixTranspose(worldInvTranspose);
 
-		D3DX11_TECHNIQUE_DESC techDesc;
-		tech->GetDesc(&techDesc);
-		for (UINT p = 0; p < techDesc.Passes; ++p)
-		{
-			tech->GetPassByIndex(p)->Apply(0, D3D11Renderer::Instance()->GetD3DContext());
+		XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
+		deferredGeoEffect->GetPerObjConstantBuffer()->WorldView = XMMatrixTranspose(worldView);
+
+		XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
+		deferredGeoEffect->GetPerObjConstantBuffer()->WorldViewInvTranspose = XMMatrixTranspose(worldViewInvTranspose);
+
+		XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
+		deferredGeoEffect->GetPerObjConstantBuffer()->ShadowTransform = XMMatrixTranspose(worldShadowMapTransform);
+
+		if (m_bumpMapSRV) {
+
+			D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+			//deferredGeoEffect->m_shaderResources[3] = m_bumpMapSRV;
+			DeferredGeometryTessPassEffect* realShader = dynamic_cast<DeferredGeometryTessPassEffect*>(deferredGeoEffect);
+			//memcpy(&(realShader->m_perObjConstantBuffer), &(deferredGeoEffect->m_perObjConstantBuffer), sizeof(DeferredGeometryTessPassEffect::PEROBJ_CONSTANT_BUFFER));
+			deferredGeoEffect->SetShaderResources(m_bumpMapSRV, 2);
+			deferredGeoEffect->UpdateConstantBuffer();
+			deferredGeoEffect->BindConstantBuffer();
+			deferredGeoEffect->BindShaderResource();
 			D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
+			deferredGeoEffect->UnBindShaderResource();
+			deferredGeoEffect->UnBindConstantBuffer();
+
+			D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		}
- 	}
+		else {
+			D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			deferredGeoEffect->UpdateConstantBuffer();
+			deferredGeoEffect->BindConstantBuffer();
+			deferredGeoEffect->BindShaderResource();
+			D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
+			deferredGeoEffect->UnBindShaderResource();
+			deferredGeoEffect->UnBindConstantBuffer();
+		}
+	}
+	deferredGeoEffect->UnSetShader();
 #else
-
-		UINT stride = sizeof(Vertex::StdMeshVertex);
-		UINT offset = 0;
-
-		D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
-		D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
-
-		DeferredGeometryPassEffect* deferredGeoEffect;
-
-		if (!m_bumpMapSRV) 
-			deferredGeoEffect = (dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect));
-		else
-			deferredGeoEffect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect;
-
-		deferredGeoEffect->SetShader();
-
-		deferredGeoEffect->GetPerObjConstantBuffer()->Mat = m_material;
-		XMFLOAT4 resourceMask(0, 0, 0, 0);
-		if (m_diffuseMapSRV) {
-			resourceMask.x = 1;
-			//deferredGeoEffect->m_shaderResources[0] = m_diffuseMapSRV;
-			deferredGeoEffect->SetShaderResources(m_diffuseMapSRV, 0);
-		}
-		if (m_normalMapSRV) {
-			resourceMask.y = 1;
-			//deferredGeoEffect->m_shaderResources[1] = m_normalMapSRV;
-			deferredGeoEffect->SetShaderResources(m_normalMapSRV, 1);
-		}
-		if (m_receiveShadow)
-			resourceMask.z = 1;
-		deferredGeoEffect->GetPerObjConstantBuffer()->DiffX_NormY_ShadZ = resourceMask;
-
-		//deferredGeoEffect->m_shaderResources[4] = D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV;
-		deferredGeoEffect->SetShaderResources(D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV, 4);
-		//deferredGeoEffect->m_shaderResources[3] = LightManager::Instance()->m_shadowMap->GetDepthSRV();
-		deferredGeoEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-		deferredGeoEffect->GetPerObjConstantBuffer()->ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
-
-		for (int iP = 0; iP < m_parents.size(); iP++) {
-
-			XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
-			deferredGeoEffect->GetPerObjConstantBuffer()->WorldViewProj = XMMatrixTranspose(worldViewProj);
-			deferredGeoEffect->GetPerObjConstantBuffer()->World = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
-			XMMATRIX worldInvTranspose = MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
-			deferredGeoEffect->GetPerObjConstantBuffer()->WorldInvTranspose = XMMatrixTranspose(worldInvTranspose);
-
-			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
-			deferredGeoEffect->GetPerObjConstantBuffer()->WorldView = XMMatrixTranspose(worldView);
-
-			XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
-			deferredGeoEffect->GetPerObjConstantBuffer()->WorldViewInvTranspose = XMMatrixTranspose(worldViewInvTranspose);
-
-			XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
-			deferredGeoEffect->GetPerObjConstantBuffer()->ShadowTransform = XMMatrixTranspose(worldShadowMapTransform);
-
-			if (m_bumpMapSRV) {
-
-				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-				//deferredGeoEffect->m_shaderResources[3] = m_bumpMapSRV;
-				DeferredGeometryTessPassEffect* realShader = dynamic_cast<DeferredGeometryTessPassEffect*>(deferredGeoEffect);
-				//memcpy(&(realShader->m_perObjConstantBuffer), &(deferredGeoEffect->m_perObjConstantBuffer), sizeof(DeferredGeometryTessPassEffect::PEROBJ_CONSTANT_BUFFER));
-				deferredGeoEffect->SetShaderResources(m_bumpMapSRV, 2);
-				deferredGeoEffect->UpdateConstantBuffer();
-				deferredGeoEffect->BindConstantBuffer();
-				deferredGeoEffect->BindShaderResource();
-				D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
-				deferredGeoEffect->UnBindShaderResource();
-				deferredGeoEffect->UnBindConstantBuffer();
-
-				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			}
-			else {
-				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-				deferredGeoEffect->UpdateConstantBuffer();
-				deferredGeoEffect->BindConstantBuffer();
-				deferredGeoEffect->BindShaderResource();
-				D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
-				deferredGeoEffect->UnBindShaderResource();
-				deferredGeoEffect->UnBindConstantBuffer();
-			}
-		}
-		deferredGeoEffect->UnSetShader();
+	// gl render
 #endif
 }
 
 void Mesh::DrawOnShadowMap() {
+#ifdef GRAPHICS_D3D11
 	UINT stride = sizeof(Vertex::ShadowMapVertex);
 	UINT offset = 0;
 	
@@ -471,4 +449,7 @@ void Mesh::DrawOnShadowMap() {
 		D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
 		EffectsManager::Instance()->m_shadowMapEffect->UnBindConstantBuffer();
 	}
+#else
+	// gl render
+#endif
 }

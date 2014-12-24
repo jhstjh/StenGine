@@ -36,9 +36,6 @@
     <ClInclude Include="StenGine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="D3D11Renderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="D3DIncludes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -105,9 +102,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StenGine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="D3D11Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MeshRenderer.cpp">
@@ -209,23 +203,6 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="FX\StdMesh.fx">
-      <Filter>FX</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FX\ShadowMap.fx">
-      <Filter>FX</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FX\ScreenQuad.fx">
-      <Filter>FX</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FX\GodRay.fx">
-      <Filter>FX</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FX\Skybox.fx">
-      <Filter>FX</Filter>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Model\ball.obj">
       <Filter>Model</Filter>
     </None>
@@ -238,55 +215,11 @@
     <None Include="Model\plane.fbx">
       <Filter>Model</Filter>
     </None>
-    <None Include="FX\StandardConstant.fx">
+    <None Include="FX\StdMesh_vs.glsl">
       <Filter>FX</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="FX\ScreenQuad_vs.hlsl">
+    <None Include="FX\StdMesh_ps.glsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredGeometryPass_vs.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredGeometryPass_ps.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredShadingPass_ps.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\ShadowMap_vs.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\Skybox_ps.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\Skybox_vs.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\Blur_ps.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredGeometryTessPass_ds.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredGeometryTessPass_hs.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredGeometryTessPass_ps.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredGeometryTessPass_vs.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\VBlur_cs.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\HBlur_cs.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredShading_cs.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
+    </None>
   </ItemGroup>
 </Project>

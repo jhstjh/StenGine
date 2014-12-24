@@ -69,7 +69,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	ResourceManager::Instance();
 	InputManager::Instance();
 
-#ifdef GRAPHICS_D3D11
 	//same mesh render with instancing
 	GameObject* box0 = new GameObject();
 	Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
@@ -85,13 +84,10 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
  	plane0->AddComponent(plane0Mesh);
 	plane0->RotateAroundY(3.14159);
 
-	GameObject* dragon = new GameObject(-3, -1, 0);
-	Mesh* dragonMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/dragon.fbx");
-	dragon->AddComponent(dragonMesh);
+// 	GameObject* dragon = new GameObject(-3, -1, 0);
+// 	Mesh* dragonMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/dragon.fbx");
+// 	dragon->AddComponent(dragonMesh);
 
-#else
-	// put ogl scene here..
-#endif
 
 	Timer::Init();
 
@@ -131,14 +127,11 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 		}
 	}
 
-#ifdef GRAPHICS_D3D11
 	SafeDelete(box0);
  	SafeDelete(sphere);
  	SafeDelete(plane0);
- 	SafeDelete(dragon);
-#else
-	// ogl stuff
-#endif
+//	SafeDelete(dragon);
+
 	return (int) msg.wParam;
 }
 
