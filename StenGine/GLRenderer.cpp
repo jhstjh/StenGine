@@ -85,7 +85,7 @@ bool GLRenderer::Init() {
 	assert(m_renderingContext, "Error creating gl context");
 
 
-	glClearColor(1, 0, 0, 0);
+	glClearColor(0.2, 0.2, 0.2, 0);
 	glClearDepth(1.0f);
 
 

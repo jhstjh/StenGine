@@ -107,6 +107,7 @@ private:
 	ID3D11Buffer* m_perObjectCB;
 #else
 	GLint WorldViewProjPosition;
+	GLint DiffuseMapPosition;
 #endif
 
 public:
@@ -145,7 +146,7 @@ public:
 	//ID3D11ShaderResourceView *m_shaderResources[5];
 #else
 	XMMATRIX WorldViewProj;
-
+	GLint DiffuseMap;
 #endif
 };
 

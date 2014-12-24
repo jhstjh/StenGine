@@ -2,6 +2,7 @@
 #include <fbxsdk.h>
 #include "D3D11Renderer.h"
 #include "Shlwapi.h"
+#include "SOIL.h"
 
 void ReadFbxMesh(FbxNode* node, Mesh* mesh);
 
@@ -88,6 +89,16 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 	}
 #else
 	// gl
+	std::string fs(imgPath.begin(), imgPath.end());
+	if (PathFileExists(imgPath.c_str())) {
+		mesh->m_diffuseMap = SOIL_load_OGL_texture(
+			fs.c_str(),
+			SOIL_LOAD_AUTO,
+			SOIL_CREATE_NEW_ID,
+			SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
+			);
+		assert(mesh->m_diffuseMap != 0);
+	}
 #endif
 	return true;
 }

@@ -4,6 +4,7 @@
 #include "ObjReader.h"
 #include "CameraManager.h"
 #include "LightManager.h"
+#include "SOIL.h"
 
 Mesh::Mesh(int type = 0) :
 #ifdef GRAPHICS_D3D11
@@ -52,12 +53,13 @@ void Mesh::Prepare() {
 	glGenBuffers(1, &m_tangentBufferGPU);
 	glBindBuffer(GL_ARRAY_BUFFER, m_tangentBufferGPU);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(XMFLOAT3) * m_tangentBufferCPU.size(), &(m_tangentBufferCPU[0]), GL_STATIC_DRAW);
-#endif
-	PrepareGPUBuffer();
-	PrepareShadowMapBuffer();
+
 	glGenBuffers(1, &m_indexBufferGPU);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferGPU);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(UINT) * m_indexBufferCPU.size(), &(m_indexBufferCPU[0]), GL_STATIC_DRAW);
+#endif
+	PrepareGPUBuffer();
+	PrepareShadowMapBuffer();
 }
 
 void Mesh::CreateBoxPrimitive() {
@@ -231,6 +233,14 @@ void Mesh::CreateBoxPrimitive() {
 		L"./Model/WoodCrate02_normal.dds", nullptr, &m_normalMapSRV);
 #else
 	// gl
+	m_diffuseMap = SOIL_load_OGL_texture (
+		"./Model/WoodCrate02.dds",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
+		);
+	assert(m_diffuseMap != 0);
+
 #endif
 }
 
@@ -479,7 +489,10 @@ void Mesh::Draw() {
 	for (int iP = 0; iP < m_parents.size(); iP++) {
 
 		effect->WorldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
+		effect->DiffuseMap = m_diffuseMap;
+		
 		effect->BindConstantBuffer();
+		effect->BindShaderResource();
 
 		glDrawElements(
 			GL_TRIANGLES,      // mode
@@ -490,6 +503,7 @@ void Mesh::Draw() {
 		
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		effect->UnBindConstantBuffer();
+		effect->UnBindShaderResource();
 	}
 #endif
 }

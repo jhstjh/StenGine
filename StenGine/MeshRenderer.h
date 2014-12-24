@@ -61,7 +61,7 @@ public:
 	ID3D11ShaderResourceView* m_normalMapSRV;
 	ID3D11ShaderResourceView* m_bumpMapSRV;
 #else
-	//
+	GLuint m_diffuseMap;
 #endif
 
 	Material m_material;

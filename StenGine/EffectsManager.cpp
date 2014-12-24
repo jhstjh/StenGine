@@ -1265,6 +1265,7 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filen
 	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT)
 {
 	WorldViewProjPosition = glGetUniformLocation(m_shaderProgram, "gWorldViewProj");
+	DiffuseMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseMap");
 	assert(WorldViewProjPosition > -1);
 }
 
@@ -1282,8 +1283,9 @@ void DeferredGeometryPassEffect::BindConstantBuffer() {
 }
 
 void DeferredGeometryPassEffect::BindShaderResource() {
-// 	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 5, m_shaderResources);
-// 	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 5, m_shaderResources);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, DiffuseMap);
+	glUniform1i(DiffuseMapPosition, 0);
 }
 
 
