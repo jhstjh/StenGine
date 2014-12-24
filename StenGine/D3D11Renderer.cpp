@@ -382,7 +382,7 @@ void D3D11Renderer::Draw() {
 #if FORWARD
 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
-	m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&SGColors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		m_d3d11DeviceContext->RSSetState(0);
@@ -403,10 +403,10 @@ void D3D11Renderer::Draw() {
 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
 	ID3D11RenderTargetView* rtvs[3] = { m_diffuseBufferRTV, m_normalBufferRTV, m_specularBufferRTV };
 	m_d3d11DeviceContext->OMSetRenderTargets(3, rtvs, m_deferredRenderDepthStencilView);
-	m_d3d11DeviceContext->ClearRenderTargetView(m_diffuseBufferRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
-	m_d3d11DeviceContext->ClearRenderTargetView(m_positionBufferRTV, reinterpret_cast<const float*>(&Colors::White));
-	m_d3d11DeviceContext->ClearRenderTargetView(m_normalBufferRTV, reinterpret_cast<const float*>(&Colors::Black));
-	m_d3d11DeviceContext->ClearRenderTargetView(m_specularBufferRTV, reinterpret_cast<const float*>(&Colors::Black));
+	m_d3d11DeviceContext->ClearRenderTargetView(m_diffuseBufferRTV, reinterpret_cast<const float*>(&SGColors::LightSteelBlue));
+	m_d3d11DeviceContext->ClearRenderTargetView(m_positionBufferRTV, reinterpret_cast<const float*>(&SGColors::White));
+	m_d3d11DeviceContext->ClearRenderTargetView(m_normalBufferRTV, reinterpret_cast<const float*>(&SGColors::Black));
+	m_d3d11DeviceContext->ClearRenderTargetView(m_specularBufferRTV, reinterpret_cast<const float*>(&SGColors::Black));
 	m_d3d11DeviceContext->ClearDepthStencilView(m_deferredRenderDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		m_d3d11DeviceContext->RSSetState(0);
@@ -435,7 +435,7 @@ void D3D11Renderer::Draw() {
 	m_d3d11DeviceContext->HSSetShaderResources(0, 16, nullSRV);
 	m_d3d11DeviceContext->DSSetShaderResources(0, 16, nullSRV);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_deferredShadingRTV, m_depthStencilView);
-	m_d3d11DeviceContext->ClearRenderTargetView(m_deferredShadingRTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	m_d3d11DeviceContext->ClearRenderTargetView(m_deferredShadingRTV, reinterpret_cast<const float*>(&SGColors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	m_SkyBox->Draw();
@@ -452,7 +452,7 @@ void D3D11Renderer::Draw() {
 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
 	ID3D11RenderTargetView* crtvs[2] = { m_deferredShadingRTV, m_SSAORTV };
 	m_d3d11DeviceContext->OMSetRenderTargets(2, crtvs, m_depthStencilView);
-	m_d3d11DeviceContext->ClearRenderTargetView(m_SSAORTV, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
+	m_d3d11DeviceContext->ClearRenderTargetView(m_SSAORTV, reinterpret_cast<const float*>(&SGColors::LightSteelBlue));
 	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	m_d3d11DeviceContext->IASetInputLayout(NULL);

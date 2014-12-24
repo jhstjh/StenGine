@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "StenGine.h"
 #include "D3D11Renderer.h"
+#include "GLRenderer.h"
 #include "EffectsManager.h"
 #include "LightManager.h"
 #include "CameraManager.h"
@@ -49,18 +50,26 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	{
 		return FALSE;
 	}
-
+#ifdef GRAPHICS_D3D11
 	D3D11Renderer* renderer = new D3D11Renderer(hInstance, hMainWnd);
  	if (!renderer->Init())
  	{
  		return FALSE;
  	}
+#else
+	GLRenderer* renderer = new GLRenderer(hInstance, hMainWnd);
+	if (!renderer->Init())
+	{
+		return FALSE;
+	}
+#endif
 
 	EffectsManager::Instance();
 	CameraManager::Instance();
 	ResourceManager::Instance();
 	InputManager::Instance();
 
+#ifdef GRAPHICS_D3D11
 	//same mesh render with instancing
 	GameObject* box0 = new GameObject();
 	Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
@@ -79,6 +88,10 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	GameObject* dragon = new GameObject(-3, -1, 0);
 	Mesh* dragonMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/dragon.fbx");
 	dragon->AddComponent(dragonMesh);
+
+#else
+	// put ogl scene here..
+#endif
 
 	Timer::Init();
 
@@ -107,18 +120,25 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 				elaspedFrame = 0;
 			}
 			InputManager::Instance()->Update();
-			CameraManager::Instance()->GetActiveCamera()->Update();
+			CameraManager::Instance()->GetActiveCamera()->Update();			
+#ifdef GRAPHICS_D3D11
 			sphere->Update();
 			D3D11Renderer::Instance()->Draw();
+#else
+			GLRenderer::Instance()->Draw();
+#endif
 			elaspedFrame++;
 		}
 	}
 
+#ifdef GRAPHICS_D3D11
 	SafeDelete(box0);
  	SafeDelete(sphere);
  	SafeDelete(plane0);
  	SafeDelete(dragon);
-
+#else
+	// ogl stuff
+#endif
 	return (int) msg.wParam;
 }
 

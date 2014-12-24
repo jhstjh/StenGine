@@ -4,22 +4,20 @@
 #include "stdafx.h"
 #include "MeshRenderer.h"
 #include "Skybox.h"
+#include "RendererBase.h"
 
 #define FORWARD 0
 
-class D3D11Renderer {
+class D3D11Renderer: public Renderer {
 public:
 	D3D11Renderer(HINSTANCE hInstance, HWND hMainWnd);
 	virtual ~D3D11Renderer();
 	static D3D11Renderer* Instance() { return _instance; }
-	bool Init();
-	void Draw();
+	virtual bool Init();
+	virtual void Draw();
 	ID3D11Device* GetD3DDevice() { return m_d3d11Device; }
 	ID3D11DeviceContext* GetD3DContext() { return m_d3d11DeviceContext; }
-	float GetAspectRatio() { return static_cast<float>(m_clientWidth) / static_cast<float>(m_clientHeight); }
-	int GetScreenWidth() { return m_clientWidth; }
-	int GetScreenHeight() { return m_clientHeight; }
-	Skybox* m_SkyBox;
+
 	ID3D11RasterizerState* m_depthRS;
 
 private:

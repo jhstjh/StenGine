@@ -2,6 +2,7 @@
 #include "InputManager.h"
 
 #include "D3D11Renderer.h"
+#include "GLRenderer.h"
 using namespace DirectX;
 
 Camera::Camera(float px, float py, float pz,
@@ -16,8 +17,11 @@ Camera::Camera(float px, float py, float pz,
 
 	XMMATRIX V = XMMatrixLookAtLH(pos, m_target, m_up);
 	XMStoreFloat4x4(&m_view, V);
-
+#ifdef GRAPHICS_D3D11
 	XMMATRIX P = XMMatrixPerspectiveFovLH(fov, D3D11Renderer::Instance()->GetAspectRatio(), np, fp);
+#else
+	XMMATRIX P = XMMatrixPerspectiveFovLH(fov, GLRenderer::Instance()->GetAspectRatio(), np, fp);
+#endif
 	XMStoreFloat4x4(&m_proj, P);
 
 	m_radius = XMVectorGetX(XMVector3Length(pos - m_target));

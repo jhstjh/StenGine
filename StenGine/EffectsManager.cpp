@@ -1160,6 +1160,7 @@ void BlurEffect::BindShaderResource() {
 EffectsManager* EffectsManager::_instance = nullptr;
 EffectsManager::EffectsManager() {
 	//m_stdMeshEffect = new StdMeshEffect(L"FX/StdMesh.fxo");
+#ifdef GRAPHICS_D3D11
 	m_shadowMapEffect = new ShadowMapEffect(L"FX/ShadowMap");
 	m_deferredGeometryPassEffect = new DeferredGeometryPassEffect(L"FX/DeferredGeometryPass");
 	m_deferredGeometryTessPassEffect = new DeferredGeometryTessPassEffect(L"FX/DeferredGeometryTessPass");
@@ -1172,7 +1173,10 @@ EffectsManager::EffectsManager() {
 	//m_screenQuadEffect = new ScreenQuadEffect(L"FX/ScreenQuad.fxo");
 	//m_godrayEffect = new GodRayEffect(L"FX/GodRay.fxo");
 	m_skyboxEffect = new SkyboxEffect(L"FX/Skybox");
-	//m_effects.push_back(PosColor);
+
+#else
+	// load glsl shader here
+#endif
 }
 
 EffectsManager::~EffectsManager() {

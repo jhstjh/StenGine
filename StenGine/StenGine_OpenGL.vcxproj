@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{673A993C-EA5A-4DDF-8876-620314770CDC}</ProjectGuid>
+    <ProjectGuid>{BAB0F6EC-181F-4DE0-BC89-E5CAF65182FB}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>StenGine</RootNamespace>
   </PropertyGroup>
@@ -52,7 +52,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;FBXSDK_SHARED;GRAPHICS_D3D11;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;FBXSDK_SHARED;GRAPHICS_OPENGL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -61,7 +61,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;D3DCompiler.lib;shlwapi.lib;dxgi.lib;dxguid.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;libfbxsdk.lib;libfbxsdk-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32.lib;OpenGL32.lib;d3d11.lib;D3DCompiler.lib;shlwapi.lib;dxgi.lib;dxguid.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;libfbxsdk.lib;libfbxsdk-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\lib\vs2013\x86\debug</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
@@ -96,11 +96,13 @@
     <ClInclude Include="EffectsManager.h" />
     <ClInclude Include="FbxReaderSG.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="GLRenderer.h" />
     <ClInclude Include="LightManager.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MathHelper.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="ObjReader.h" />
+    <ClInclude Include="RendererBase.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="ShadowMap.h" />
@@ -120,9 +122,11 @@
     <ClCompile Include="EffectsManager.cpp" />
     <ClCompile Include="FbxReaderSG.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="GLRenderer.cpp" />
     <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="ObjReader.cpp" />
+    <ClCompile Include="RendererBase.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="ShadowMap.cpp" />
     <ClCompile Include="Skybox.cpp" />
