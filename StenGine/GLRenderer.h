@@ -5,6 +5,8 @@
 #include "MeshRenderer.h"
 #include "Skybox.h"
 #include "RendererBase.h"
+#include "GL/glew.h"
+#include "GL/wglew.h"
 
 class GLRenderer: public Renderer {
 public: 

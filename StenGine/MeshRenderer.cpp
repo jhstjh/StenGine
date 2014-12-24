@@ -5,14 +5,15 @@
 #include "CameraManager.h"
 #include "LightManager.h"
 
-
 Mesh::Mesh(int type = 0) :
+#ifdef GRAPHICS_D3D11
 m_indexBufferCPU(0),
 m_stdMeshVertexBufferGPU(0),
 m_shadowMapVertexBufferGPU(0),
 m_diffuseMapSRV(0),
 m_normalMapSRV(0),
 m_bumpMapSRV(0),
+#endif
 m_castShadow(true),
 m_receiveShadow(true)
 {
@@ -24,15 +25,38 @@ m_receiveShadow(true)
 }
 
 Mesh::~Mesh() {
+#ifdef GRAPHICS_D3D11
 	ReleaseCOM(m_indexBufferGPU);
 	ReleaseCOM(m_stdMeshVertexBufferGPU);
 	ReleaseCOM(m_shadowMapVertexBufferGPU);
 	ReleaseCOM(m_diffuseMapSRV);
 	ReleaseCOM(m_normalMapSRV);
 	ReleaseCOM(m_bumpMapSRV);
+#endif
 }
 
 void Mesh::Prepare() {
+#ifdef GRAPHICS_OPENGL
+	glGenBuffers(1, &m_indexBufferGPU);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferGPU);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(UINT) * m_indexBufferCPU.size(), &(m_indexBufferCPU[0]), GL_STATIC_DRAW);
+
+	glGenBuffers(1, &m_positionBufferGPU);
+	glBindBuffer(GL_ARRAY_BUFFER, m_positionBufferGPU);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(XMFLOAT3) * m_positionBufferCPU.size(), &(m_positionBufferCPU[0]), GL_STATIC_DRAW);
+
+	glGenBuffers(1, &m_normalBufferGPU);
+	glBindBuffer(GL_ARRAY_BUFFER, m_normalBufferGPU);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(XMFLOAT3) * m_normalBufferCPU.size(), &(m_normalBufferCPU[0]), GL_STATIC_DRAW);
+
+	glGenBuffers(1, &m_texUVBufferGPU);
+	glBindBuffer(GL_ARRAY_BUFFER, m_texUVBufferGPU);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(XMFLOAT2) * m_texUVBufferCPU.size(), &(m_texUVBufferCPU[0]), GL_STATIC_DRAW);
+
+	glGenBuffers(1, &m_tangentBufferGPU);
+	glBindBuffer(GL_ARRAY_BUFFER, m_tangentBufferGPU);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(XMFLOAT3) * m_tangentBufferCPU.size(), &(m_tangentBufferCPU[0]), GL_STATIC_DRAW);
+#endif
 	PrepareGPUBuffer();
 	PrepareShadowMapBuffer();
 }
@@ -317,7 +341,20 @@ void Mesh::PrepareGPUBuffer() {
 	m_associatedDeferredEffect = EffectsManager::Instance()->m_deferredGeometryPassEffect;
 	m_associatedDeferredEffect->m_associatedMeshes.push_back(this);
 #else
-	// gl
+	glGenVertexArrays(1, &m_vertexArrayObject);
+	glBindVertexArray(m_vertexArrayObject);
+	glBindBuffer(GL_ARRAY_BUFFER, m_positionBufferGPU);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glBindBuffer(GL_ARRAY_BUFFER, m_normalBufferGPU);
+	glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glBindBuffer(GL_ARRAY_BUFFER, m_texUVBufferGPU);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+	glBindBuffer(GL_ARRAY_BUFFER, m_tangentBufferGPU);
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray (0);
+	glEnableVertexAttribArray (1);
+	glEnableVertexAttribArray (2);
+	glEnableVertexAttribArray (3);
 #endif
 }
 
@@ -341,7 +378,11 @@ void Mesh::PrepareShadowMapBuffer() {
 	vinitData.pSysMem = &vertices[0];
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&vbd, &vinitData, &m_shadowMapVertexBufferGPU));
 #else
-	// gl
+	glGenVertexArrays(1, &m_shadowVertexArrayObject);
+	glBindVertexArray(m_shadowVertexArrayObject);
+	glBindBuffer(GL_ARRAY_BUFFER, m_positionBufferGPU);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(0);
 #endif
 }
 

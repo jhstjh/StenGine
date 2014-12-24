@@ -6,8 +6,7 @@
 #include "MathHelper.h"
 #include "CameraManager.h"
 #include "Color.h"
-#include "GL/glew.h"
-#include "GL/wglew.h"
+
 
 GLRenderer* GLRenderer::_instance = nullptr;
 

@@ -5,6 +5,7 @@
 #include "EffectsManager.h"
 #include "Component.h"
 #include "Material.h"
+#include "GLRenderer.h"
 
 class Effect;
 
@@ -23,9 +24,21 @@ namespace Vertex {
 
 class Mesh: public Component {
 private:
+#ifdef GRAPHICS_D3D11
 	ID3D11Buffer* m_indexBufferGPU;
 	ID3D11Buffer* m_stdMeshVertexBufferGPU;
 	ID3D11Buffer* m_shadowMapVertexBufferGPU;
+#else
+	GLuint m_indexBufferGPU;
+
+	GLuint m_positionBufferGPU;
+	GLuint m_normalBufferGPU;
+	GLuint m_texUVBufferGPU;
+	GLuint m_tangentBufferGPU;
+
+	GLuint m_vertexArrayObject;
+	GLuint m_shadowVertexArrayObject;
+#endif
 	Effect* m_associatedEffect;
 	Effect* m_associatedDeferredEffect;
 
@@ -43,9 +56,13 @@ public:
 	std::vector<XMFLOAT2> m_texUVBufferCPU;
 	std::vector<XMFLOAT4> m_colorBufferCPU;
 	std::vector<XMFLOAT3> m_tangentBufferCPU;
+#ifdef GRAPHICS_D3D11
 	ID3D11ShaderResourceView* m_diffuseMapSRV;
 	ID3D11ShaderResourceView* m_normalMapSRV;
 	ID3D11ShaderResourceView* m_bumpMapSRV;
+#else
+	//
+#endif
 
 	Material m_material;
 	XMFLOAT4X4 m_worldTransform;
