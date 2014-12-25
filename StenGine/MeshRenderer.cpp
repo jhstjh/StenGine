@@ -241,6 +241,13 @@ void Mesh::CreateBoxPrimitive() {
 		);
 	assert(m_diffuseMap != 0);
 
+	m_normalMap = SOIL_load_OGL_texture(
+		"./Model/WoodCrate02_normal.dds",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
+		);
+	assert(m_normalMap != 0);
 #endif
 }
 
@@ -490,6 +497,7 @@ void Mesh::Draw() {
 	effect->Specular = m_material.specular;
 
 	effect->DiffuseMap = m_diffuseMap;
+	effect->NormalMap = m_normalMap;
 	for (int iP = 0; iP < m_parents.size(); iP++) {
 
 		effect->WorldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();

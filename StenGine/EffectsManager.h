@@ -109,6 +109,7 @@ private:
 	GLint WorldViewProjPosition;
 	GLint WorldPosition;
 	GLint DiffuseMapPosition;
+	GLint NormalMapPosition;
 
 	GLint IntensityPosition;
 	GLint DirectionPosition;
@@ -158,6 +159,7 @@ public:
 	XMMATRIX World;
 
 	GLint DiffuseMap;
+	GLint NormalMap;
 
 	XMFLOAT4 Intensity;
 	XMFLOAT3 Direction;

@@ -89,8 +89,9 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 	}
 #else
 	// gl
-	std::string fs(imgPath.begin(), imgPath.end());
+	
 	if (PathFileExists(imgPath.c_str())) {
+		std::string fs(imgPath.begin(), imgPath.end());
 		mesh->m_diffuseMap = SOIL_load_OGL_texture(
 			fs.c_str(),
 			SOIL_LOAD_AUTO,
@@ -98,6 +99,20 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 			SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
 			);
 		assert(mesh->m_diffuseMap != 0);
+	}
+
+	imgPath.resize(len - 4);
+	imgPath += L"_normal.dds";
+
+	if (PathFileExists(imgPath.c_str())) {
+		std::string fs(imgPath.begin(), imgPath.end());
+		mesh->m_normalMap = SOIL_load_OGL_texture(
+			fs.c_str(),
+			SOIL_LOAD_AUTO,
+			SOIL_CREATE_NEW_ID,
+			SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
+			);
+		assert(mesh->m_normalMap != 0);
 	}
 #endif
 	return true;

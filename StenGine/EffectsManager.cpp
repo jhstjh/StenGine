@@ -1276,6 +1276,7 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filen
 	SpecularPosition = glGetUniformLocation(m_shaderProgram, "specular");
 
 	DiffuseMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseMap");
+	NormalMapPosition = glGetUniformLocation(m_shaderProgram, "gNormalMap");
 	
 	assert(WorldViewProjPosition > -1);
 	assert(WorldPosition > -1);
@@ -1287,6 +1288,7 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filen
 	assert(SpecularPosition > -1);
 
 	assert(DiffuseMapPosition > -1);
+	assert(NormalMapPosition > -1);
 }
 
 DeferredGeometryPassEffect::~DeferredGeometryPassEffect()
@@ -1313,6 +1315,10 @@ void DeferredGeometryPassEffect::BindShaderResource() {
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, DiffuseMap);
 	glUniform1i(DiffuseMapPosition, 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, NormalMap);
+	glUniform1i(NormalMapPosition, 1);
 }
 
 

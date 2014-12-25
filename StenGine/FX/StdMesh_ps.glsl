@@ -3,10 +3,12 @@
 in vec2 pTexUV;
 in vec3 pNormalW;
 in vec3 pPosW;
+in vec3 pTangW;
 
 out vec4 ps_color;
 
 uniform sampler2D gDiffuseMap;
+uniform sampler2D gNormalMap;
 
 // light info
 uniform vec4 intensity;
@@ -21,6 +23,17 @@ uniform vec4 specular;
 
 void main() {
 	vec3 normal = normalize(pNormalW);
+
+	vec3 normalMapNormal = texture(gNormalMap, pTexUV).xyz;
+	normalMapNormal = 2.0f * normalMapNormal - 1.0;
+
+	vec3 N = normalize(normal);
+	vec3 T = normalize(pTangW - dot(pTangW, N)*N);
+	vec3 B = cross(N, T);
+
+	mat3 TBN = mat3(T, B, N);
+
+	normal = normalize(TBN * normalMapNormal);//normalize(pin.NormalV).xy;
 
 	vec4 diffColor = vec4(0, 0, 0, 0);
 	vec4 specColor = vec4(0, 0, 0, 0);

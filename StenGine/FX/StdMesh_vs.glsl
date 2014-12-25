@@ -13,10 +13,12 @@ uniform mat4 gWorld;
 out vec2 pTexUV;
 out vec3 pNormalW;
 out vec3 pPosW;
+out vec3 pTangW;
 
 void main() {
 	gl_Position = gWorldViewProj * vec4(PosL, 1.0);
 	pNormalW = vec3(gWorld * vec4(NormalL, 0.0));
+	pTangW = vec3(gWorld * vec4(TangentL, 0.0));
 	pPosW = vec3(gWorld * vec4(NormalL, 1.0));
 	pTexUV = TexUV;
 }
