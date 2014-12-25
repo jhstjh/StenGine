@@ -1265,8 +1265,28 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filen
 	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT)
 {
 	WorldViewProjPosition = glGetUniformLocation(m_shaderProgram, "gWorldViewProj");
+	WorldPosition = glGetUniformLocation(m_shaderProgram, "gWorld");
+
+	IntensityPosition = glGetUniformLocation(m_shaderProgram, "intensity");
+	DirectionPosition = glGetUniformLocation(m_shaderProgram, "direction");
+	EyePosWPosition = glGetUniformLocation(m_shaderProgram, "gEyePosW");
+
+	AmbientPosition = glGetUniformLocation(m_shaderProgram, "ambient");
+	DiffusePosition = glGetUniformLocation(m_shaderProgram, "diffuse");
+	SpecularPosition = glGetUniformLocation(m_shaderProgram, "specular");
+
 	DiffuseMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseMap");
+	
 	assert(WorldViewProjPosition > -1);
+	assert(WorldPosition > -1);
+	assert(IntensityPosition > -1);
+	assert(DirectionPosition > -1);
+	assert(EyePosWPosition > -1);
+	assert(AmbientPosition > -1);
+	assert(DiffusePosition > -1);
+	assert(SpecularPosition > -1);
+
+	assert(DiffuseMapPosition > -1);
 }
 
 DeferredGeometryPassEffect::~DeferredGeometryPassEffect()
@@ -1280,6 +1300,13 @@ void DeferredGeometryPassEffect::UpdateConstantBuffer() {
 
 void DeferredGeometryPassEffect::BindConstantBuffer() {
 	glUniformMatrix4fv(WorldViewProjPosition, 1, GL_FALSE, reinterpret_cast<GLfloat*> (&WorldViewProj));
+	glUniformMatrix4fv(WorldPosition, 1, GL_FALSE, reinterpret_cast<GLfloat*> (&World));
+	glUniform4fv(IntensityPosition, 1, reinterpret_cast<GLfloat*> (&Intensity));
+	glUniform3fv(DirectionPosition, 1, reinterpret_cast<GLfloat*> (&Direction));
+	glUniform3fv(EyePosWPosition, 1, reinterpret_cast<GLfloat*> (&EyePosW));
+	glUniform4fv(AmbientPosition, 1, reinterpret_cast<GLfloat*> (&Ambient));
+	glUniform4fv(DiffusePosition, 1, reinterpret_cast<GLfloat*> (&Diffuse));
+	glUniform4fv(SpecularPosition, 1, reinterpret_cast<GLfloat*> (&Specular));
 }
 
 void DeferredGeometryPassEffect::BindShaderResource() {

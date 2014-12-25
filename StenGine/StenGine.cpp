@@ -69,7 +69,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	ResourceManager::Instance();
 	InputManager::Instance();
 
-	//same mesh render with instancing
+
 	GameObject* box0 = new GameObject();
 	Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
 	box0->AddComponent(box0Mesh);
@@ -127,9 +127,9 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 		}
 	}
 
- 	SafeDelete(box0);
-  	SafeDelete(sphere);
-  	SafeDelete(plane0);
+//  	SafeDelete(box0);
+//   	SafeDelete(sphere);
+//   	SafeDelete(plane0);
 //	SafeDelete(dragon);
 
 	return (int) msg.wParam;

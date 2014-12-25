@@ -107,7 +107,16 @@ private:
 	ID3D11Buffer* m_perObjectCB;
 #else
 	GLint WorldViewProjPosition;
+	GLint WorldPosition;
 	GLint DiffuseMapPosition;
+
+	GLint IntensityPosition;
+	GLint DirectionPosition;
+	GLint EyePosWPosition;
+
+	GLint AmbientPosition;
+	GLint DiffusePosition;
+	GLint SpecularPosition;
 #endif
 
 public:
@@ -146,7 +155,17 @@ public:
 	//ID3D11ShaderResourceView *m_shaderResources[5];
 #else
 	XMMATRIX WorldViewProj;
+	XMMATRIX World;
+
 	GLint DiffuseMap;
+
+	XMFLOAT4 Intensity;
+	XMFLOAT3 Direction;
+	XMFLOAT3 EyePosW;
+
+	XMFLOAT4 Ambient;
+	XMFLOAT4 Diffuse;
+	XMFLOAT4 Specular;
 #endif
 };
 
