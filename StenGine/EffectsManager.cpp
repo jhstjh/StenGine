@@ -1329,6 +1329,38 @@ void DeferredGeometryPassEffect::BindShaderResource() {
 }
 
 
+/********************************************************************/
+
+
+DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filename)
+	: Effect(std::wstring(L"FX/ScreenQuad_vs") + EXT, filename + L"_ps" + EXT)
+{
+	DiffuseGMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseGMap");
+}
+
+DeferredShadingPassEffect::~DeferredShadingPassEffect()
+{
+
+}
+
+void DeferredShadingPassEffect::UpdateConstantBuffer() {
+// TODO
+}
+
+void DeferredShadingPassEffect::BindConstantBuffer() {
+// TODO
+}
+
+void DeferredShadingPassEffect::BindShaderResource() {
+ 	glActiveTexture(GL_TEXTURE0);
+ 	glBindTexture(GL_TEXTURE_2D, DiffuseGMap);
+ 	glUniform1i(DiffuseGMapPosition, 0);
+}
+
+
+/*********************************************************************/
+
+
 bool Effect::ReadShaderFile(std::wstring filename, char* shaderContent, int maxLength) {
 	std::string s(filename.begin(), filename.end());
 	const char* lFilename = s.c_str();
@@ -1386,7 +1418,8 @@ EffectsManager::EffectsManager() {
 	m_skyboxEffect = new SkyboxEffect(L"FX/Skybox");
 
 #else
-	m_deferredGeometryPassEffect = new DeferredGeometryPassEffect(L"FX/StdMesh");
+	m_deferredGeometryPassEffect = new DeferredGeometryPassEffect(L"FX/DeferredGeometryPass");
+	m_deferredShadingPassEffect = new DeferredShadingPassEffect(L"FX/DeferredShadingPass");
 #endif
 }
 

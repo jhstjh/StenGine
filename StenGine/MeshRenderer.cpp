@@ -372,7 +372,7 @@ void Mesh::PrepareGPUBuffer() {
 	glEnableVertexAttribArray (2);
 	glEnableVertexAttribArray (3);
 
-	
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferGPU);
 #endif
 }
 
@@ -489,7 +489,7 @@ void Mesh::Draw() {
 	deferredGeoEffect->UnSetShader();
 #else
 	glBindVertexArray(m_vertexArrayObject);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferGPU);
+	
 	
 	DeferredGeometryPassEffect* effect = dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect);
 	

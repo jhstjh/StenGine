@@ -101,6 +101,34 @@ bool GLRenderer::Init() {
 	glFrontFace(GL_CW); // GL_CCW for counter clock-wise
 	glViewport(0, 0, m_clientWidth, m_clientHeight);
 
+	glGenFramebuffers(1, &m_deferredGBuffers);
+	GenerateColorTex(m_diffuseBufferTex);
+	GenerateColorTex(m_normalBufferTex);
+	GenerateColorTex(m_specularBufferTex);
+	GenerateDepthTex(m_depthBufferTex);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, m_deferredGBuffers);
+	glFramebufferTexture2D(
+		GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthBufferTex, 0
+	);
+	glFramebufferTexture2D(
+		GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_normalBufferTex, 0
+	);
+	glFramebufferTexture2D(
+		GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_diffuseBufferTex, 0
+	);
+	glFramebufferTexture2D(
+		GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_specularBufferTex, 0
+	);
+
+	GLenum draw_bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+	glDrawBuffers(3, draw_bufs);
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (GL_FRAMEBUFFER_COMPLETE != status) {
+		assert(false);
+		return false;
+	}
 
 	DirectionalLight* dLight = new DirectionalLight();
 	dLight->intensity = XMFLOAT4(1, 1, 1, 1);
@@ -114,30 +142,84 @@ bool GLRenderer::Init() {
 }
 
 void GLRenderer::Draw() {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-
+	/**************deferred shading 1st pass******************/
+	glBindFramebuffer(GL_FRAMEBUFFER, m_deferredGBuffers);
 	EffectsManager::Instance()->m_deferredGeometryPassEffect->SetShader();
 	DeferredGeometryPassEffect* effect = EffectsManager::Instance()->m_deferredGeometryPassEffect;
-
-// 	effect->EyePosW.x = (CameraManager::Instance()->GetActiveCamera()->GetPos()).x;
-// 	effect->EyePosW.y = (CameraManager::Instance()->GetActiveCamera()->GetPos()).y;
-// 	effect->EyePosW.z = (CameraManager::Instance()->GetActiveCamera()->GetPos()).z;
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// TODO: should separate perobj and perframe's updateconstantbuffer
 
 	effect->m_perFrameUniformBuffer.EyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
 	effect->m_perFrameUniformBuffer.DirLight = *LightManager::Instance()->m_dirLights[0];
 
-// 	effect->Direction = LightManager::Instance()->m_dirLights[0]->direction;
-// 	effect->Intensity = LightManager::Instance()->m_dirLights[0]->intensity;
-
 	for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
 		EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->Draw();
 	}
 
 	EffectsManager::Instance()->m_deferredGeometryPassEffect->UnSetShader();
+
+	/**************deferred shading 2nd pass*****************/
+	
+	DeferredShadingPassEffect* deferredShadingFX = EffectsManager::Instance()->m_deferredShadingPassEffect;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	deferredShadingFX->SetShader();
+	glBindVertexArray(NULL);
+
+	deferredShadingFX->DiffuseGMap = m_diffuseBufferTex;
+	deferredShadingFX->BindShaderResource();
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	deferredShadingFX->UnSetShader();
+	deferredShadingFX->UnBindShaderResource();
+	
+
 	SwapBuffers(m_deviceContext);
 }
 
 GLRenderer::~GLRenderer() {}
+
+void GLRenderer::GenerateColorTex(GLuint &bufferTex) {
+	glGenTextures(1, &bufferTex);
+	glBindTexture(GL_TEXTURE_2D, bufferTex);
+	glTexImage2D(
+		GL_TEXTURE_2D,
+		0,
+		GL_RGBA,
+		m_clientWidth,
+		m_clientHeight,
+		0,
+		GL_RGBA,
+		GL_UNSIGNED_BYTE,
+		nullptr
+	);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+}
+
+void GLRenderer::GenerateDepthTex(GLuint &bufferTex) {
+	glGenTextures(1, &bufferTex);
+	glActiveTexture(GL_TEXTURE0); 
+	glBindTexture(GL_TEXTURE_2D, bufferTex);
+	glTexImage2D(
+		GL_TEXTURE_2D, 
+		0, 
+		GL_DEPTH_COMPONENT, 
+		m_clientWidth,
+		m_clientHeight,
+		0, 
+		GL_DEPTH_COMPONENT, 
+		GL_UNSIGNED_BYTE, NULL
+	); 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); 
+	// attach depth texture to framebuffer 
+	
+}

@@ -15,6 +15,7 @@ public:
 	static GLRenderer* Instance() { return _instance; }
 	virtual bool Init();
 	virtual void Draw();
+	
 private:
 	static GLRenderer* _instance;
 
@@ -22,6 +23,16 @@ private:
 	HWND		m_hMainWnd;
 	HDC			m_deviceContext;
 	HGLRC		m_renderingContext;
+
+	GLuint m_deferredGBuffers;
+
+	GLuint m_diffuseBufferTex;
+	GLuint m_normalBufferTex;
+	GLuint m_specularBufferTex;
+	GLuint m_depthBufferTex;
+
+	void GenerateColorTex(GLuint &bufferTex);
+	void GenerateDepthTex(GLuint &bufferTex);
 };
 
 

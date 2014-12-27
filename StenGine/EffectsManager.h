@@ -216,7 +216,11 @@ public:
 
 class DeferredShadingPassEffect : public Effect {
 private:
+#ifdef GRAPHICS_D3D11
 	ID3D11Buffer* m_perFrameCB;
+#else
+	GLint DiffuseGMapPosition;
+#endif
 
 public:
 	DeferredShadingPassEffect(const std::wstring& filename);
@@ -226,13 +230,25 @@ public:
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
 
-	struct PERFRAME_CONSTANT_BUFFER
+	struct 
+#ifdef GRAPHICS_D3D11		
+	PERFRAME_CONSTANT_BUFFER
+#else
+	PERFRAME_UNIFORM_BUFFER
+#endif
 	{
 		DirectionalLight gDirLight;
 		XMFLOAT4 gEyePosW;
 		XMMATRIX gProjInv;
 		XMMATRIX gProj;
-	} m_perFrameConstantBuffer;
+	} 
+#ifdef GRAPHICS_D3D11		
+	m_perFrameConstantBuffer;
+#else
+	m_perFrameUniformBuffer;
+	GLuint DiffuseGMap;
+#endif
+	
 
 	/// Texture Ordering:
 	/// Texture2D gDiffuseGB;

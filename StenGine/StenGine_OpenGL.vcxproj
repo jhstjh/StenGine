@@ -156,6 +156,10 @@
     <Image Include="StenGine.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="FX\DeferredGeometryPass_ps.glsl" />
+    <None Include="FX\DeferredGeometryPass_vs.glsl" />
+    <None Include="FX\DeferredShadingPass_ps.glsl" />
+    <None Include="FX\ScreenQuad_vs.glsl" />
     <None Include="FX\StdMesh_ps.glsl" />
     <None Include="FX\StdMesh_vs.glsl" />
     <None Include="Model\ball.obj">
