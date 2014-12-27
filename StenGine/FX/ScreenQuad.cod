@@ -148,7 +148,7 @@ fxgroup
                 //   o1.x <- <VSmain return value>.Tex.x; o1.y <- <VSmain return value>.Tex.y; 
                 //   o0.x <- <VSmain return value>.pos.x; o0.y <- <VSmain return value>.pos.y; o0.z <- <VSmain return value>.pos.z; o0.w <- <VSmain return value>.pos.w
                 //
-                #line 122 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                #line 122 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
                 mov r0.x, v0.x
                 mov r1.xyzw, cb0[r0.x + 0].xyzw  // r1.x <- output.pos.x; r1.y <- output.pos.y; r1.z <- output.pos.z; r1.w <- output.pos.w
                 mov r0.xy, cb0[r0.x + 6].xyxx  // r0.x <- output.Tex.x; r0.y <- output.Tex.y
@@ -278,7 +278,7 @@ fxgroup
                 //   o1.x <- <PSmain return value>.SSAO.x; o1.y <- <PSmain return value>.SSAO.y; o1.z <- <PSmain return value>.SSAO.z; o1.w <- <PSmain return value>.SSAO.w; 
                 //   o0.x <- <PSmain return value>.DeferredShade.x; o0.y <- <PSmain return value>.DeferredShade.y; o0.z <- <PSmain return value>.DeferredShade.z; o0.w <- <PSmain return value>.DeferredShade.w
                 //
-                #line 275 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                #line 275 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
                 sample_indexable(texture2d)(float,float,float,float) r0.z, v1.xyxx, t3.yzxw, s0
                 mov r0.z, r0.z  // r0.z <- z
                 itof r1.x, l(2)
@@ -547,7 +547,7 @@ fxgroup
                 //   o1.x <- <VSmain return value>.Tex.x; o1.y <- <VSmain return value>.Tex.y; 
                 //   o0.x <- <VSmain return value>.pos.x; o0.y <- <VSmain return value>.pos.y; o0.z <- <VSmain return value>.pos.z; o0.w <- <VSmain return value>.pos.w
                 //
-                #line 122 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                #line 122 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
                 mov r0.x, v0.x
                 mov r1.xyzw, cb0[r0.x + 0].xyzw  // r1.x <- output.pos.x; r1.y <- output.pos.y; r1.z <- output.pos.z; r1.w <- output.pos.w
                 mov r0.xy, cb0[r0.x + 6].xyxx  // r0.x <- output.Tex.x; r0.y <- output.Tex.y
@@ -677,7 +677,7 @@ fxgroup
                 //   o1.x <- <PSmain return value>.SSAO.x; o1.y <- <PSmain return value>.SSAO.y; o1.z <- <PSmain return value>.SSAO.z; o1.w <- <PSmain return value>.SSAO.w; 
                 //   o0.x <- <PSmain return value>.DeferredShade.x; o0.y <- <PSmain return value>.DeferredShade.y; o0.z <- <PSmain return value>.DeferredShade.z; o0.w <- <PSmain return value>.DeferredShade.w
                 //
-                #line 275 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                #line 275 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
                 sample_indexable(texture2d)(float,float,float,float) r0.z, v1.xyxx, t3.yzxw, s0
                 mov r0.z, r0.z  // r0.z <- z
                 itof r1.x, l(2)
@@ -943,7 +943,7 @@ fxgroup
                 //   o1.x <- <VSmain return value>.Tex.x; o1.y <- <VSmain return value>.Tex.y; 
                 //   o0.x <- <VSmain return value>.pos.x; o0.y <- <VSmain return value>.pos.y; o0.z <- <VSmain return value>.pos.z; o0.w <- <VSmain return value>.pos.w
                 //
-                #line 122 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                #line 122 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
                 mov r0.x, v0.x
                 mov r1.xyzw, cb0[r0.x + 0].xyzw  // r1.x <- output.pos.x; r1.y <- output.pos.y; r1.z <- output.pos.z; r1.w <- output.pos.w
                 mov r0.xy, cb0[r0.x + 6].xyxx  // r0.x <- output.Tex.x; r0.y <- output.Tex.y
@@ -1064,7 +1064,7 @@ fxgroup
                 //   v1.x <- input.Tex.x; v1.y <- input.Tex.y; 
                 //   o0.x <- <PSSSAOmain return value>.x; o0.y <- <PSSSAOmain return value>.y; o0.z <- <PSSSAOmain return value>.z; o0.w <- <PSSSAOmain return value>.w
                 //
-                #line 170 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                #line 170 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
                 sample_indexable(texture2d)(float,float,float,float) r0.z, v1.xyxx, t1.yzxw, s0
                 mov r0.z, r0.z  // r0.z <- z
                 itof r1.x, l(2)
@@ -1273,7 +1273,7 @@ fxgroup
                 //   o1.x <- <VSmain return value>.Tex.x; o1.y <- <VSmain return value>.Tex.y; 
                 //   o0.x <- <VSmain return value>.pos.x; o0.y <- <VSmain return value>.pos.y; o0.z <- <VSmain return value>.pos.z; o0.w <- <VSmain return value>.pos.w
                 //
-                #line 122 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                #line 122 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
                 mov r0.x, v0.x
                 mov r1.xyzw, cb0[r0.x + 0].xyzw  // r1.x <- output.pos.x; r1.y <- output.pos.y; r1.z <- output.pos.z; r1.w <- output.pos.w
                 mov r0.xy, cb0[r0.x + 6].xyxx  // r0.x <- output.Tex.x; r0.y <- output.Tex.y
@@ -1360,7 +1360,7 @@ fxgroup
                 //   v1.x <- input.Tex.x; v1.y <- input.Tex.y; 
                 //   o0.x <- <PSBlurmain return value>.x; o0.y <- <PSBlurmain return value>.y; o0.z <- <PSBlurmain return value>.z; o0.w <- <PSBlurmain return value>.w
                 //
-                #line 106 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                #line 106 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
                 mov r0.x, l(10)  // r0.x <- gBlurRadius
                 
                 #line 219
@@ -1509,7 +1509,7 @@ fxgroup
                 //   o1.x <- <VSmain return value>.Tex.x; o1.y <- <VSmain return value>.Tex.y; 
                 //   o0.x <- <VSmain return value>.pos.x; o0.y <- <VSmain return value>.pos.y; o0.z <- <VSmain return value>.pos.z; o0.w <- <VSmain return value>.pos.w
                 //
-                #line 122 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                #line 122 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
                 mov r0.x, v0.x
                 mov r1.xyzw, cb0[r0.x + 0].xyzw  // r1.x <- output.pos.x; r1.y <- output.pos.y; r1.z <- output.pos.z; r1.w <- output.pos.w
                 mov r0.xy, cb0[r0.x + 6].xyxx  // r0.x <- output.Tex.x; r0.y <- output.Tex.y
@@ -1594,7 +1594,7 @@ fxgroup
                 //   v1.x <- input.Tex.x; v1.y <- input.Tex.y; 
                 //   o0.x <- <PSBlurmain return value>.x; o0.y <- <PSBlurmain return value>.y; o0.z <- <PSBlurmain return value>.z; o0.w <- <PSBlurmain return value>.w
                 //
-                #line 106 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
+                #line 106 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\ScreenQuad.fx"
                 mov r0.x, l(10)  // r0.x <- gBlurRadius
                 
                 #line 219

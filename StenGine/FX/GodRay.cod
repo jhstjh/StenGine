@@ -94,7 +94,7 @@ fxgroup
                 //   o1.x <- <VSmain return value>.Tex.x; o1.y <- <VSmain return value>.Tex.y; 
                 //   o0.x <- <VSmain return value>.pos.x; o0.y <- <VSmain return value>.pos.y; o0.z <- <VSmain return value>.pos.z; o0.w <- <VSmain return value>.pos.w
                 //
-                #line 26 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\GodRay.fx"
+                #line 26 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\GodRay.fx"
                 if_z v0.x
                   mov r0.xyzw, l(-1.000000,-1.000000,0,1.000000)  // r0.x <- output.pos.x; r0.y <- output.pos.y; r0.z <- output.pos.z; r0.w <- output.pos.w
                   itof r1.xy, l(0, 1, 0, 0)  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
@@ -201,7 +201,7 @@ fxgroup
                 //   v1.x <- input.Tex.x; v1.y <- input.Tex.y; 
                 //   o0.x <- <PSmain return value>.x; o0.y <- <PSmain return value>.y; o0.z <- <PSmain return value>.z; o0.w <- <PSmain return value>.w
                 //
-                #line 62 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\GodRay.fx"
+                #line 62 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\GodRay.fx"
                 mov r0.x, l(200)  // r0.x <- NUM_SAMPLES
                 
                 #line 66
@@ -323,7 +323,7 @@ fxgroup
                 //   o1.x <- <VSmain return value>.Tex.x; o1.y <- <VSmain return value>.Tex.y; 
                 //   o0.x <- <VSmain return value>.pos.x; o0.y <- <VSmain return value>.pos.y; o0.z <- <VSmain return value>.pos.z; o0.w <- <VSmain return value>.pos.w
                 //
-                #line 26 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\GodRay.fx"
+                #line 26 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\GodRay.fx"
                 if_z v0.x
                   mov r0.xyzw, l(-1.000000,-1.000000,0,1.000000)  // r0.x <- output.pos.x; r0.y <- output.pos.y; r0.z <- output.pos.z; r0.w <- output.pos.w
                   itof r1.xy, l(0, 1, 0, 0)  // r1.x <- output.Tex.x; r1.y <- output.Tex.y
@@ -430,7 +430,7 @@ fxgroup
                 //   v1.x <- input.Tex.x; v1.y <- input.Tex.y; 
                 //   o0.x <- <PSmain return value>.x; o0.y <- <PSmain return value>.y; o0.z <- <PSmain return value>.z; o0.w <- <PSmain return value>.w
                 //
-                #line 62 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\GodRay.fx"
+                #line 62 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\GodRay.fx"
                 mov r0.x, l(200)  // r0.x <- NUM_SAMPLES
                 
                 #line 66

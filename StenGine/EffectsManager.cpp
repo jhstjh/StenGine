@@ -1264,28 +1264,24 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& vsPat
 DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filename)
 	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT)
 {
-	WorldViewProjPosition = glGetUniformLocation(m_shaderProgram, "gWorldViewProj");
-	WorldPosition = glGetUniformLocation(m_shaderProgram, "gWorld");
 
-	IntensityPosition = glGetUniformLocation(m_shaderProgram, "intensity");
-	DirectionPosition = glGetUniformLocation(m_shaderProgram, "direction");
-	EyePosWPosition = glGetUniformLocation(m_shaderProgram, "gEyePosW");
+	glGenBuffers(1, &m_perFrameUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_perFrameUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(PERFRAME_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
 
-	AmbientPosition = glGetUniformLocation(m_shaderProgram, "ambient");
-	DiffusePosition = glGetUniformLocation(m_shaderProgram, "diffuse");
-	SpecularPosition = glGetUniformLocation(m_shaderProgram, "specular");
+	glGenBuffers(1, &m_perObjectUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
+
+
+	GLuint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
+	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
+
+	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
+	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
 
 	DiffuseMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseMap");
 	NormalMapPosition = glGetUniformLocation(m_shaderProgram, "gNormalMap");
-	
-	assert(WorldViewProjPosition > -1);
-	assert(WorldPosition > -1);
-	assert(IntensityPosition > -1);
-	assert(DirectionPosition > -1);
-	assert(EyePosWPosition > -1);
-	assert(AmbientPosition > -1);
-	assert(DiffusePosition > -1);
-	assert(SpecularPosition > -1);
 
 	assert(DiffuseMapPosition > -1);
 	assert(NormalMapPosition > -1);
@@ -1297,18 +1293,29 @@ DeferredGeometryPassEffect::~DeferredGeometryPassEffect()
 }
 
 void DeferredGeometryPassEffect::UpdateConstantBuffer() {
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
+	PEROBJ_UNIFORM_BUFFER* perObjUBOPtr = (PEROBJ_UNIFORM_BUFFER*)glMapBufferRange(
+		GL_UNIFORM_BUFFER,
+		0,
+		sizeof(PEROBJ_UNIFORM_BUFFER),
+		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+	);
+	memcpy(perObjUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
+	glUnmapBuffer(GL_UNIFORM_BUFFER);
 
+	glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_perFrameUBO);
+	PERFRAME_UNIFORM_BUFFER* perFrameUBOPtr = (PERFRAME_UNIFORM_BUFFER*)glMapBufferRange(
+		GL_UNIFORM_BUFFER,
+		0,
+		sizeof(PERFRAME_UNIFORM_BUFFER),
+		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+		);
+	memcpy(perFrameUBOPtr, &m_perFrameUniformBuffer, sizeof(PERFRAME_UNIFORM_BUFFER));
+	glUnmapBuffer(GL_UNIFORM_BUFFER);
 }
 
 void DeferredGeometryPassEffect::BindConstantBuffer() {
-	glUniformMatrix4fv(WorldViewProjPosition, 1, GL_FALSE, reinterpret_cast<GLfloat*> (&WorldViewProj));
-	glUniformMatrix4fv(WorldPosition, 1, GL_FALSE, reinterpret_cast<GLfloat*> (&World));
-	glUniform4fv(IntensityPosition, 1, reinterpret_cast<GLfloat*> (&Intensity));
-	glUniform3fv(DirectionPosition, 1, reinterpret_cast<GLfloat*> (&Direction));
-	glUniform3fv(EyePosWPosition, 1, reinterpret_cast<GLfloat*> (&EyePosW));
-	glUniform4fv(AmbientPosition, 1, reinterpret_cast<GLfloat*> (&Ambient));
-	glUniform4fv(DiffusePosition, 1, reinterpret_cast<GLfloat*> (&Diffuse));
-	glUniform4fv(SpecularPosition, 1, reinterpret_cast<GLfloat*> (&Specular));
+
 }
 
 void DeferredGeometryPassEffect::BindShaderResource() {

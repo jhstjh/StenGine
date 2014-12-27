@@ -13,8 +13,6 @@ D3D11Renderer::D3D11Renderer(HINSTANCE hInstance, HWND hMainWnd):
 m_hInst(hInstance),
 m_hMainWnd(hMainWnd),
 m_d3dDriverType(D3D_DRIVER_TYPE_HARDWARE),
-m_clientWidth(1280),
-m_clientHeight(720),
 m_enable4xMsaa(false),
 m_4xMsaaQuality(0),
 
@@ -27,6 +25,8 @@ m_depthStencilView(nullptr)
 {
 	ZeroMemory(&m_screenViewpot, sizeof(D3D11_VIEWPORT));
 	_instance = this;
+	m_clientWidth = 1280;
+	m_clientHeight = 720;
 }
 
 D3D11Renderer::~D3D11Renderer() {

@@ -492,18 +492,17 @@ void Mesh::Draw() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferGPU);
 	
 	DeferredGeometryPassEffect* effect = dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect);
-	effect->Diffuse = m_material.diffuse;
-	effect->Ambient = m_material.ambient;
-	effect->Specular = m_material.specular;
+	
+	effect->m_perObjUniformBuffer.Mat = m_material;
 
 	effect->DiffuseMap = m_diffuseMap;
 	effect->NormalMap = m_normalMap;
+
 	for (int iP = 0; iP < m_parents.size(); iP++) {
-
-		effect->WorldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
-		effect->World = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform());
-
-		
+		effect->m_perObjUniformBuffer.WorldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
+		effect->m_perObjUniformBuffer.World = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform());
+				
+		effect->UpdateConstantBuffer();
 		effect->BindConstantBuffer();
 		effect->BindShaderResource();
 

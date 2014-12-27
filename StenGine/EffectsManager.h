@@ -106,6 +106,12 @@ private:
 	ID3D11Buffer* m_perFrameCB;
 	ID3D11Buffer* m_perObjectCB;
 #else
+	GLuint m_perFrameUBO;
+	GLuint m_perObjectUBO;
+
+// 	GLint perFrameUBOPos;
+// 	GLint perObjUBOPos;
+
 	GLint WorldViewProjPosition;
 	GLint WorldPosition;
 	GLint DiffuseMapPosition;
@@ -155,6 +161,22 @@ public:
 	virtual PERFRAME_CONSTANT_BUFFER* GetPerFrameConstantBuffer() { return &m_perFrameConstantBuffer; }
 	//ID3D11ShaderResourceView *m_shaderResources[5];
 #else
+	struct PEROBJ_UNIFORM_BUFFER
+	{
+		XMMATRIX WorldViewProj;
+		XMMATRIX World;
+		Material Mat;
+		XMFLOAT4 DiffX_NormY_ShadZ;
+	} m_perObjUniformBuffer;
+
+	struct PERFRAME_UNIFORM_BUFFER
+	{
+		XMFLOAT4 EyePosW;
+		DirectionalLight DirLight;
+	} m_perFrameUniformBuffer;
+
+
+
 	XMMATRIX WorldViewProj;
 	XMMATRIX World;
 

@@ -10,9 +10,7 @@ public:
 	float GetAspectRatio() { return static_cast<float>(m_clientWidth) / static_cast<float>(m_clientHeight); }
 	int GetScreenWidth() { return m_clientWidth; }
 	int GetScreenHeight() { return m_clientHeight; }
-#ifdef GRAPHICS_D3D11
-	Skybox* m_SkyBox;
-#endif
+
 
 protected:
 	//static Renderer* _instance;

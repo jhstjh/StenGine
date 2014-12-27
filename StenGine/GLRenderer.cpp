@@ -120,12 +120,17 @@ void GLRenderer::Draw() {
 	EffectsManager::Instance()->m_deferredGeometryPassEffect->SetShader();
 	DeferredGeometryPassEffect* effect = EffectsManager::Instance()->m_deferredGeometryPassEffect;
 
-	effect->EyePosW.x = (CameraManager::Instance()->GetActiveCamera()->GetPos()).x;
-	effect->EyePosW.y = (CameraManager::Instance()->GetActiveCamera()->GetPos()).y;
-	effect->EyePosW.z = (CameraManager::Instance()->GetActiveCamera()->GetPos()).z;
+// 	effect->EyePosW.x = (CameraManager::Instance()->GetActiveCamera()->GetPos()).x;
+// 	effect->EyePosW.y = (CameraManager::Instance()->GetActiveCamera()->GetPos()).y;
+// 	effect->EyePosW.z = (CameraManager::Instance()->GetActiveCamera()->GetPos()).z;
 
-	effect->Direction = LightManager::Instance()->m_dirLights[0]->direction;
-	effect->Intensity = LightManager::Instance()->m_dirLights[0]->intensity;
+	// TODO: should separate perobj and perframe's updateconstantbuffer
+
+	effect->m_perFrameUniformBuffer.EyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
+	effect->m_perFrameUniformBuffer.DirLight = *LightManager::Instance()->m_dirLights[0];
+
+// 	effect->Direction = LightManager::Instance()->m_dirLights[0]->direction;
+// 	effect->Intensity = LightManager::Instance()->m_dirLights[0]->intensity;
 
 	for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
 		EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->Draw();

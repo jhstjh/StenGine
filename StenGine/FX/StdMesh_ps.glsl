@@ -1,5 +1,17 @@
 #version 410
 
+struct Material {
+	vec4 ambient;
+	vec4 diffuse;
+	vec4 specular;
+};
+
+struct DirectionalLight {
+	vec4 intensity;
+	vec3 direction;
+	float pad;
+};
+
 in vec2 pTexUV;
 in vec3 pNormalW;
 in vec3 pPosW;
@@ -10,16 +22,18 @@ out vec4 ps_color;
 uniform sampler2D gDiffuseMap;
 uniform sampler2D gNormalMap;
 
-// light info
-uniform vec4 intensity;
-uniform vec3 direction;
 
-uniform vec3 gEyePosW;
+layout(std140) uniform ubPerObj {
+	mat4 gWorldViewProj;
+	mat4 gWorld;
+	Material gMat;
+	vec4 DiffX_NormY_ShadZ;
+};
 
-// material
-uniform vec4 ambient;
-uniform vec4 diffuse;
-uniform vec4 specular;
+layout(std140) uniform ubPerFrame {
+	vec4 gEyePosW;
+	DirectionalLight gDirLight;
+};
 
 void main() {
 	vec3 normal = normalize(pNormalW);
@@ -38,15 +52,15 @@ void main() {
 	vec4 diffColor = vec4(0, 0, 0, 0);
 	vec4 specColor = vec4(0, 0, 0, 0);
 
-	float diffuseK = dot(-direction, normal);
+	float diffuseK = dot(-gDirLight.direction, normal);
 
 	if (diffuseK > 0) {
-		diffColor += diffuseK * diffuse * intensity;
-		vec3 refLight = reflect(direction, normal);
-		vec3 viewRay = gEyePosW - pPosW;
+		diffColor += diffuseK * gMat.diffuse * gDirLight.intensity;
+		vec3 refLight = reflect(gDirLight.direction, normal);
+		vec3 viewRay = gEyePosW.xyz - pPosW;
 		viewRay = normalize(viewRay);
-		specColor += specular * pow(max(dot(refLight, viewRay), 0), specular.w);
+		specColor += gMat.specular * pow(max(dot(refLight, viewRay), 0), gMat.specular.w);
 	}
 
-	ps_color = ((ambient + diffColor) * texture(gDiffuseMap, pTexUV) + specColor);
+	ps_color = ((gMat.ambient + diffColor) * texture(gDiffuseMap, pTexUV) + specColor);
 }

@@ -129,7 +129,7 @@ fxgroup
                 //   o1.x <- <VertShader return value>.PosW.x; o1.y <- <VertShader return value>.PosW.y; o1.z <- <VertShader return value>.PosW.z; 
                 //   o0.x <- <VertShader return value>.PosH.x; o0.y <- <VertShader return value>.PosH.y; o0.z <- <VertShader return value>.PosH.z; o0.w <- <VertShader return value>.PosH.w
                 //
-                #line 67 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\StdMesh.fx"
+                #line 67 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\StdMesh.fx"
                 mov r0.xyz, v0.xyzx
                 mov r0.w, l(1.000000)
                 dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- vout.PosH.x
@@ -252,7 +252,7 @@ fxgroup
                 //   v4.x <- pin.ShadowPosH.x; v4.y <- pin.ShadowPosH.y; v4.z <- pin.ShadowPosH.z; v4.w <- pin.ShadowPosH.w; 
                 //   o0.x <- <PixShader return value>.x; o0.y <- <PixShader return value>.y; o0.z <- <PixShader return value>.z; o0.w <- <PixShader return value>.w
                 //
-                #line 78 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\StdMesh.fx"
+                #line 78 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\StdMesh.fx"
                 dp3 r0.x, v2.xyzx, v2.xyzx
                 rsq r0.x, r0.x
                 mul r0.xyz, r0.xxxx, v2.xyzx  // r0.x <- pin.NormalW.x; r0.y <- pin.NormalW.y; r0.z <- pin.NormalW.z

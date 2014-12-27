@@ -19,6 +19,7 @@ public:
 	ID3D11DeviceContext* GetD3DContext() { return m_d3d11DeviceContext; }
 
 	ID3D11RasterizerState* m_depthRS;
+	Skybox* m_SkyBox;
 
 private:
 	static D3D11Renderer* _instance;
@@ -66,8 +67,6 @@ private:
 
 #pragma endregion
 
-	int m_clientWidth;
-	int m_clientHeight;
 	bool m_enable4xMsaa;
 };
 #endif

@@ -157,7 +157,7 @@ fxgroup
                 //   o1.x <- <VSmain return value>.PosL.x; o1.y <- <VSmain return value>.PosL.y; o1.z <- <VSmain return value>.PosL.z; 
                 //   o0.x <- <VSmain return value>.PosH.x; o0.y <- <VSmain return value>.PosH.y; o0.z <- <VSmain return value>.PosH.z; o0.w <- <VSmain return value>.PosH.w
                 //
-                #line 74 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\Skybox.fx"
+                #line 74 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\Skybox.fx"
                 mov r0.x, v0.x
                 mov r0.x, cb1[r0.x + 24].x
                 mov r0.xyz, cb1[r0.x + 0].xyzx  // r0.x <- output.PosL.x; r0.y <- output.PosL.y; r0.z <- output.PosL.z
@@ -216,7 +216,7 @@ fxgroup
                 //   v1.x <- pin.PosL.x; v1.y <- pin.PosL.y; v1.z <- pin.PosL.z; 
                 //   o0.x <- <PSmain return value>.x; o0.y <- <PSmain return value>.y; o0.z <- <PSmain return value>.z; o0.w <- <PSmain return value>.w
                 //
-                #line 86 "D:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\Skybox.fx"
+                #line 86 "E:\Documents\Visual Studio 2013\Projects\StenGine\StenGine\FX\Skybox.fx"
                 sample_indexable(texturecube)(float,float,float,float) o0.xyzw, v1.xyzx, t0.xyzw, s0
                 ret 
                 // Approximately 2 instruction slots used
