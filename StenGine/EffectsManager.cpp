@@ -1335,7 +1335,14 @@ void DeferredGeometryPassEffect::BindShaderResource() {
 DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filename)
 	: Effect(std::wstring(L"FX/ScreenQuad_vs") + EXT, filename + L"_ps" + EXT)
 {
+	glGenBuffers(1, &m_perFrameUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_perFrameUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(PERFRAME_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
+
 	DiffuseGMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseGMap");
+	NormalGMapPosition = glGetUniformLocation(m_shaderProgram, "gNormalGMap");
+	SpecularGMapPosition = glGetUniformLocation(m_shaderProgram, "gSpecularGMap");
+	DepthGMapPosition = glGetUniformLocation(m_shaderProgram, "gDepthGMap");
 }
 
 DeferredShadingPassEffect::~DeferredShadingPassEffect()
@@ -1344,7 +1351,15 @@ DeferredShadingPassEffect::~DeferredShadingPassEffect()
 }
 
 void DeferredShadingPassEffect::UpdateConstantBuffer() {
-// TODO
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perFrameUBO);
+	PERFRAME_UNIFORM_BUFFER* perFrameUBOPtr = (PERFRAME_UNIFORM_BUFFER*)glMapBufferRange(
+		GL_UNIFORM_BUFFER,
+		0,
+		sizeof(PERFRAME_UNIFORM_BUFFER),
+		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+		);
+	memcpy(perFrameUBOPtr, &m_perFrameUniformBuffer, sizeof(PERFRAME_UNIFORM_BUFFER));
+	glUnmapBuffer(GL_UNIFORM_BUFFER);
 }
 
 void DeferredShadingPassEffect::BindConstantBuffer() {
@@ -1353,8 +1368,20 @@ void DeferredShadingPassEffect::BindConstantBuffer() {
 
 void DeferredShadingPassEffect::BindShaderResource() {
  	glActiveTexture(GL_TEXTURE0);
- 	glBindTexture(GL_TEXTURE_2D, DiffuseGMap);
- 	glUniform1i(DiffuseGMapPosition, 0);
+ 	glBindTexture(GL_TEXTURE_2D, NormalGMap);
+ 	glUniform1i(NormalGMapPosition, 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, DiffuseGMap);
+	glUniform1i(DiffuseGMapPosition, 1);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, SpecularGMap);
+	glUniform1i(SpecularGMapPosition, 2);
+
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, DepthGMap);
+	glUniform1i(DepthGMapPosition, 3);
 }
 
 

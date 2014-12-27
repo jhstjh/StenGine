@@ -165,6 +165,7 @@ public:
 	{
 		XMMATRIX WorldViewProj;
 		XMMATRIX World;
+		XMMATRIX WorldView;
 		Material Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
 	} m_perObjUniformBuffer;
@@ -175,21 +176,9 @@ public:
 		DirectionalLight DirLight;
 	} m_perFrameUniformBuffer;
 
-
-
-	XMMATRIX WorldViewProj;
-	XMMATRIX World;
-
 	GLint DiffuseMap;
 	GLint NormalMap;
 
-	XMFLOAT4 Intensity;
-	XMFLOAT3 Direction;
-	XMFLOAT3 EyePosW;
-
-	XMFLOAT4 Ambient;
-	XMFLOAT4 Diffuse;
-	XMFLOAT4 Specular;
 #endif
 };
 
@@ -220,6 +209,11 @@ private:
 	ID3D11Buffer* m_perFrameCB;
 #else
 	GLint DiffuseGMapPosition;
+	GLint NormalGMapPosition;
+	GLint SpecularGMapPosition;
+	GLint DepthGMapPosition;
+
+	GLuint m_perFrameUBO;
 #endif
 
 public:
@@ -238,7 +232,7 @@ public:
 #endif
 	{
 		DirectionalLight gDirLight;
-		XMFLOAT4 gEyePosW;
+		XMFLOAT4 gEyePosV;
 		XMMATRIX gProjInv;
 		XMMATRIX gProj;
 	} 
@@ -246,9 +240,14 @@ public:
 	m_perFrameConstantBuffer;
 #else
 	m_perFrameUniformBuffer;
-	GLuint DiffuseGMap;
 #endif
-	
+
+#ifdef GRAPHICS_OPENGL
+	GLuint DiffuseGMap;
+	GLuint NormalGMap;
+	GLuint SpecularGMap;
+	GLuint DepthGMap;
+#endif
 
 	/// Texture Ordering:
 	/// Texture2D gDiffuseGB;

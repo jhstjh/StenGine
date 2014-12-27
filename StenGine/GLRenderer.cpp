@@ -108,18 +108,10 @@ bool GLRenderer::Init() {
 	GenerateDepthTex(m_depthBufferTex);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, m_deferredGBuffers);
-	glFramebufferTexture2D(
-		GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthBufferTex, 0
-	);
-	glFramebufferTexture2D(
-		GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_normalBufferTex, 0
-	);
-	glFramebufferTexture2D(
-		GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_diffuseBufferTex, 0
-	);
-	glFramebufferTexture2D(
-		GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_specularBufferTex, 0
-	);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthBufferTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_normalBufferTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_diffuseBufferTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_specularBufferTex, 0);
 
 	GLenum draw_bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 	glDrawBuffers(3, draw_bufs);
@@ -169,7 +161,22 @@ void GLRenderer::Draw() {
 	glBindVertexArray(NULL);
 
 	deferredShadingFX->DiffuseGMap = m_diffuseBufferTex;
+	deferredShadingFX->NormalGMap = m_normalBufferTex;
+	deferredShadingFX->SpecularGMap = m_specularBufferTex;
+	deferredShadingFX->DepthGMap = m_depthBufferTex;
 	deferredShadingFX->BindShaderResource();
+
+	XMMATRIX &viewMat = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
+	XMMATRIX viewInvTranspose = MatrixHelper::InverseTranspose(viewMat);
+
+	deferredShadingFX->m_perFrameUniformBuffer.gDirLight = *LightManager::Instance()->m_dirLights[0];
+	XMStoreFloat3(&deferredShadingFX->m_perFrameUniformBuffer.gDirLight.direction, XMVector3Transform(XMLoadFloat3(&deferredShadingFX->m_perFrameUniformBuffer.gDirLight.direction), viewInvTranspose));
+	
+	XMMATRIX &projMat = CameraManager::Instance()->GetActiveCamera()->GetProjMatrix();
+	XMVECTOR det = XMMatrixDeterminant(projMat);
+	deferredShadingFX->m_perFrameUniformBuffer.gProj = projMat;
+	deferredShadingFX->m_perFrameUniformBuffer.gProjInv = XMMatrixInverse(&det, projMat);
+	deferredShadingFX->UpdateConstantBuffer();
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	deferredShadingFX->UnSetShader();
@@ -187,7 +194,7 @@ void GLRenderer::GenerateColorTex(GLuint &bufferTex) {
 	glTexImage2D(
 		GL_TEXTURE_2D,
 		0,
-		GL_RGBA,
+		GL_RGBA16F,
 		m_clientWidth,
 		m_clientHeight,
 		0,

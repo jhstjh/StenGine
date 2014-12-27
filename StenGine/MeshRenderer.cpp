@@ -501,7 +501,7 @@ void Mesh::Draw() {
 	for (int iP = 0; iP < m_parents.size(); iP++) {
 		effect->m_perObjUniformBuffer.WorldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
 		effect->m_perObjUniformBuffer.World = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform());
-				
+		effect->m_perObjUniformBuffer.WorldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
 		effect->UpdateConstantBuffer();
 		effect->BindConstantBuffer();
 		effect->BindShaderResource();

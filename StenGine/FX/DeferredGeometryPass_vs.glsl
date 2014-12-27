@@ -21,6 +21,7 @@ struct DirectionalLight {
 layout(std140) uniform ubPerObj {
 	mat4 gWorldViewProj;
 	mat4 gWorld;
+	mat4 gWorldView;
 	Material gMat;
 	vec4 DiffX_NormY_ShadZ;
 };
@@ -31,14 +32,14 @@ layout(std140) uniform ubPerFrame{
 };
 
 out vec2 pTexUV;
-out vec3 pNormalW;
+out vec3 pNormalV;
 out vec3 pPosW;
-out vec3 pTangW;
+out vec3 pTangV;
 
 void main() {
 	gl_Position = gWorldViewProj * vec4(PosL, 1.0);
-	pNormalW = vec3(gWorld * vec4(NormalL, 0.0));
-	pTangW = vec3(gWorld * vec4(TangentL, 0.0));
+	pNormalV = vec3(gWorldView * vec4(NormalL, 0.0));
+	pTangV = vec3(gWorldView * vec4(TangentL, 0.0));
 	pPosW = vec3(gWorld * vec4(NormalL, 1.0));
 	pTexUV = TexUV;
 }

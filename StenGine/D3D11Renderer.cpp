@@ -469,7 +469,7 @@ void D3D11Renderer::Draw() {
 
 	XMFLOAT4 camPos = CameraManager::Instance()->GetActiveCamera()->GetPos();
 	XMStoreFloat4(&camPos, XMVector3Transform(XMLoadFloat4(&camPos), CameraManager::Instance()->GetActiveCamera()->GetViewMatrix()));
-	deferredShadingEffect->m_perFrameConstantBuffer.gEyePosW = camPos;
+	deferredShadingEffect->m_perFrameConstantBuffer.gEyePosV = camPos;
 
 	XMMATRIX projMat = CameraManager::Instance()->GetActiveCamera()->GetProjMatrix();
 	XMVECTOR det = XMMatrixDeterminant(projMat);
