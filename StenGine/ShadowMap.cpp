@@ -44,6 +44,42 @@ ShadowMap::ShadowMap(UINT width, UINT height)
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateShaderResourceView(depthMap, &srvDesc, &m_depthSRV));
 
 	ReleaseCOM(depthMap);
+#else
+	glGenFramebuffers(1, &m_shadowBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_shadowBuffer);
+
+	glGenTextures(1, &m_depthTex);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_depthTex);
+
+	glTexImage2D(
+		GL_TEXTURE_2D,
+		0,
+		GL_DEPTH_COMPONENT,
+		m_width,
+		m_height,
+		0,
+		GL_DEPTH_COMPONENT,
+		GL_UNSIGNED_BYTE,
+		NULL
+	);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	// clamp to edge. clamp to border may reduce artifacts outside light frustum
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	// attach depth texture to framebuffer
+	glFramebufferTexture2D(
+		GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTex, 0);
+
+	// tell framebuffer not to use any colour drawing outputs
+	GLenum draw_bufs[] = { GL_NONE };
+	glDrawBuffers(1, draw_bufs);
+
+	// bind default framebuffer again
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 #endif
 }
 
@@ -63,16 +99,6 @@ XMMATRIX ShadowMap::GetShadowMapTransform() {
 }
 
 void ShadowMap::RenderShadowMap() {
-#ifdef GRAPHICS_D3D11
-
-	ID3D11DeviceContext* dc = D3D11Renderer::Instance()->GetD3DContext();
-
-	dc->RSSetViewports(1, &m_viewPort);
-
-	ID3D11RenderTargetView* renderTargets[1] = { 0 };
-	dc->OMSetRenderTargets(1, renderTargets, m_depthDSV);
-	dc->ClearDepthStencilView(m_depthDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
 	// only build shadow map for first directional light for now
 
 	XMVECTOR lightDir = XMLoadFloat3(&(LightManager::Instance()->m_dirLights[0]->direction));
@@ -93,11 +119,19 @@ void ShadowMap::RenderShadowMap() {
 	float f = sphereCenterLS.z + 10;
 	XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 
+#ifdef GRAPHICS_D3D11
+	float yTrans = -0.5;
+	float zTrans = 0.0;
+#else
+	float yTrans = 0.5;
+	float zTrans = 0.5;
+#endif
+
 	XMMATRIX T(
 		0.5f, 0.0f, 0.0f, 0.0f,
-		0.0f, -0.5f, 0.0f, 0.0f,
-		0.0f, 0.0f, 1.0f, 0.0f,
-		0.5f, 0.5f, 0.0f, 1.0f);
+		0.0f, yTrans, 0.0f, 0.0f,
+		0.0f, 0.0f, zTrans, 0.0f,
+		0.5f, 0.5f, zTrans, 1.0f);
 
 	XMMATRIX S = V*P*T;
 
@@ -105,21 +139,37 @@ void ShadowMap::RenderShadowMap() {
 	XMStoreFloat4x4(&m_lightProj, P);
 	XMStoreFloat4x4(&m_shadowTransform, S);
 
-	D3D11Renderer::Instance()->GetD3DContext()->RSSetState(D3D11Renderer::Instance()->m_depthRS);
+#ifdef GRAPHICS_D3D11
 
-	EffectsManager::Instance()->m_shadowMapEffect->SetShader();
+	ID3D11DeviceContext* dc = D3D11Renderer::Instance()->GetD3DContext();
+
+	dc->RSSetViewports(1, &m_viewPort);
+
+	ID3D11RenderTargetView* renderTargets[1] = { 0 };
+	dc->OMSetRenderTargets(1, renderTargets, m_depthDSV);
+	dc->ClearDepthStencilView(m_depthDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+	D3D11Renderer::Instance()->GetD3DContext()->RSSetState(D3D11Renderer::Instance()->m_depthRS);
 	D3D11Renderer::Instance()->GetD3DContext()->IASetInputLayout(EffectsManager::Instance()->m_shadowMapEffect->GetInputLayout());
 	D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-
+#else
+	glBindFramebuffer(GL_FRAMEBUFFER, m_shadowBuffer);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, m_width, m_height);
+#endif
+	EffectsManager::Instance()->m_shadowMapEffect->SetShader();
+	
 	for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
 		if (EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->m_castShadow)
 			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->DrawOnShadowMap();
 	}
 
 	EffectsManager::Instance()->m_shadowMapEffect->UnSetShader();
+
+#ifdef GRAPHICS_D3D11
 	D3D11Renderer::Instance()->GetD3DContext()->RSSetState(0);
 #else
-	// gl render
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 #endif
+
 }

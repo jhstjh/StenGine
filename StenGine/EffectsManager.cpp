@@ -127,7 +127,19 @@ Effect::Effect(const std::wstring& vsPath,
 
 		glGetShaderiv(m_vertexShader, GL_COMPILE_STATUS, &params);
 		if (GL_TRUE != params) {
+			GLint maxLength = 0;
+			glGetShaderiv(m_vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+			//The maxLength includes the NULL character
+			std::vector<GLchar> infoLog(maxLength);
+			glGetShaderInfoLog(m_vertexShader, maxLength, &maxLength, &infoLog[0]);
+			//We don't need the shader anymore.
+			glDeleteShader(m_vertexShader);
+
+			OutputDebugStringA(&infoLog[0]);
 			assert(false);
+			return;
+
 // 			fprintf(stderr, "ERROR: GL shader index %i did not compile\n", m_vertexShader);
 // 			_print_shader_info_log(vs);
 		}
@@ -144,9 +156,22 @@ Effect::Effect(const std::wstring& vsPath,
 
 		glGetShaderiv(m_pixelShader, GL_COMPILE_STATUS, &params);
 		if (GL_TRUE != params) {
-			assert(false);
+			//assert(false);
 			// 			fprintf(stderr, "ERROR: GL shader index %i did not compile\n", m_vertexShader);
 			// 			_print_shader_info_log(vs);
+
+			GLint maxLength = 0;
+			glGetShaderiv(m_pixelShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+			//The maxLength includes the NULL character
+			std::vector<GLchar> infoLog(maxLength);
+			glGetShaderInfoLog(m_pixelShader, maxLength, &maxLength, &infoLog[0]);
+			//We don't need the shader anymore.
+			glDeleteShader(m_pixelShader);
+
+			OutputDebugStringA(&infoLog[0]);
+			assert(false);
+			return;
 		}
 	}
 
@@ -1282,9 +1307,11 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filen
 
 	DiffuseMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseMap");
 	NormalMapPosition = glGetUniformLocation(m_shaderProgram, "gNormalMap");
+	ShadowMapPosition = glGetUniformLocation(m_shaderProgram, "gShadowMap");
 
-	assert(DiffuseMapPosition > -1);
-	assert(NormalMapPosition > -1);
+//	assert(DiffuseMapPosition > -1);
+//	assert(NormalMapPosition > -1);
+//	assert(ShadowMapPosition > -1);
 }
 
 DeferredGeometryPassEffect::~DeferredGeometryPassEffect()
@@ -1326,6 +1353,10 @@ void DeferredGeometryPassEffect::BindShaderResource() {
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, NormalMap);
 	glUniform1i(NormalMapPosition, 1);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, ShadowMapTex);
+	glUniform1i(ShadowMapPosition, 2);
 }
 
 
@@ -1363,7 +1394,7 @@ void DeferredShadingPassEffect::UpdateConstantBuffer() {
 }
 
 void DeferredShadingPassEffect::BindConstantBuffer() {
-// TODO
+
 }
 
 void DeferredShadingPassEffect::BindShaderResource() {
@@ -1386,6 +1417,35 @@ void DeferredShadingPassEffect::BindShaderResource() {
 
 
 /*********************************************************************/
+
+ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
+	: Effect(filename + L"_vs" + EXT, std::wstring(L"FX/ZOnly_ps") + EXT)
+{
+	glGenBuffers(1, &m_perObjectUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
+}
+
+void ShadowMapEffect::UpdateConstantBuffer() {
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
+	PEROBJ_UNIFORM_BUFFER* perObjUBOPtr = (PEROBJ_UNIFORM_BUFFER*)glMapBufferRange(
+		GL_UNIFORM_BUFFER,
+		0,
+		sizeof(PEROBJ_UNIFORM_BUFFER),
+		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+		);
+	memcpy(perObjUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
+	glUnmapBuffer(GL_UNIFORM_BUFFER);
+}
+
+void ShadowMapEffect::BindConstantBuffer() {
+
+}
+
+ShadowMapEffect::~ShadowMapEffect()
+{
+
+}
 
 
 bool Effect::ReadShaderFile(std::wstring filename, char* shaderContent, int maxLength) {
@@ -1445,6 +1505,7 @@ EffectsManager::EffectsManager() {
 	m_skyboxEffect = new SkyboxEffect(L"FX/Skybox");
 
 #else
+	m_shadowMapEffect = new ShadowMapEffect(L"FX/ShadowMap");
 	m_deferredGeometryPassEffect = new DeferredGeometryPassEffect(L"FX/DeferredGeometryPass");
 	m_deferredShadingPassEffect = new DeferredShadingPassEffect(L"FX/DeferredShadingPass");
 #endif

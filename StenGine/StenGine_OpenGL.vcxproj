@@ -160,8 +160,10 @@
     <None Include="FX\DeferredGeometryPass_vs.glsl" />
     <None Include="FX\DeferredShadingPass_ps.glsl" />
     <None Include="FX\ScreenQuad_vs.glsl" />
+    <None Include="FX\ShadowMap_vs.glsl" />
     <None Include="FX\StdMesh_ps.glsl" />
     <None Include="FX\StdMesh_vs.glsl" />
+    <None Include="FX\ZOnly_ps.glsl" />
     <None Include="Model\ball.obj">
       <FileType>Document</FileType>
     </None>

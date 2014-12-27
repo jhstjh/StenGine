@@ -30,6 +30,7 @@ private:
 	ID3D11Buffer* m_shadowMapVertexBufferGPU;
 #else
 	GLuint m_indexBufferGPU;
+	GLuint m_indexBufferShadowGPU;
 
 	GLuint m_positionBufferGPU;
 	GLuint m_normalBufferGPU;

@@ -33,6 +33,9 @@ layout(std140) uniform ubPerFrame {
 void main() {
 	vec2 realUV = pTexUV;
 
+	//ps_color = texture(gDiffuseGMap, realUV);
+	//return;
+
 	vec3 normalV = texture(gNormalGMap, realUV).xyz;
 	float z = texture(gDepthGMap, realUV).x;
 
@@ -48,6 +51,7 @@ void main() {
 	vec4 specColor = vec4(0, 0, 0, 0);
 
 	float diffuseK = dot(-gDirLight.direction, normalV);
+	float shadowLit = texture(gDiffuseGMap, realUV).w;
 
 	if (diffuseK > 0) {
 		diffColor += diffuseK * gDirLight.intensity;
@@ -57,5 +61,6 @@ void main() {
 		specColor += texture(gSpecularGMap, realUV) * pow(max(dot(refLight, viewRay), 0), texture(gSpecularGMap, realUV).w * 255);
 	}
 
-	ps_color = (vec4(0.2, 0.2, 0.2, 0) + diffColor) * texture(gDiffuseGMap, realUV) + specColor /*+ float4(1, 1, 1, 1) * vPositionVS.z / 20*/;
+	ps_color = (vec4(0.2, 0.2, 0.2, 0) + diffColor * shadowLit) * texture(gDiffuseGMap, realUV) + specColor * shadowLit /*+ float4(1, 1, 1, 1) * vPositionVS.z / 20*/;
+	//ps_color = texture(gDiffuseGMap, realUV);
 }

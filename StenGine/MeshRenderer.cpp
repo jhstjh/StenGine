@@ -371,7 +371,6 @@ void Mesh::PrepareGPUBuffer() {
 	glEnableVertexAttribArray (1);
 	glEnableVertexAttribArray (2);
 	glEnableVertexAttribArray (3);
-
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferGPU);
 #endif
 }
@@ -401,6 +400,7 @@ void Mesh::PrepareShadowMapBuffer() {
 	glBindBuffer(GL_ARRAY_BUFFER, m_positionBufferGPU);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferGPU);
 #endif
 }
 
@@ -490,7 +490,6 @@ void Mesh::Draw() {
 #else
 	glBindVertexArray(m_vertexArrayObject);
 	
-	
 	DeferredGeometryPassEffect* effect = dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect);
 	
 	effect->m_perObjUniformBuffer.Mat = m_material;
@@ -502,6 +501,8 @@ void Mesh::Draw() {
 		effect->m_perObjUniformBuffer.WorldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
 		effect->m_perObjUniformBuffer.World = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform());
 		effect->m_perObjUniformBuffer.WorldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
+		effect->m_perObjUniformBuffer.ShadowTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
+		
 		effect->UpdateConstantBuffer();
 		effect->BindConstantBuffer();
 		effect->BindShaderResource();
@@ -537,6 +538,24 @@ void Mesh::DrawOnShadowMap() {
 		EffectsManager::Instance()->m_shadowMapEffect->UnBindConstantBuffer();
 	}
 #else
-	// gl render
+	glBindVertexArray(m_vertexArrayObject);
+
+	for (int iP = 0; iP < m_parents.size(); iP++) {
+		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
+		EffectsManager::Instance()->m_shadowMapEffect->m_perObjUniformBuffer.gWorldViewProj = worldViewProj;
+		EffectsManager::Instance()->m_shadowMapEffect->UpdateConstantBuffer();
+		EffectsManager::Instance()->m_shadowMapEffect->BindConstantBuffer();
+
+		glDrawElements(
+			GL_TRIANGLES,      // mode
+			m_indexBufferCPU.size(),    // count
+			GL_UNSIGNED_INT,   // type
+			(void*)0           // element array buffer offset
+		);
+
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
+		EffectsManager::Instance()->m_shadowMapEffect->UnBindConstantBuffer();
+		EffectsManager::Instance()->m_shadowMapEffect->UnBindShaderResource();
+	}
 #endif
 }

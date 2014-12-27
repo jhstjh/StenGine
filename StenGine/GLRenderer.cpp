@@ -134,7 +134,12 @@ bool GLRenderer::Init() {
 }
 
 void GLRenderer::Draw() {
+
+	LightManager::Instance()->m_shadowMap->RenderShadowMap();
+
 	/**************deferred shading 1st pass******************/
+	glViewport(0, 0, m_clientWidth, m_clientHeight);
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, m_deferredGBuffers);
 	EffectsManager::Instance()->m_deferredGeometryPassEffect->SetShader();
 	DeferredGeometryPassEffect* effect = EffectsManager::Instance()->m_deferredGeometryPassEffect;
@@ -144,6 +149,7 @@ void GLRenderer::Draw() {
 
 	effect->m_perFrameUniformBuffer.EyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
 	effect->m_perFrameUniformBuffer.DirLight = *LightManager::Instance()->m_dirLights[0];
+	effect->ShadowMapTex = LightManager::Instance()->m_shadowMap->GetDepthTex();
 
 	for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
 		EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->Draw();
@@ -160,7 +166,7 @@ void GLRenderer::Draw() {
 	deferredShadingFX->SetShader();
 	glBindVertexArray(NULL);
 
-	deferredShadingFX->DiffuseGMap = m_diffuseBufferTex;
+	deferredShadingFX->DiffuseGMap = m_diffuseBufferTex;//LightManager::Instance()->m_shadowMap->GetDepthTex();//
 	deferredShadingFX->NormalGMap = m_normalBufferTex;
 	deferredShadingFX->SpecularGMap = m_specularBufferTex;
 	deferredShadingFX->DepthGMap = m_depthBufferTex;

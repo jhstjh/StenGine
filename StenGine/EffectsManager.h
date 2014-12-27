@@ -109,21 +109,9 @@ private:
 	GLuint m_perFrameUBO;
 	GLuint m_perObjectUBO;
 
-// 	GLint perFrameUBOPos;
-// 	GLint perObjUBOPos;
-
-	GLint WorldViewProjPosition;
-	GLint WorldPosition;
 	GLint DiffuseMapPosition;
 	GLint NormalMapPosition;
-
-	GLint IntensityPosition;
-	GLint DirectionPosition;
-	GLint EyePosWPosition;
-
-	GLint AmbientPosition;
-	GLint DiffusePosition;
-	GLint SpecularPosition;
+	GLint ShadowMapPosition;
 #endif
 
 public:
@@ -166,6 +154,7 @@ public:
 		XMMATRIX WorldViewProj;
 		XMMATRIX World;
 		XMMATRIX WorldView;
+		XMMATRIX ShadowTransform;
 		Material Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
 	} m_perObjUniformBuffer;
@@ -178,6 +167,7 @@ public:
 
 	GLint DiffuseMap;
 	GLint NormalMap;
+	GLint ShadowMapTex;
 
 #endif
 };
@@ -263,7 +253,11 @@ public:
 
 class ShadowMapEffect : public Effect {
 private:
+#ifdef GRAPHICS_D3D11
 	ID3D11Buffer* m_perObjectCB;
+#else
+	GLuint m_perObjectUBO;
+#endif
 
 public:
 	ShadowMapEffect(const std::wstring& filename);
@@ -272,10 +266,20 @@ public:
 	virtual void UpdateConstantBuffer();
 	virtual void BindConstantBuffer();
 	
-	struct PEROBJ_CONSTANT_BUFFER
+	struct 
+#ifdef GRAPHICS_D3D11
+	PEROBJ_CONSTANT_BUFFER
+#else
+	PEROBJ_UNIFORM_BUFFER
+#endif
 	{
 		XMMATRIX gWorldViewProj;
-	} m_perObjConstantBuffer;
+	} 
+#ifdef GRAPHICS_D3D11
+	m_perObjConstantBuffer;
+#else
+	m_perObjUniformBuffer;
+#endif
 };
 
 

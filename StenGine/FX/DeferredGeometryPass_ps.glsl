@@ -16,6 +16,7 @@ in vec2 pTexUV;
 in vec3 pNormalV;
 in vec3 pPosW;
 in vec3 pTangV;
+in vec4 pShadowTransform;
 
 //out vec4 ps_color;
 layout(location = 0) out vec4 ps_norm;
@@ -24,12 +25,13 @@ layout(location = 2) out vec4 ps_spec;
 
 uniform sampler2D gDiffuseMap;
 uniform sampler2D gNormalMap;
-
+uniform sampler2D gShadowMap;
 
 layout(std140) uniform ubPerObj {
 	mat4 gWorldViewProj;
 	mat4 gWorld;
 	mat4 gWorldView;
+	mat4 gShadowTransform;
 	Material gMat;
 	vec4 DiffX_NormY_ShadZ;
 };
@@ -53,11 +55,26 @@ void main() {
 
 	normal = normalize(TBN * normalMapNormal);//normalize(pin.NormalV).xy;
 
-	vec4 diffColor = vec4(0, 0, 0, 0);
-	vec4 specColor = vec4(0, 0, 0, 0);
-
 	ps_norm = vec4(normal, 1.0);
 	ps_diff = texture(gDiffuseMap, pTexUV) * gMat.diffuse;
 	ps_spec = gMat.specular;
 	ps_spec.w /= 255.0f;
+
+	// TODO: copy shadow map into diffuse then show it to test...
+
+	ps_diff.w = 1.0; // 1: lit, 0: shadow
+	vec4 shadowTrans = pShadowTransform;
+
+	shadowTrans.xyz /= shadowTrans.w;
+
+	//ps_diff = vec4(texture2D(gShadowMap, shadowTrans.xy).r, texture2D(gShadowMap, shadowTrans.xy).r, texture2D(gShadowMap, shadowTrans.xy).r, 1);
+	//ps_diff = vec4(shadowTrans.z, shadowTrans.z, shadowTrans.z, 1);
+	//return;
+
+	float epsilon = 0.003;
+	float shadow = texture2D(gShadowMap, shadowTrans.xy).r;
+	if (shadow + epsilon < shadowTrans.z) {
+		ps_diff.w = 0.0;
+	}
+
 }
