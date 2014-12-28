@@ -22,6 +22,10 @@ Skybox::Skybox(std::wstring &cubeMapPath) {
 		SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT
 	);
 	assert(m_cubeMapTex != 0);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 #endif
 }
 
@@ -32,11 +36,13 @@ Skybox::~Skybox() {
 }
 
 void Skybox::Draw() {
-#ifdef GRAPHICS_D3D11
+
 	SkyboxEffect* skyboxEffect = EffectsManager::Instance()->m_skyboxEffect;
+	skyboxEffect->SetShader();
+#ifdef GRAPHICS_D3D11
 	//skyboxEffect->m_shaderResources[0] = m_cubeMapSRV;
 	skyboxEffect->SetShaderResources(m_cubeMapSRV, 0);
-	skyboxEffect->SetShader();
+	
 
 	XMFLOAT4 eyePos = CameraManager::Instance()->GetActiveCamera()->GetPos();
 	XMMATRIX T = XMMatrixTranslation(eyePos.x, eyePos.y, eyePos.z);
@@ -48,12 +54,24 @@ void Skybox::Draw() {
 	skyboxEffect->BindConstantBuffer();
 	skyboxEffect->BindShaderResource();
 	D3D11Renderer::Instance()->GetD3DContext()->Draw(36, 0);
+
+#else
+	glBindVertexArray(NULL);
+	skyboxEffect->CubeMap = m_cubeMapTex;
+	XMFLOAT4 eyePos = CameraManager::Instance()->GetActiveCamera()->GetPos();
+	XMMATRIX T = XMMatrixTranslation(eyePos.x, eyePos.y, eyePos.z);
+	XMMATRIX WVP = XMMatrixMultiply(T, CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+
+	skyboxEffect->m_perObjUniformBuffer.gWorldViewProj = WVP;
+	skyboxEffect->UpdateConstantBuffer();
+
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+#endif
 	skyboxEffect->UnBindShaderResource();
 	skyboxEffect->UnBindConstantBuffer();
 
 	skyboxEffect->UnSetShader();
-#else
-	// gl render
-#endif
 
 }

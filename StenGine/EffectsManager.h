@@ -330,7 +330,12 @@ public:
 class SkyboxEffect : public Effect {
 public:
 private:
+#ifdef GRAPHICS_D3D11
 	ID3D11Buffer* m_perObjectCB;
+#else
+	GLuint m_perObjectUBO;
+	GLint CubeMapPosition;
+#endif
 
 public:
 	SkyboxEffect(const std::wstring& filename);
@@ -340,12 +345,25 @@ public:
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
 
-	struct PEROBJ_CONSTANT_BUFFER
+	struct 
+#ifdef GRAPHICS_D3D11
+	PEROBJ_CONSTANT_BUFFER
+#else
+	PEROBJ_UNIFORM_BUFFER
+#endif
 	{
 		XMMATRIX gWorldViewProj;
-	} m_perObjConstantBuffer;
+	} 
+#ifdef GRAPHICS_D3D11
+	m_perObjConstantBuffer;
+#else
+	m_perObjUniformBuffer;
+#endif
 
 	//ID3D11ShaderResourceView *m_shaderResources[1];
+#ifdef GRAPHICS_OPENGL
+	GLuint CubeMap;
+#endif
 };
 
 
