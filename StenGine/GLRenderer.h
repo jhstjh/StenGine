@@ -15,6 +15,7 @@ public:
 	static GLRenderer* Instance() { return _instance; }
 	virtual bool Init();
 	virtual void Draw();
+	Skybox* m_SkyBox;
 	
 private:
 	static GLRenderer* _instance;
@@ -34,7 +35,5 @@ private:
 	void GenerateColorTex(GLuint &bufferTex);
 	void GenerateDepthTex(GLuint &bufferTex);
 };
-
-
 
 #endif

@@ -314,7 +314,7 @@ void Effect::SetShaderResources(ID3D11ShaderResourceView* res, int idx) {
 ID3D11ShaderResourceView* Effect::GetOutputShaderResource(int idx) {
 	return m_outputShaderResources[idx];
 }
-
+#endif
 //------------------------------------------------------------//
 
 
@@ -358,9 +358,13 @@ ID3D11ShaderResourceView* Effect::GetOutputShaderResource(int idx) {
 
 
 ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
+#ifdef GRAPHICS_D3D11
 	: Effect(filename + L"_vs" + EXT, L"")
+#else
+	: Effect(filename + L"_vs" + EXT, std::wstring(L"FX/ZOnly_ps") + EXT)
+#endif
 {
-
+#ifdef GRAPHICS_D3D11
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -397,30 +401,50 @@ ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
 	ReleaseCOM(m_hsBlob);
 	ReleaseCOM(m_dsBlob);
 	ReleaseCOM(m_csBlob);
+#else
+	glGenBuffers(1, &m_perObjectUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
+#endif
 }
 
 void ShadowMapEffect::UpdateConstantBuffer() {
+#ifdef GRAPHICS_D3D11
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
 		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
 		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perObjectCB, NULL);
 	}
+#else
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
+	PEROBJ_UNIFORM_BUFFER* perObjUBOPtr = (PEROBJ_UNIFORM_BUFFER*)glMapBufferRange(
+		GL_UNIFORM_BUFFER,
+		0,
+		sizeof(PEROBJ_UNIFORM_BUFFER),
+		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+		);
+	memcpy(perObjUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
+	glUnmapBuffer(GL_UNIFORM_BUFFER);
+#endif
 }
 
 void ShadowMapEffect::BindConstantBuffer() {
+#ifdef GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perObjectCB };
 	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 1, cbuf);
+#endif
 }
 
 ShadowMapEffect::~ShadowMapEffect()
 {
+#ifdef GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
+#endif
 }
 
 
 //------------------------------------------------------------//
-
 
 DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath) 
 	:Effect(vsPath, psPath, gsPath, hsPath, dsPath)
@@ -431,6 +455,7 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& vsPat
 DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filename)
 	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT)
 {
+#ifdef GRAPHICS_D3D11
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -500,14 +525,38 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filen
 	ReleaseCOM(m_hsBlob);
 	ReleaseCOM(m_dsBlob);
 	ReleaseCOM(m_csBlob);
+#else
+
+	glGenBuffers(1, &m_perFrameUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_perFrameUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(PERFRAME_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
+
+	glGenBuffers(1, &m_perObjectUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
+
+
+	GLuint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
+	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
+
+	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
+	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
+
+	DiffuseMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseMap");
+	NormalMapPosition = glGetUniformLocation(m_shaderProgram, "gNormalMap");
+	ShadowMapPosition = glGetUniformLocation(m_shaderProgram, "gShadowMap");
+#endif
 }
 
 DeferredGeometryPassEffect::~DeferredGeometryPassEffect()
 {
+#ifdef GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
+#endif
 }
 
 void DeferredGeometryPassEffect::UpdateConstantBuffer() {
+#ifdef GRAPHICS_D3D11
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
 		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
@@ -521,20 +570,178 @@ void DeferredGeometryPassEffect::UpdateConstantBuffer() {
 		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
 		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perFrameCB, NULL);
 	}
+#else
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
+	PEROBJ_UNIFORM_BUFFER* perObjUBOPtr = (PEROBJ_UNIFORM_BUFFER*)glMapBufferRange(
+		GL_UNIFORM_BUFFER,
+		0,
+		sizeof(PEROBJ_UNIFORM_BUFFER),
+		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+		);
+	memcpy(perObjUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
+	glUnmapBuffer(GL_UNIFORM_BUFFER);
+
+	glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_perFrameUBO);
+	PERFRAME_UNIFORM_BUFFER* perFrameUBOPtr = (PERFRAME_UNIFORM_BUFFER*)glMapBufferRange(
+		GL_UNIFORM_BUFFER,
+		0,
+		sizeof(PERFRAME_UNIFORM_BUFFER),
+		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+		);
+	memcpy(perFrameUBOPtr, &m_perFrameUniformBuffer, sizeof(PERFRAME_UNIFORM_BUFFER));
+	glUnmapBuffer(GL_UNIFORM_BUFFER);
+#endif
 }
 
 void DeferredGeometryPassEffect::BindConstantBuffer() {
+#ifdef GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perObjectCB, m_perFrameCB };
 	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 2, cbuf);
 	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 2, cbuf);
+#endif
 }
 
 void DeferredGeometryPassEffect::BindShaderResource() {
+#ifdef GRAPHICS_D3D11
 	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 5, m_shaderResources);
 	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 5, m_shaderResources);
+#else
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, DiffuseMap);
+	glUniform1i(DiffuseMapPosition, 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, NormalMap);
+	glUniform1i(NormalMapPosition, 1);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, ShadowMapTex);
+	glUniform1i(ShadowMapPosition, 2);
+#endif
 }
 
 
+//----------------------------------------------------------//
+
+
+DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filename)
+	: Effect(std::wstring(L"FX/ScreenQuad_vs") + EXT, filename + L"_ps" + EXT)
+{
+#ifdef GRAPHICS_D3D11
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+		m_vsBlob->GetBufferSize(), &m_inputLayout));
+
+	m_shaderResources = new ID3D11ShaderResourceView*[4];
+	for (int i = 0; i < 4; i++) {
+		m_shaderResources[i] = 0;
+	}
+
+	{
+		// Fill in a buffer description.
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		// Fill in the subresource data.
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = &m_perFrameConstantBuffer;
+		InitData.SysMemPitch = 0;
+		InitData.SysMemSlicePitch = 0;
+
+		HRESULT hr;
+		// Create the buffer.
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+			&m_perFrameCB);
+
+		assert(SUCCEEDED(hr));
+	}
+
+	ReleaseCOM(m_vsBlob);
+	ReleaseCOM(m_psBlob);
+	ReleaseCOM(m_gsBlob);
+	ReleaseCOM(m_hsBlob);
+	ReleaseCOM(m_dsBlob);
+	ReleaseCOM(m_csBlob);
+#else
+	glGenBuffers(1, &m_perFrameUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_perFrameUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(PERFRAME_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
+
+	DiffuseGMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseGMap");
+	NormalGMapPosition = glGetUniformLocation(m_shaderProgram, "gNormalGMap");
+	SpecularGMapPosition = glGetUniformLocation(m_shaderProgram, "gSpecularGMap");
+	DepthGMapPosition = glGetUniformLocation(m_shaderProgram, "gDepthGMap");
+#endif
+}
+
+DeferredShadingPassEffect::~DeferredShadingPassEffect()
+{
+#ifdef GRAPHICS_D3D11
+	ReleaseCOM(m_inputLayout);
+#endif
+}
+
+void DeferredShadingPassEffect::UpdateConstantBuffer() {
+#ifdef GRAPHICS_D3D11
+	{
+		D3D11_MAPPED_SUBRESOURCE ms;
+		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
+		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perFrameCB, NULL);
+	}
+#else
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perFrameUBO);
+	PERFRAME_UNIFORM_BUFFER* perFrameUBOPtr = (PERFRAME_UNIFORM_BUFFER*)glMapBufferRange(
+		GL_UNIFORM_BUFFER,
+		0,
+		sizeof(PERFRAME_UNIFORM_BUFFER),
+		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+		);
+	memcpy(perFrameUBOPtr, &m_perFrameUniformBuffer, sizeof(PERFRAME_UNIFORM_BUFFER));
+	glUnmapBuffer(GL_UNIFORM_BUFFER);
+#endif
+}
+
+void DeferredShadingPassEffect::BindConstantBuffer() {
+#ifdef GRAPHICS_D3D11
+	ID3D11Buffer* cbuf[] = { m_perFrameCB };
+	//D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 1, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 1, cbuf);
+#endif
+}
+
+void DeferredShadingPassEffect::BindShaderResource() {
+#ifdef GRAPHICS_D3D11
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 4, m_shaderResources);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 4, m_shaderResources);
+#else
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, NormalGMap);
+	glUniform1i(NormalGMapPosition, 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, DiffuseGMap);
+	glUniform1i(DiffuseGMapPosition, 1);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, SpecularGMap);
+	glUniform1i(SpecularGMapPosition, 2);
+
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, DepthGMap);
+	glUniform1i(DepthGMapPosition, 3);
+#endif
+}
+#ifdef GRAPHICS_D3D11
 //------------------------------------------------------------//
 
 
@@ -652,85 +859,6 @@ void DeferredGeometryTessPassEffect::BindShaderResource() {
 	D3D11Renderer::Instance()->GetD3DContext()->HSSetShaderResources(0, 5, m_shaderResources);
 	D3D11Renderer::Instance()->GetD3DContext()->DSSetShaderResources(0, 5, m_shaderResources);
 }
-
-
-//----------------------------------------------------------//
-
-
-DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filename)
-	: Effect(std::wstring(L"FX/ScreenQuad_vs") + EXT, filename + L"_ps" + EXT)
-{
-	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
-		m_vsBlob->GetBufferSize(), &m_inputLayout));
-
-	m_shaderResources = new ID3D11ShaderResourceView*[4];
-	for (int i = 0; i < 4; i++) {
-		m_shaderResources[i] = 0;
-	}
-
-	{
-		// Fill in a buffer description.
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		// Fill in the subresource data.
-		D3D11_SUBRESOURCE_DATA InitData;
-		InitData.pSysMem = &m_perFrameConstantBuffer;
-		InitData.SysMemPitch = 0;
-		InitData.SysMemSlicePitch = 0;
-
-		HRESULT hr;
-		// Create the buffer.
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
-			&m_perFrameCB);
-
-		assert(SUCCEEDED(hr));
-	}
-
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-}
-
-DeferredShadingPassEffect::~DeferredShadingPassEffect()
-{
-	ReleaseCOM(m_inputLayout);
-}
-
-void DeferredShadingPassEffect::UpdateConstantBuffer() {
-	{
-		D3D11_MAPPED_SUBRESOURCE ms;
-		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
-		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perFrameCB, NULL);
-	}
-}
-
-void DeferredShadingPassEffect::BindConstantBuffer() {
-	ID3D11Buffer* cbuf[] = { m_perFrameCB };
-	//D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 1, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 1, cbuf);
-}
-
-void DeferredShadingPassEffect::BindShaderResource() {
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 4, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 4, m_shaderResources);
-}
-
-
 //----------------------------------------------------------//
 
 // ScreenQuadEffect::ScreenQuadEffect(const std::wstring& filename)
@@ -1280,172 +1408,9 @@ void BlurEffect::BindShaderResource() {
 }
 
 #else
-DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath)
-	:Effect(vsPath, psPath, gsPath, hsPath, dsPath)
-{
-
-}
-
-DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filename)
-	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT)
-{
-
-	glGenBuffers(1, &m_perFrameUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_perFrameUBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PERFRAME_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
-
-	glGenBuffers(1, &m_perObjectUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectUBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
-
-
-	GLuint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
-	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
-
-	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
-	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
-
-	DiffuseMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseMap");
-	NormalMapPosition = glGetUniformLocation(m_shaderProgram, "gNormalMap");
-	ShadowMapPosition = glGetUniformLocation(m_shaderProgram, "gShadowMap");
-
-//	assert(DiffuseMapPosition > -1);
-//	assert(NormalMapPosition > -1);
-//	assert(ShadowMapPosition > -1);
-}
-
-DeferredGeometryPassEffect::~DeferredGeometryPassEffect()
-{
-
-}
-
-void DeferredGeometryPassEffect::UpdateConstantBuffer() {
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
-	PEROBJ_UNIFORM_BUFFER* perObjUBOPtr = (PEROBJ_UNIFORM_BUFFER*)glMapBufferRange(
-		GL_UNIFORM_BUFFER,
-		0,
-		sizeof(PEROBJ_UNIFORM_BUFFER),
-		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-	);
-	memcpy(perObjUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
-	glUnmapBuffer(GL_UNIFORM_BUFFER);
-
-	glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_perFrameUBO);
-	PERFRAME_UNIFORM_BUFFER* perFrameUBOPtr = (PERFRAME_UNIFORM_BUFFER*)glMapBufferRange(
-		GL_UNIFORM_BUFFER,
-		0,
-		sizeof(PERFRAME_UNIFORM_BUFFER),
-		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-		);
-	memcpy(perFrameUBOPtr, &m_perFrameUniformBuffer, sizeof(PERFRAME_UNIFORM_BUFFER));
-	glUnmapBuffer(GL_UNIFORM_BUFFER);
-}
-
-void DeferredGeometryPassEffect::BindConstantBuffer() {
-
-}
-
-void DeferredGeometryPassEffect::BindShaderResource() {
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, DiffuseMap);
-	glUniform1i(DiffuseMapPosition, 0);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, NormalMap);
-	glUniform1i(NormalMapPosition, 1);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, ShadowMapTex);
-	glUniform1i(ShadowMapPosition, 2);
-}
 
 
 /********************************************************************/
-
-
-DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filename)
-	: Effect(std::wstring(L"FX/ScreenQuad_vs") + EXT, filename + L"_ps" + EXT)
-{
-	glGenBuffers(1, &m_perFrameUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_perFrameUBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PERFRAME_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
-
-	DiffuseGMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseGMap");
-	NormalGMapPosition = glGetUniformLocation(m_shaderProgram, "gNormalGMap");
-	SpecularGMapPosition = glGetUniformLocation(m_shaderProgram, "gSpecularGMap");
-	DepthGMapPosition = glGetUniformLocation(m_shaderProgram, "gDepthGMap");
-}
-
-DeferredShadingPassEffect::~DeferredShadingPassEffect()
-{
-
-}
-
-void DeferredShadingPassEffect::UpdateConstantBuffer() {
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perFrameUBO);
-	PERFRAME_UNIFORM_BUFFER* perFrameUBOPtr = (PERFRAME_UNIFORM_BUFFER*)glMapBufferRange(
-		GL_UNIFORM_BUFFER,
-		0,
-		sizeof(PERFRAME_UNIFORM_BUFFER),
-		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-		);
-	memcpy(perFrameUBOPtr, &m_perFrameUniformBuffer, sizeof(PERFRAME_UNIFORM_BUFFER));
-	glUnmapBuffer(GL_UNIFORM_BUFFER);
-}
-
-void DeferredShadingPassEffect::BindConstantBuffer() {
-
-}
-
-void DeferredShadingPassEffect::BindShaderResource() {
- 	glActiveTexture(GL_TEXTURE0);
- 	glBindTexture(GL_TEXTURE_2D, NormalGMap);
- 	glUniform1i(NormalGMapPosition, 0);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, DiffuseGMap);
-	glUniform1i(DiffuseGMapPosition, 1);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, SpecularGMap);
-	glUniform1i(SpecularGMapPosition, 2);
-
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, DepthGMap);
-	glUniform1i(DepthGMapPosition, 3);
-}
-
-
-/*********************************************************************/
-
-ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
-	: Effect(filename + L"_vs" + EXT, std::wstring(L"FX/ZOnly_ps") + EXT)
-{
-	glGenBuffers(1, &m_perObjectUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectUBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
-}
-
-void ShadowMapEffect::UpdateConstantBuffer() {
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
-	PEROBJ_UNIFORM_BUFFER* perObjUBOPtr = (PEROBJ_UNIFORM_BUFFER*)glMapBufferRange(
-		GL_UNIFORM_BUFFER,
-		0,
-		sizeof(PEROBJ_UNIFORM_BUFFER),
-		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-		);
-	memcpy(perObjUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
-	glUnmapBuffer(GL_UNIFORM_BUFFER);
-}
-
-void ShadowMapEffect::BindConstantBuffer() {
-
-}
-
-ShadowMapEffect::~ShadowMapEffect()
-{
-
-}
 
 
 bool Effect::ReadShaderFile(std::wstring filename, char* shaderContent, int maxLength) {

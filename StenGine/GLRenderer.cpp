@@ -130,6 +130,8 @@ bool GLRenderer::Init() {
 	LightManager::Instance()->m_dirLights.push_back(dLight);
 	LightManager::Instance()->m_shadowMap = new ShadowMap(1024, 1024);
 
+	m_SkyBox = new Skybox(std::wstring(L"Model/sunsetcube1024.dds"));
+
 	return true;
 }
 
@@ -233,6 +235,4 @@ void GLRenderer::GenerateDepthTex(GLuint &bufferTex) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); 
-	// attach depth texture to framebuffer 
-	
 }

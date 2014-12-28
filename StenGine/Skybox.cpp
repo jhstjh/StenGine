@@ -1,6 +1,8 @@
 #include "Skybox.h"
 #include "D3D11Renderer.h"
 #include "CameraManager.h"
+#include "MeshRenderer.h"
+#include "SOIL.h"
 
 Skybox::Skybox(std::wstring &cubeMapPath) {
 // 	HR(D3DX11CreateShaderResourceViewFromFile(
@@ -9,6 +11,17 @@ Skybox::Skybox(std::wstring &cubeMapPath) {
 #ifdef GRAPHICS_D3D11
 	CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
 		cubeMapPath.c_str(), nullptr, &m_cubeMapSRV);
+#else
+	std::string s(cubeMapPath.begin(), cubeMapPath.end());
+	m_cubeMapTex = SOIL_load_OGL_single_cubemap
+		(
+		s.c_str(),
+		SOIL_DDS_CUBEMAP_FACE_ORDER,
+		SOIL_LOAD_AUTO,
+		m_cubeMapTex,
+		SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT
+	);
+	assert(m_cubeMapTex != 0);
 #endif
 }
 
