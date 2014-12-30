@@ -641,8 +641,8 @@ DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filenam
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
-	m_shaderResources = new ID3D11ShaderResourceView*[4];
-	for (int i = 0; i < 4; i++) {
+	m_shaderResources = new ID3D11ShaderResourceView*[5];
+	for (int i = 0; i < 5; i++) {
 		m_shaderResources[i] = 0;
 	}
 
@@ -726,8 +726,8 @@ void DeferredShadingPassEffect::BindConstantBuffer() {
 
 void DeferredShadingPassEffect::BindShaderResource() {
 #ifdef GRAPHICS_D3D11
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 4, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 4, m_shaderResources);
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 5, m_shaderResources);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 5, m_shaderResources);
 #else
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, NormalGMap);

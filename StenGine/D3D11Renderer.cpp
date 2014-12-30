@@ -366,6 +366,9 @@ bool D3D11Renderer::Init() {
 
 	m_d3d11DeviceContext->RSSetState(m_wireFrameRS);
 
+	CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
+		L"./Model/RandNorm.dds", nullptr, &m_randVecTexSRV);
+
 	return true;
 }
 
@@ -481,6 +484,7 @@ void D3D11Renderer::Draw() {
 	deferredShadingEffect->SetShaderResources(m_normalBufferSRV, 1);
 	deferredShadingEffect->SetShaderResources(m_specularBufferSRV, 2);
 	deferredShadingEffect->SetShaderResources(m_deferredRenderShaderResourceView, 3);
+	deferredShadingEffect->SetShaderResources(m_randVecTexSRV, 4);
 
 	m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_samplerState);
 
@@ -613,7 +617,7 @@ void D3D11Renderer::Draw() {
 #else
 	blurEffect->SetShaderResources(deferredCSEffect->GetOutputShaderResource(0), 0);
 #endif
-	blurEffect->SetShaderResources(vBlurEffect->GetOutputShaderResource(0), 1);
+	blurEffect->SetShaderResources(vBlurEffect->GetOutputShaderResource(0)/*m_SSAOSRV*/, 1);
 	blurEffect->SetShaderResources(vBlurEffect->GetOutputShaderResource(1), 2);
 	blurEffect->m_settingConstantBuffer.texOffset = XMFLOAT2(1.0 / D3D11Renderer::Instance()->m_clientWidth, 0.0f);
 	m_d3d11DeviceContext->PSSetSamplers(0, 1, samplerState);

@@ -53,6 +53,8 @@ private:
 	ID3D11RenderTargetView* m_SSAORTV2;
 	ID3D11RenderTargetView* m_deferredShadingRTV;
 
+	ID3D11ShaderResourceView* m_randVecTexSRV;
+
 	ID3D11ShaderResourceView* m_diffuseBufferSRV;
 	ID3D11ShaderResourceView* m_normalBufferSRV;
 	ID3D11ShaderResourceView* m_specularBufferSRV;

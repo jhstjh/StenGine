@@ -15,30 +15,31 @@ Texture2D gDiffuseGB: register(t0);
 Texture2D gNormalGB: register(t1);
 Texture2D gSpecularGB: register(t2);
 Texture2D gDepthGB: register(t3);
+Texture2D gBumpMap: register(t4);
 
 SamplerState gSamplerStateLinear;
 
 cbuffer cbFixed: register(b13) {
-	static const float    gOcclusionRadius = 0.2f;
+	static const float    gOcclusionRadius = 0.08f;
 	static const float    gOcclusionFadeStart = 0.1f;
-	static const float    gOcclusionFadeEnd = 2.0f;
-	static const float    gSurfaceEpsilon = 0.005f;
+	static const float    gOcclusionFadeEnd = 8.0f;
+	static const float    gSurfaceEpsilon = 0.0005f;
 
 	static const float4 OffsetVect[] = {
-			{ +1.0f, +1.0f, +1.0f, 0.0f },
-			{ -1.0f, -1.0f, -1.0f, 0.0f },
-			{ -1.0f, +1.0f, +1.0f, 0.0f },
-			{ +1.0f, -1.0f, -1.0f, 0.0f },
-			{ +1.0f, +1.0f, -1.0f, 0.0f },
-			{ -1.0f, -1.0f, +1.0f, 0.0f },
-			{ -1.0f, +1.0f, -1.0f, 0.0f },
-			{ +1.0f, -1.0f, +1.0f, 0.0f },
-			{ -1.0f, 0.0f, 0.0f, 0.0f },
-			{ +1.0f, 0.0f, 0.0f, 0.0f },
-			{ 0.0f, -1.0f, 0.0f, 0.0f },
-			{ 0.0f, +1.0f, 0.0f, 0.0f },
-			{ 0.0f, 0.0f, -1.0f, 0.0f },
-			{ 0.0f, 0.0f, +1.0f, 0.0f },
+		{ +1.0f, +1.0f, +1.0f, 0.0f },
+		{ -1.0f, -1.0f, -1.0f, 0.0f },
+		{ -1.0f, +1.0f, +1.0f, 0.0f },
+		{ +1.0f, -1.0f, -1.0f, 0.0f },
+		{ +1.0f, +1.0f, -1.0f, 0.0f },
+		{ -1.0f, -1.0f, +1.0f, 0.0f },
+		{ -1.0f, +1.0f, -1.0f, 0.0f },
+		{ +1.0f, -1.0f, +1.0f, 0.0f },
+		{ -1.0f, 0.0f, 0.0f, 0.0f },
+		{ +1.0f, 0.0f, 0.0f, 0.0f },
+		{ 0.0f, -1.0f, 0.0f, 0.0f },
+		{ 0.0f, +1.0f, 0.0f, 0.0f },
+		{ 0.0f, 0.0f, -1.0f, 0.0f },
+		{ 0.0f, 0.0f, +1.0f, 0.0f },
 	};
 
 	static const int gBlurRadius = 10;
@@ -197,6 +198,7 @@ PSOut main(PSIn input)
 
 	// ---------------- SSAO ---------------//
 
+#if 0	
 	float occlusionSum = 0.0f;
 
 	for (int i = 0; i < 14; ++i)
@@ -230,6 +232,40 @@ PSOut main(PSIn input)
 	// Sharpen the contrast of the SSAO map to make the SSAO affect more dramatic.
 	pOut.SSAO =  saturate(pow(access, 4.0f));
 
+#else
+	//float3 randVect =  2 * sample2D(gBumpMapSampler, 16 * pIn.iColor.xy, gBumpMap) - 1;
+	float3 randVect = normalize(gBumpMap.SampleLevel(gSamplerStateLinear, 16 * input.Tex, 0));
+
+	float occlusionSum = 0.0f;
+	float4 occlusionColor = float4(0, 0, 0, 0);
+	for (int i = 0; i < 14; ++i)
+	{
+		float3 offset = reflect(normalize(OffsetVect[i].xyz), randVect);
+
+		float flip = 1;//sign(dot(offset, normal));
+
+		float3 qV = vPositionVS.xyz + flip * gOcclusionRadius * offset;
+
+		float4 projQ = mul(float4(qV, 1.0f), gProj);
+		projQ /= projQ.w;
+
+		float rz = gDepthGB.SampleLevel(gSamplerStateLinear, float2(0.5 * projQ.x + 0.5, 0.5 - 0.5 * projQ.y), 0).r;
+		float4 rProjectedPos = float4(projQ.x, projQ.y, rz, 1.0f);
+		float4 rPositionVS = mul(rProjectedPos, gProjInv);
+		rPositionVS /= rPositionVS.w;
+
+		float3 diff = rPositionVS.xyz - vPositionVS;
+		const float3 v = normalize(diff);
+		const float d = length(diff)*0.05;
+		float occlusion = max(0.0, dot(normalV, v) - gSurfaceEpsilon) * (1.0 / (1.0 + d)) * 0.8;
+		occlusionSum += occlusion;
+	}
+
+	occlusionSum /= 14.0f;
+
+	float access = 1.0f - occlusionSum;
+	pOut.SSAO = saturate(pow(access, 4.0f));
+#endif
 	return pOut;
 }
 
