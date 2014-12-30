@@ -112,6 +112,7 @@ private:
 	GLint DiffuseMapPosition;
 	GLint NormalMapPosition;
 	GLint ShadowMapPosition;
+	GLint CubeMapPosition;
 #endif
 
 public:
@@ -168,6 +169,7 @@ public:
 	GLint DiffuseMap;
 	GLint NormalMap;
 	GLint ShadowMapTex;
+	GLint CubeMapTex;
 
 #endif
 };

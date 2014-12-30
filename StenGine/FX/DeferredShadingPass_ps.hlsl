@@ -111,28 +111,90 @@ PSOut main(PSIn input)
 	clip(1000 - vPositionVS.z - 1);
 		
 
-	float4 diffColor = float4(0, 0, 0, 0);
-	float4 specColor = float4(0, 0, 0, 0);
-
+//	float4 diffColor = float4(0, 0, 0, 0);
+//	float4 specColor = float4(0, 0, 0, 0);
+//
 	float3 normalV;
-	normalV.xy = gNormalGB.Sample(gSamplerStateLinear, input.Tex).xy;
-	normalV.z = - sqrt(1 - dot(normalV.xy, normalV.xy));
-
-
-
+	//normalV.xy = gNormalGB.Sample(gSamplerStateLinear, input.Tex).xy;
+	//normalV.z = - sqrt(1 - dot(normalV.xy, normalV.xy));
+	normalV = gNormalGB.Sample(gSamplerStateLinear, input.Tex).xyz * 2 - 1;
+//
+//
+//
 	float diffuseK = dot(-gDirLight.direction, normalV);
 	float shadowLit = /*1; */gDiffuseGB.Sample(gSamplerStateLinear, input.Tex).w;
-
-	if (diffuseK > 0) {
-		diffColor += diffuseK * gDirLight.intensity;
-		float3 refLight = reflect(gDirLight.direction, normalV);
-		float3 viewRay = gEyePosW - vPositionVS.xyz;
-		viewRay = normalize(viewRay);
-		specColor += gSpecularGB.Sample(gSamplerStateLinear, input.Tex) * pow(max(dot(refLight, viewRay), 0), gSpecularGB.Sample(gSamplerStateLinear, input.Tex).w * 255.0f);
-	}
-
-	pOut.DeferredShade = (float4(0.2, 0.2, 0.2, 0) + diffColor * shadowLit) * gDiffuseGB.Sample(gSamplerStateLinear, input.Tex) + specColor * shadowLit /*+ float4(1, 1, 1, 1) * vPositionVS.z / 20*/;
+//
+//	if (diffuseK > 0) {
+//		diffColor += diffuseK * gDirLight.intensity;
+//		float3 refLight = reflect(gDirLight.direction, normalV);
+//		float3 viewRay = gEyePosW - vPositionVS.xyz;
+//		viewRay = normalize(viewRay);
+//		specColor += gSpecularGB.Sample(gSamplerStateLinear, input.Tex) * pow(max(dot(refLight, viewRay), 0), gSpecularGB.Sample(gSamplerStateLinear, input.Tex).w * 255.0f);
+//	}
+//
+//	pOut.DeferredShade = (float4(0.2, 0.2, 0.2, 0) + diffColor * shadowLit) * gDiffuseGB.Sample(gSamplerStateLinear, input.Tex) + specColor * shadowLit /*+ float4(1, 1, 1, 1) * vPositionVS.z / 20*/;
 	
+	float roughnessFactor = 0.1;
+
+	float3 viewRay = normalize(float3(0, 0, 0) - vPositionVS.xyz);
+	float3 light = -gDirLight.direction;
+
+	float3 halfVec = normalize(light + viewRay);
+	float NdotL = clamp(dot(normalV, light), 0.0, 1.0);
+	float NdotH = clamp(dot(normalV, halfVec), 0.0, 1.0);
+	float NdotV = clamp(dot(normalV, viewRay), 0.0, 1.0);
+	float VdotH = clamp(dot(viewRay, halfVec), 0.0, 1.0);
+	float LdotH = clamp(dot(light, halfVec), 0.0, 1.0);
+	float r_sq = roughnessFactor * roughnessFactor;
+
+
+	float geoNumerator = 2.0f * NdotH;
+	float geoDenominator = VdotH;
+
+	float geoB = (geoNumerator * NdotV) / VdotH;
+	float geoC = (geoNumerator * NdotL) / LdotH;
+	float geo = min(1.0, min(geoB, geoC));
+
+
+	float roughness;
+
+	//	float roughness_a = 1.0f / (4.0f * r_sq * pow(NdotH, 4));
+	//	float roughness_b = NdotH * NdotH - 1.0;
+	//	float roughness_c = r_sq * NdotH * NdotH;
+
+	//	roughness = roughness_a * exp(roughness_b / roughness_c);
+	float c = 1.0f;
+	float alpha = acos(dot(normalV, halfVec));
+	roughness = c * exp(-(alpha / r_sq));
+
+
+	roughness = 1.0 / (3.1415926 * r_sq * pow(NdotH, 4)) * exp((NdotH * NdotH - 1) / (r_sq * NdotH * NdotH));
+
+
+
+	float ref_at_norm_incidence = 0.8;
+	float fresnel = pow(1.0 - VdotH, 5.0f);
+	fresnel *= (1.0f - ref_at_norm_incidence);
+	fresnel += ref_at_norm_incidence;
+
+	float rsnum1d = fresnel * geo * roughness;
+	float3 Rs_numerator = float3(rsnum1d, rsnum1d, rsnum1d);
+	float Rs_denominator = NdotV * NdotL * 3.1415926;
+	float3 Rs = Rs_numerator / Rs_denominator;
+
+	float3 diffuseFactor = gDiffuseGB.Sample(gSamplerStateLinear, input.Tex).xyz;
+	float3 specularFactor = gSpecularGB.Sample(gSamplerStateLinear, input.Tex).xyz;
+
+	float3 cDiffuse = diffuseFactor * ((max(0, diffuseK) * gDirLight.intensity.xyz) * shadowLit);
+
+
+	float3 final = max(0.0f, NdotL) * (clamp(specularFactor * Rs * shadowLit, 0.0, 1.0) + cDiffuse) + float3(0.2, 0.2, 0.2) * diffuseFactor;
+
+	//float3 r = float3(0.2, 0.2, 0.2) + NdotL * (0.8 + (1 - 0.8) * Rs);
+
+	//ps_color = float4(r * diffuseFactor, 1);
+	pOut.DeferredShade = float4(final, 1.0);
+
 	// ---------------- SSAO ---------------//
 
 	float occlusionSum = 0.0f;

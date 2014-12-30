@@ -29,7 +29,8 @@ PixelOut main(VertexOut pin)
 	pout.diffuseH.w = saturate(shadowLit);
 	pout.specularH = gMaterial.specular;
 	pout.specularH.w /= 255.0f;
-	pout.normalV = normalize(pin.NormalV).xy;
+	//pout.normalV = normalize(pin.NormalV).xy;
+	pout.normalV.xyz = (normalize(pin.NormalV) + 1) / 2;
 
 	if (gDiffX_NormY_ShadZ.y > 0) {
 		float3 normalMapNormal = gNormalMap.Sample(gDiffuseMapSampler, pin.TexUV);
@@ -41,7 +42,7 @@ PixelOut main(VertexOut pin)
 
 		float3x3 TBN = float3x3(T, B, N);
 
-		pout.normalV = normalize(mul(normalMapNormal, TBN));//normalize(pin.NormalV).xy;
+		pout.normalV.xyz = (normalize(mul(normalMapNormal, TBN)) + 1) / 2;//normalize(pin.NormalV).xy;
 	}
 	//pout.edgeH = float4(1, 1, 1, 1); // implement edge detection later
 

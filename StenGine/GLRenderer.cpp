@@ -152,6 +152,7 @@ void GLRenderer::Draw() {
 	effect->m_perFrameUniformBuffer.EyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
 	effect->m_perFrameUniformBuffer.DirLight = *LightManager::Instance()->m_dirLights[0];
 	effect->ShadowMapTex = LightManager::Instance()->m_shadowMap->GetDepthTex();
+	effect->CubeMapTex = m_SkyBox->m_cubeMapTex;
 
 	for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
 		EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->Draw();

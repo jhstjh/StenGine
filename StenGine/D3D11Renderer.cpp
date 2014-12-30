@@ -210,7 +210,7 @@ bool D3D11Renderer::Init() {
 	gNormalBufferDesc.ArraySize = 1;
 	gNormalBufferDesc.SampleDesc.Count = 1;
 	gNormalBufferDesc.SampleDesc.Quality = 0;
-	gNormalBufferDesc.Format = DXGI_FORMAT_R16G16_FLOAT;
+	gNormalBufferDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	gNormalBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	gNormalBufferDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	gNormalBufferDesc.CPUAccessFlags = 0;
@@ -225,7 +225,7 @@ bool D3D11Renderer::Init() {
 	gBufferDesc.ArraySize = 1;
 	gBufferDesc.SampleDesc.Count = 1;
 	gBufferDesc.SampleDesc.Quality = 0;
-	gBufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM/*DXGI_FORMAT_R16G16B16A16_FLOAT*/;
+	gBufferDesc.Format = /*DXGI_FORMAT_R8G8B8A8_UNORM*/DXGI_FORMAT_R16G16B16A16_FLOAT;
 	gBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	gBufferDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	gBufferDesc.CPUAccessFlags = 0;

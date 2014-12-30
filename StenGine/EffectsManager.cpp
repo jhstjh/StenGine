@@ -545,6 +545,7 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filen
 	DiffuseMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseMap");
 	NormalMapPosition = glGetUniformLocation(m_shaderProgram, "gNormalMap");
 	ShadowMapPosition = glGetUniformLocation(m_shaderProgram, "gShadowMap");
+	CubeMapPosition = glGetUniformLocation(m_shaderProgram, "gCubeMap");
 #endif
 }
 
@@ -617,6 +618,10 @@ void DeferredGeometryPassEffect::BindShaderResource() {
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, ShadowMapTex);
 	glUniform1i(ShadowMapPosition, 2);
+
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMapTex);
+	glUniform1i(CubeMapPosition, 3);
 #endif
 }
 

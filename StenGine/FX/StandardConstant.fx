@@ -69,9 +69,9 @@ struct TessVertexOut {
 };
 
 struct PixelOut {
-	unorm half4 diffuseH: SV_TARGET0;
-	half2 normalV: SV_TARGET1;
-	unorm half4 specularH: SV_TARGET2;
+	half4 diffuseH: SV_TARGET0;
+	half4 normalV: SV_TARGET1;
+	half4 specularH: SV_TARGET2;
 	//float4 edgeH: SV_TARGET3;
 	//float4 positionV: SV_TARGET3;
 };

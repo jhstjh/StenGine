@@ -14,6 +14,7 @@ struct DirectionalLight {
 
 in vec2 pTexUV;
 in vec3 pNormalV;
+in vec3 pNormalW;
 in vec3 pPosW;
 in vec3 pTangV;
 in vec4 pShadowTransform;
@@ -26,6 +27,7 @@ layout(location = 2) out vec4 ps_spec;
 uniform sampler2D gDiffuseMap;
 uniform sampler2D gNormalMap;
 uniform sampler2D gShadowMap;
+uniform samplerCube gCubeMap;
 
 layout(std140) uniform ubPerObj {
 	mat4 gWorldViewProj;
@@ -60,7 +62,6 @@ void main() {
 	ps_spec = gMat.specular;
 	ps_spec.w /= 255.0f;
 
-	// TODO: copy shadow map into diffuse then show it to test...
 
 	ps_diff.w = 1.0; // 1: lit, 0: shadow
 	vec4 shadowTrans = pShadowTransform;
@@ -76,5 +77,9 @@ void main() {
 	if (shadow + epsilon < shadowTrans.z) {
 		ps_diff.w = 0.0;
 	}
+
+	//vec3 viewRay = normalize(pPosW - gEyePosW.xyz);
+	//vec3 refRay = reflect(viewRay, pNormalW);
+	//ps_spec = texture(gCubeMap, refRay);
 
 }
