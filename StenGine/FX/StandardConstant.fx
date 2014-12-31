@@ -23,6 +23,12 @@ struct DirectionalLight {
 	float pad;
 };
 
+#ifdef PRIMITIVE_LINE
+cbuffer cbPerObject : register(b0) {
+	float4x4 gViewProj;
+};
+//#elif defined PRIMITIVE_TRIANGLE
+#else
 cbuffer cbPerObject : register(b0) {
 	float4x4 gWorldViewProj;
 	float4x4 gWorldViewInvTranspose;
@@ -34,6 +40,7 @@ cbuffer cbPerObject : register(b0) {
 	Material gMaterial;
 	float4 gDiffX_NormY_ShadZ;
 };
+#endif
 
 cbuffer cbPerFrame : register(b1) {
 	//DirectionalLight gDirLight;
@@ -47,6 +54,11 @@ struct VertexIn {
 	float2 TexUV : TEXCOORD;
 };
 
+struct DebugLineVertexIn {
+	float3 PosW : POSITION;
+	//float4 Color : COLOR;
+};
+
 struct VertexOut {
 	float4 PosH  : SV_POSITION;
 	float4 PosW  : POSITION;
@@ -55,6 +67,11 @@ struct VertexOut {
 	float3 TangentV: TANGENT;
 	float2 TexUV : TEXCOORD0;
 	float4 ShadowPosH: TEXCOORD1;
+};
+
+struct DebugLineVertexOut {
+	float4 PosH : SV_POSITION;
+	float4 Color : COLOR;
 };
 
 struct TessVertexOut {

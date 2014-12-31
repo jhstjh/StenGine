@@ -1400,6 +1400,93 @@ void BlurEffect::BindShaderResource() {
 	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 3, m_shaderResources);
 }
 
+//------------------------------------------------------------//
+
+DebugLineEffect::DebugLineEffect(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath)
+	:Effect(vsPath, psPath, gsPath, hsPath, dsPath)
+{
+
+}
+
+DebugLineEffect::DebugLineEffect(const std::wstring& filename)
+	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT)
+{
+#ifdef GRAPHICS_D3D11
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+		m_vsBlob->GetBufferSize(), &m_inputLayout));
+
+	{
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = &m_perObjConstantBuffer;
+		InitData.SysMemPitch = 0;
+		InitData.SysMemSlicePitch = 0;
+
+		HRESULT hr;
+		// Create the buffer.
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+			&m_perObjectCB);
+
+		assert(SUCCEEDED(hr));
+	}
+
+	ReleaseCOM(m_vsBlob);
+	ReleaseCOM(m_psBlob);
+	ReleaseCOM(m_gsBlob);
+	ReleaseCOM(m_hsBlob);
+	ReleaseCOM(m_dsBlob);
+	ReleaseCOM(m_csBlob);
+#else
+
+#endif
+}
+
+DebugLineEffect::~DebugLineEffect()
+{
+#ifdef GRAPHICS_D3D11
+	ReleaseCOM(m_inputLayout);
+#endif
+}
+
+void DebugLineEffect::UpdateConstantBuffer() {
+#ifdef GRAPHICS_D3D11
+	{
+		D3D11_MAPPED_SUBRESOURCE ms;
+		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
+		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perObjectCB, NULL);
+	}
+
+#else
+
+#endif
+}
+
+void DebugLineEffect::BindConstantBuffer() {
+#ifdef GRAPHICS_D3D11
+	ID3D11Buffer* cbuf[] = { m_perObjectCB };
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 1, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 1, cbuf);
+#endif
+}
+
+void DebugLineEffect::BindShaderResource() {
+
+}
+
+
 #else
 
 
@@ -1461,6 +1548,7 @@ EffectsManager::EffectsManager() {
 	//m_screenQuadEffect = new ScreenQuadEffect(L"FX/ScreenQuad.fxo");
 	//m_godrayEffect = new GodRayEffect(L"FX/GodRay.fxo");
 	m_skyboxEffect = new SkyboxEffect(L"FX/Skybox");
+	m_debugLineEffect = new DebugLineEffect(L"FX/DebugLine");
 
 #else
 	m_shadowMapEffect = new ShadowMapEffect(L"FX/ShadowMap");

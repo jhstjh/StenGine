@@ -197,19 +197,7 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="FX\StdMesh.fx">
-      <Filter>FX</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FX\ShadowMap.fx">
-      <Filter>FX</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FX\ScreenQuad.fx">
-      <Filter>FX</Filter>
-    </CustomBuild>
     <CustomBuild Include="FX\GodRay.fx">
-      <Filter>FX</Filter>
-    </CustomBuild>
-    <CustomBuild Include="FX\Skybox.fx">
       <Filter>FX</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -274,6 +262,12 @@
       <Filter>FX</Filter>
     </FxCompile>
     <FxCompile Include="FX\DeferredShading_cs.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\DebugLine_vs.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\DebugLine_ps.hlsl">
       <Filter>FX</Filter>
     </FxCompile>
   </ItemGroup>

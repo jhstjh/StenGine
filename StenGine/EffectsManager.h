@@ -484,6 +484,43 @@ public:
 //--------------------------------------------------------------------//
 
 
+class DebugLineEffect : public Effect {
+private:
+#ifdef GRAPHICS_D3D11
+	ID3D11Buffer* m_perObjectCB;
+#else
+
+#endif
+
+public:
+	DebugLineEffect(const std::wstring& filename);
+	DebugLineEffect(const std::wstring& vsPath,
+		const std::wstring& psPath,
+		const std::wstring& gsPath,
+		const std::wstring& hsPath,
+		const std::wstring& dsPath);
+	~DebugLineEffect();
+
+	virtual void UpdateConstantBuffer();
+	virtual void BindConstantBuffer();
+	virtual void BindShaderResource();
+#ifdef GRAPHICS_D3D11
+	struct PEROBJ_CONSTANT_BUFFER
+	{
+		XMMATRIX ViewProj;
+	} m_perObjConstantBuffer;
+
+	virtual PEROBJ_CONSTANT_BUFFER* GetPerObjConstantBuffer() { return &m_perObjConstantBuffer; }
+	//ID3D11ShaderResourceView *m_shaderResources[5];
+#else
+
+
+#endif
+};
+
+
+/**************************************************************/
+
 class EffectsManager {
 private:
 	static EffectsManager* _instance;
@@ -509,6 +546,7 @@ public:
 	BlurEffect* m_blurEffect;
 	VBlurEffect* m_vblurEffect;
 	HBlurEffect* m_hblurEffect;
+	DebugLineEffect* m_debugLineEffect;
 };
 
 #endif

@@ -120,17 +120,19 @@ void ShadowMap::RenderShadowMap() {
 	XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 
 #ifdef GRAPHICS_D3D11
-	float yTrans = -0.5;
+	float yScale = -0.5;
+	float zScale = 1.0;
 	float zTrans = 0.0;
 #else
-	float yTrans = 0.5;
+	float yScale = 0.5;
+	float zScale = 0.5;
 	float zTrans = 0.5;
 #endif
 
 	XMMATRIX T(
 		0.5f, 0.0f, 0.0f, 0.0f,
-		0.0f, yTrans, 0.0f, 0.0f,
-		0.0f, 0.0f, zTrans, 0.0f,
+		0.0f, yScale, 0.0f, 0.0f,
+		0.0f, 0.0f, zScale, 0.0f,
 		0.5f, 0.5f, zTrans, 1.0f);
 
 	XMMATRIX S = V*P*T;

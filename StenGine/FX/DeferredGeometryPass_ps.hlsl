@@ -22,10 +22,8 @@ PixelOut main(VertexOut pin)
 	shadowLit += gShadowMap.SampleCmpLevelZero(gShadowSampler,
  		pin.ShadowPosH.xy, depth).r;
 
-
-
 	pout.diffuseH =  ((1 - gDiffX_NormY_ShadZ.x) * gCubeMap.Sample(gDiffuseMapSampler, refRay) + gDiffX_NormY_ShadZ.x * gDiffuseMap.Sample(gDiffuseMapSampler, pin.TexUV)) * gMaterial.diffuse;
-
+	//pout.diffuseH = gShadowMap.Sample(gDiffuseMapSampler, pin.ShadowPosH.xy);
 	pout.diffuseH.w = saturate(shadowLit);
 	pout.specularH = gMaterial.specular;
 	pout.specularH.w /= 255.0f;

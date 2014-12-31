@@ -43,6 +43,7 @@ float4 main(VSOut input) : SV_Target
 
 	float4 bloomColor = gBloomMap.Sample(gSamplerStateLinear, input.Tex);
 
+	return originalColor * gSSAOMap.Sample(gSamplerStateLinear, input.Tex);
 	return (originalColor*(1 - bloomColor) + bloomColor) * gSSAOMap.Sample(gSamplerStateLinear, input.Tex);
 
 	// The center value always contributes to the sum.
@@ -87,7 +88,7 @@ float4 main(VSOut input) : SV_Target
 			totalWeight += weight;
 		}
 	}
-	
+
 	// Compensate for discarded samples by making total weights sum to 1.
 	color /= totalWeight;
 	if (texOffset.x > 0) return saturate(color) * gScreenMap.Sample(gSamplerStateLinear, input.Tex);

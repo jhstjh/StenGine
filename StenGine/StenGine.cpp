@@ -82,7 +82,11 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
  	GameObject* plane0 = new GameObject(-1, -1, 0);
 	Mesh* plane0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plane.fbx");
  	plane0->AddComponent(plane0Mesh);
-	plane0->RotateAroundY(3.14159);
+
+	GameObject* plane1 = new GameObject(-5, -1, 0);
+	Mesh* plane1Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plane.fbx");
+	plane1->AddComponent(plane1Mesh);
+
 
 // 	GameObject* dragon = new GameObject(-3, -1, 0);
 // 	Mesh* dragonMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/dragon.fbx");

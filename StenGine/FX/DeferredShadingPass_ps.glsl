@@ -34,14 +34,14 @@ void main() {
 	vec2 realUV = pTexUV;
 
 	
-	vec3 normalV = texture(gNormalGMap, realUV).xyz;
+	vec3 normalV = texture(gNormalGMap, realUV).xyz * 2 - 1;
 	vec3 specularFactor = texture(gSpecularGMap, realUV).xyz;
 	vec3 diffuseFactor = texture(gDiffuseGMap, realUV).xyz;
 
 	float z = texture(gDepthGMap, realUV).x;
 
 	float x = pTexUV.x * 2 - 1;
-	float y = (1 - pTexUV.y) * 2 - 1;
+	float y = (pTexUV.y) * 2 - 1; // NOT 1 - y !!!
 	vec4 vProjectedPos = vec4(x, y, z, 1.0f);
 	vec4 vPositionVS = gProjInv * vProjectedPos;
 	vPositionVS.xyz /= vPositionVS.w;

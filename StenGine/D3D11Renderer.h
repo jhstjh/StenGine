@@ -70,5 +70,8 @@ private:
 #pragma endregion
 
 	bool m_enable4xMsaa;
+
+	ID3D11Buffer* m_gridCoordIndexBufferGPU;
+	ID3D11Buffer* m_gridCoordVertexBufferGPU;
 };
 #endif

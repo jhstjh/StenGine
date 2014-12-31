@@ -20,6 +20,11 @@ namespace Vertex {
 	struct ShadowMapVertex {
 		XMFLOAT3 Pos;
 	};
+
+	struct DebugLine {
+		XMFLOAT3 Pos;
+		//XMFLOAT4 Color;
+	};
 }
 
 class Mesh: public Component {

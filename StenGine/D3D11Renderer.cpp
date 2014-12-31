@@ -369,6 +369,57 @@ bool D3D11Renderer::Init() {
 	CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
 		L"./Model/RandNorm.dds", nullptr, &m_randVecTexSRV);
 
+	// init grid and coord debug draw
+	std::vector<XMFLOAT3> coordVertexBuffer = {
+		XMFLOAT3(0, 0, 0),
+		XMFLOAT3(5, 0, 0),
+		XMFLOAT3(0, 0, 0),
+		XMFLOAT3(0, 5, 0),
+		XMFLOAT3(0, 0, 0),
+		XMFLOAT3(0, 0, 5),
+	};
+
+	std::vector<UINT> coordIndexBuffer = { 0, 1, 2, 3, 4, 5 };
+
+
+	int initIdx = 6;
+	for (int i = 0; i <= 10; i++) {
+		coordVertexBuffer.push_back(XMFLOAT3(-5, 0, -5 + i));
+		coordVertexBuffer.push_back(XMFLOAT3(5, 0, -5 + i));
+		coordIndexBuffer.push_back(initIdx++);
+		coordIndexBuffer.push_back(initIdx++);
+	}
+
+	for (int i = 0; i <= 10; i++) {
+		coordVertexBuffer.push_back(XMFLOAT3(-5 + i, 0, -5));
+		coordVertexBuffer.push_back(XMFLOAT3(-5 + i, 0, 5));
+		coordIndexBuffer.push_back(initIdx++);
+		coordIndexBuffer.push_back(initIdx++);
+	}
+
+	D3D11_BUFFER_DESC vbd;
+	vbd.Usage = D3D11_USAGE_IMMUTABLE;
+	vbd.ByteWidth = sizeof(Vertex::StdMeshVertex) * coordVertexBuffer.size();
+	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vbd.CPUAccessFlags = 0;
+	vbd.MiscFlags = 0;
+	//vbd.StructureByteStride = 0;
+	D3D11_SUBRESOURCE_DATA vinitData;
+	vinitData.pSysMem = &coordVertexBuffer[0];
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&vbd, &vinitData, &m_gridCoordVertexBufferGPU));
+
+	D3D11_BUFFER_DESC ibd;
+	ibd.Usage = D3D11_USAGE_IMMUTABLE;
+	ibd.ByteWidth = sizeof(UINT) * coordIndexBuffer.size();
+	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	ibd.CPUAccessFlags = 0;
+	ibd.MiscFlags = 0;
+	ibd.StructureByteStride = 0;
+	D3D11_SUBRESOURCE_DATA iinitData;
+	iinitData.pSysMem = &coordIndexBuffer[0];
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&ibd, &iinitData, &m_gridCoordIndexBufferGPU));
+
+
 	return true;
 }
 
@@ -376,34 +427,10 @@ void D3D11Renderer::Draw() {
 
 	LightManager::Instance()->m_shadowMap->RenderShadowMap();
 
-#if 1
-
  	ID3D11ShaderResourceView* nullSRV[16] = { 0 };
  	
-
-
-#if FORWARD
 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
-	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
-	m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&SGColors::LightSteelBlue));
-	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-		m_d3d11DeviceContext->RSSetState(0);
-		StdMeshEffect* activeFX = EffectsManager::Instance()->m_stdMeshEffect;
-		D3D11Renderer::Instance()->GetD3DContext()->IASetInputLayout(activeFX->GetInputLayout());
-		D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		DirectionalLight* d = LightManager::Instance()->m_dirLights[0];
-		activeFX->DirLight->SetRawValue(LightManager::Instance()->m_dirLights[0], 0, sizeof(DirectionalLight));
-		activeFX->TheShadowMap->SetResource(LightManager::Instance()->m_shadowMap->GetDepthSRV());
-
-		XMFLOAT4 pos = CameraManager::Instance()->GetActiveCamera()->GetPos();
-		activeFX->EyePosW->SetRawValue(&pos, 0, 3 * sizeof(float));
-
-		for (int iMesh = 0; iMesh < activeFX->m_associatedMeshes.size(); iMesh++ ) {
-			activeFX->m_associatedMeshes[iMesh]->Draw();
-		}
-#else
-	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
+	D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	ID3D11RenderTargetView* rtvs[3] = { m_diffuseBufferRTV, m_normalBufferRTV, m_specularBufferRTV };
 	m_d3d11DeviceContext->OMSetRenderTargets(3, rtvs, m_deferredRenderDepthStencilView);
 	m_d3d11DeviceContext->ClearRenderTargetView(m_diffuseBufferRTV, reinterpret_cast<const float*>(&SGColors::LightSteelBlue));
@@ -412,26 +439,26 @@ void D3D11Renderer::Draw() {
 	m_d3d11DeviceContext->ClearRenderTargetView(m_specularBufferRTV, reinterpret_cast<const float*>(&SGColors::Black));
 	m_d3d11DeviceContext->ClearDepthStencilView(m_deferredRenderDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-		m_d3d11DeviceContext->RSSetState(0);
-		EffectsManager::Instance()->m_deferredGeometryPassEffect->SetShader();
-		m_d3d11DeviceContext->IASetInputLayout(EffectsManager::Instance()->m_deferredGeometryPassEffect->GetInputLayout());
-		DirectionalLight* d = LightManager::Instance()->m_dirLights[0];
-		EffectsManager::Instance()->m_deferredGeometryPassEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-		EffectsManager::Instance()->m_deferredGeometryTessPassEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
+	m_d3d11DeviceContext->RSSetState(0);
+	EffectsManager::Instance()->m_deferredGeometryPassEffect->SetShader();
+	m_d3d11DeviceContext->IASetInputLayout(EffectsManager::Instance()->m_deferredGeometryPassEffect->GetInputLayout());
+	DirectionalLight* d = LightManager::Instance()->m_dirLights[0];
+	EffectsManager::Instance()->m_deferredGeometryPassEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
+	EffectsManager::Instance()->m_deferredGeometryTessPassEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
 
-		XMFLOAT4 pos = CameraManager::Instance()->GetActiveCamera()->GetPos();
-		EffectsManager::Instance()->m_deferredGeometryPassEffect->GetPerFrameConstantBuffer()->EyePosW = pos;
-		EffectsManager::Instance()->m_deferredGeometryTessPassEffect->GetPerFrameConstantBuffer()->EyePosW = pos;
+	XMFLOAT4 pos = CameraManager::Instance()->GetActiveCamera()->GetPos();
+	EffectsManager::Instance()->m_deferredGeometryPassEffect->GetPerFrameConstantBuffer()->EyePosW = pos;
+	EffectsManager::Instance()->m_deferredGeometryTessPassEffect->GetPerFrameConstantBuffer()->EyePosW = pos;
 
-		ID3D11SamplerState* samplerState[] = { m_samplerState, m_shadowSamplerState };
-		m_d3d11DeviceContext->PSSetSamplers(0, 2, samplerState);
-		m_d3d11DeviceContext->VSSetSamplers(0, 2, samplerState);
-		m_d3d11DeviceContext->DSSetSamplers(0, 2, samplerState);
+	ID3D11SamplerState* samplerState[] = { m_samplerState, m_shadowSamplerState };
+	m_d3d11DeviceContext->PSSetSamplers(0, 2, samplerState);
+	m_d3d11DeviceContext->VSSetSamplers(0, 2, samplerState);
+	m_d3d11DeviceContext->DSSetSamplers(0, 2, samplerState);
 
-		for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
-			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->Draw();
-		}
-		EffectsManager::Instance()->m_deferredGeometryPassEffect->UnSetShader();
+	for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
+		EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->Draw();
+	}
+	EffectsManager::Instance()->m_deferredGeometryPassEffect->UnSetShader();
 
 	// --------- skybox --------- //
 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
@@ -633,13 +660,6 @@ void D3D11Renderer::Draw() {
 	blurEffect->UnSetShader();
 
 
-
-	m_d3d11DeviceContext->RSSetState(0);
-	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
-	m_d3d11DeviceContext->OMSetRenderTargets(0, NULL, NULL);
-
-
-
 #if 0
 	//--------------------Post processing----------------------//
 	//m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::Black));
@@ -674,8 +694,33 @@ void D3D11Renderer::Draw() {
 
 #endif
 
-#endif
+	// draw debug line
+	D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_deferredRenderDepthStencilView);
 
-#endif
+	UINT stride = sizeof(Vertex::DebugLine);
+	UINT offset = 0;
+
+	DebugLineEffect* debugFX = EffectsManager::Instance()->m_debugLineEffect;
+	debugFX->SetShader();
+	m_d3d11DeviceContext->IASetInputLayout(debugFX->GetInputLayout());
+	m_d3d11DeviceContext->IASetIndexBuffer(m_gridCoordIndexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
+	m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &m_gridCoordVertexBufferGPU, &stride, &offset);
+	debugFX->GetPerObjConstantBuffer()->ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+
+	debugFX->UpdateConstantBuffer();
+	debugFX->BindConstantBuffer();
+
+	m_d3d11DeviceContext->DrawIndexed(50, 0, 0);
+
+	debugFX->UnBindConstantBuffer();
+	debugFX->UnSetShader();
+
+
+
+	// clean up
+	m_d3d11DeviceContext->RSSetState(0);
+	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
+	m_d3d11DeviceContext->OMSetRenderTargets(0, NULL, NULL);
 	HR(m_swapChain->Present(0, 0));
 }
