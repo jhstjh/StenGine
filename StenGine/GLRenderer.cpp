@@ -195,6 +195,17 @@ void GLRenderer::Draw() {
 	deferredShadingFX->UnBindShaderResource();
 	
 
+	// copy depth into default depth buffer
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_deferredGBuffers);
+	glBlitFramebuffer(0, 0, m_clientWidth, m_clientHeight,
+		0, 0, m_clientWidth, m_clientHeight,
+		GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+
+
 	SwapBuffers(m_deviceContext);
 }
 

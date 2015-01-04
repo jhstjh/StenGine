@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <string>
 #include <vector>
+#include <deque>
 #include <fstream>
 #include <sstream>
 #include <string>

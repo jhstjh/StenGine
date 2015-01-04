@@ -248,5 +248,11 @@
     <None Include="FX\Skybox_ps.glsl">
       <Filter>FX</Filter>
     </None>
+    <None Include="FX\DebugLine_ps.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\DebugLine_vs.glsl">
+      <Filter>FX</Filter>
+    </None>
   </ItemGroup>
 </Project>

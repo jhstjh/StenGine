@@ -156,6 +156,8 @@
     <Image Include="StenGine.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="FX\DebugLine_ps.glsl" />
+    <None Include="FX\DebugLine_vs.glsl" />
     <None Include="FX\DeferredGeometryPass_ps.glsl" />
     <None Include="FX\DeferredGeometryPass_vs.glsl" />
     <None Include="FX\DeferredShadingPass_ps.glsl" />
