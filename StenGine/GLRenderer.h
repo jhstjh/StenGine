@@ -32,6 +32,8 @@ private:
 	GLuint m_specularBufferTex;
 	GLuint m_depthBufferTex;
 
+	GLuint m_debugCoordVAO;
+
 	void GenerateColorTex(GLuint &bufferTex);
 	void GenerateDepthTex(GLuint &bufferTex);
 };

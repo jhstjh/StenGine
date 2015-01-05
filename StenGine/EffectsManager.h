@@ -489,7 +489,7 @@ private:
 #ifdef GRAPHICS_D3D11
 	ID3D11Buffer* m_perObjectCB;
 #else
-
+	GLuint m_perObjectUBO;
 #endif
 
 public:
@@ -504,18 +504,27 @@ public:
 	virtual void UpdateConstantBuffer();
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
+
+	struct 
 #ifdef GRAPHICS_D3D11
-	struct PEROBJ_CONSTANT_BUFFER
+	PEROBJ_CONSTANT_BUFFER
+#else
+	PEROBJ_UNIFORM_BUFFER
+#endif
 	{
 		XMMATRIX ViewProj;
-	} m_perObjConstantBuffer;
-
-	virtual PEROBJ_CONSTANT_BUFFER* GetPerObjConstantBuffer() { return &m_perObjConstantBuffer; }
-	//ID3D11ShaderResourceView *m_shaderResources[5];
+	} 
+#ifdef GRAPHICS_D3D11
+	m_perObjConstantBuffer;
 #else
-
-
+	m_perObjUniformBuffer;
 #endif
+
+#ifdef GRAPHICS_D3D11
+	virtual PEROBJ_CONSTANT_BUFFER* GetPerObjConstantBuffer() { return &m_perObjConstantBuffer; }
+#endif
+	//ID3D11ShaderResourceView *m_shaderResources[5];
+
 };
 
 
