@@ -3,6 +3,7 @@
 #include "D3D11Renderer.h"
 #include "Shlwapi.h"
 #include "SOIL.h"
+#include "ResourceManager.h"
 
 void ReadFbxMesh(FbxNode* node, Mesh* mesh);
 
@@ -58,34 +59,21 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 	imgPath[len - 3] = 'd';
 #ifdef GRAPHICS_D3D11
 	if (PathFileExists(imgPath.c_str())) {
-// 		HR(D3DX11CreateShaderResourceViewFromFile(
-// 			D3D11Renderer::Instance()->GetD3DDevice(),
-// 			imgPath.c_str(), 0, 0, &(mesh->m_diffuseMapSRV), 0));
-		CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
-			imgPath.c_str(), nullptr, &(mesh->m_diffuseMapSRV));
+		mesh->m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(imgPath);
 	}
-
 
 	imgPath.resize(len - 4);
 	imgPath += L"_normal.dds";
 
 	if (PathFileExists(imgPath.c_str())) {
-// 		HR(D3DX11CreateShaderResourceViewFromFile(
-// 			D3D11Renderer::Instance()->GetD3DDevice(),
-// 			imgPath.c_str(), 0, 0, &(mesh->m_normalMapSRV), 0));
-		CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
-			imgPath.c_str(), nullptr, &(mesh->m_normalMapSRV));
+		mesh->m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(imgPath);
 	}
 
 	imgPath.resize(len - 4);
 	imgPath += L"_bump.dds";
 
 	if (PathFileExists(imgPath.c_str())) {
-// 		HR(D3DX11CreateShaderResourceViewFromFile(
-// 			D3D11Renderer::Instance()->GetD3DDevice(),
-// 			imgPath.c_str(), 0, 0, &(mesh->m_bumpMapSRV), 0));
-		CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
-			imgPath.c_str(), nullptr, &(mesh->m_bumpMapSRV));
+		mesh->m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(imgPath);
 	}
 #else
 	// gl
@@ -138,10 +126,6 @@ void ReadFbxMesh(FbxNode* node, Mesh* mesh) {
 		int triangleCount = fbxMesh->GetPolygonCount();
 		int counter = 0;
 		for (int i = 0; i < triangleCount; i++){
-			//mesh->m_indexBufferCPU.push_back(counter * 3);
-			//mesh->m_indexBufferCPU.push_back(counter * 3 + 1);
-			//mesh->m_indexBufferCPU.push_back(counter * 3 + 2);
-
 			mesh->m_subMeshes[polyMatIndex[i]].m_indexBufferCPU.push_back(counter * 3);
 			mesh->m_subMeshes[polyMatIndex[i]].m_indexBufferCPU.push_back(counter * 3 + 1);
 			mesh->m_subMeshes[polyMatIndex[i]].m_indexBufferCPU.push_back(counter * 3 + 2);

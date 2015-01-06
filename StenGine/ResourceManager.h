@@ -26,13 +26,13 @@ public:
 					Mesh* box = new Mesh(0);
 					box->Prepare();
 					m_meshResourceMap[L"GenerateBox"] = box;
-					return box;
+					return (T*)box;
 				}
 				else if (path == L"GeneratePlane") {
 					Mesh* plane = new Mesh(1);
 					plane->Prepare();
 					m_meshResourceMap[L"GeneratePlane"] = plane;
-					return plane;
+					return (T*)plane;
 				}
 				else {
 					Mesh* newMesh = new Mesh(2);
@@ -41,11 +41,23 @@ public:
 					newMesh->Prepare();
 					m_meshResourceMap[path] = newMesh;
 					
-					return newMesh;
+					return (T*)newMesh;
 				}
 			}
 			else {
-				return got->second;
+				return (T*)got->second;
+			}
+		}
+		else if (std::is_same<T, ID3D11ShaderResourceView>::value) {
+			auto got = m_textureSRVResourceMap.find(path);
+			if (got == m_textureSRVResourceMap.end()) {
+				ID3D11ShaderResourceView* texSRV;
+				CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
+					path.c_str(), nullptr, &texSRV);
+				return (T*)texSRV;
+			}
+			else {
+				return (T*)got->second;
 			}
 		}
 	}
@@ -55,6 +67,7 @@ public:
 private:
 	static ResourceManager* _instance;
 	std::unordered_map<std::wstring, Mesh*> m_meshResourceMap;
+	std::unordered_map<std::wstring, ID3D11ShaderResourceView*> m_textureSRVResourceMap;
 };
 
 
