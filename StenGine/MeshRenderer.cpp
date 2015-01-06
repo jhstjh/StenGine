@@ -60,6 +60,10 @@ void Mesh::Prepare() {
 #endif
 	PrepareGPUBuffer();
 	PrepareShadowMapBuffer();
+
+	for (int i = 0; i < m_subMeshes.size(); i++) {
+		m_subMeshes[i].PrepareGPUBuffer();
+	}
 }
 
 void Mesh::CreateBoxPrimitive() {
@@ -410,6 +414,8 @@ void Mesh::Draw() {
 	UINT offset = 0;
 
 	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
+
+	//if (m_subMeshes.size() == 0)
 	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
 	DeferredGeometryPassEffect* deferredGeoEffect;
@@ -470,7 +476,16 @@ void Mesh::Draw() {
 			deferredGeoEffect->UpdateConstantBuffer();
 			deferredGeoEffect->BindConstantBuffer();
 			deferredGeoEffect->BindShaderResource();
-			D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
+			
+			if (m_subMeshes.size() > 0) {
+				int startIndex = 0;
+				for (int iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
+					D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_subMeshes[iSubMesh].m_indexBufferCPU.size(), startIndex, 0);
+					startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
+				}
+			}
+			else
+				D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
 			deferredGeoEffect->UnBindShaderResource();
 			deferredGeoEffect->UnBindConstantBuffer();
 
@@ -481,7 +496,15 @@ void Mesh::Draw() {
 			deferredGeoEffect->UpdateConstantBuffer();
 			deferredGeoEffect->BindConstantBuffer();
 			deferredGeoEffect->BindShaderResource();
-			D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
+			if (m_subMeshes.size() > 0) {
+				int startIndex = 0;
+				for (int iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
+					D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_subMeshes[iSubMesh].m_indexBufferCPU.size(), startIndex, 0);
+					startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
+				}
+			}
+			else
+				D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
 			deferredGeoEffect->UnBindShaderResource();
 			deferredGeoEffect->UnBindConstantBuffer();
 		}

@@ -6,6 +6,7 @@
 #include "Component.h"
 #include "Material.h"
 #include "GLRenderer.h"
+#include "SubMesh.h"
 
 class Effect;
 
@@ -72,6 +73,7 @@ public:
 #endif
 
 	Material m_material;
+	std::vector<SubMesh> m_subMeshes;
 	XMFLOAT4X4 m_worldTransform;
 	bool m_castShadow;
 	bool m_receiveShadow;

@@ -121,16 +121,50 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 void ReadFbxMesh(FbxNode* node, Mesh* mesh) {
 	FbxMesh* fbxMesh = node->GetMesh();
 
-	int triangleCount = fbxMesh->GetPolygonCount();
-	int counter = 0;
-	for (int i = 0; i < triangleCount; i++){
-		//fout << counter * 3 + 2 << " " << counter * 3 + 1 << " " << counter * 3 << std::endl;
-		mesh->m_indexBufferCPU.push_back(counter * 3);
-		mesh->m_indexBufferCPU.push_back(counter * 3 + 1);
-		mesh->m_indexBufferCPU.push_back(counter * 3 + 2);
-		counter++;
-	}
+	//int layerCount = fbxMesh->getpol
+	FbxLayerElementMaterial* mat = fbxMesh->GetLayer(0)->GetMaterials();
+	FbxLayerElement::EMappingMode matMapping = mat->GetMappingMode();
 
+	std::vector<UINT> polyMatIndex;
+
+	if (matMapping == FbxLayerElement::eByPolygon) {
+		int indexArrayCount = mat->GetIndexArray().GetCount();
+
+		mesh->m_subMeshes.resize(node->GetMaterialCount());
+
+		for (int i = 0; i < indexArrayCount; i++) {
+			polyMatIndex.push_back(mat->GetIndexArray().GetAt(i));
+		}
+		int triangleCount = fbxMesh->GetPolygonCount();
+		int counter = 0;
+		for (int i = 0; i < triangleCount; i++){
+			//mesh->m_indexBufferCPU.push_back(counter * 3);
+			//mesh->m_indexBufferCPU.push_back(counter * 3 + 1);
+			//mesh->m_indexBufferCPU.push_back(counter * 3 + 2);
+
+			mesh->m_subMeshes[polyMatIndex[i]].m_indexBufferCPU.push_back(counter * 3);
+			mesh->m_subMeshes[polyMatIndex[i]].m_indexBufferCPU.push_back(counter * 3 + 1);
+			mesh->m_subMeshes[polyMatIndex[i]].m_indexBufferCPU.push_back(counter * 3 + 2);
+
+			counter++;
+		}
+		for (int i = 0; i < mesh->m_subMeshes.size(); i++) {
+			mesh->m_indexBufferCPU.insert(mesh->m_indexBufferCPU.end(), 
+										  mesh->m_subMeshes[i].m_indexBufferCPU.begin(), 
+										  mesh->m_subMeshes[i].m_indexBufferCPU.end());
+		}
+	}
+	else if (matMapping == FbxLayerElement::eAllSame) {
+		int triangleCount = fbxMesh->GetPolygonCount();
+		int counter = 0;
+		for (int i = 0; i < triangleCount; i++){
+			//fout << counter * 3 + 2 << " " << counter * 3 + 1 << " " << counter * 3 << std::endl;
+			mesh->m_indexBufferCPU.push_back(counter * 3);
+			mesh->m_indexBufferCPU.push_back(counter * 3 + 1);
+			mesh->m_indexBufferCPU.push_back(counter * 3 + 2);
+			counter++;
+		}
+	}
 	FbxVector4* ControlPoints = fbxMesh->GetControlPoints();
 	int PolygonCount = fbxMesh->GetPolygonCount();
 	int numVerts = 0;
@@ -145,28 +179,28 @@ void ReadFbxMesh(FbxNode* node, Mesh* mesh) {
 
 			int k = 0;
 			bool flag = false;
-			
+
 			while (k < fbxMesh->GetElementUVCount() && !flag){
 				FbxGeometryElementUV* UV = fbxMesh->GetElementUV(k);
 				if (UV->GetMappingMode() == FbxGeometryElement::eByControlPoint){
 					if (UV->GetReferenceMode() == FbxGeometryElement::eDirect){
 						flag = true;
 						mesh->m_texUVBufferCPU.push_back(XMFLOAT2(-UV->GetDirectArray().GetAt(ControlPointIndex).mData[0],
-																  -UV->GetDirectArray().GetAt(ControlPointIndex).mData[1]));
+							-UV->GetDirectArray().GetAt(ControlPointIndex).mData[1]));
 					}
 					else if (UV->GetReferenceMode() == FbxGeometryElement::eIndexToDirect){
 						flag = true;
 						int id = UV->GetIndexArray().GetAt(ControlPointIndex);
 						mesh->m_texUVBufferCPU.push_back(XMFLOAT2(-UV->GetDirectArray().GetAt(id).mData[0],
-																  -UV->GetDirectArray().GetAt(id).mData[1]));
+							-UV->GetDirectArray().GetAt(id).mData[1]));
 					}
 				}
 				else if (UV->GetMappingMode() == FbxGeometryElement::eByPolygonVertex){
 					if (UV->GetReferenceMode() == FbxGeometryElement::eDirect || UV->GetReferenceMode() == FbxGeometryElement::eIndexToDirect){
 						flag = true;
 						int TextureUVIndex = fbxMesh->GetTextureUVIndex(i, j);
-						mesh->m_texUVBufferCPU.push_back(XMFLOAT2(-UV->GetDirectArray().GetAt(TextureUVIndex).mData[0], 
-																  -UV->GetDirectArray().GetAt(TextureUVIndex).mData[1]));
+						mesh->m_texUVBufferCPU.push_back(XMFLOAT2(-UV->GetDirectArray().GetAt(TextureUVIndex).mData[0],
+							-UV->GetDirectArray().GetAt(TextureUVIndex).mData[1]));
 					}
 				}
 				k++;
@@ -185,9 +219,9 @@ void ReadFbxMesh(FbxNode* node, Mesh* mesh) {
 				}
 				else if (Normal->GetMappingMode() == FbxGeometryElement::eByControlPoint) {
 					if (Normal->GetReferenceMode() == FbxGeometryElement::eDirect){
-						mesh->m_normalBufferCPU.push_back(XMFLOAT3(Normal->GetDirectArray().GetAt(ControlPointIndex).mData[0], 
-																   Normal->GetDirectArray().GetAt(ControlPointIndex).mData[1], 
-																   Normal->GetDirectArray().GetAt(ControlPointIndex).mData[2]));
+						mesh->m_normalBufferCPU.push_back(XMFLOAT3(Normal->GetDirectArray().GetAt(ControlPointIndex).mData[0],
+							Normal->GetDirectArray().GetAt(ControlPointIndex).mData[1],
+							Normal->GetDirectArray().GetAt(ControlPointIndex).mData[2]));
 					}
 					else if (Normal->GetReferenceMode() == FbxGeometryElement::eIndexToDirect){
 						int id = Normal->GetIndexArray().GetAt(ControlPointIndex);

@@ -1,5 +1,8 @@
 // StenGine.cpp : Defines the entry point for the application.
 //
+#include <stdio.h>
+#include <io.h>
+#include <fcntl.h>
 
 #include "windowsX.h"
 #include "stdafx.h"
@@ -37,6 +40,22 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
+
+	/*******create console window**************/
+	AllocConsole();
+
+	HANDLE handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
+	int hCrt = _open_osfhandle((long)handle_out, _O_TEXT);
+	FILE* hf_out = _fdopen(hCrt, "w");
+	setvbuf(hf_out, NULL, _IONBF, 1);
+	*stdout = *hf_out;
+
+	HANDLE handle_in = GetStdHandle(STD_INPUT_HANDLE);
+	hCrt = _open_osfhandle((long)handle_in, _O_TEXT);
+	FILE* hf_in = _fdopen(hCrt, "r");
+	setvbuf(hf_in, NULL, _IONBF, 128);
+	*stdin = *hf_in;
+	/*********************************/
 
 	MSG msg = { 0 };
 
@@ -79,11 +98,11 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
  	Mesh* sphereMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/earth.fbx");
  	sphere->AddComponent(sphereMesh);
  
- 	GameObject* plane0 = new GameObject(-1, -1, 0);
+ 	GameObject* plane0 = new GameObject(4, -1, 0);
 	Mesh* plane0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plane.fbx");
  	plane0->AddComponent(plane0Mesh);
 
-	GameObject* plane1 = new GameObject(-5, -1, 0);
+	GameObject* plane1 = new GameObject(-4, -1, 0);
 	Mesh* plane1Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plane.fbx");
 	plane1->AddComponent(plane1Mesh);
 
