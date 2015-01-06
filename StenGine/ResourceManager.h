@@ -18,6 +18,13 @@ public:
 	}
 
 	template <typename T>
+	T* GetResource(const char* path) {
+		std::string s(path);
+		std::wstring ws(s.begin(), s.end());
+		return GetResource<T>(ws);
+	}
+
+	template <typename T>
 	T* GetResource(std::wstring path) {
 		if (std::is_same<T, Mesh>::value) {
 			auto got = m_meshResourceMap.find(path);

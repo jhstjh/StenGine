@@ -6,6 +6,7 @@
 #include "ResourceManager.h"
 
 void ReadFbxMesh(FbxNode* node, Mesh* mesh);
+void ReadFbxMaterial(FbxNode* node, Mesh* mesh);
 
 bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 
@@ -42,6 +43,7 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 // 			//PrintNode(lRootNode->GetChild(i));
 // 		}
 		ReadFbxMesh(lRootNode->GetChild(0), mesh);
+		ReadFbxMaterial(lRootNode->GetChild(0), mesh);
 	}
 	// Destroy the SDK manager and all the other objects it was handling.
 	lSdkManager->Destroy();
@@ -58,9 +60,9 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 	imgPath[len - 2] = 'd';
 	imgPath[len - 3] = 'd';
 #ifdef GRAPHICS_D3D11
-	if (PathFileExists(imgPath.c_str())) {
-		mesh->m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(imgPath);
-	}
+// 	if (PathFileExists(imgPath.c_str())) {
+// 		mesh->m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(imgPath);
+// 	}
 
 	imgPath.resize(len - 4);
 	imgPath += L"_normal.dds";
@@ -239,6 +241,37 @@ void ReadFbxMesh(FbxNode* node, Mesh* mesh) {
 			}
 
 			vertexIndex++;
+		}
+	}
+}
+
+void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
+	//FbxMesh* fbxMesh = node->GetMesh();
+	int matCount = node->GetMaterialCount();
+
+	for (int i = 0; i < matCount; i++) {
+		FbxSurfaceMaterial* sMat = node->GetMaterial(i);
+		FbxProperty diffProp = sMat->FindProperty(FbxSurfaceMaterial::sDiffuse);
+		int texLayerCount = diffProp.GetSrcObjectCount(FbxLayeredTexture::ClassId);
+		if (texLayerCount > 0) {
+			for (int iTexLayer = 0; iTexLayer < texLayerCount; iTexLayer++) {
+				FbxObject* layeredTextures = diffProp.GetSrcObject(FbxLayeredTexture::ClassId, iTexLayer);
+				int texCount = layeredTextures->GetSrcObjectCount(FbxTexture::ClassId);
+				for (int iTex = 0; iTex < texCount; iTex++) {
+					FbxObject* tex = layeredTextures->GetSrcObject(FbxTexture::ClassId, iTex);
+					puts(tex->GetName());
+					// TODO: unfinished!!
+				}
+			}
+		}
+		else {
+			int texCount = diffProp.GetSrcObjectCount(FbxTexture::ClassId);
+			for (int iTex = 0; iTex < texCount; iTex++) {
+				FbxFileTexture* tex = FbxCast<FbxFileTexture>(diffProp.GetSrcObject(FbxTexture::ClassId, iTex));
+				puts(tex->GetFileName());
+				// TODO: unfinished!!
+				mesh->m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
+			}
 		}
 	}
 }
