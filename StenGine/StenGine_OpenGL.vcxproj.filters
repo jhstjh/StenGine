@@ -254,5 +254,8 @@
     <None Include="FX\DebugLine_vs.glsl">
       <Filter>FX</Filter>
     </None>
+    <None Include="FX\GodRay_ps.glsl">
+      <Filter>FX</Filter>
+    </None>
   </ItemGroup>
 </Project>

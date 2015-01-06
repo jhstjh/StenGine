@@ -161,6 +161,7 @@
     <None Include="FX\DeferredGeometryPass_ps.glsl" />
     <None Include="FX\DeferredGeometryPass_vs.glsl" />
     <None Include="FX\DeferredShadingPass_ps.glsl" />
+    <None Include="FX\GodRay_ps.glsl" />
     <None Include="FX\ScreenQuad_vs.glsl" />
     <None Include="FX\ShadowMap_vs.glsl" />
     <None Include="FX\Skybox_ps.glsl" />

@@ -58,6 +58,7 @@ void main() {
 	normal = normalize(TBN * normalMapNormal);//normalize(pin.NormalV).xy;
 
 	ps_norm = (vec4(normal, 1.0) + 1) / 2.0f;
+	ps_norm.w = 1.0f;
 	ps_diff = texture(gDiffuseMap, pTexUV) * gMat.diffuse;
 	ps_spec = gMat.specular;
 	ps_spec.w /= 255.0f;

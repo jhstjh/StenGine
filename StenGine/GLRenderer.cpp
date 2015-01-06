@@ -234,6 +234,47 @@ void GLRenderer::Draw() {
 	deferredShadingFX->UnSetShader();
 	deferredShadingFX->UnBindShaderResource();
 	
+	/*****************post processing*********************/
+
+	glBlendFunc(GL_ONE, GL_ONE);
+	glEnable(GL_BLEND);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_DEPTH_TEST);
+	glBindVertexArray(NULL);
+
+	GodRayEffect* godRayFX = EffectsManager::Instance()->m_godrayEffect;
+
+	XMFLOAT3 lightDir = LightManager::Instance()->m_dirLights[0]->direction;
+	XMVECTOR lightPos = -400 * XMLoadFloat3(&lightDir);
+	XMVECTOR lightPosH = XMVector3Transform(lightPos, CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+	XMFLOAT4 lightPosHf;
+	XMStoreFloat4(&lightPosHf, lightPosH);
+	lightPosHf.x /= lightPosHf.w;
+	lightPosHf.x = 0.5 + lightPosHf.x / 2;
+	lightPosHf.y /= lightPosHf.w;
+	lightPosHf.y = 0.5f + lightPosHf.y / 2;
+	lightPosHf.z /= lightPosHf.w;
+
+	godRayFX->OcclusionMap = m_normalBufferTex;
+	godRayFX->m_perFrameUniformBuffer.gLightPosH = lightPosHf;
+	godRayFX->SetShader();
+	godRayFX->UpdateConstantBuffer();
+	godRayFX->BindConstantBuffer();
+	godRayFX->BindShaderResource();
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	godRayFX->UnBindConstantBuffer();
+	godRayFX->UnBindShaderResource();
+	godRayFX->UnSetShader();
+
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
 
 	/****************draw debug coord*********************/
 	glDepthMask(GL_FALSE);

@@ -803,10 +803,7 @@ GodRayEffect::GodRayEffect(const std::wstring& filename)
 	glBindBuffer(GL_UNIFORM_BUFFER, m_perFrameUBO);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(PERFRAME_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
 
-	DiffuseGMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseGMap");
-	NormalGMapPosition = glGetUniformLocation(m_shaderProgram, "gNormalGMap");
-	SpecularGMapPosition = glGetUniformLocation(m_shaderProgram, "gSpecularGMap");
-	DepthGMapPosition = glGetUniformLocation(m_shaderProgram, "gDepthGMap");
+	OcclusionMapPosition = glGetUniformLocation(m_shaderProgram, "gOcclusionGMap");
 #endif
 }
 
@@ -851,20 +848,8 @@ void GodRayEffect::BindShaderResource() {
 	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 1, m_shaderResources);
 #else
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, NormalGMap);
-	glUniform1i(NormalGMapPosition, 0);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, DiffuseGMap);
-	glUniform1i(DiffuseGMapPosition, 1);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, SpecularGMap);
-	glUniform1i(SpecularGMapPosition, 2);
-
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, DepthGMap);
-	glUniform1i(DepthGMapPosition, 3);
+	glBindTexture(GL_TEXTURE_2D, OcclusionMap);
+	glUniform1i(OcclusionMapPosition, 0);
 #endif
 }
 //------------------------------------------------------------//
@@ -1685,6 +1670,7 @@ EffectsManager::EffectsManager() {
 
 	m_skyboxEffect = new SkyboxEffect(L"FX/Skybox");
 	m_debugLineEffect = new DebugLineEffect(L"FX/DebugLine");
+	m_godrayEffect = new GodRayEffect(L"FX/GodRay");
 #endif
 }
 

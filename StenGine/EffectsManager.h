@@ -320,7 +320,8 @@ private:
 #ifdef GRAPHICS_D3D11
 	ID3D11Buffer* m_perFrameCB;
 #else
-
+	GLuint m_perFrameUBO;
+	GLint OcclusionMapPosition;
 #endif
 
 public:
@@ -347,7 +348,7 @@ public:
 #endif
 
 #ifdef GRAPHICS_OPENGL
-
+	GLuint OcclusionMap;
 #endif
 
 
