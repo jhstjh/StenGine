@@ -27,7 +27,7 @@ PixelOut main(VertexOut pin)
 	pout.diffuseH.w = saturate(shadowLit);
 	pout.specularH = gMaterial.specular;
 	pout.specularH.w /= 255.0f;
-	//pout.normalV = normalize(pin.NormalV).xy;
+	pout.normalV.w = 1.0;
 	pout.normalV.xyz = (normalize(pin.NormalV) + 1) / 2;
 
 	if (gDiffX_NormY_ShadZ.y > 0) {

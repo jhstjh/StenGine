@@ -42,8 +42,10 @@ private:
 	ID3D11RasterizerState* m_wireFrameRS;
 	ID3D11SamplerState* m_samplerState;
 	ID3D11SamplerState* m_shadowSamplerState;
+	ID3D11SamplerState* m_borderSamplerState;
 
 	ID3D11DepthStencilState* m_noZWriteDSState;
+	ID3D11BlendState* m_additiveAlphaAddBS;
 
 #pragma region DEDERRED_RENDER
 	ID3D11RenderTargetView* m_diffuseBufferRTV;

@@ -165,41 +165,65 @@ bool D3D11Renderer::Init() {
 	m_screenSuperSampleViewpot.MinDepth = 0.0f;
 	m_screenSuperSampleViewpot.MaxDepth = 1.0f;
 
-	D3D11_SAMPLER_DESC samplerDesc;
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.MipLODBias = 0.0f;
-	samplerDesc.MaxAnisotropy = 1;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerDesc.BorderColor[0] = 0;
-	samplerDesc.BorderColor[1] = 0;
-	samplerDesc.BorderColor[2] = 0;
-	samplerDesc.BorderColor[3] = 0;
-	samplerDesc.MinLOD = 0;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	{
+		D3D11_SAMPLER_DESC samplerDesc;
+		samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+		samplerDesc.MipLODBias = 0.0f;
+		samplerDesc.MaxAnisotropy = 1;
+		samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+		samplerDesc.BorderColor[0] = 0;
+		samplerDesc.BorderColor[1] = 0;
+		samplerDesc.BorderColor[2] = 0;
+		samplerDesc.BorderColor[3] = 0;
+		samplerDesc.MinLOD = 0;
+		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	// Create the texture sampler state.
-	hr = m_d3d11Device->CreateSamplerState(&samplerDesc, &m_samplerState);
-	assert(SUCCEEDED(hr));
+		// Create the texture sampler state.
+		hr = m_d3d11Device->CreateSamplerState(&samplerDesc, &m_samplerState);
+		assert(SUCCEEDED(hr));
+	}
 
-	D3D11_SAMPLER_DESC shadowSamplerDesc;
-	ZeroMemory(&shadowSamplerDesc, sizeof(D3D11_SAMPLER_DESC));
-	shadowSamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
-	shadowSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-	shadowSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-	shadowSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-	shadowSamplerDesc.BorderColor[0] = 0;
-	shadowSamplerDesc.BorderColor[1] = 0;
-	shadowSamplerDesc.BorderColor[2] = 0;
-	shadowSamplerDesc.BorderColor[3] = 0;
-	shadowSamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+	{
+		D3D11_SAMPLER_DESC shadowSamplerDesc;
+		ZeroMemory(&shadowSamplerDesc, sizeof(D3D11_SAMPLER_DESC));
+		shadowSamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+		shadowSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+		shadowSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+		shadowSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+		shadowSamplerDesc.BorderColor[0] = 0;
+		shadowSamplerDesc.BorderColor[1] = 0;
+		shadowSamplerDesc.BorderColor[2] = 0;
+		shadowSamplerDesc.BorderColor[3] = 0;
+		shadowSamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
 
-	// Create the texture shadowSampler state.
-	hr = m_d3d11Device->CreateSamplerState(&shadowSamplerDesc, &m_shadowSamplerState);
-	assert(SUCCEEDED(hr));
+		// Create the texture shadowSampler state.
+		hr = m_d3d11Device->CreateSamplerState(&shadowSamplerDesc, &m_shadowSamplerState);
+		assert(SUCCEEDED(hr));
+	}
 
+	{
+		D3D11_SAMPLER_DESC samplerDesc;
+		samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+		samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+		samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+		samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+		samplerDesc.MipLODBias = 0.0f;
+		samplerDesc.MaxAnisotropy = 1;
+		samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+		samplerDesc.BorderColor[0] = 0;
+		samplerDesc.BorderColor[1] = 0;
+		samplerDesc.BorderColor[2] = 0;
+		samplerDesc.BorderColor[3] = 0;
+		samplerDesc.MinLOD = 0;
+		samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+		// Create the texture sampler state.
+		hr = m_d3d11Device->CreateSamplerState(&samplerDesc, &m_borderSamplerState);
+		assert(SUCCEEDED(hr));
+	}
 
 	//-----------------setup MRT---------------------
 #if !FORWARD
@@ -419,32 +443,51 @@ bool D3D11Renderer::Init() {
 	iinitData.pSysMem = &coordIndexBuffer[0];
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&ibd, &iinitData, &m_gridCoordIndexBufferGPU));
 
+	{
+		D3D11_DEPTH_STENCIL_DESC dsDesc;
 
-	D3D11_DEPTH_STENCIL_DESC dsDesc;
+		// Depth test parameters
+		dsDesc.DepthEnable = true;
+		dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+		dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
 
-	// Depth test parameters
-	dsDesc.DepthEnable = true;
-	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+		// Stencil test parameters
+		dsDesc.StencilEnable = true;
+		dsDesc.StencilReadMask = 0xFF;
+		dsDesc.StencilWriteMask = 0xFF;
 
-	// Stencil test parameters
-	dsDesc.StencilEnable = true;
-	dsDesc.StencilReadMask = 0xFF;
-	dsDesc.StencilWriteMask = 0xFF;
+		// Stencil operations if pixel is front-facing
+		dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+		dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
-	// Stencil operations if pixel is front-facing
-	dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
-	dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+		// Stencil operations if pixel is back-facing
+		dsDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		dsDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+		dsDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 
-	// Stencil operations if pixel is back-facing
-	dsDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	dsDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
-	dsDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+		m_d3d11Device->CreateDepthStencilState(&dsDesc, &m_noZWriteDSState);
+	}
 
-	m_d3d11Device->CreateDepthStencilState(&dsDesc, &m_noZWriteDSState);
+	{
+		D3D11_BLEND_DESC bsDesc;
+		bsDesc.AlphaToCoverageEnable = FALSE;
+		bsDesc.IndependentBlendEnable = FALSE;
+
+		bsDesc.RenderTarget[0].BlendEnable = TRUE;
+		bsDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+		bsDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+		bsDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		bsDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+		bsDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_DEST_ALPHA;
+		bsDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_MAX;
+		bsDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+		HRESULT hr = m_d3d11Device->CreateBlendState(&bsDesc, &m_additiveAlphaAddBS);
+		assert(SUCCEEDED(hr));
+	}
 
 	return true;
 }
@@ -686,16 +729,18 @@ void D3D11Renderer::Draw() {
 	blurEffect->UnSetShader();
 
 
-#if 0
+#if 1
 	//--------------------Post processing----------------------//
+	m_d3d11DeviceContext->OMSetBlendState(m_additiveAlphaAddBS, NULL, 0xFFFFFFFF);
+	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, nullptr);
+	m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_borderSamplerState);
 	//m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::Black));
-	m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-	ID3DX11EffectTechnique* godRayTech = EffectsManager::Instance()->m_godrayEffect->GetActiveTech();
+	//m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	GodRayEffect* godRayFX = EffectsManager::Instance()->m_godrayEffect;
 	m_d3d11DeviceContext->IASetInputLayout(NULL);
-	godRayTech->GetDesc(&techDesc);
 
 	XMFLOAT3 lightDir = LightManager::Instance()->m_dirLights[0]->direction;
-	XMVECTOR lightPos = -20 * XMLoadFloat3(&lightDir);
+	XMVECTOR lightPos = -400 * XMLoadFloat3(&lightDir);
 	XMVECTOR lightPosH = XMVector3Transform(lightPos, CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 	XMFLOAT4 lightPosHf;
 	XMStoreFloat4(&lightPosHf, lightPosH);
@@ -705,19 +750,21 @@ void D3D11Renderer::Draw() {
 	lightPosHf.y = 1 - (0.5f + lightPosHf.y / 2.0f);
 	lightPosHf.z /= lightPosHf.w;
 
-	EffectsManager::Instance()->m_godrayEffect->LightPosH->SetRawValue(&lightPosHf, 0, 3 * sizeof(float));
-	EffectsManager::Instance()->m_godrayEffect->OcclusionMap->SetResource(m_normalBufferSRV);
+	godRayFX->SetShaderResources(m_normalBufferSRV, 0);
+	godRayFX->m_perFrameConstantBuffer.gLightPosH = lightPosHf;
+	godRayFX->SetShader();
+	godRayFX->UpdateConstantBuffer();
+	godRayFX->BindConstantBuffer();
+	godRayFX->BindShaderResource();
 
-	for (UINT p = 0; p < techDesc.Passes; ++p)
-	{
-		godRayTech->GetPassByIndex(p)->Apply(0, m_d3d11DeviceContext);
-		m_d3d11DeviceContext->Draw(6, 0);
-	}
+	m_d3d11DeviceContext->Draw(6, 0);
 
+	godRayFX->UnBindConstantBuffer();
+	godRayFX->UnBindShaderResource();
+	godRayFX->UnSetShader();
 
-	m_d3d11DeviceContext->RSSetState(0);
+	m_d3d11DeviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
 	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
-
 #endif
 
 	// draw debug line
@@ -749,6 +796,7 @@ void D3D11Renderer::Draw() {
 
 
 	// clean up
+	m_d3d11DeviceContext->ClearState();
 	m_d3d11DeviceContext->RSSetState(0);
 	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
 	m_d3d11DeviceContext->OMSetRenderTargets(0, NULL, NULL);

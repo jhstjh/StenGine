@@ -315,15 +315,43 @@ public:
 //--------------------------------------------------------------------//
 
 
-// class GodRayEffect : public Effect {
-// public:
-// 	GodRayEffect(const std::wstring& filename);
-// 	~GodRayEffect();
-// 
-// 	ID3DX11EffectTechnique* GodRayTech;
-// 	ID3DX11EffectShaderResourceVariable* OcclusionMap;
-// 	ID3DX11EffectVariable* LightPosH;
-// };
+class GodRayEffect : public Effect {
+private:
+#ifdef GRAPHICS_D3D11
+	ID3D11Buffer* m_perFrameCB;
+#else
+
+#endif
+
+public:
+	GodRayEffect(const std::wstring& filename);
+	~GodRayEffect();
+
+	virtual void UpdateConstantBuffer();
+	virtual void BindConstantBuffer();
+	virtual void BindShaderResource();
+
+	struct
+#ifdef GRAPHICS_D3D11		
+		PERFRAME_CONSTANT_BUFFER
+#else
+		PERFRAME_UNIFORM_BUFFER
+#endif
+	{
+		XMFLOAT4 gLightPosH;
+	}
+#ifdef GRAPHICS_D3D11		
+	m_perFrameConstantBuffer;
+#else
+	m_perFrameUniformBuffer;
+#endif
+
+#ifdef GRAPHICS_OPENGL
+
+#endif
+
+
+};
 
 
 //--------------------------------------------------------------------//
@@ -550,7 +578,7 @@ public:
 	DeferredGeometryTessPassEffect* m_deferredGeometryTessPassEffect;
 	DeferredShadingPassEffect* m_deferredShadingPassEffect;
 	DeferredShadingCS* m_deferredShadingCSEffect;
-	//GodRayEffect* m_godrayEffect;
+	GodRayEffect* m_godrayEffect;
 	SkyboxEffect* m_skyboxEffect;
 	BlurEffect* m_blurEffect;
 	VBlurEffect* m_vblurEffect;

@@ -197,11 +197,6 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="FX\GodRay.fx">
-      <Filter>FX</Filter>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Model\ball.obj">
       <Filter>Model</Filter>
     </None>
@@ -268,6 +263,9 @@
       <Filter>FX</Filter>
     </FxCompile>
     <FxCompile Include="FX\DebugLine_ps.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\GodRay_ps.hlsl">
       <Filter>FX</Filter>
     </FxCompile>
   </ItemGroup>

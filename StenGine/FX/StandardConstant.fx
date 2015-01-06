@@ -43,8 +43,11 @@ cbuffer cbPerObject : register(b0) {
 #endif
 
 cbuffer cbPerFrame : register(b1) {
-	//DirectionalLight gDirLight;
+#ifdef GOD_RAY
+	float4 gLightPosH;
+#else
 	float4 gEyePosW;
+#endif
 };
 
 struct VertexIn {
@@ -67,6 +70,11 @@ struct VertexOut {
 	float3 TangentV: TANGENT;
 	float2 TexUV : TEXCOORD0;
 	float4 ShadowPosH: TEXCOORD1;
+};
+
+struct ScreenQuadVSOut {
+	float4 pos : SV_Position;
+	float2 Tex : TEXCOORD;
 };
 
 struct DebugLineVertexOut {

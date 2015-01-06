@@ -10,5 +10,5 @@ SamplerState gSamplerStateLinear;
 float4 main(VSOut pin): SV_Target
 {
 	//pin.PosH /= pin.PosH.w;
-	return gCubeMap.Sample(gSamplerStateLinear, pin.PosL);
+	return gCubeMap.Sample(gSamplerStateLinear, pin.PosL) * 1.5;
 }

@@ -747,6 +747,126 @@ void DeferredShadingPassEffect::BindShaderResource() {
 #endif
 }
 
+
+//----------------------------------------------------------//
+
+
+GodRayEffect::GodRayEffect(const std::wstring& filename)
+	: Effect(std::wstring(L"FX/ScreenQuad_vs") + EXT, filename + L"_ps" + EXT)
+{
+#ifdef GRAPHICS_D3D11
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+		m_vsBlob->GetBufferSize(), &m_inputLayout));
+
+	m_shaderResources = new ID3D11ShaderResourceView*[1];
+	for (int i = 0; i < 1; i++) {
+		m_shaderResources[i] = 0;
+	}
+
+	{
+		// Fill in a buffer description.
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		// Fill in the subresource data.
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = &m_perFrameConstantBuffer;
+		InitData.SysMemPitch = 0;
+		InitData.SysMemSlicePitch = 0;
+
+		HRESULT hr;
+		// Create the buffer.
+		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+			&m_perFrameCB);
+
+		assert(SUCCEEDED(hr));
+	}
+
+	ReleaseCOM(m_vsBlob);
+	ReleaseCOM(m_psBlob);
+	ReleaseCOM(m_gsBlob);
+	ReleaseCOM(m_hsBlob);
+	ReleaseCOM(m_dsBlob);
+	ReleaseCOM(m_csBlob);
+#else
+	glGenBuffers(1, &m_perFrameUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_perFrameUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(PERFRAME_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
+
+	DiffuseGMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseGMap");
+	NormalGMapPosition = glGetUniformLocation(m_shaderProgram, "gNormalGMap");
+	SpecularGMapPosition = glGetUniformLocation(m_shaderProgram, "gSpecularGMap");
+	DepthGMapPosition = glGetUniformLocation(m_shaderProgram, "gDepthGMap");
+#endif
+}
+
+GodRayEffect::~GodRayEffect()
+{
+#ifdef GRAPHICS_D3D11
+	ReleaseCOM(m_inputLayout);
+#endif
+}
+
+void GodRayEffect::UpdateConstantBuffer() {
+#ifdef GRAPHICS_D3D11
+	{
+		D3D11_MAPPED_SUBRESOURCE ms;
+		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
+		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perFrameCB, NULL);
+	}
+#else
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perFrameUBO);
+	PERFRAME_UNIFORM_BUFFER* perFrameUBOPtr = (PERFRAME_UNIFORM_BUFFER*)glMapBufferRange(
+		GL_UNIFORM_BUFFER,
+		0,
+		sizeof(PERFRAME_UNIFORM_BUFFER),
+		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+		);
+	memcpy(perFrameUBOPtr, &m_perFrameUniformBuffer, sizeof(PERFRAME_UNIFORM_BUFFER));
+	glUnmapBuffer(GL_UNIFORM_BUFFER);
+#endif
+}
+
+void GodRayEffect::BindConstantBuffer() {
+#ifdef GRAPHICS_D3D11
+	ID3D11Buffer* cbuf[] = { m_perFrameCB };
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(1, 1, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(1, 1, cbuf);
+#endif
+}
+
+void GodRayEffect::BindShaderResource() {
+#ifdef GRAPHICS_D3D11
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 1, m_shaderResources);
+#else
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, NormalGMap);
+	glUniform1i(NormalGMapPosition, 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, DiffuseGMap);
+	glUniform1i(DiffuseGMapPosition, 1);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, SpecularGMap);
+	glUniform1i(SpecularGMapPosition, 2);
+
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, DepthGMap);
+	glUniform1i(DepthGMapPosition, 3);
+#endif
+}
 //------------------------------------------------------------//
 
 // GodRayEffect::GodRayEffect(const std::wstring& filename)
@@ -1554,8 +1674,7 @@ EffectsManager::EffectsManager() {
 	m_blurEffect = new BlurEffect(L"FX/Blur");
 	m_vblurEffect = new VBlurEffect(L"FX/VBlur");
 	m_hblurEffect = new HBlurEffect(L"FX/HBlur");
-	//m_screenQuadEffect = new ScreenQuadEffect(L"FX/ScreenQuad.fxo");
-	//m_godrayEffect = new GodRayEffect(L"FX/GodRay.fxo");
+	m_godrayEffect = new GodRayEffect(L"FX/GodRay");
 	m_skyboxEffect = new SkyboxEffect(L"FX/Skybox");
 	m_debugLineEffect = new DebugLineEffect(L"FX/DebugLine");
 
@@ -1578,7 +1697,7 @@ EffectsManager::~EffectsManager() {
 	SafeDelete(m_deferredGeometryPassEffect);
 	SafeDelete(m_deferredShadingPassEffect);
 	//SafeDelete(m_screenQuadEffect);
-	//SafeDelete(m_godrayEffect);
+	SafeDelete(m_godrayEffect);
 	SafeDelete(m_skyboxEffect);
 	SafeDelete(m_blurEffect);
 	SafeDelete(m_vblurEffect);
