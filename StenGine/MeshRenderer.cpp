@@ -420,7 +420,6 @@ void Mesh::Draw() {
 	deferredGeoEffect->GetPerObjConstantBuffer()->ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
 	for (int iP = 0; iP < m_parents.size(); iP++) {
-
 		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
 		deferredGeoEffect->GetPerObjConstantBuffer()->WorldViewProj = XMMatrixTranspose(worldViewProj);
 		deferredGeoEffect->GetPerObjConstantBuffer()->World = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));

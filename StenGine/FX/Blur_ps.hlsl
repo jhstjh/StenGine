@@ -43,8 +43,8 @@ float4 main(VSOut input) : SV_Target
 
 	float4 bloomColor = gBloomMap.Sample(gSamplerStateLinear, input.Tex);
 
-	return originalColor * gSSAOMap.Sample(gSamplerStateLinear, input.Tex);
-	return (originalColor*(1 - bloomColor) + bloomColor) * gSSAOMap.Sample(gSamplerStateLinear, input.Tex);
+	//return originalColor * gSSAOMap.Sample(gSamplerStateLinear, input.Tex);
+	return (1 - (1 -originalColor)*(1 - bloomColor)) * gSSAOMap.Sample(gSamplerStateLinear, input.Tex);
 
 	// The center value always contributes to the sum.
 	float4 color = gWeights[10] * gSSAOMap.Sample(gSamplerStateLinear, input.Tex);
