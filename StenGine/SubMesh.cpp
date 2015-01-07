@@ -2,6 +2,8 @@
 #include "D3DIncludes.h"
 #include "D3D11Renderer.h"
 
+SubMesh::SubMesh() : m_indexBufferGPU(0), m_bumpMapSRV(0), m_diffuseMapSRV(0), m_normalMapSRV(0) {}
+
 void SubMesh::PrepareGPUBuffer() {
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;

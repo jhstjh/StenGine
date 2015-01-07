@@ -64,19 +64,19 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 // 		mesh->m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(imgPath);
 // 	}
 
-	imgPath.resize(len - 4);
-	imgPath += L"_normal.dds";
+// 	imgPath.resize(len - 4);
+// 	imgPath += L"_normal.dds";
+// 
+// 	if (PathFileExists(imgPath.c_str())) {
+// 		mesh->m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(imgPath);
+// 	}
 
-	if (PathFileExists(imgPath.c_str())) {
-		mesh->m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(imgPath);
-	}
-
-	imgPath.resize(len - 4);
-	imgPath += L"_bump.dds";
-
-	if (PathFileExists(imgPath.c_str())) {
-		mesh->m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(imgPath);
-	}
+// 	imgPath.resize(len - 4);
+// 	imgPath += L"_bump.dds";
+// 
+// 	if (PathFileExists(imgPath.c_str())) {
+// 		mesh->m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(imgPath);
+// 	}
 #else
 	// gl
 	
@@ -252,6 +252,7 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 	for (int i = 0; i < matCount; i++) {
 		FbxSurfaceMaterial* sMat = node->GetMaterial(i);
 		FbxProperty diffProp = sMat->FindProperty(FbxSurfaceMaterial::sDiffuse);
+		/*
 		int texLayerCount = diffProp.GetSrcObjectCount(FbxLayeredTexture::ClassId);
 		if (texLayerCount > 0) {
 			for (int iTexLayer = 0; iTexLayer < texLayerCount; iTexLayer++) {
@@ -265,13 +266,36 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 			}
 		}
 		else {
+		*/
 			int texCount = diffProp.GetSrcObjectCount(FbxTexture::ClassId);
 			for (int iTex = 0; iTex < texCount; iTex++) {
 				FbxFileTexture* tex = FbxCast<FbxFileTexture>(diffProp.GetSrcObject(FbxTexture::ClassId, iTex));
 				puts(tex->GetFileName());
-				// TODO: unfinished!!
-				mesh->m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
+				if (matCount == 1)
+					mesh->m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
+				else
+					mesh->m_subMeshes[i].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 			}
+		//}
+
+		FbxProperty normalProp = sMat->FindProperty(FbxSurfaceMaterial::sNormalMap);
+		int normalTexCount = normalProp.GetSrcObjectCount(FbxTexture::ClassId);
+		for (int iTex = 0; iTex < normalTexCount; iTex++) {
+			FbxFileTexture* tex = FbxCast<FbxFileTexture>(normalProp.GetSrcObject(FbxTexture::ClassId, iTex));
+			if (matCount == 1)
+				mesh->m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
+			else
+				mesh->m_subMeshes[i].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
+		}
+
+		FbxProperty displacementProp = sMat->FindProperty(FbxSurfaceMaterial::sDisplacementColor);
+		int displacementTexCount = displacementProp.GetSrcObjectCount(FbxTexture::ClassId);
+		for (int iTex = 0; iTex < displacementTexCount; iTex++) {
+			FbxFileTexture* tex = FbxCast<FbxFileTexture>(displacementProp.GetSrcObject(FbxTexture::ClassId, iTex));
+			if (matCount == 1)
+				mesh->m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
+			else
+				mesh->m_subMeshes[i].m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 		}
 	}
 }

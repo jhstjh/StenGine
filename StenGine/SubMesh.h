@@ -7,7 +7,7 @@
 
 class SubMesh : public Component {
 public:
-	//SubMesh();
+	SubMesh();
 	//~SubMesh();
 	void PrepareGPUBuffer();
 

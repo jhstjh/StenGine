@@ -408,23 +408,22 @@ void Mesh::Draw() {
 
 	deferredGeoEffect->GetPerObjConstantBuffer()->Mat = m_material;
 	XMFLOAT4 resourceMask(0, 0, 0, 0);
-	if (m_diffuseMapSRV) {
-		resourceMask.x = 1;
-		//deferredGeoEffect->m_shaderResources[0] = m_diffuseMapSRV;
-		deferredGeoEffect->SetShaderResources(m_diffuseMapSRV, 0);
-	}
-	if (m_normalMapSRV) {
-		resourceMask.y = 1;
-		//deferredGeoEffect->m_shaderResources[1] = m_normalMapSRV;
-		deferredGeoEffect->SetShaderResources(m_normalMapSRV, 1);
+
+	if (m_subMeshes.size() == 0) {
+		if (m_diffuseMapSRV) {
+			resourceMask.x = 1;
+			deferredGeoEffect->SetShaderResources(m_diffuseMapSRV, 0);
+		}
+		if (m_normalMapSRV) {
+			resourceMask.y = 1;
+			deferredGeoEffect->SetShaderResources(m_normalMapSRV, 1);
+		}
 	}
 	if (m_receiveShadow)
 		resourceMask.z = 1;
 	deferredGeoEffect->GetPerObjConstantBuffer()->DiffX_NormY_ShadZ = resourceMask;
 
-	//deferredGeoEffect->m_shaderResources[4] = D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV;
 	deferredGeoEffect->SetShaderResources(D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV, 4);
-	//deferredGeoEffect->m_shaderResources[3] = LightManager::Instance()->m_shadowMap->GetDepthSRV();
 	deferredGeoEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
 	deferredGeoEffect->GetPerObjConstantBuffer()->ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
@@ -459,8 +458,26 @@ void Mesh::Draw() {
 			if (m_subMeshes.size() > 0) {
 				int startIndex = 0;
 				for (int iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
+					if (m_subMeshes[iSubMesh].m_diffuseMapSRV) {
+						resourceMask.x = 1;
+						deferredGeoEffect->SetShaderResources(m_subMeshes[iSubMesh].m_diffuseMapSRV, 0);
+					}
+					else
+						resourceMask.x = 0;
+					if (m_subMeshes[iSubMesh].m_normalMapSRV) {
+						resourceMask.y = 1;
+						deferredGeoEffect->SetShaderResources(m_subMeshes[iSubMesh].m_normalMapSRV, 1);
+					}
+					else
+						resourceMask.y = 0;
+					deferredGeoEffect->GetPerObjConstantBuffer()->DiffX_NormY_ShadZ = resourceMask;
+					deferredGeoEffect->UpdateConstantBuffer();
+					deferredGeoEffect->BindConstantBuffer();
+					deferredGeoEffect->BindShaderResource();
 					D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_subMeshes[iSubMesh].m_indexBufferCPU.size(), startIndex, 0);
 					startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
+					deferredGeoEffect->UnBindShaderResource();
+
 				}
 			}
 			else
@@ -478,8 +495,26 @@ void Mesh::Draw() {
 			if (m_subMeshes.size() > 0) {
 				int startIndex = 0;
 				for (int iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
+					if (m_subMeshes[iSubMesh].m_diffuseMapSRV) {
+						resourceMask.x = 1;
+						deferredGeoEffect->SetShaderResources(m_subMeshes[iSubMesh].m_diffuseMapSRV, 0);
+					}
+					else
+						resourceMask.x = 0;
+					if (m_subMeshes[iSubMesh].m_normalMapSRV) {
+						resourceMask.y = 1;
+						deferredGeoEffect->SetShaderResources(m_subMeshes[iSubMesh].m_normalMapSRV, 1);
+					}
+					else
+						resourceMask.y = 0;
+					deferredGeoEffect->GetPerObjConstantBuffer()->DiffX_NormY_ShadZ = resourceMask;
+
+					deferredGeoEffect->UpdateConstantBuffer();
+					deferredGeoEffect->BindConstantBuffer();
+					deferredGeoEffect->BindShaderResource();
 					D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_subMeshes[iSubMesh].m_indexBufferCPU.size(), startIndex, 0);
 					startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
+					deferredGeoEffect->UnBindShaderResource();
 				}
 			}
 			else
