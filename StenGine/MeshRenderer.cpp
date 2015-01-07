@@ -222,12 +222,15 @@ void Mesh::CreateBoxPrimitive() {
  		20, 22, 23
 	};
 
+	m_subMeshes.resize(1);
+
 	m_material.ambient = XMFLOAT4(0.2, 0.2, 0.2, 1);
 	m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
 	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
 #ifdef GRAPHICS_D3D11
-	m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02.dds");
-	m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02_normal.dds");
+	m_subMeshes[0].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02.dds");
+	m_subMeshes[0].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02_normal.dds");
+	m_subMeshes[0].m_indexBufferCPU = m_indexBufferCPU;
 #else
 	// gl
 	m_diffuseMap = SOIL_load_OGL_texture (
@@ -399,7 +402,7 @@ void Mesh::Draw() {
 
 	DeferredGeometryPassEffect* deferredGeoEffect;
 
-	if (!m_bumpMapSRV)
+	if (!m_subMeshes[0].m_bumpMapSRV)
 		deferredGeoEffect = (dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect));
 	else
 		deferredGeoEffect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect;
@@ -409,19 +412,8 @@ void Mesh::Draw() {
 	deferredGeoEffect->GetPerObjConstantBuffer()->Mat = m_material;
 	XMFLOAT4 resourceMask(0, 0, 0, 0);
 
-	if (m_subMeshes.size() == 0) {
-		if (m_diffuseMapSRV) {
-			resourceMask.x = 1;
-			deferredGeoEffect->SetShaderResources(m_diffuseMapSRV, 0);
-		}
-		if (m_normalMapSRV) {
-			resourceMask.y = 1;
-			deferredGeoEffect->SetShaderResources(m_normalMapSRV, 1);
-		}
-	}
 	if (m_receiveShadow)
 		resourceMask.z = 1;
-	deferredGeoEffect->GetPerObjConstantBuffer()->DiffX_NormY_ShadZ = resourceMask;
 
 	deferredGeoEffect->SetShaderResources(D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV, 4);
 	deferredGeoEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
@@ -444,81 +436,35 @@ void Mesh::Draw() {
 		XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
 		deferredGeoEffect->GetPerObjConstantBuffer()->ShadowTransform = XMMatrixTranspose(worldShadowMapTransform);
 
-		if (m_bumpMapSRV) {
+		int startIndex = 0;
+		for (int iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
+			resourceMask.x = 0;
+			resourceMask.y = 0;
+			if (m_subMeshes[iSubMesh].m_diffuseMapSRV) {
+				resourceMask.x = 1;
+				deferredGeoEffect->SetShaderResources(m_subMeshes[iSubMesh].m_diffuseMapSRV, 0);
+			}
+			if (m_subMeshes[iSubMesh].m_normalMapSRV) {
+				resourceMask.y = 1;
+				deferredGeoEffect->SetShaderResources(m_subMeshes[iSubMesh].m_normalMapSRV, 1);
+			}
+			deferredGeoEffect->GetPerObjConstantBuffer()->DiffX_NormY_ShadZ = resourceMask;
 
-			D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-			//deferredGeoEffect->m_shaderResources[3] = m_bumpMapSRV;
-			DeferredGeometryTessPassEffect* realShader = dynamic_cast<DeferredGeometryTessPassEffect*>(deferredGeoEffect);
-			//memcpy(&(realShader->m_perObjConstantBuffer), &(deferredGeoEffect->m_perObjConstantBuffer), sizeof(DeferredGeometryTessPassEffect::PEROBJ_CONSTANT_BUFFER));
-			deferredGeoEffect->SetShaderResources(m_bumpMapSRV, 2);
 			deferredGeoEffect->UpdateConstantBuffer();
 			deferredGeoEffect->BindConstantBuffer();
-			deferredGeoEffect->BindShaderResource();
 			
-			if (m_subMeshes.size() > 0) {
-				int startIndex = 0;
-				for (int iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
-					if (m_subMeshes[iSubMesh].m_diffuseMapSRV) {
-						resourceMask.x = 1;
-						deferredGeoEffect->SetShaderResources(m_subMeshes[iSubMesh].m_diffuseMapSRV, 0);
-					}
-					else
-						resourceMask.x = 0;
-					if (m_subMeshes[iSubMesh].m_normalMapSRV) {
-						resourceMask.y = 1;
-						deferredGeoEffect->SetShaderResources(m_subMeshes[iSubMesh].m_normalMapSRV, 1);
-					}
-					else
-						resourceMask.y = 0;
-					deferredGeoEffect->GetPerObjConstantBuffer()->DiffX_NormY_ShadZ = resourceMask;
-					deferredGeoEffect->UpdateConstantBuffer();
-					deferredGeoEffect->BindConstantBuffer();
-					deferredGeoEffect->BindShaderResource();
-					D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_subMeshes[iSubMesh].m_indexBufferCPU.size(), startIndex, 0);
-					startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
-					deferredGeoEffect->UnBindShaderResource();
-
-				}
+			if (m_subMeshes[iSubMesh].m_bumpMapSRV) {
+				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+				deferredGeoEffect->SetShaderResources(m_subMeshes[iSubMesh].m_bumpMapSRV, 2);
+				deferredGeoEffect->BindShaderResource();
 			}
-			else
-				D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
-			deferredGeoEffect->UnBindShaderResource();
-			deferredGeoEffect->UnBindConstantBuffer();
-
-			D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		}
-		else {
-			D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			deferredGeoEffect->UpdateConstantBuffer();
-			deferredGeoEffect->BindConstantBuffer();
-			deferredGeoEffect->BindShaderResource();
-			if (m_subMeshes.size() > 0) {
-				int startIndex = 0;
-				for (int iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
-					if (m_subMeshes[iSubMesh].m_diffuseMapSRV) {
-						resourceMask.x = 1;
-						deferredGeoEffect->SetShaderResources(m_subMeshes[iSubMesh].m_diffuseMapSRV, 0);
-					}
-					else
-						resourceMask.x = 0;
-					if (m_subMeshes[iSubMesh].m_normalMapSRV) {
-						resourceMask.y = 1;
-						deferredGeoEffect->SetShaderResources(m_subMeshes[iSubMesh].m_normalMapSRV, 1);
-					}
-					else
-						resourceMask.y = 0;
-					deferredGeoEffect->GetPerObjConstantBuffer()->DiffX_NormY_ShadZ = resourceMask;
-
-					deferredGeoEffect->UpdateConstantBuffer();
-					deferredGeoEffect->BindConstantBuffer();
-					deferredGeoEffect->BindShaderResource();
-					D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_subMeshes[iSubMesh].m_indexBufferCPU.size(), startIndex, 0);
-					startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
-					deferredGeoEffect->UnBindShaderResource();
-				}
+			else {
+				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+				deferredGeoEffect->BindShaderResource();
 			}
-			else
-				D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
+			D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_subMeshes[iSubMesh].m_indexBufferCPU.size(), startIndex, 0);
+			startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
+
 			deferredGeoEffect->UnBindShaderResource();
 			deferredGeoEffect->UnBindConstantBuffer();
 		}

@@ -141,15 +141,19 @@ void ReadFbxMesh(FbxNode* node, Mesh* mesh) {
 		}
 	}
 	else if (matMapping == FbxLayerElement::eAllSame) {
+		mesh->m_subMeshes.resize(1);
 		int triangleCount = fbxMesh->GetPolygonCount();
 		int counter = 0;
 		for (int i = 0; i < triangleCount; i++){
 			//fout << counter * 3 + 2 << " " << counter * 3 + 1 << " " << counter * 3 << std::endl;
-			mesh->m_indexBufferCPU.push_back(counter * 3);
-			mesh->m_indexBufferCPU.push_back(counter * 3 + 1);
-			mesh->m_indexBufferCPU.push_back(counter * 3 + 2);
+			mesh->m_subMeshes[0].m_indexBufferCPU.push_back(counter * 3);
+			mesh->m_subMeshes[0].m_indexBufferCPU.push_back(counter * 3 + 1);
+			mesh->m_subMeshes[0].m_indexBufferCPU.push_back(counter * 3 + 2);
 			counter++;
 		}
+		mesh->m_indexBufferCPU.insert(mesh->m_indexBufferCPU.end(),
+			mesh->m_subMeshes[0].m_indexBufferCPU.begin(),
+			mesh->m_subMeshes[0].m_indexBufferCPU.end());
 	}
 	FbxVector4* ControlPoints = fbxMesh->GetControlPoints();
 	int PolygonCount = fbxMesh->GetPolygonCount();
@@ -271,9 +275,9 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 			for (int iTex = 0; iTex < texCount; iTex++) {
 				FbxFileTexture* tex = FbxCast<FbxFileTexture>(diffProp.GetSrcObject(FbxTexture::ClassId, iTex));
 				puts(tex->GetFileName());
-				if (matCount == 1)
-					mesh->m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
-				else
+				//if (matCount == 1)
+				//	mesh->m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
+				//else
 					mesh->m_subMeshes[i].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 			}
 		//}
@@ -282,9 +286,9 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 		int normalTexCount = normalProp.GetSrcObjectCount(FbxTexture::ClassId);
 		for (int iTex = 0; iTex < normalTexCount; iTex++) {
 			FbxFileTexture* tex = FbxCast<FbxFileTexture>(normalProp.GetSrcObject(FbxTexture::ClassId, iTex));
-			if (matCount == 1)
-				mesh->m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
-			else
+			//if (matCount == 1)
+			//	mesh->m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
+			//else
 				mesh->m_subMeshes[i].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 		}
 
@@ -292,9 +296,9 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 		int displacementTexCount = displacementProp.GetSrcObjectCount(FbxTexture::ClassId);
 		for (int iTex = 0; iTex < displacementTexCount; iTex++) {
 			FbxFileTexture* tex = FbxCast<FbxFileTexture>(displacementProp.GetSrcObject(FbxTexture::ClassId, iTex));
-			if (matCount == 1)
-				mesh->m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
-			else
+			//if (matCount == 1)
+			//	mesh->m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
+			//else
 				mesh->m_subMeshes[i].m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 		}
 	}
