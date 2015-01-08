@@ -1,5 +1,7 @@
 #include "EffectsManager.h"
+#ifdef GRAPHICS_D3D11
 #include "D3D11Renderer.h"
+#endif
 #include "D3DCompiler.h"
 
 #ifdef GRAPHICS_D3D11

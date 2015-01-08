@@ -1,6 +1,8 @@
 #include "FbxReaderSG.h"
 #include <fbxsdk.h>
+#ifdef GRAPHICS_D3D11
 #include "D3D11Renderer.h"
+#endif
 #include "Shlwapi.h"
 #include "SOIL.h"
 #include "ResourceManager.h"
@@ -79,31 +81,31 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 // 	}
 #else
 	// gl
-	
-	if (PathFileExists(imgPath.c_str())) {
-		std::string fs(imgPath.begin(), imgPath.end());
-		mesh->m_diffuseMap = SOIL_load_OGL_texture(
-			fs.c_str(),
-			SOIL_LOAD_AUTO,
-			SOIL_CREATE_NEW_ID,
-			SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
-			);
-		assert(mesh->m_diffuseMap != 0);
-	}
 
-	imgPath.resize(len - 4);
-	imgPath += L"_normal.dds";
-
-	if (PathFileExists(imgPath.c_str())) {
-		std::string fs(imgPath.begin(), imgPath.end());
-		mesh->m_normalMap = SOIL_load_OGL_texture(
-			fs.c_str(),
-			SOIL_LOAD_AUTO,
-			SOIL_CREATE_NEW_ID,
-			SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
-			);
-		assert(mesh->m_normalMap != 0);
-	}
+// 	if (PathFileExists(imgPath.c_str())) {
+// 		std::string fs(imgPath.begin(), imgPath.end());
+// 		mesh->m_diffuseMap = SOIL_load_OGL_texture(
+// 			fs.c_str(),
+// 			SOIL_LOAD_AUTO,
+// 			SOIL_CREATE_NEW_ID,
+// 			SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
+// 			);
+// 		assert(mesh->m_diffuseMap != 0);
+// 	}
+// 
+// 	imgPath.resize(len - 4);
+// 	imgPath += L"_normal.dds";
+// 
+// 	if (PathFileExists(imgPath.c_str())) {
+// 		std::string fs(imgPath.begin(), imgPath.end());
+// 		mesh->m_normalMap = SOIL_load_OGL_texture(
+// 			fs.c_str(),
+// 			SOIL_LOAD_AUTO,
+// 			SOIL_CREATE_NEW_ID,
+// 			SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
+// 			);
+// 		assert(mesh->m_normalMap != 0);
+// 	}
 #endif
 	return true;
 }
@@ -278,7 +280,11 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 				//if (matCount == 1)
 				//	mesh->m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 				//else
+#ifdef GRAPHICS_D3D11
 					mesh->m_subMeshes[i].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
+#else
+					mesh->m_subMeshes[i].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<GLuint>(tex->GetFileName()));
+#endif
 			}
 		//}
 
@@ -289,7 +295,11 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 			//if (matCount == 1)
 			//	mesh->m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 			//else
+#ifdef GRAPHICS_D3D11
 				mesh->m_subMeshes[i].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
+#else
+				mesh->m_subMeshes[i].m_normalMapTex = *(ResourceManager::Instance()->GetResource<GLuint>(tex->GetFileName()));
+#endif
 		}
 
 		FbxProperty displacementProp = sMat->FindProperty(FbxSurfaceMaterial::sDisplacementColor);
@@ -299,7 +309,11 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 			//if (matCount == 1)
 			//	mesh->m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 			//else
+#ifdef GRAPHICS_D3D11
 				mesh->m_subMeshes[i].m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
+#else
+				mesh->m_subMeshes[i].m_bumpMapTex = *(ResourceManager::Instance()->GetResource<GLuint>(tex->GetFileName()));
+#endif
 		}
 	}
 }

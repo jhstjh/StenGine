@@ -7,7 +7,9 @@
 #include "windowsX.h"
 #include "stdafx.h"
 #include "StenGine.h"
+#ifdef GRAPHICS_D3D11
 #include "D3D11Renderer.h"
+#endif
 #include "GLRenderer.h"
 #include "EffectsManager.h"
 #include "LightManager.h"

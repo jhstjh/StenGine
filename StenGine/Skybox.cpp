@@ -1,5 +1,7 @@
 #include "Skybox.h"
+#ifdef GRAPHICS_D3D11
 #include "D3D11Renderer.h"
+#endif
 #include "CameraManager.h"
 #include "MeshRenderer.h"
 #include "SOIL.h"

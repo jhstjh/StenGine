@@ -1,7 +1,9 @@
 #include "CameraManager.h"
 #include "InputManager.h"
 
+#ifdef GRAPHICS_D3D11
 #include "D3D11Renderer.h"
+#endif
 #include "GLRenderer.h"
 using namespace DirectX;
 

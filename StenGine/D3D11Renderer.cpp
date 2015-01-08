@@ -1,4 +1,6 @@
+#ifdef GRAPHICS_D3D11
 #include "D3D11Renderer.h"
+#endif
 #include "D3DIncludes.h"
 #include "EffectsManager.h"
 #include "MeshRenderer.h"

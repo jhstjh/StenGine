@@ -6,6 +6,8 @@
 #include "MeshRenderer.h"
 #include <type_traits>
 #include "FbxReaderSG.h"
+#include "GL/glew.h"
+#include "SOIL.h"
 /*class Mesh;*/
 
 class ResourceManager {
@@ -55,18 +57,40 @@ public:
 				return (T*)got->second;
 			}
 		}
+#ifdef GRAPHICS_D3D11
 		else if (std::is_same<T, ID3D11ShaderResourceView>::value) {
 			auto got = m_textureSRVResourceMap.find(path);
 			if (got == m_textureSRVResourceMap.end()) {
 				ID3D11ShaderResourceView* texSRV;
 				CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
 					path.c_str(), nullptr, &texSRV);
+				m_textureSRVResourceMap[path] = texSRV;
 				return (T*)texSRV;
 			}
 			else {
 				return (T*)got->second;
 			}
 		}
+#else
+		else if (std::is_same<T, GLuint>::value) {
+			auto got = m_textureResourceMap.find(path);
+			if (got == m_textureResourceMap.end()) {
+				std::string s(path.begin(), path.end());
+				GLuint tex = SOIL_load_OGL_texture(
+					s.c_str(),
+					SOIL_LOAD_AUTO,
+					SOIL_CREATE_NEW_ID,
+					SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
+					);
+				assert(tex != 0);
+				m_textureResourceMap[path] = tex;
+				return (T*)&m_textureResourceMap[path];
+			}
+			else {
+				return (T*)&(got->second);
+			}
+		}
+#endif
 	}
 
 	~ResourceManager();
@@ -74,7 +98,11 @@ public:
 private:
 	static ResourceManager* _instance;
 	std::unordered_map<std::wstring, Mesh*> m_meshResourceMap;
+#ifdef GRAPHICS_D3D11
 	std::unordered_map<std::wstring, ID3D11ShaderResourceView*> m_textureSRVResourceMap;
+#else
+	std::unordered_map<std::wstring, GLuint> m_textureResourceMap;
+#endif
 };
 
 

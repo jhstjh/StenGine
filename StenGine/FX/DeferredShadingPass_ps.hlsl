@@ -68,15 +68,15 @@ float OcclusionFunction(float distZ)
 	// We use the following function to determine the occlusion.  
 	// 
 	//
-	//               1.0     -------------\
+	//						 1.0     -------------\
 					//               |           |  \
 					//               |           |    \
 					//               |           |      \ 
-	//               |           |        \
+					//               |           |        \
 					//               |           |          \
 					//               |           |            \
 					//  ------|------|-----------|-------------|---------|--> zv
-	//        0     Eps          z0            z1        
+					//        0     Eps          z0            z1        
 	//
 
 	float occlusion = 0.0f;
@@ -135,7 +135,7 @@ PSOut main(PSIn input)
 //
 //	pOut.DeferredShade = (float4(0.2, 0.2, 0.2, 0) + diffColor * shadowLit) * gDiffuseGB.Sample(gSamplerStateLinear, input.Tex) + specColor * shadowLit /*+ float4(1, 1, 1, 1) * vPositionVS.z / 20*/;
 	
-	float roughnessFactor = 0.1;
+	float roughnessFactor = 0.15;
 
 	float3 viewRay = normalize(float3(0, 0, 0) - vPositionVS.xyz);
 	float3 light = -gDirLight.direction;

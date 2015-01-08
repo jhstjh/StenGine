@@ -1,5 +1,7 @@
 #include "MeshRenderer.h"
+#ifdef GRAPHICS_D3D11
 #include "D3D11Renderer.h"
+#endif
 #include "EffectsManager.h"
 #include "ObjReader.h"
 #include "CameraManager.h"
@@ -227,27 +229,27 @@ void Mesh::CreateBoxPrimitive() {
 	m_material.ambient = XMFLOAT4(0.2, 0.2, 0.2, 1);
 	m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
 	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
+	m_subMeshes[0].m_indexBufferCPU = m_indexBufferCPU;
 #ifdef GRAPHICS_D3D11
 	m_subMeshes[0].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02.dds");
 	m_subMeshes[0].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02_normal.dds");
-	m_subMeshes[0].m_indexBufferCPU = m_indexBufferCPU;
 #else
 	// gl
-	m_diffuseMap = SOIL_load_OGL_texture (
+	m_subMeshes[0].m_diffuseMapTex = SOIL_load_OGL_texture(
 		"./Model/WoodCrate02.dds",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
 		);
-	assert(m_diffuseMap != 0);
+	assert(m_subMeshes[0].m_diffuseMapTex != 0);
 
-	m_normalMap = SOIL_load_OGL_texture(
+	m_subMeshes[0].m_normalMapTex = SOIL_load_OGL_texture(
 		"./Model/WoodCrate02_normal.dds",
 		SOIL_LOAD_AUTO,
 		SOIL_CREATE_NEW_ID,
 		SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
 		);
-	assert(m_normalMap != 0);
+	assert(m_subMeshes[0].m_normalMapTex != 0);
 #endif
 }
 
@@ -476,9 +478,7 @@ void Mesh::Draw() {
 	
 	effect->m_perObjUniformBuffer.Mat = m_material;
 
-	effect->DiffuseMap = m_diffuseMap;
-	effect->NormalMap = m_normalMap;
-
+	// TODO: reverse loop nest of parent and submesh to reduce texture switch
 	for (int iP = 0; iP < m_parents.size(); iP++) {
 		effect->m_perObjUniformBuffer.WorldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
 		effect->m_perObjUniformBuffer.World = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform());
@@ -487,18 +487,25 @@ void Mesh::Draw() {
 		
 		effect->UpdateConstantBuffer();
 		effect->BindConstantBuffer();
-		effect->BindShaderResource();
 
-		glDrawElements(
-			GL_TRIANGLES,      // mode
-			m_indexBufferCPU.size(),    // count
-			GL_UNSIGNED_INT,   // type
-			(void*)0           // element array buffer offset
+		int startIndex = 0;
+		for (int iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
+			effect->DiffuseMap = m_subMeshes[iSubMesh].m_diffuseMapTex;
+			effect->NormalMap = m_subMeshes[iSubMesh].m_normalMapTex;
+			effect->BindShaderResource();
+
+			glDrawElements(
+				GL_TRIANGLES,      // mode
+				m_subMeshes[iSubMesh].m_indexBufferCPU.size(),    // count
+				//m_indexBufferCPU.size(),
+				GL_UNSIGNED_INT,   // type
+				(void*)(startIndex * sizeof(unsigned int))           // element array buffer offset
 			);
-		
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
+			effect->UnBindShaderResource();
+			startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
+			//break;
+		}
 		effect->UnBindConstantBuffer();
-		effect->UnBindShaderResource();
 	}
 #endif
 }
