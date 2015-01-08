@@ -1,15 +1,16 @@
 #include "GameObject.h"
 #include <algorithm>
 
-GameObject::GameObject() {
+GameObject::GameObject(const char* name) {
 	XMMATRIX I = XMMatrixIdentity();
 	XMStoreFloat4x4(&m_worldTransform, I);
+	m_name = std::string(name);
 }
 
-GameObject::GameObject(float x, float y, float z) {
+GameObject::GameObject(const char* name, float x, float y, float z) {
 	XMMATRIX I = XMMatrixIdentity();
 	XMStoreFloat4x4(&m_worldTransform, I);
-
+	m_name = std::string(name);
 	SetPosition(x, y, z);
 }
 

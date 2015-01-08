@@ -10,11 +10,12 @@ class GameObject {
 private:
 	
 	std::vector<Component*> m_components;
+	std::string m_name;
 
 public:
 	XMFLOAT4X4 m_worldTransform;
-	GameObject();
-	GameObject(float x, float y, float z);
+	GameObject(const char* name);
+	GameObject(const char* name, float x, float y, float z);
 	~GameObject();
 	void SetPosition(float x, float y, float z);
 	XMFLOAT3 GetPosition();

@@ -91,24 +91,24 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	InputManager::Instance();
 
 
-	GameObject* box0 = new GameObject();
+	GameObject* box0 = new GameObject("box0");
 	Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
 	box0->AddComponent(box0Mesh);
 	box0->RotateAroundY(3.14159 / 5);
 
- 	GameObject* sphere = new GameObject(0, 2.5, -0.5);
+ 	GameObject* sphere = new GameObject("sphere", 0, 2.5, -0.5);
  	Mesh* sphereMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/earth.fbx");
  	sphere->AddComponent(sphereMesh);
  
- 	GameObject* plane0 = new GameObject(4, -1, 0);
+ 	GameObject* plane0 = new GameObject("plane0", 4, -1, 0);
 	Mesh* plane0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plane.fbx");
  	plane0->AddComponent(plane0Mesh);
 
-	GameObject* plane1 = new GameObject(-4, -1, 0);
+	GameObject* plane1 = new GameObject("plane1", -4, -1, 0);
 	Mesh* plane1Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plane.fbx");
 	plane1->AddComponent(plane1Mesh);
 
-	GameObject* plants0 = new GameObject(-4, -1, 0);
+	GameObject* plants0 = new GameObject("plants0", -4, -1, 0);
 	Mesh* plants0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plants.fbx");
 	plants0->AddComponent(plants0Mesh);
 
