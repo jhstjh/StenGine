@@ -234,22 +234,8 @@ void Mesh::CreateBoxPrimitive() {
 	m_subMeshes[0].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02.dds");
 	m_subMeshes[0].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02_normal.dds");
 #else
-	// gl
-	m_subMeshes[0].m_diffuseMapTex = SOIL_load_OGL_texture(
-		"./Model/WoodCrate02.dds",
-		SOIL_LOAD_AUTO,
-		SOIL_CREATE_NEW_ID,
-		SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
-		);
-	assert(m_subMeshes[0].m_diffuseMapTex != 0);
-
-	m_subMeshes[0].m_normalMapTex = SOIL_load_OGL_texture(
-		"./Model/WoodCrate02_normal.dds",
-		SOIL_LOAD_AUTO,
-		SOIL_CREATE_NEW_ID,
-		SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
-		);
-	assert(m_subMeshes[0].m_normalMapTex != 0);
+	m_subMeshes[0].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<GLuint>(L"./Model/WoodCrate02.dds"));
+	m_subMeshes[0].m_normalMapTex = *(ResourceManager::Instance()->GetResource<GLuint>(L"./Model/WoodCrate02_normal.dds"));
 #endif
 }
 

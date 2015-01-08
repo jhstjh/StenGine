@@ -273,9 +273,9 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 		}
 		else {
 		*/
-			int texCount = diffProp.GetSrcObjectCount(FbxTexture::ClassId);
+			int texCount = diffProp.GetSrcObjectCount<FbxTexture>();
 			for (int iTex = 0; iTex < texCount; iTex++) {
-				FbxFileTexture* tex = FbxCast<FbxFileTexture>(diffProp.GetSrcObject(FbxTexture::ClassId, iTex));
+				FbxFileTexture* tex = FbxCast<FbxFileTexture>(diffProp.GetSrcObject<FbxTexture>(iTex));
 				puts(tex->GetFileName());
 				//if (matCount == 1)
 				//	mesh->m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
@@ -289,9 +289,9 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 		//}
 
 		FbxProperty normalProp = sMat->FindProperty(FbxSurfaceMaterial::sNormalMap);
-		int normalTexCount = normalProp.GetSrcObjectCount(FbxTexture::ClassId);
+		int normalTexCount = normalProp.GetSrcObjectCount<FbxTexture>();
 		for (int iTex = 0; iTex < normalTexCount; iTex++) {
-			FbxFileTexture* tex = FbxCast<FbxFileTexture>(normalProp.GetSrcObject(FbxTexture::ClassId, iTex));
+			FbxFileTexture* tex = FbxCast<FbxFileTexture>(normalProp.GetSrcObject<FbxTexture>(iTex));
 			//if (matCount == 1)
 			//	mesh->m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 			//else
@@ -303,9 +303,9 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 		}
 
 		FbxProperty displacementProp = sMat->FindProperty(FbxSurfaceMaterial::sDisplacementColor);
-		int displacementTexCount = displacementProp.GetSrcObjectCount(FbxTexture::ClassId);
+		int displacementTexCount = displacementProp.GetSrcObjectCount<FbxTexture>();
 		for (int iTex = 0; iTex < displacementTexCount; iTex++) {
-			FbxFileTexture* tex = FbxCast<FbxFileTexture>(displacementProp.GetSrcObject(FbxTexture::ClassId, iTex));
+			FbxFileTexture* tex = FbxCast<FbxFileTexture>(displacementProp.GetSrcObject<FbxTexture>(iTex));
 			//if (matCount == 1)
 			//	mesh->m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 			//else
