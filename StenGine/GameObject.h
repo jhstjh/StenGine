@@ -7,7 +7,7 @@
 class Component;
 
 class GameObject {
-private:
+protected:
 	
 	std::vector<Component*> m_components;
 	std::string m_name;

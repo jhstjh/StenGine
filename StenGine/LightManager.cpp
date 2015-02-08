@@ -1,4 +1,5 @@
 #include "LightManager.h"
+#include "ShadowMap.h"
 
 LightManager* LightManager::_instance = nullptr;
 

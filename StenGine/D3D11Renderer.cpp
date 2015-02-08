@@ -8,6 +8,7 @@
 #include "MathHelper.h"
 #include "CameraManager.h"
 #include "Color.h"
+#include "ShadowMap.h"
 
 D3D11Renderer* D3D11Renderer::_instance = nullptr;
 
@@ -495,11 +496,22 @@ bool D3D11Renderer::Init() {
 }
 
 void D3D11Renderer::Draw() {
-
 	LightManager::Instance()->m_shadowMap->RenderShadowMap();
+	DrawGBuffer();
+	DrawDeferredShading();
+	DrawBlurSSAOAndCombine();
+	//DrawGodRay();
+	DrawDebug();
 
- 	ID3D11ShaderResourceView* nullSRV[16] = { 0 };
- 	
+	// clean up
+	m_d3d11DeviceContext->ClearState();
+	m_d3d11DeviceContext->RSSetState(0);
+	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
+	m_d3d11DeviceContext->OMSetRenderTargets(0, NULL, NULL);
+	HR(m_swapChain->Present(0, 0));
+}
+
+void D3D11Renderer::DrawGBuffer() {
 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
 	D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	ID3D11RenderTargetView* rtvs[3] = { m_diffuseBufferRTV, m_normalBufferRTV, m_specularBufferRTV };
@@ -530,7 +542,10 @@ void D3D11Renderer::Draw() {
 		EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->Draw();
 	}
 	EffectsManager::Instance()->m_deferredGeometryPassEffect->UnSetShader();
+}
 
+void D3D11Renderer::DrawDeferredShading() {
+	ID3D11ShaderResourceView* nullSRV[16] = { 0 };
 	// --------- skybox --------- //
 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
 	m_d3d11DeviceContext->HSSetShaderResources(0, 16, nullSRV);
@@ -549,7 +564,6 @@ void D3D11Renderer::Draw() {
 #if PS_SHADING 
 	//-------------- composite deferred render target views AND SSAO-------------------//
 
-	
 	m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
 	ID3D11RenderTargetView* crtvs[2] = { m_deferredShadingRTV, m_SSAORTV };
 	m_d3d11DeviceContext->OMSetRenderTargets(2, crtvs, m_depthStencilView);
@@ -592,9 +606,9 @@ void D3D11Renderer::Draw() {
 	m_d3d11DeviceContext->Draw(6, 0);
 	deferredShadingEffect->UnBindShaderResource();
 	deferredShadingEffect->UnBindConstantBuffer();
-	
+
 	deferredShadingEffect->UnSetShader();
-	
+
 
 #else
 	// -------compute shader deferred shading -------//
@@ -640,72 +654,27 @@ void D3D11Renderer::Draw() {
 	deferredCSEffect->UnSetShader();
 
 #endif
+}
 
+void D3D11Renderer::DrawBlurSSAOAndCombine() {
+	ID3D11ShaderResourceView* nullSRV[16] = { 0 };
+	ID3D11SamplerState* samplerState[] = { m_samplerState, m_shadowSamplerState };
 	// -------compute shader blur ----------//
-
-
 	m_d3d11DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
 
-	VBlurEffect* vBlurEffect = EffectsManager::Instance()->m_vblurEffect;
-	vBlurEffect->SetShader();
-	vBlurEffect->UpdateConstantBuffer();
-	vBlurEffect->BindConstantBuffer();
 #if PS_SHADING
-	vBlurEffect->SetShaderResources(m_SSAOSRV, 0);
+	ID3D11ShaderResourceView* blurredSSAOSRV	= doCSBlur(m_SSAOSRV, 0);
+	ID3D11ShaderResourceView* blurredSRV		= doCSBlur(m_deferredShadingSRV, 1);
 #else
-	vBlurEffect->SetShaderResources(deferredCSEffect->GetOutputShaderResource(1), 0);
+	ID3D11ShaderResourceView* blurredSSAOSRV	= doCSBlur(deferredCSEffect->GetOutputShaderResource(1), 0);
+	ID3D11ShaderResourceView* blurredSRV		= doCSBlur(deferredCSEffect->GetOutputShaderResource(0), 1);
 #endif
-	vBlurEffect->BindShaderResource();
-
-	UINT numGroupsX = (UINT)ceilf(m_clientWidth / 256.0f);
-	m_d3d11DeviceContext->Dispatch(numGroupsX, m_clientHeight, 1);
-
-	vBlurEffect->UnbindUnorderedAccessViews();
-	vBlurEffect->UnBindShaderResource();
-
-#if PS_SHADING
-	vBlurEffect->SetShaderResources(m_deferredShadingSRV, 0);
-#else
-	vBlurEffect->SetShaderResources(deferredCSEffect->GetOutputShaderResource(0), 0);
-#endif
-	vBlurEffect->BindShaderResource(1);
-
-	m_d3d11DeviceContext->Dispatch(numGroupsX, m_clientHeight, 1);
-
-	vBlurEffect->UnBindConstantBuffer();
-	vBlurEffect->UnbindUnorderedAccessViews();
-	vBlurEffect->UnBindShaderResource();
-	vBlurEffect->UnSetShader();
-
-
-	HBlurEffect* hBlurEffect = EffectsManager::Instance()->m_hblurEffect;
-	hBlurEffect->SetShader();
-	hBlurEffect->UpdateConstantBuffer();
-	hBlurEffect->BindConstantBuffer();
-	hBlurEffect->SetShaderResources(vBlurEffect->GetOutputShaderResource(0), 0);
-	hBlurEffect->BindShaderResource();
-
-	UINT numGroupsY = (UINT)ceilf(m_clientHeight / 256.0f);
-	m_d3d11DeviceContext->Dispatch(m_clientWidth, numGroupsY, 1);
-
-	hBlurEffect->UnbindUnorderedAccessViews();
-	hBlurEffect->UnBindShaderResource();
-	hBlurEffect->SetShaderResources(vBlurEffect->GetOutputShaderResource(1), 0);
-	hBlurEffect->BindShaderResource(1);
-
-	m_d3d11DeviceContext->Dispatch(m_clientWidth, numGroupsY, 1);
-
-	hBlurEffect->UnBindConstantBuffer();
-	hBlurEffect->UnbindUnorderedAccessViews();
-	hBlurEffect->UnBindShaderResource();
-	hBlurEffect->UnSetShader();
-
 
 	// ------ Screen Quad -------//
 	BlurEffect* blurEffect = EffectsManager::Instance()->m_blurEffect;
 	blurEffect->SetShader();
 
- 	m_d3d11DeviceContext->PSSetSamplers(0, 1, samplerState);
+	m_d3d11DeviceContext->PSSetSamplers(0, 1, samplerState);
 
 	m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
@@ -715,8 +684,8 @@ void D3D11Renderer::Draw() {
 #else
 	blurEffect->SetShaderResources(deferredCSEffect->GetOutputShaderResource(0), 0);
 #endif
-	blurEffect->SetShaderResources(vBlurEffect->GetOutputShaderResource(0)/*m_SSAOSRV*/, 1);
-	blurEffect->SetShaderResources(vBlurEffect->GetOutputShaderResource(1), 2);
+	blurEffect->SetShaderResources(blurredSSAOSRV/*m_SSAOSRV*/, 1);
+	blurEffect->SetShaderResources(blurredSRV, 2);
 	blurEffect->m_settingConstantBuffer.texOffset = XMFLOAT2(1.0 / D3D11Renderer::Instance()->m_clientWidth, 0.0f);
 	m_d3d11DeviceContext->PSSetSamplers(0, 1, samplerState);
 
@@ -729,9 +698,9 @@ void D3D11Renderer::Draw() {
 	blurEffect->UnBindConstantBuffer();
 
 	blurEffect->UnSetShader();
+}
 
-
-#if 1
+void D3D11Renderer::DrawGodRay() {
 	//--------------------Post processing----------------------//
 	m_d3d11DeviceContext->OMSetBlendState(m_additiveAlphaAddBS, NULL, 0xFFFFFFFF);
 	m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, nullptr);
@@ -767,8 +736,9 @@ void D3D11Renderer::Draw() {
 
 	m_d3d11DeviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
 	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
-#endif
+}
 
+void D3D11Renderer::DrawDebug() {
 	// draw debug line
 	m_d3d11DeviceContext->OMSetDepthStencilState(m_noZWriteDSState, 1); // turn off z write
 	m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
@@ -794,13 +764,41 @@ void D3D11Renderer::Draw() {
 
 	debugFX->UnBindConstantBuffer();
 	debugFX->UnSetShader();
+}
 
+ID3D11ShaderResourceView* D3D11Renderer::doCSBlur(ID3D11ShaderResourceView* blurImgSRV, int uavSlotIdx) {
+	// vblur
+	VBlurEffect* vBlurEffect = EffectsManager::Instance()->m_vblurEffect;
+	vBlurEffect->SetShader();
+	vBlurEffect->UpdateConstantBuffer();
+	vBlurEffect->BindConstantBuffer();
+	vBlurEffect->SetShaderResources(blurImgSRV, 0);
 
+	vBlurEffect->BindShaderResource(uavSlotIdx);
 
-	// clean up
-	m_d3d11DeviceContext->ClearState();
-	m_d3d11DeviceContext->RSSetState(0);
-	m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
-	m_d3d11DeviceContext->OMSetRenderTargets(0, NULL, NULL);
-	HR(m_swapChain->Present(0, 0));
+	UINT numGroupsX = (UINT)ceilf(m_clientWidth / 256.0f);
+	m_d3d11DeviceContext->Dispatch(numGroupsX, m_clientHeight, 1);
+
+	vBlurEffect->UnBindConstantBuffer();
+	vBlurEffect->UnbindUnorderedAccessViews();
+	vBlurEffect->UnBindShaderResource();
+	vBlurEffect->UnSetShader();
+
+	//hblur
+	HBlurEffect* hBlurEffect = EffectsManager::Instance()->m_hblurEffect;
+	hBlurEffect->SetShader();
+	hBlurEffect->UpdateConstantBuffer();
+	hBlurEffect->BindConstantBuffer();
+	hBlurEffect->SetShaderResources(vBlurEffect->GetOutputShaderResource(uavSlotIdx), 0);
+	hBlurEffect->BindShaderResource(uavSlotIdx);
+
+	UINT numGroupsY = (UINT)ceilf(m_clientHeight / 256.0f);
+	m_d3d11DeviceContext->Dispatch(m_clientWidth, numGroupsY, 1);
+
+	hBlurEffect->UnBindConstantBuffer();
+	hBlurEffect->UnbindUnorderedAccessViews();
+	hBlurEffect->UnBindShaderResource();
+	hBlurEffect->UnSetShader();
+
+	return hBlurEffect->GetOutputShaderResource(uavSlotIdx);
 }

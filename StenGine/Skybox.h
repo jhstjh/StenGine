@@ -15,6 +15,8 @@ public:
 #else
 	GLuint m_cubeMapTex;
 #endif
+
+	class hahaha* haha;
 };
 
 #endif

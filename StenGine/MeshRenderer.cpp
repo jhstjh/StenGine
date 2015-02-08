@@ -8,8 +8,10 @@
 #include "LightManager.h"
 #include "SOIL.h"
 #include "ResourceManager.h"
+#include "ShadowMap.h"
+#include "Component.h"
 
-Mesh::Mesh(int type = 0) :
+Mesh::Mesh(int type = 0):
 #ifdef GRAPHICS_D3D11
 m_indexBufferCPU(0),
 m_stdMeshVertexBufferGPU(0),
@@ -36,6 +38,8 @@ Mesh::~Mesh() {
 	ReleaseCOM(m_diffuseMapSRV);
 	ReleaseCOM(m_normalMapSRV);
 	ReleaseCOM(m_bumpMapSRV);
+	SafeDelete(m_associatedEffect);
+	SafeDelete(m_associatedDeferredEffect);
 #endif
 }
 
@@ -408,11 +412,9 @@ void Mesh::Draw() {
 	deferredGeoEffect->GetPerObjConstantBuffer()->ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
 	for (int iP = 0; iP < m_parents.size(); iP++) {
-		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
-		deferredGeoEffect->GetPerObjConstantBuffer()->WorldViewProj = XMMatrixTranspose(worldViewProj);
+		deferredGeoEffect->GetPerObjConstantBuffer()->WorldViewProj = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 		deferredGeoEffect->GetPerObjConstantBuffer()->World = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
-		XMMATRIX worldInvTranspose = MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
-		deferredGeoEffect->GetPerObjConstantBuffer()->WorldInvTranspose = XMMatrixTranspose(worldInvTranspose);
+		deferredGeoEffect->GetPerObjConstantBuffer()->WorldInvTranspose = XMMatrixTranspose(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform())));
 
 		XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
 		deferredGeoEffect->GetPerObjConstantBuffer()->WorldView = XMMatrixTranspose(worldView);
@@ -420,8 +422,7 @@ void Mesh::Draw() {
 		XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
 		deferredGeoEffect->GetPerObjConstantBuffer()->WorldViewInvTranspose = XMMatrixTranspose(worldViewInvTranspose);
 
-		XMMATRIX worldShadowMapTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
-		deferredGeoEffect->GetPerObjConstantBuffer()->ShadowTransform = XMMatrixTranspose(worldShadowMapTransform);
+		deferredGeoEffect->GetPerObjConstantBuffer()->ShadowTransform = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
 
 		int startIndex = 0;
 		for (int iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
@@ -464,7 +465,6 @@ void Mesh::Draw() {
 	
 	effect->m_perObjUniformBuffer.Mat = m_material;
 
-	// TODO: reverse loop nest of parent and submesh to reduce texture switch
 	for (int iP = 0; iP < m_parents.size(); iP++) {
 		effect->m_perObjUniformBuffer.WorldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
 		effect->m_perObjUniformBuffer.World = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform());

@@ -50,11 +50,25 @@ cbuffer cbPerFrame : register(b1) {
 #endif
 };
 
+// TODO: should be in a tbuffer. tmp cbuffer for now
+cbuffer cbMatrixPalette : register(b2) {
+	float4x4 gJointMatrixPalette[96];
+}
+
 struct VertexIn {
 	float3 PosL  : POSITION;
 	float3 NormalL : NORMAL0;
 	float3 TangentL: TANGENT;
 	float2 TexUV : TEXCOORD;
+};
+
+struct SkinnedVertexIn {
+	float3 PosL  : POSITION;
+	float3 NormalL : NORMAL0;
+	float3 TangentL: TANGENT;
+	float2 TexUV : TEXCOORD;
+	float4 JointWeights : JOINTWEIGHTS;
+	uint4  JointIndices : JOINTINDICES;
 };
 
 struct DebugLineVertexIn {

@@ -178,6 +178,82 @@ public:
 //--------------------------------------------------------------------//
 
 
+class DeferredGeometrySkinnedPassEffect : public Effect {
+private:
+#ifdef GRAPHICS_D3D11
+	ID3D11Buffer* m_perFrameCB;
+	ID3D11Buffer* m_perObjectCB;
+#else
+	GLuint m_perFrameUBO;
+	GLuint m_perObjectUBO;
+
+	GLint DiffuseMapPosition;
+	GLint NormalMapPosition;
+	GLint ShadowMapPosition;
+	GLint CubeMapPosition;
+#endif
+
+public:
+	DeferredGeometrySkinnedPassEffect(const std::wstring& filename);
+	DeferredGeometrySkinnedPassEffect(const std::wstring& vsPath,
+		const std::wstring& psPath,
+		const std::wstring& gsPath,
+		const std::wstring& hsPath,
+		const std::wstring& dsPath);
+	~DeferredGeometrySkinnedPassEffect();
+
+	virtual void UpdateConstantBuffer();
+	virtual void BindConstantBuffer();
+	virtual void BindShaderResource();
+#ifdef GRAPHICS_D3D11
+	struct PEROBJ_CONSTANT_BUFFER
+	{
+		XMMATRIX WorldViewProj;
+		XMMATRIX WorldViewInvTranspose;
+		XMMATRIX WorldInvTranspose;
+		XMMATRIX WorldView;
+		XMMATRIX World;
+		XMMATRIX ViewProj;
+		XMMATRIX ShadowTransform;
+		Material Mat;
+		XMFLOAT4 DiffX_NormY_ShadZ;
+	} m_perObjConstantBuffer;
+
+	struct PERFRAME_CONSTANT_BUFFER
+	{
+		XMFLOAT4 EyePosW;
+	} m_perFrameConstantBuffer;
+
+	virtual PEROBJ_CONSTANT_BUFFER* GetPerObjConstantBuffer() { return &m_perObjConstantBuffer; }
+	virtual PERFRAME_CONSTANT_BUFFER* GetPerFrameConstantBuffer() { return &m_perFrameConstantBuffer; }
+	//ID3D11ShaderResourceView *m_shaderResources[5];
+#else
+	struct PEROBJ_UNIFORM_BUFFER
+	{
+		XMMATRIX WorldViewProj;
+		XMMATRIX World;
+		XMMATRIX WorldView;
+		XMMATRIX ShadowTransform;
+		Material Mat;
+		XMFLOAT4 DiffX_NormY_ShadZ;
+	} m_perObjUniformBuffer;
+
+	struct PERFRAME_UNIFORM_BUFFER
+	{
+		XMFLOAT4 EyePosW;
+		DirectionalLight DirLight;
+	} m_perFrameUniformBuffer;
+
+	GLint DiffuseMap;
+	GLint NormalMap;
+	GLint ShadowMapTex;
+	GLint CubeMapTex;
+
+#endif
+};
+//--------------------------------------------------------------------//
+
+
 class DeferredGeometryTessPassEffect : public DeferredGeometryPassEffect {
 private:
 	ID3D11Buffer* m_perFrameCB;
@@ -576,6 +652,7 @@ public:
 	//StdMeshEffect* m_stdMeshEffect;
 	ShadowMapEffect* m_shadowMapEffect;
 	DeferredGeometryPassEffect* m_deferredGeometryPassEffect; 
+	DeferredGeometrySkinnedPassEffect* m_deferredGeometrySkinnedPassEffect;
 	DeferredGeometryTessPassEffect* m_deferredGeometryTessPassEffect;
 	DeferredShadingPassEffect* m_deferredShadingPassEffect;
 	DeferredShadingCS* m_deferredShadingCSEffect;

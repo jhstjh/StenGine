@@ -41,9 +41,6 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 	FbxNode* lRootNode = lScene->GetRootNode();
 
 	if (lRootNode) {
-// 		for (int i = 0; i < lRootNode->GetChildCount(); i++) {
-// 			//PrintNode(lRootNode->GetChild(i));
-// 		}
 		ReadFbxMesh(lRootNode->GetChild(0), mesh);
 		ReadFbxMaterial(lRootNode->GetChild(0), mesh);
 	}
@@ -54,59 +51,6 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 	mesh->m_material.diffuse = XMFLOAT4(1.0, 0.8, 0.7, 1);
 	mesh->m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
 
-	std::wstring imgPath = filename;
-
-	int len = imgPath.length();
-
-	imgPath[len - 1] = 's';
-	imgPath[len - 2] = 'd';
-	imgPath[len - 3] = 'd';
-#ifdef GRAPHICS_D3D11
-// 	if (PathFileExists(imgPath.c_str())) {
-// 		mesh->m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(imgPath);
-// 	}
-
-// 	imgPath.resize(len - 4);
-// 	imgPath += L"_normal.dds";
-// 
-// 	if (PathFileExists(imgPath.c_str())) {
-// 		mesh->m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(imgPath);
-// 	}
-
-// 	imgPath.resize(len - 4);
-// 	imgPath += L"_bump.dds";
-// 
-// 	if (PathFileExists(imgPath.c_str())) {
-// 		mesh->m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(imgPath);
-// 	}
-#else
-	// gl
-
-// 	if (PathFileExists(imgPath.c_str())) {
-// 		std::string fs(imgPath.begin(), imgPath.end());
-// 		mesh->m_diffuseMap = SOIL_load_OGL_texture(
-// 			fs.c_str(),
-// 			SOIL_LOAD_AUTO,
-// 			SOIL_CREATE_NEW_ID,
-// 			SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
-// 			);
-// 		assert(mesh->m_diffuseMap != 0);
-// 	}
-// 
-// 	imgPath.resize(len - 4);
-// 	imgPath += L"_normal.dds";
-// 
-// 	if (PathFileExists(imgPath.c_str())) {
-// 		std::string fs(imgPath.begin(), imgPath.end());
-// 		mesh->m_normalMap = SOIL_load_OGL_texture(
-// 			fs.c_str(),
-// 			SOIL_LOAD_AUTO,
-// 			SOIL_CREATE_NEW_ID,
-// 			SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
-// 			);
-// 		assert(mesh->m_normalMap != 0);
-// 	}
-#endif
 	return true;
 }
 
@@ -311,6 +255,7 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 			//else
 #ifdef GRAPHICS_D3D11
 				mesh->m_subMeshes[i].m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
+				int a = 100;
 #else
 				mesh->m_subMeshes[i].m_bumpMapTex = *(ResourceManager::Instance()->GetResource<GLuint>(tex->GetFileName()));
 #endif

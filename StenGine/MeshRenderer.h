@@ -26,10 +26,19 @@ namespace Vertex {
 		XMFLOAT3 Pos;
 		//XMFLOAT4 Color;
 	};
+
+	struct SkinnedMeshVertex {
+		XMFLOAT3 Pos;
+		XMFLOAT3 Normal;
+		XMFLOAT3 Tangent;
+		XMFLOAT2 TexUV;
+		XMFLOAT4 JointWeights;
+		XMUINT4  JointIndices;
+	};
 }
 
 class Mesh: public Component {
-private:
+protected:
 #ifdef GRAPHICS_D3D11
 	ID3D11Buffer* m_indexBufferGPU;
 	ID3D11Buffer* m_stdMeshVertexBufferGPU;
@@ -52,8 +61,8 @@ private:
 
 	void CreateBoxPrimitive();
 	void CreatePlanePrimitive();
-	void PrepareGPUBuffer();
-	void PrepareShadowMapBuffer();
+	virtual void PrepareGPUBuffer();
+	virtual void PrepareShadowMapBuffer();
 	void PrepareSRV(int type);
 
 public:
@@ -79,8 +88,8 @@ public:
 	bool m_receiveShadow;
 	Mesh(int type);
 	~Mesh();
-	void Draw();
-	void DrawOnShadowMap();
+	virtual void Draw();
+	virtual void DrawOnShadowMap();
 	void Prepare();
 
 

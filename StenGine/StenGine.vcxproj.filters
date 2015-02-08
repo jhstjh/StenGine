@@ -19,6 +19,12 @@
     <Filter Include="Model">
       <UniqueIdentifier>{952cac11-8329-40dc-a3d5-f781578b9f9a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\GameObjects">
+      <UniqueIdentifier>{873c737a-1a44-497c-aca6-b8ea45c06770}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\GameObjects">
+      <UniqueIdentifier>{7782b763-16bc-4d8a-a756-5e54673e05a8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -96,6 +102,15 @@
     <ClInclude Include="SubMesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Skeleton.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinnedMesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObjects\box.h">
+      <Filter>Header Files\GameObjects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -153,6 +168,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SubMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Skeleton.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SkinnedMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -272,6 +293,9 @@
       <Filter>FX</Filter>
     </FxCompile>
     <FxCompile Include="FX\GodRay_ps.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\DeferredGeometrySkinnedPass_vs.hlsl">
       <Filter>FX</Filter>
     </FxCompile>
   </ItemGroup>

@@ -15,6 +15,15 @@ public:
 	static D3D11Renderer* Instance() { return _instance; }
 	virtual bool Init();
 	virtual void Draw();
+
+	void DrawGBuffer();
+	void DrawDeferredShading();
+	void DrawBlurSSAOAndCombine();
+	void DrawDebug();
+	void DrawGodRay();
+
+	ID3D11ShaderResourceView* doCSBlur(ID3D11ShaderResourceView* blurImgSRV, int uavSlotIdx = 0);
+
 	ID3D11Device* GetD3DDevice() { return m_d3d11Device; }
 	ID3D11DeviceContext* GetD3DContext() { return m_d3d11DeviceContext; }
 

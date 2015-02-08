@@ -2,6 +2,7 @@
 #include "D3D11Renderer.h"
 #include "LightManager.h"
 
+
 ShadowMap::ShadowMap(UINT width, UINT height)
 	:m_width(width), m_height(height)
 {
