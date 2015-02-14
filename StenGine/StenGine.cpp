@@ -92,24 +92,24 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	InputManager::Instance();
 
 
-	GameObject* box0 = new GameObject("box0");
+	GameObject* box0 = new GameObject("box0", 0, 1.2, 0);
 	Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
 	box0->AddComponent(box0Mesh);
 	box0->RotateAroundY(3.14159 / 5);
 
- 	GameObject* sphere = new GameObject("sphere", 0, 2.5, -0.5);
+ 	GameObject* sphere = new GameObject("sphere", 0, 3.7, -0.5);
  	Mesh* sphereMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/earth.fbx");
  	sphere->AddComponent(sphereMesh);
  
- 	GameObject* plane0 = new GameObject("plane0", 4, -1, 0);
+ 	GameObject* plane0 = new GameObject("plane0", 4, 0.2, 0);
 	Mesh* plane0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plane.fbx");
  	plane0->AddComponent(plane0Mesh);
 
-	GameObject* plane1 = new GameObject("plane1", -4, -1, 0);
+	GameObject* plane1 = new GameObject("plane1", -4, 0.2, 0);
 	Mesh* plane1Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plane.fbx");
 	plane1->AddComponent(plane1Mesh);
 
-	GameObject* plants0 = new GameObject("plants0", -4, -1, 0);
+	GameObject* plants0 = new GameObject("plants0", -4, 0.2, 0);
 	Mesh* plants0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plants.fbx");
 	plants0->AddComponent(plants0Mesh);
 
@@ -123,18 +123,19 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
 	Terrain::InitInfo tii;
 	tii.HeightMapFilename = L"Terrain/terrain.raw";
-	//tii.LayerMapFilename0 = L"Terrain/grass.dds";
-	//tii.LayerMapFilename1 = L"Terrain/darkdirt.dds";
-	//tii.LayerMapFilename2 = L"Terrain/stone.dds";
-	//tii.LayerMapFilename3 = L"Terrain/lightdirt.dds";
-	//tii.LayerMapFilename4 = L"Terrain/snow.dds";
-	tii.BlendMapFilename = L"Textures/blend.dds";
+	tii.LayerMapFilenames.resize(5);
+	tii.LayerMapFilenames[0] = L"Terrain/grass.dds";
+	tii.LayerMapFilenames[1] = L"Terrain/darkdirt.dds";
+	tii.LayerMapFilenames[2] = L"Terrain/stone.dds";
+	tii.LayerMapFilenames[3] = L"Terrain/lightdirt.dds";
+	tii.LayerMapFilenames[4] = L"Terrain/snow.dds";
+	tii.BlendMapFilename = L"Terrain/blend.dds";
 	tii.HeightScale = 50.0f;
 	tii.HeightmapWidth = 2049;
 	tii.HeightmapHeight = 2049;
 	tii.CellSpacing = 0.5f;
 
-	GameObject* terrain = new GameObject("Terrain", 0, -1, 0);
+	GameObject* terrain = new GameObject("Terrain", 0, 0, -100);
 	Terrain* terrainComp = new Terrain(tii);
 	terrain->AddComponent(terrainComp);
 

@@ -41,6 +41,9 @@ cbuffer cbPerObject : register(b0) {
 	float4x4 gWorld;
 	float4x4 gViewProj;
 	float4x4 gShadowTransform;
+#ifdef TERRAIN
+	float4x4 gView;
+#endif
 	Material gMaterial;
 	float4 gDiffX_NormY_ShadZ;
 };

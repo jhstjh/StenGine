@@ -3,6 +3,7 @@
 #include "D3DIncludes.h"
 #include "CameraManager.h"
 #include "LightManager.h"
+#include "ResourceManager.h"
 #include <fstream>
 
 Terrain* Terrain::_instance = nullptr;
@@ -34,6 +35,9 @@ m_initInfo(info)
 	BuildQuadPatchVB();
 	BuildQuadPatchIB();
 	BuildHeightMapSRV();
+
+	m_blendMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(m_initInfo.BlendMapFilename);
+	m_layerMapArraySRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(m_initInfo.LayerMapFilenames);
 }
 
 Terrain::~Terrain() {
@@ -308,6 +312,7 @@ void Terrain::Draw() {
 	deferredGeoTerrainEffect->m_perFrameConstantBuffer.gWorldCellSpace = m_initInfo.CellSpacing;
 	deferredGeoTerrainEffect->m_perFrameConstantBuffer.gWorldFrustumPlanes /********************/;
 	
+	deferredGeoTerrainEffect->m_perObjConstantBuffer.View = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
 	deferredGeoTerrainEffect->m_perObjConstantBuffer.ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 	deferredGeoTerrainEffect->m_perObjConstantBuffer.World = XMMatrixTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()));
 	deferredGeoTerrainEffect->m_perObjConstantBuffer.WorldInvTranspose = XMMatrixTranspose(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform())));

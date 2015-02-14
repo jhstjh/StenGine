@@ -566,9 +566,9 @@ void D3D11Renderer::DrawGBuffer() {
 	}
 	EffectsManager::Instance()->m_deferredGeometryPassEffect->UnSetShader();
 
-	m_d3d11DeviceContext->RSSetState(m_wireFrameRS);
+	//m_d3d11DeviceContext->RSSetState(m_wireFrameRS);
 	Terrain::Instance()->Draw();
-	m_d3d11DeviceContext->RSSetState(0);
+	//m_d3d11DeviceContext->RSSetState(0);
 }
 
 void D3D11Renderer::DrawDeferredShading() {

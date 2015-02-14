@@ -215,6 +215,7 @@ public:
 		XMMATRIX World;
 		XMMATRIX ViewProj;
 		XMMATRIX ShadowTransform;
+		XMMATRIX View;
 		Material Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
 	} m_perObjConstantBuffer;

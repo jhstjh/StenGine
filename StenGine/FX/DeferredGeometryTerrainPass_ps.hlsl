@@ -18,8 +18,11 @@ PixelOut main(TerrainDomainOut pIn) {
 	float3 bitan = normalize(float3(0.f, bottomY - topY, -2.f * gWorldCellSpace));
 	float3 normalW = cross(tangent, bitan);
 
-	pOut.normalV = float4(normalW, 1.f);
-	
+	pOut.normalV = mul(float4(normalW, 0.f), gView);
+	pOut.normalV.w = 1.0f;
+
+	pOut.normalV = (pOut.normalV + 1) / 2.0f;
+
 	float4 c0 = gLayerMapArray.Sample(gDiffuseMapSampler, float3(pIn.TiledTex, 0.f));
 	float4 c1 = gLayerMapArray.Sample(gDiffuseMapSampler, float3(pIn.TiledTex, 1.f));
 	float4 c2 = gLayerMapArray.Sample(gDiffuseMapSampler, float3(pIn.TiledTex, 2.f));
