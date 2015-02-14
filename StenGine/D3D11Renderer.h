@@ -8,6 +8,39 @@
 
 #define FORWARD 0
 
+namespace Vertex {
+	struct StdMeshVertex {
+		XMFLOAT3 Pos;
+		XMFLOAT3 Normal;
+		XMFLOAT3 Tangent;
+		XMFLOAT2 TexUV;
+	};
+
+	struct ShadowMapVertex {
+		XMFLOAT3 Pos;
+	};
+
+	struct DebugLine {
+		XMFLOAT3 Pos;
+		//XMFLOAT4 Color;
+	};
+
+	struct SkinnedMeshVertex {
+		XMFLOAT3 Pos;
+		XMFLOAT3 Normal;
+		XMFLOAT3 Tangent;
+		XMFLOAT2 TexUV;
+		XMFLOAT4 JointWeights;
+		XMUINT4  JointIndices;
+	};
+
+	struct TerrainVertex {
+		XMFLOAT3 Pos;
+		XMFLOAT2 TexUV;
+		XMFLOAT2 BoundsY;
+	};
+}
+
 class D3D11Renderer: public Renderer {
 public:
 	D3D11Renderer(HINSTANCE hInstance, HWND hMainWnd);
@@ -50,6 +83,7 @@ private:
 	D3D11_VIEWPORT m_screenSuperSampleViewpot;
 	ID3D11RasterizerState* m_wireFrameRS;
 	ID3D11SamplerState* m_samplerState;
+	ID3D11SamplerState* m_heightMapSamplerState;
 	ID3D11SamplerState* m_shadowSamplerState;
 	ID3D11SamplerState* m_borderSamplerState;
 

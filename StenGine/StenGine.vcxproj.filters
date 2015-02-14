@@ -111,6 +111,9 @@
     <ClInclude Include="GameObjects\box.h">
       <Filter>Header Files\GameObjects</Filter>
     </ClInclude>
+    <ClInclude Include="Terrain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -174,6 +177,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SkinnedMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Terrain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -296,6 +302,18 @@
       <Filter>FX</Filter>
     </FxCompile>
     <FxCompile Include="FX\DeferredGeometrySkinnedPass_vs.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\DeferredGeometryTerrainPass_vs.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\DeferredGeometryTerrainPass_hs.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\DeferredGeometryTerrainPass_ds.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\DeferredGeometryTerrainPass_ps.hlsl">
       <Filter>FX</Filter>
     </FxCompile>
   </ItemGroup>

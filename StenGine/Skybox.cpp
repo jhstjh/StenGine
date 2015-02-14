@@ -39,6 +39,7 @@ Skybox::~Skybox() {
 }
 
 void Skybox::Draw() {
+	D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	SkyboxEffect* skyboxEffect = EffectsManager::Instance()->m_skyboxEffect;
 	skyboxEffect->SetShader();

@@ -17,6 +17,7 @@
 #include "ResourceManager.h"
 #include "GameObject.h"
 #include "InputManager.h"
+#include "Terrain.h"
 //#include "MathHelper.h"
 #include "Timer.h"
 
@@ -120,6 +121,22 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 // 	Mesh* dragonMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/dragon.fbx");
 // 	dragon->AddComponent(dragonMesh);
 
+	Terrain::InitInfo tii;
+	tii.HeightMapFilename = L"Terrain/terrain.raw";
+	//tii.LayerMapFilename0 = L"Terrain/grass.dds";
+	//tii.LayerMapFilename1 = L"Terrain/darkdirt.dds";
+	//tii.LayerMapFilename2 = L"Terrain/stone.dds";
+	//tii.LayerMapFilename3 = L"Terrain/lightdirt.dds";
+	//tii.LayerMapFilename4 = L"Terrain/snow.dds";
+	tii.BlendMapFilename = L"Textures/blend.dds";
+	tii.HeightScale = 50.0f;
+	tii.HeightmapWidth = 2049;
+	tii.HeightmapHeight = 2049;
+	tii.CellSpacing = 0.5f;
+
+	GameObject* terrain = new GameObject("Terrain", 0, -1, 0);
+	Terrain* terrainComp = new Terrain(tii);
+	terrain->AddComponent(terrainComp);
 
 	Timer::Init();
 

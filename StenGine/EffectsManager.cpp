@@ -1492,6 +1492,114 @@ void DeferredGeometryTessPassEffect::BindShaderResource() {
 	D3D11Renderer::Instance()->GetD3DContext()->DSSetShaderResources(0, 5, m_shaderResources);
 }
 
+
+//----------------------------------------------------------//
+
+DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::wstring& filename)
+	: Effect(
+	filename + L"_vs" + EXT,
+	filename + L"_ps" + EXT,
+	L"",
+	filename + L"_hs" + EXT,
+	filename + L"_ds" + EXT)
+{
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	HRESULT hr = (D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
+		m_vsBlob->GetBufferSize(), &m_inputLayout));
+
+	m_shaderResources = new ID3D11ShaderResourceView*[8];
+
+	for (int i = 0; i < 8; i++) {
+		m_shaderResources[i] = 0;
+	}
+
+	{
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = &m_perObjConstantBuffer;
+		InitData.SysMemPitch = 0;
+		InitData.SysMemSlicePitch = 0;
+
+		// Create the buffer.
+		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData, &m_perObjectCB));
+	}
+
+	{
+		// Fill in a buffer description.
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		// Fill in the subresource data.
+		D3D11_SUBRESOURCE_DATA InitData;
+		InitData.pSysMem = &m_perFrameConstantBuffer;
+		InitData.SysMemPitch = 0;
+		InitData.SysMemSlicePitch = 0;
+
+		// Create the buffer.
+		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData, &m_perFrameCB));
+	}
+
+	ReleaseCOM(m_vsBlob);
+	ReleaseCOM(m_psBlob);
+	ReleaseCOM(m_gsBlob);
+	ReleaseCOM(m_hsBlob);
+	ReleaseCOM(m_dsBlob);
+	ReleaseCOM(m_csBlob);
+}
+
+DeferredGeometryTerrainPassEffect::~DeferredGeometryTerrainPassEffect()
+{
+	ReleaseCOM(m_inputLayout);
+}
+
+void DeferredGeometryTerrainPassEffect::UpdateConstantBuffer() {
+	{
+		D3D11_MAPPED_SUBRESOURCE ms;
+		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
+		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perObjectCB, NULL);
+	}
+
+	{
+		D3D11_MAPPED_SUBRESOURCE ms;
+		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
+		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perFrameCB, NULL);
+	}
+}
+
+void DeferredGeometryTerrainPassEffect::BindConstantBuffer() {
+	ID3D11Buffer* cbuf[] = { m_perObjectCB, m_perFrameCB };
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 2, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 2, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->HSSetConstantBuffers(0, 2, cbuf);
+	D3D11Renderer::Instance()->GetD3DContext()->DSSetConstantBuffers(0, 2, cbuf);
+}
+
+void DeferredGeometryTerrainPassEffect::BindShaderResource() {
+	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 8, m_shaderResources);
+	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 8, m_shaderResources);
+	D3D11Renderer::Instance()->GetD3DContext()->HSSetShaderResources(0, 8, m_shaderResources);
+	D3D11Renderer::Instance()->GetD3DContext()->DSSetShaderResources(0, 8, m_shaderResources);
+}
 //----------------------------------------------------------//
 
 DeferredShadingCS::DeferredShadingCS(const std::wstring& filename)
@@ -1838,6 +1946,7 @@ EffectsManager::EffectsManager() {
 	m_shadowMapEffect = new ShadowMapEffect(L"FX/ShadowMap");
 	m_deferredGeometryPassEffect = new DeferredGeometryPassEffect(L"FX/DeferredGeometryPass");
 	m_deferredGeometryTessPassEffect = new DeferredGeometryTessPassEffect(L"FX/DeferredGeometryTessPass");
+	m_deferredGeometryTerrainPassEffect = new DeferredGeometryTerrainPassEffect(L"FX/DeferredGeometryTerrainPass");
 	m_deferredShadingPassEffect = new DeferredShadingPassEffect(L"FX/DeferredShadingPass");
 	m_deferredShadingCSEffect = new DeferredShadingCS(L"FX/DeferredShading");
 

@@ -15,9 +15,12 @@
 #include <sstream>
 #include <string>
 #include <math.h>
+#include <algorithm>
 #include "DDSTextureLoader.h"
+#include "DirectXPackedVector.h"
 
 using namespace DirectX;
+using namespace DirectX::PackedVector;
 
 #define SafeDelete(x)	\
 {						\
@@ -38,7 +41,7 @@ using namespace DirectX;
 
 #if defined(DEBUG) | defined(_DEBUG)
 #ifndef HR
-#define HR(x) (x)
+#define HR(x) assert(SUCCEEDED(x))
 #endif
 
 

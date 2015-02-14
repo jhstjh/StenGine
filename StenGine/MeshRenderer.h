@@ -10,33 +10,6 @@
 
 class Effect;
 
-namespace Vertex {
-	struct StdMeshVertex {
-		XMFLOAT3 Pos;
-		XMFLOAT3 Normal;
-		XMFLOAT3 Tangent;
-		XMFLOAT2 TexUV;
-	};
-
-	struct ShadowMapVertex {
-		XMFLOAT3 Pos;
-	};
-
-	struct DebugLine {
-		XMFLOAT3 Pos;
-		//XMFLOAT4 Color;
-	};
-
-	struct SkinnedMeshVertex {
-		XMFLOAT3 Pos;
-		XMFLOAT3 Normal;
-		XMFLOAT3 Tangent;
-		XMFLOAT2 TexUV;
-		XMFLOAT4 JointWeights;
-		XMUINT4  JointIndices;
-	};
-}
-
 class Mesh: public Component {
 protected:
 #ifdef GRAPHICS_D3D11

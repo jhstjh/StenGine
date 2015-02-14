@@ -178,6 +178,105 @@ public:
 //--------------------------------------------------------------------//
 
 
+class DeferredGeometryTerrainPassEffect : public Effect {
+private:
+#ifdef GRAPHICS_D3D11
+	ID3D11Buffer* m_perFrameCB;
+	ID3D11Buffer* m_perObjectCB;
+#else
+	GLuint m_perFrameUBO;
+	GLuint m_perObjectUBO;
+
+	GLint DiffuseMapPosition;
+	GLint NormalMapPosition;
+	GLint ShadowMapPosition;
+	GLint CubeMapPosition;
+#endif
+
+public:
+	DeferredGeometryTerrainPassEffect(const std::wstring& filename);
+	DeferredGeometryTerrainPassEffect(const std::wstring& vsPath,
+		const std::wstring& psPath,
+		const std::wstring& gsPath,
+		const std::wstring& hsPath,
+		const std::wstring& dsPath);
+	~DeferredGeometryTerrainPassEffect();
+
+	virtual void UpdateConstantBuffer();
+	virtual void BindConstantBuffer();
+	virtual void BindShaderResource();
+#ifdef GRAPHICS_D3D11
+	struct PEROBJ_CONSTANT_BUFFER
+	{
+		XMMATRIX WorldViewProj;
+		XMMATRIX WorldViewInvTranspose;
+		XMMATRIX WorldInvTranspose;
+		XMMATRIX WorldView;
+		XMMATRIX World;
+		XMMATRIX ViewProj;
+		XMMATRIX ShadowTransform;
+		Material Mat;
+		XMFLOAT4 DiffX_NormY_ShadZ;
+	} m_perObjConstantBuffer;
+
+	struct PERFRAME_CONSTANT_BUFFER
+	{
+		XMFLOAT4 gEyePosW;
+
+		// When distance is minimum, the tessellation is maximum.
+		// When distance is maximum, the tessellation is minimum.
+		float gMinDist;
+		float gMaxDist;
+
+		// Exponents for power of 2 tessellation.  The tessellation
+		// range is [2^(gMinTess), 2^(gMaxTess)].  Since the maximum
+		// tessellation is 64, this means gMaxTess can be at most 6
+		// since 2^6 = 64.
+		float gMinTess;
+		float gMaxTess;
+
+		float gTexelCellSpaceU;
+		float gTexelCellSpaceV;
+		float gWorldCellSpace;
+
+		float pad1;
+		XMFLOAT2 gTexScale;
+
+		XMFLOAT2 pad2;
+		XMFLOAT4 gWorldFrustumPlanes[6];
+	} m_perFrameConstantBuffer;
+
+	virtual PEROBJ_CONSTANT_BUFFER* GetPerObjConstantBuffer() { return &m_perObjConstantBuffer; }
+	virtual PERFRAME_CONSTANT_BUFFER* GetPerFrameConstantBuffer() { return &m_perFrameConstantBuffer; }
+	//ID3D11ShaderResourceView *m_shaderResources[5];
+#else
+	struct PEROBJ_UNIFORM_BUFFER
+	{
+		XMMATRIX WorldViewProj;
+		XMMATRIX World;
+		XMMATRIX WorldView;
+		XMMATRIX ShadowTransform;
+		Material Mat;
+		XMFLOAT4 DiffX_NormY_ShadZ;
+	} m_perObjUniformBuffer;
+
+	struct PERFRAME_UNIFORM_BUFFER
+	{
+		XMFLOAT4 EyePosW;
+		DirectionalLight DirLight;
+	} m_perFrameUniformBuffer;
+
+	GLint DiffuseMap;
+	GLint NormalMap;
+	GLint ShadowMapTex;
+	GLint CubeMapTex;
+
+#endif
+};
+
+
+//--------------------------------------------------------------------//
+
 class DeferredGeometrySkinnedPassEffect : public Effect {
 private:
 #ifdef GRAPHICS_D3D11
@@ -653,6 +752,7 @@ public:
 	ShadowMapEffect* m_shadowMapEffect;
 	DeferredGeometryPassEffect* m_deferredGeometryPassEffect; 
 	DeferredGeometrySkinnedPassEffect* m_deferredGeometrySkinnedPassEffect;
+	DeferredGeometryTerrainPassEffect* m_deferredGeometryTerrainPassEffect;
 	DeferredGeometryTessPassEffect* m_deferredGeometryTessPassEffect;
 	DeferredShadingPassEffect* m_deferredShadingPassEffect;
 	DeferredShadingCS* m_deferredShadingCSEffect;
