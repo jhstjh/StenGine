@@ -113,9 +113,11 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	Mesh* plants0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plants.fbx");
 	plants0->AddComponent(plants0Mesh);
 
-// 	GameObject* house0 = new GameObject();
-// 	Mesh* house0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/house.fbx");
-// 	house0->AddComponent(house0Mesh);
+	GameObject* house0 = new GameObject("plants0", 0, -0.1, 20);
+	Mesh* house0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/house.fbx");
+	house0->AddComponent(house0Mesh);
+	house0->RotateAroundY(3.1415926 / 2);
+
 
 // 	GameObject* dragon = new GameObject(-3, -1, 0);
 // 	Mesh* dragonMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/dragon.fbx");

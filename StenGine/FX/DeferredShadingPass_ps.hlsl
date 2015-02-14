@@ -121,9 +121,11 @@ PSOut main(PSIn input)
 	normalV = gNormalGB.Sample(gSamplerStateLinear, input.Tex).xyz * 2 - 1;
 //
 //
-//
-	//float diffuseK = dot(-gDirLight.direction, normalV);
+#ifdef DOUBLE_SIDED
 	float diffuseK = abs(dot(-gDirLight.direction, normalV));
+#else
+	float diffuseK = dot(-gDirLight.direction, normalV);
+#endif
 	float shadowLit = /*1; */gDiffuseGB.Sample(gSamplerStateLinear, input.Tex).w;
 //
 //	if (diffuseK > 0) {
@@ -142,10 +144,18 @@ PSOut main(PSIn input)
 	float3 light = -gDirLight.direction;
 
 	float3 halfVec = normalize(light + viewRay);
-	//float NdotL = clamp(dot(normalV, light), 0.0, 1.0);
+#ifndef DOUBLE_SIDED
+	float NdotL = clamp(dot(normalV, light), 0.0, 1.0);
+#else
 	float NdotL = abs(dot(normalV, light));
-	//float NdotH = clamp(dot(normalV, halfVec), 0.0, 1.0);
+#endif
+
+#ifndef DOUBLE_SIDED
+	float NdotH = clamp(dot(normalV, halfVec), 0.0, 1.0);
+#else
 	float NdotH = abs(dot(normalV, halfVec));
+#endif
+
 	float NdotV = clamp(dot(normalV, viewRay), 0.0, 1.0);
 	float VdotH = clamp(dot(viewRay, halfVec), 0.0, 1.0);
 	float LdotH = clamp(dot(light, halfVec), 0.0, 1.0);
