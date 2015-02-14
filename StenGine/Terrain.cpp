@@ -4,6 +4,7 @@
 #include "CameraManager.h"
 #include "LightManager.h"
 #include "ResourceManager.h"
+#include "ShadowMap.h"
 #include <fstream>
 
 Terrain* Terrain::_instance = nullptr;
@@ -323,12 +324,13 @@ void Terrain::Draw() {
 	XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
 	deferredGeoTerrainEffect->m_perObjConstantBuffer.WorldViewInvTranspose = XMMatrixTranspose(worldViewInvTranspose);
 
-	//deferredGeoTerrainEffect->m_perObjConstantBuffer.ShadowTransform = XMMatrixTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
+	deferredGeoTerrainEffect->m_perObjConstantBuffer.ShadowTransform = XMMatrixTranspose(LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
 	deferredGeoTerrainEffect->m_perObjConstantBuffer.WorldViewProj = XMMatrixTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
 	deferredGeoTerrainEffect->UpdateConstantBuffer();
 	deferredGeoTerrainEffect->BindConstantBuffer();
 
+	deferredGeoTerrainEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
 	deferredGeoTerrainEffect->SetShaderResources(m_heightMapSRV, 5);
 	deferredGeoTerrainEffect->SetShaderResources(m_layerMapArraySRV, 6);
 	deferredGeoTerrainEffect->SetShaderResources(m_blendMapSRV, 7);
@@ -339,4 +341,57 @@ void Terrain::Draw() {
 	deferredGeoTerrainEffect->UnBindConstantBuffer();
 	deferredGeoTerrainEffect->UnBindShaderResource();
 	deferredGeoTerrainEffect->UnSetShader();
+}
+
+void Terrain::DrawOnShadowMap() {
+	UINT stride = sizeof(Vertex::TerrainVertex);
+	UINT offset = 0;
+
+	TerrainShadowMapEffect* terrainShadowMapEffect = EffectsManager::Instance()->m_terrainShadowMapEffect;
+	D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
+
+	D3D11Renderer::Instance()->GetD3DContext()->IASetInputLayout(terrainShadowMapEffect->GetInputLayout());
+	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_quadPatchVB, &stride, &offset);
+	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_quadPatchIB, DXGI_FORMAT_R16_UINT, 0);
+
+	terrainShadowMapEffect->SetShader();
+
+	terrainShadowMapEffect->m_perFrameConstantBuffer.gEyePosW = CameraManager::Instance()->GetActiveCamera()->GetPos();
+	terrainShadowMapEffect->m_perFrameConstantBuffer.gMaxDist = 500.00;
+	terrainShadowMapEffect->m_perFrameConstantBuffer.gMinDist = 20;
+	terrainShadowMapEffect->m_perFrameConstantBuffer.gMaxTess = 6.f;
+	terrainShadowMapEffect->m_perFrameConstantBuffer.gMinTess = 0.f;
+	terrainShadowMapEffect->m_perFrameConstantBuffer.gTexelCellSpaceU = 1.0f / m_initInfo.HeightmapWidth;
+	terrainShadowMapEffect->m_perFrameConstantBuffer.gTexelCellSpaceV = 1.0f / m_initInfo.HeightmapHeight;
+	terrainShadowMapEffect->m_perFrameConstantBuffer.gTexScale = XMFLOAT2(50.f, 50.f);
+	terrainShadowMapEffect->m_perFrameConstantBuffer.gWorldCellSpace = m_initInfo.CellSpacing;
+	terrainShadowMapEffect->m_perFrameConstantBuffer.gWorldFrustumPlanes /********************/;
+
+	terrainShadowMapEffect->m_perObjConstantBuffer.View = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
+	terrainShadowMapEffect->m_perObjConstantBuffer.ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+	terrainShadowMapEffect->m_perObjConstantBuffer.World = XMMatrixTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()));
+	terrainShadowMapEffect->m_perObjConstantBuffer.WorldInvTranspose = XMMatrixTranspose(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform())));
+
+	XMMATRIX worldView = XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
+	terrainShadowMapEffect->m_perObjConstantBuffer.WorldView = XMMatrixTranspose(worldView);
+
+	XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
+	terrainShadowMapEffect->m_perObjConstantBuffer.WorldViewInvTranspose = XMMatrixTranspose(worldViewInvTranspose);
+
+	//terrainShadowMapEffect->m_perObjConstantBuffer.ShadowTransform = XMMatrixTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
+	terrainShadowMapEffect->m_perObjConstantBuffer.WorldViewProj = XMMatrixTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+
+	terrainShadowMapEffect->UpdateConstantBuffer();
+	terrainShadowMapEffect->BindConstantBuffer();
+
+	terrainShadowMapEffect->SetShaderResources(m_heightMapSRV, 5);
+	terrainShadowMapEffect->SetShaderResources(m_layerMapArraySRV, 6);
+	terrainShadowMapEffect->SetShaderResources(m_blendMapSRV, 7);
+	terrainShadowMapEffect->BindShaderResource();
+
+	D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_numPatchQuadFaces * 4, 0, 0);
+
+	terrainShadowMapEffect->UnBindConstantBuffer();
+	terrainShadowMapEffect->UnBindShaderResource();
+	terrainShadowMapEffect->UnSetShader();
 }

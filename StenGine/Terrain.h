@@ -22,6 +22,7 @@ public:
 	~Terrain();
 
 	void Draw();
+	void DrawOnShadowMap();
 
 private:
 	static const int CellsPerPatch = 64;

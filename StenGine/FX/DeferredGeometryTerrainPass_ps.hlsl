@@ -4,6 +4,13 @@
 PixelOut main(TerrainDomainOut pIn) {
 	PixelOut pOut;
 
+	pIn.ShadowPosH.xyz /= pIn.ShadowPosH.w;
+	float depth = pIn.ShadowPosH.z;
+	float shadowLit = 0;
+
+	shadowLit += gShadowMap.SampleCmpLevelZero(gShadowSampler,
+		pIn.ShadowPosH.xy, depth).r;
+
 	float2 leftTex = pIn.TexUV + float2(-gTexelCellSpaceU, 0.0f);
 	float2 rightTex = pIn.TexUV + float2(gTexelCellSpaceU, 0.0f);
 	float2 bottomTex = pIn.TexUV + float2(0.0f, gTexelCellSpaceV);
@@ -38,6 +45,7 @@ PixelOut main(TerrainDomainOut pIn) {
 	texColor = lerp(texColor, c4, t.a);
 
 	pOut.diffuseH = texColor;
+	pOut.diffuseH.w = saturate(shadowLit);
 	pOut.specularH = float4(0, 0, 0, 0);
 
 	return pOut;

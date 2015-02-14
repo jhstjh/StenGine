@@ -23,6 +23,7 @@ TerrainDomainOut main(TerrainPatchTess patchTess,
 	dOut.PosW.y = gHeightMap.SampleLevel(gLinearMipPointSampler, dOut.TexUV, 0).r;
 
 	dOut.PosH = mul(float4(dOut.PosW, 1.0f), gViewProj);
+	dOut.ShadowPosH = mul(float4(dOut.PosW, 1.0f), gShadowTransform);
 
 	return dOut;
 }

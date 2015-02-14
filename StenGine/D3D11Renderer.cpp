@@ -218,10 +218,10 @@ bool D3D11Renderer::Init() {
 		shadowSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
 		shadowSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
 		shadowSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-		shadowSamplerDesc.BorderColor[0] = 0;
-		shadowSamplerDesc.BorderColor[1] = 0;
-		shadowSamplerDesc.BorderColor[2] = 0;
-		shadowSamplerDesc.BorderColor[3] = 0;
+		shadowSamplerDesc.BorderColor[0] = 1;
+		shadowSamplerDesc.BorderColor[1] = 1;
+		shadowSamplerDesc.BorderColor[2] = 1;
+		shadowSamplerDesc.BorderColor[3] = 1;
 		shadowSamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
 
 		// Create the texture shadowSampler state.
@@ -409,7 +409,7 @@ bool D3D11Renderer::Init() {
 	dLight->castShadow = 1;
 
 	LightManager::Instance()->m_dirLights.push_back(dLight);
-	LightManager::Instance()->m_shadowMap = new ShadowMap(1024, 1024);
+	LightManager::Instance()->m_shadowMap = new ShadowMap(2048, 2048);
 
 	m_SkyBox = new Skybox(std::wstring(L"Model/sunsetcube1024.dds"));
 
@@ -518,6 +518,13 @@ bool D3D11Renderer::Init() {
 }
 
 void D3D11Renderer::Draw() {
+
+	ID3D11SamplerState* samplerState[] = { m_samplerState, m_shadowSamplerState, m_heightMapSamplerState };
+	m_d3d11DeviceContext->PSSetSamplers(0, 3, samplerState);
+	m_d3d11DeviceContext->VSSetSamplers(0, 3, samplerState);
+	m_d3d11DeviceContext->DSSetSamplers(0, 3, samplerState);
+	m_d3d11DeviceContext->HSSetSamplers(0, 3, samplerState);
+
 	LightManager::Instance()->m_shadowMap->RenderShadowMap();
 	DrawGBuffer();
 	DrawDeferredShading();

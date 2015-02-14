@@ -2,7 +2,6 @@
 #define __D3D11_RENDERER__
 
 #include "stdafx.h"
-#include "MeshRenderer.h"
 #include "Skybox.h"
 #include "RendererBase.h"
 

@@ -1,6 +1,8 @@
 #include "ShadowMap.h"
 #include "D3D11Renderer.h"
 #include "LightManager.h"
+#include "EffectsManager.h"
+#include "Terrain.h"
 
 
 ShadowMap::ShadowMap(UINT width, UINT height)
@@ -103,7 +105,7 @@ void ShadowMap::RenderShadowMap() {
 	// only build shadow map for first directional light for now
 
 	XMVECTOR lightDir = XMLoadFloat3(&(LightManager::Instance()->m_dirLights[0]->direction));
-	XMVECTOR lightPos = -50 * XMLoadFloat3(&(LightManager::Instance()->m_dirLights[0]->direction));
+	XMVECTOR lightPos = -100 * XMLoadFloat3(&(LightManager::Instance()->m_dirLights[0]->direction));
 	XMVECTOR lightTarget = XMVectorZero();
 	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
@@ -112,12 +114,12 @@ void ShadowMap::RenderShadowMap() {
 	XMFLOAT3 sphereCenterLS;
 	XMStoreFloat3(&sphereCenterLS, XMVector3TransformCoord(lightTarget, V));
 
-	float l = sphereCenterLS.x - 10;
-	float b = sphereCenterLS.y - 10;
-	float n = sphereCenterLS.z - 10;
-	float r = sphereCenterLS.x + 10;
-	float t = sphereCenterLS.y + 10;
-	float f = sphereCenterLS.z + 10;
+	float l = sphereCenterLS.x - 50;
+	float b = sphereCenterLS.y - 50;
+	float n = sphereCenterLS.z - 50;
+	float r = sphereCenterLS.x + 50;
+	float t = sphereCenterLS.y + 50;
+	float f = sphereCenterLS.z + 50;
 	XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 
 #ifdef GRAPHICS_D3D11
@@ -168,6 +170,8 @@ void ShadowMap::RenderShadowMap() {
 	}
 
 	EffectsManager::Instance()->m_shadowMapEffect->UnSetShader();
+
+	//Terrain::Instance()->DrawOnShadowMap();
 
 #ifdef GRAPHICS_D3D11
 	D3D11Renderer::Instance()->GetD3DContext()->RSSetState(0);

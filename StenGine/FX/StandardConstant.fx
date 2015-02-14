@@ -189,6 +189,7 @@ struct TerrainDomainOut {
 	float3 PosW		: POSITION;
 	float2 TexUV	: TEXCOORD0;
 	float2 TiledTex	: TEXCOORD1;
+	float4 ShadowPosH: TEXCOORD2;
 };
 
 struct PatchTess {
