@@ -7,6 +7,8 @@
 #include "GLRenderer.h"
 using namespace DirectX;
 
+#define MOVE_SPEED 10
+
 Camera::Camera(float px, float py, float pz,
 	float tx, float ty, float tz,
 	float ux, float uy, float uz,
@@ -84,19 +86,19 @@ XMMATRIX Camera::GetProjMatrix() {
 
 void Camera::Update() {
 	if (InputManager::Instance()->GetKeyHold('W')) {
-		MatrixHelper::MoveForward(m_worldTransform, 5 * Timer::GetDeltaTime());
+		MatrixHelper::MoveForward(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
 		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
 	}
 	if (InputManager::Instance()->GetKeyHold('S')) {
-		MatrixHelper::MoveBack(m_worldTransform, 5 * Timer::GetDeltaTime());
+		MatrixHelper::MoveBack(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
 		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
 	}
 	if (InputManager::Instance()->GetKeyHold('A')) {
-		MatrixHelper::MoveLeft(m_worldTransform, 5 * Timer::GetDeltaTime());
+		MatrixHelper::MoveLeft(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
 		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
 	}
 	if (InputManager::Instance()->GetKeyHold('D')) {
-		MatrixHelper::MoveRight(m_worldTransform, 5 * Timer::GetDeltaTime());
+		MatrixHelper::MoveRight(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
 		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
 	}
 	if (InputManager::Instance()->GetKeyHold(VK_UP)) {
@@ -130,7 +132,7 @@ void Camera::Update() {
 CameraManager* CameraManager::_instance = nullptr;
 
 CameraManager::CameraManager() {
-	m_debugCamera = new Camera(2.0f, 5.5f, -5.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.25f * 3.14159f, 1.0f, 1000.0f);
+	m_debugCamera = new Camera(4.0f, 11.f, -11.f, 0.0f, 5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.25f * 3.14159f, 1.0f, 1000.0f);
 	m_activeCamera = m_debugCamera;
 }
 

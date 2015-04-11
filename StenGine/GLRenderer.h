@@ -33,6 +33,7 @@ private:
 	GLuint m_depthBufferTex;
 
 	GLuint m_debugCoordVAO;
+	GLuint m_screenQuadVAO;
 
 	void GenerateColorTex(GLuint &bufferTex);
 	void GenerateDepthTex(GLuint &bufferTex);

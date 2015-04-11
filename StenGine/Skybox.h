@@ -14,9 +14,9 @@ public:
 	ID3D11ShaderResourceView* m_cubeMapSRV;
 #else
 	GLuint m_cubeMapTex;
+	GLuint m_skyboxVAO;
 #endif
 
-	class hahaha* haha;
 };
 
 #endif

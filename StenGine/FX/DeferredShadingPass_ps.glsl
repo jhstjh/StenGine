@@ -31,9 +31,9 @@ layout(std140) uniform ubPerFrame {
 };
 
 void main() {
+
 	vec2 realUV = pTexUV;
 
-	
 	vec3 normalV = texture(gNormalGMap, realUV).xyz * 2 - 1;
 	vec3 specularFactor = texture(gSpecularGMap, realUV).xyz;
 	vec3 diffuseFactor = texture(gDiffuseGMap, realUV).xyz;

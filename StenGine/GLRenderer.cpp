@@ -52,7 +52,7 @@ bool GLRenderer::Init() {
 
 	int attribs[] =
 	{
-		WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+		WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
 		WGL_CONTEXT_MINOR_VERSION_ARB, 1,
 
 		//WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
@@ -124,6 +124,7 @@ bool GLRenderer::Init() {
 		return false;
 	}
 
+
 	DirectionalLight* dLight = new DirectionalLight();
 	dLight->intensity = XMFLOAT4(1, 1, 1, 1);
 	dLight->direction = MatrixHelper::NormalizeFloat3(XMFLOAT3(-0.5, -2, 1));
@@ -133,6 +134,45 @@ bool GLRenderer::Init() {
 	LightManager::Instance()->m_shadowMap = new ShadowMap(1024, 1024);
 
 	m_SkyBox = new Skybox(std::wstring(L"Model/sunsetcube1024.dds"));
+
+	// init screen quad vbo
+
+	std::vector<XMFLOAT4> quadVertexBuffer = {
+		XMFLOAT4(-1.0, -1.0, 0.0, 1.0),
+		XMFLOAT4(-1.0, 1.0, 0.0, 1.0),
+		XMFLOAT4(1.0, 1.0, 0.0, 1.0),
+		XMFLOAT4(1.0, 1.0, 0.0, 1.0),
+		XMFLOAT4(1.0, -1.0, 0.0, 1.0),
+		XMFLOAT4(-1.0, -1.0, 0.0, 1.0),
+	};
+
+	std::vector<XMFLOAT2> quadUvVertexBuffer = {
+		XMFLOAT2(0, 0),
+		XMFLOAT2(0, 1),
+		XMFLOAT2(1, 1),
+		XMFLOAT2(1, 1),
+		XMFLOAT2(1, 0),
+		XMFLOAT2(0, 0),
+	};
+
+	GLuint screenQuadVertexVBO;
+	GLuint screenQuadUVVBO;
+	glGenBuffers(1, &screenQuadVertexVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, screenQuadVertexVBO);
+	glBufferData(GL_ARRAY_BUFFER, quadVertexBuffer.size() * sizeof(XMFLOAT4), &quadVertexBuffer[0], GL_STATIC_DRAW);
+
+	glGenBuffers(1, &screenQuadUVVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, screenQuadUVVBO);
+	glBufferData(GL_ARRAY_BUFFER, quadUvVertexBuffer.size() * sizeof(XMFLOAT2), &quadUvVertexBuffer[0], GL_STATIC_DRAW);
+
+	glGenVertexArrays(1, &m_screenQuadVAO);
+	glBindVertexArray(m_screenQuadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, screenQuadVertexVBO);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, NULL);
+	glBindBuffer(GL_ARRAY_BUFFER, screenQuadUVVBO);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
 
 	// init grid and coord debug draw
 	std::vector<XMFLOAT3> coordVertexBuffer = {
@@ -201,17 +241,18 @@ void GLRenderer::Draw() {
 
 	EffectsManager::Instance()->m_deferredGeometryPassEffect->UnSetShader();
 
+
 	/**************deferred shading 2nd pass*****************/
-	
+
 	DeferredShadingPassEffect* deferredShadingFX = EffectsManager::Instance()->m_deferredShadingPassEffect;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	m_SkyBox->Draw();
 
-
+	
 	deferredShadingFX->SetShader();
-	glBindVertexArray(NULL);
+	glBindVertexArray(m_screenQuadVAO);
 
 	deferredShadingFX->DiffuseGMap = m_diffuseBufferTex;//LightManager::Instance()->m_shadowMap->GetDepthTex();//
 	deferredShadingFX->NormalGMap = m_normalBufferTex;
@@ -241,7 +282,7 @@ void GLRenderer::Draw() {
 	glEnable(GL_BLEND);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
-	glBindVertexArray(NULL);
+	glBindVertexArray(m_screenQuadVAO);
 
 	GodRayEffect* godRayFX = EffectsManager::Instance()->m_godrayEffect;
 
@@ -297,7 +338,6 @@ void GLRenderer::Draw() {
 	debugLineFX->UnSetShader();
 	debugLineFX->UnBindShaderResource();
 	glDepthMask(GL_TRUE);
-
 
 	SwapBuffers(m_deviceContext);
 }

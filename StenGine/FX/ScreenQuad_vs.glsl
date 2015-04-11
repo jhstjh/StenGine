@@ -1,5 +1,8 @@
 #version 410
 
+layout(location = 0) in vec4 PosH;
+layout(location = 1) in vec2 UV;
+
 in int gl_VertexID;
 out vec2 pTexUV;
 
@@ -22,6 +25,6 @@ uniform vec2 uvArray[6] = {
 };
 
 void main() {
-	gl_Position = vertexArray[gl_VertexID];
-	pTexUV = uvArray[gl_VertexID];
+	gl_Position = PosH/*vertexArray[gl_VertexID]*/;
+	pTexUV = UV/*uvArray[gl_VertexID]*/;
 }

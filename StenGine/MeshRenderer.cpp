@@ -44,27 +44,7 @@ Mesh::~Mesh() {
 }
 
 void Mesh::Prepare() {
-#ifdef GRAPHICS_OPENGL
-	glGenBuffers(1, &m_positionBufferGPU);
-	glBindBuffer(GL_ARRAY_BUFFER, m_positionBufferGPU);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(XMFLOAT3) * m_positionBufferCPU.size(), &(m_positionBufferCPU[0]), GL_STATIC_DRAW);
 
-	glGenBuffers(1, &m_normalBufferGPU);
-	glBindBuffer(GL_ARRAY_BUFFER, m_normalBufferGPU);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(XMFLOAT3) * m_normalBufferCPU.size(), &(m_normalBufferCPU[0]), GL_STATIC_DRAW);
-
-	glGenBuffers(1, &m_texUVBufferGPU);
-	glBindBuffer(GL_ARRAY_BUFFER, m_texUVBufferGPU);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(XMFLOAT2) * m_texUVBufferCPU.size(), &(m_texUVBufferCPU[0]), GL_STATIC_DRAW);
-
-	glGenBuffers(1, &m_tangentBufferGPU);
-	glBindBuffer(GL_ARRAY_BUFFER, m_tangentBufferGPU);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(XMFLOAT3) * m_tangentBufferCPU.size(), &(m_tangentBufferCPU[0]), GL_STATIC_DRAW);
-
-	glGenBuffers(1, &m_indexBufferGPU);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferGPU);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(UINT) * m_indexBufferCPU.size(), &(m_indexBufferCPU[0]), GL_STATIC_DRAW);
-#endif
 	PrepareGPUBuffer();
 	PrepareShadowMapBuffer();
 
@@ -335,6 +315,26 @@ void Mesh::PrepareGPUBuffer() {
 	//m_associatedEffect = EffectsManager::Instance()->m_stdMeshEffect;
 	//m_associatedEffect->m_associatedMeshes.push_back(this);
 #else
+	glGenBuffers(1, &m_positionBufferGPU);
+	glBindBuffer(GL_ARRAY_BUFFER, m_positionBufferGPU);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(XMFLOAT3) * m_positionBufferCPU.size(), &(m_positionBufferCPU[0]), GL_STATIC_DRAW);
+
+	glGenBuffers(1, &m_normalBufferGPU);
+	glBindBuffer(GL_ARRAY_BUFFER, m_normalBufferGPU);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(XMFLOAT3) * m_normalBufferCPU.size(), &(m_normalBufferCPU[0]), GL_STATIC_DRAW);
+
+	glGenBuffers(1, &m_texUVBufferGPU);
+	glBindBuffer(GL_ARRAY_BUFFER, m_texUVBufferGPU);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(XMFLOAT2) * m_texUVBufferCPU.size(), &(m_texUVBufferCPU[0]), GL_STATIC_DRAW);
+
+	glGenBuffers(1, &m_tangentBufferGPU);
+	glBindBuffer(GL_ARRAY_BUFFER, m_tangentBufferGPU);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(XMFLOAT3) * m_tangentBufferCPU.size(), &(m_tangentBufferCPU[0]), GL_STATIC_DRAW);
+
+	glGenBuffers(1, &m_indexBufferGPU);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferGPU);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(UINT) * m_indexBufferCPU.size(), &(m_indexBufferCPU[0]), GL_STATIC_DRAW);
+
 	glGenVertexArrays(1, &m_vertexArrayObject);
 	glBindVertexArray(m_vertexArrayObject);
 	glBindBuffer(GL_ARRAY_BUFFER, m_positionBufferGPU);
@@ -514,7 +514,7 @@ void Mesh::DrawOnShadowMap() {
 	}
 #else
 	glBindVertexArray(m_vertexArrayObject);
-
+	
 	for (int iP = 0; iP < m_parents.size(); iP++) {
 		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
 		EffectsManager::Instance()->m_shadowMapEffect->m_perObjUniformBuffer.gWorldViewProj = worldViewProj;
