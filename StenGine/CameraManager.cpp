@@ -28,6 +28,11 @@ Camera::Camera(float px, float py, float pz,
 #endif
 	XMStoreFloat4x4(&m_proj, P);
 
+#ifdef GRAPHICS_OPENGL
+	m_proj.m[2][2] = (np + fp) / (fp - np);
+	m_proj.m[3][2] = - 2 * (np * fp) / (fp - np);
+#endif
+
 	m_radius = XMVectorGetX(XMVector3Length(pos - m_target));
 	m_phi = acosf((py - ty) / m_radius);
 	m_theta = asinf((pz - tz) / (m_radius * sinf(m_phi)));

@@ -53,7 +53,7 @@ bool GLRenderer::Init() {
 	int attribs[] =
 	{
 		WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-		WGL_CONTEXT_MINOR_VERSION_ARB, 1,
+		WGL_CONTEXT_MINOR_VERSION_ARB, 5,
 
 		//WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
 		//WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,                
@@ -138,12 +138,12 @@ bool GLRenderer::Init() {
 	// init screen quad vbo
 
 	std::vector<XMFLOAT4> quadVertexBuffer = {
-		XMFLOAT4(-1.0, -1.0, 0.0, 1.0),
-		XMFLOAT4(-1.0, 1.0, 0.0, 1.0),
-		XMFLOAT4(1.0, 1.0, 0.0, 1.0),
-		XMFLOAT4(1.0, 1.0, 0.0, 1.0),
-		XMFLOAT4(1.0, -1.0, 0.0, 1.0),
-		XMFLOAT4(-1.0, -1.0, 0.0, 1.0),
+		XMFLOAT4(-1.0, -1.0, -1.0, 1.0),
+		XMFLOAT4(-1.0, 1.0, -1.0, 1.0),
+		XMFLOAT4(1.0, 1.0, -1.0, 1.0),
+		XMFLOAT4(1.0, 1.0, -1.0, 1.0),
+		XMFLOAT4(1.0, -1.0, -1.0, 1.0),
+		XMFLOAT4(-1.0, -1.0, -1.0, 1.0),
 	};
 
 	std::vector<XMFLOAT2> quadUvVertexBuffer = {
@@ -248,9 +248,6 @@ void GLRenderer::Draw() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	m_SkyBox->Draw();
-
-	
 	deferredShadingFX->SetShader();
 	glBindVertexArray(m_screenQuadVAO);
 
@@ -273,9 +270,13 @@ void GLRenderer::Draw() {
 	deferredShadingFX->UpdateConstantBuffer();
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	m_SkyBox->Draw();
+
 	deferredShadingFX->UnSetShader();
 	deferredShadingFX->UnBindShaderResource();
-	
+
+
 	/*****************post processing*********************/
 
 	glBlendFunc(GL_ONE, GL_ONE);
