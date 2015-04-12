@@ -464,6 +464,8 @@ void Mesh::Draw() {
 	DeferredGeometryPassEffect* effect = dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect);
 	
 	effect->m_perObjUniformBuffer.Mat = m_material;
+	effect->m_perFrameUniformBuffer.EyePosW = CameraManager::Instance()->GetActiveCamera()->GetPos();
+	effect->CubeMapTex = GLRenderer::Instance()->m_SkyBox->m_cubeMapTex;
 
 	for (int iP = 0; iP < m_parents.size(); iP++) {
 		effect->m_perObjUniformBuffer.WorldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
@@ -471,11 +473,23 @@ void Mesh::Draw() {
 		effect->m_perObjUniformBuffer.WorldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
 		effect->m_perObjUniformBuffer.ShadowTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
 		
-		effect->UpdateConstantBuffer();
-		effect->BindConstantBuffer();
-
 		int startIndex = 0;
 		for (int iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
+
+			XMFLOAT4 resourceMask(0, 0, 0, 0);
+
+			if (m_subMeshes[iSubMesh].m_diffuseMapTex > 0)
+				resourceMask.x = 1;
+			if (m_subMeshes[iSubMesh].m_normalMapTex > 0)
+				resourceMask.y = 1;
+
+			effect->m_perObjUniformBuffer.DiffX_NormY_ShadZ = resourceMask;
+
+			// TODO: this is a bad practice here
+			// should separate this material related cbuffer from transform
+			effect->UpdateConstantBuffer();
+			effect->BindConstantBuffer();
+
 			effect->DiffuseMap = m_subMeshes[iSubMesh].m_diffuseMapTex;
 			effect->NormalMap = m_subMeshes[iSubMesh].m_normalMapTex;
 			effect->BindShaderResource();

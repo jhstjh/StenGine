@@ -101,6 +101,7 @@ bool GLRenderer::Init() {
 	glCullFace(GL_BACK); // cull back face
 	glFrontFace(GL_CW); // GL_CCW for counter clock-wise
 	glDepthMask(GL_TRUE);
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glViewport(0, 0, m_clientWidth, m_clientHeight);
 
 	glGenFramebuffers(1, &m_deferredGBuffers);

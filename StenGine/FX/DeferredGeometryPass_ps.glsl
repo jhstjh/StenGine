@@ -4,6 +4,7 @@ struct Material {
 	vec4 ambient;
 	vec4 diffuse;
 	vec4 specular;
+	vec4 roughness_metalic_c_doublesided;
 };
 
 struct DirectionalLight {
@@ -59,7 +60,15 @@ void main() {
 
 	ps_norm = (vec4(normal, 1.0) + 1) / 2.0f;
 	ps_norm.w = 1.0f;
-	ps_diff = texture(gDiffuseMap, pTexUV) * gMat.diffuse;
+
+	vec3 eyeRay = normalize(pPosW - gEyePosW.xyz);
+	vec3 refRay = reflect(eyeRay, pNormalW);
+
+	if (DiffX_NormY_ShadZ.x > 0.5)
+		ps_diff = texture(gDiffuseMap, pTexUV) * gMat.diffuse;
+	else
+		ps_diff = textureLod(gCubeMap, refRay, 7);
+
 	ps_spec = gMat.specular;
 	ps_spec.w /= 255.0f;
 
