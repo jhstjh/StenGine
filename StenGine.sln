@@ -1,11 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.22823.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StenGine", "StenGine\StenGine.vcxproj", "{673A993C-EA5A-4DDF-8876-620314770CDC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StenGine_D3D11", "StenGine\StenGine.vcxproj", "{673A993C-EA5A-4DDF-8876-620314770CDC}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StenGine_OpenGL", "StenGine\StenGine_OpenGL.vcxproj", "{BAB0F6EC-181F-4DE0-BC89-E5CAF65182FB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StenGine_AndroidGLES2.NativeActivity", "StenGine\StenGine_AndroidGLES2\StenGine_AndroidGLES2.NativeActivity\StenGine_AndroidGLES2.NativeActivity.vcxproj", "{71BA3082-AFAC-433B-B51C-17E3C244FEA7}"
+EndProject
+Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "StenGine_AndroidGLES2.Packaging", "StenGine\StenGine_AndroidGLES2\StenGine_AndroidGLES2.Packaging\StenGine_AndroidGLES2.Packaging.androidproj", "{3B468758-79FA-44EF-841B-9239D6F07FAC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +37,30 @@ Global
 		{BAB0F6EC-181F-4DE0-BC89-E5CAF65182FB}.Release|Win32.ActiveCfg = Release|Win32
 		{BAB0F6EC-181F-4DE0-BC89-E5CAF65182FB}.Release|Win32.Build.0 = Release|Win32
 		{BAB0F6EC-181F-4DE0-BC89-E5CAF65182FB}.Release|x64.ActiveCfg = Release|Win32
+		{71BA3082-AFAC-433B-B51C-17E3C244FEA7}.Debug|ARM.ActiveCfg = Debug|ARM
+		{71BA3082-AFAC-433B-B51C-17E3C244FEA7}.Debug|ARM.Build.0 = Debug|ARM
+		{71BA3082-AFAC-433B-B51C-17E3C244FEA7}.Debug|Win32.ActiveCfg = Debug|x86
+		{71BA3082-AFAC-433B-B51C-17E3C244FEA7}.Debug|Win32.Build.0 = Debug|x86
+		{71BA3082-AFAC-433B-B51C-17E3C244FEA7}.Debug|x64.ActiveCfg = Debug|x86
+		{71BA3082-AFAC-433B-B51C-17E3C244FEA7}.Release|ARM.ActiveCfg = Release|ARM
+		{71BA3082-AFAC-433B-B51C-17E3C244FEA7}.Release|ARM.Build.0 = Release|ARM
+		{71BA3082-AFAC-433B-B51C-17E3C244FEA7}.Release|Win32.ActiveCfg = Release|x86
+		{71BA3082-AFAC-433B-B51C-17E3C244FEA7}.Release|Win32.Build.0 = Release|x86
+		{71BA3082-AFAC-433B-B51C-17E3C244FEA7}.Release|x64.ActiveCfg = Release|x86
+		{3B468758-79FA-44EF-841B-9239D6F07FAC}.Debug|ARM.ActiveCfg = Debug|ARM
+		{3B468758-79FA-44EF-841B-9239D6F07FAC}.Debug|ARM.Build.0 = Debug|ARM
+		{3B468758-79FA-44EF-841B-9239D6F07FAC}.Debug|ARM.Deploy.0 = Debug|ARM
+		{3B468758-79FA-44EF-841B-9239D6F07FAC}.Debug|Win32.ActiveCfg = Debug|x86
+		{3B468758-79FA-44EF-841B-9239D6F07FAC}.Debug|Win32.Build.0 = Debug|x86
+		{3B468758-79FA-44EF-841B-9239D6F07FAC}.Debug|Win32.Deploy.0 = Debug|x86
+		{3B468758-79FA-44EF-841B-9239D6F07FAC}.Debug|x64.ActiveCfg = Debug|x86
+		{3B468758-79FA-44EF-841B-9239D6F07FAC}.Release|ARM.ActiveCfg = Release|ARM
+		{3B468758-79FA-44EF-841B-9239D6F07FAC}.Release|ARM.Build.0 = Release|ARM
+		{3B468758-79FA-44EF-841B-9239D6F07FAC}.Release|ARM.Deploy.0 = Release|ARM
+		{3B468758-79FA-44EF-841B-9239D6F07FAC}.Release|Win32.ActiveCfg = Release|x86
+		{3B468758-79FA-44EF-841B-9239D6F07FAC}.Release|Win32.Build.0 = Release|x86
+		{3B468758-79FA-44EF-841B-9239D6F07FAC}.Release|Win32.Deploy.0 = Release|x86
+		{3B468758-79FA-44EF-841B-9239D6F07FAC}.Release|x64.ActiveCfg = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
