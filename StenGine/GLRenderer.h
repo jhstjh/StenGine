@@ -17,6 +17,12 @@ public:
 	virtual void Draw();
 	Skybox* m_SkyBox;
 	
+	void DrawGBuffer();
+	void DrawDeferredShading();
+	void DrawBlurSSAOAndCombine();
+	void DrawDebug();
+	void DrawGodRay();
+
 private:
 	static GLRenderer* _instance;
 

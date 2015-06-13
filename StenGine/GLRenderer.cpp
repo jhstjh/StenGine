@@ -221,9 +221,18 @@ void GLRenderer::Draw() {
 
 	LightManager::Instance()->m_shadowMap->RenderShadowMap();
 
-	/**************deferred shading 1st pass******************/
+	DrawGBuffer();
+	DrawDeferredShading();
+	//DrawBlurSSAOAndCombine();
+	//DrawGodRay();
+	DrawDebug();
+
+	SwapBuffers(m_deviceContext);
+}
+
+void GLRenderer::DrawGBuffer() {
 	glViewport(0, 0, m_clientWidth, m_clientHeight);
-	
+
 	glBindFramebuffer(GL_FRAMEBUFFER, m_deferredGBuffers);
 	EffectsManager::Instance()->m_deferredGeometryPassEffect->SetShader();
 	DeferredGeometryPassEffect* effect = EffectsManager::Instance()->m_deferredGeometryPassEffect;
@@ -241,10 +250,9 @@ void GLRenderer::Draw() {
 	}
 
 	EffectsManager::Instance()->m_deferredGeometryPassEffect->UnSetShader();
+}
 
-
-	/**************deferred shading 2nd pass*****************/
-
+void GLRenderer::DrawDeferredShading() {
 	DeferredShadingPassEffect* deferredShadingFX = EffectsManager::Instance()->m_deferredShadingPassEffect;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -263,7 +271,7 @@ void GLRenderer::Draw() {
 
 	deferredShadingFX->m_perFrameUniformBuffer.gDirLight = *LightManager::Instance()->m_dirLights[0];
 	XMStoreFloat3(&deferredShadingFX->m_perFrameUniformBuffer.gDirLight.direction, XMVector3Transform(XMLoadFloat3(&deferredShadingFX->m_perFrameUniformBuffer.gDirLight.direction), viewInvTranspose));
-	
+
 	XMMATRIX &projMat = CameraManager::Instance()->GetActiveCamera()->GetProjMatrix();
 	XMVECTOR det = XMMatrixDeterminant(projMat);
 	deferredShadingFX->m_perFrameUniformBuffer.gProj = projMat;
@@ -276,10 +284,13 @@ void GLRenderer::Draw() {
 
 	deferredShadingFX->UnSetShader();
 	deferredShadingFX->UnBindShaderResource();
+}
 
+void GLRenderer::DrawBlurSSAOAndCombine() {
 
-	/*****************post processing*********************/
+}
 
+void GLRenderer::DrawGodRay() {
 	glBlendFunc(GL_ONE, GL_ONE);
 	glEnable(GL_BLEND);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -319,8 +330,9 @@ void GLRenderer::Draw() {
 
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
+}
 
-	/****************draw debug coord*********************/
+void GLRenderer::DrawDebug() {
 	glDepthMask(GL_FALSE);
 	// copy depth into default depth buffer
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -340,8 +352,6 @@ void GLRenderer::Draw() {
 	debugLineFX->UnSetShader();
 	debugLineFX->UnBindShaderResource();
 	glDepthMask(GL_TRUE);
-
-	SwapBuffers(m_deviceContext);
 }
 
 GLRenderer::~GLRenderer() {}

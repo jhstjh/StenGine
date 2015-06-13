@@ -185,7 +185,7 @@ Effect::Effect(const std::wstring& vsPath,
 	/* check for shader linking errors - very important! */
 	glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &params);
 	if (GL_TRUE != params) {
-		assert(false);
+		//assert(false);
 // 		fprintf(
 // 			stderr,
 // 			"ERROR: could not link shader programme GL index %i\n",
@@ -193,6 +193,18 @@ Effect::Effect(const std::wstring& vsPath,
 // 			);
 // 		_print_programme_info_log(shader_programme);
 // 		return 1;
+		GLint maxLength = 0;
+		glGetProgramiv(m_shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
+
+		//The maxLength includes the NULL character
+		std::vector<GLchar> infoLog(maxLength);
+		glGetProgramInfoLog(m_shaderProgram, maxLength, &maxLength, &infoLog[0]);
+		//We don't need the shader anymore.
+		glDeleteProgram(m_shaderProgram);
+
+		OutputDebugStringA(&infoLog[0]);
+		assert(false);
+		return;
 	}
 
 	glValidateProgram(m_shaderProgram);
@@ -539,10 +551,10 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filen
 
 
 	GLuint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
-	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
+	//glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
 
 	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
-	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
+	//glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
 
 	DiffuseMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseMap");
 	NormalMapPosition = glGetUniformLocation(m_shaderProgram, "gNormalMap");
@@ -574,6 +586,12 @@ void DeferredGeometryPassEffect::UpdateConstantBuffer() {
 		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perFrameCB, NULL);
 	}
 #else
+
+	// 2nd para, should match layout binding in GLSL
+	// if no binding is specified
+	// call glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
+	// to specify the binding point and math 2nd param with it
+
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
 	PEROBJ_UNIFORM_BUFFER* perObjUBOPtr = (PEROBJ_UNIFORM_BUFFER*)glMapBufferRange(
 		GL_UNIFORM_BUFFER,

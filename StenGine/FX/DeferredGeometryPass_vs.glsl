@@ -1,4 +1,4 @@
-#version 410
+#version 420
 
 // input layout
 layout(location = 0) in vec3 PosL;
@@ -19,7 +19,7 @@ struct DirectionalLight {
 	float pad;
 };
 
-layout(std140) uniform ubPerObj {
+layout(std140, binding = 0) uniform ubPerObj {
 	mat4 gWorldViewProj;
 	mat4 gWorld;
 	mat4 gWorldView;
@@ -28,24 +28,26 @@ layout(std140) uniform ubPerObj {
 	vec4 DiffX_NormY_ShadZ;
 };
 
-layout(std140) uniform ubPerFrame{
+layout(std140, binding = 1) uniform ubPerFrame{
 	vec4 gEyePosW;
 	DirectionalLight gDirLight;
 };
 
-out vec2 pTexUV;
-out vec3 pNormalV;
-out vec3 pNormalW;
-out vec3 pPosW;
-out vec3 pTangV;
-out vec4 pShadowTransform;
+out VertexOut {
+	vec2 pTexUV;
+	vec3 pNormalV;
+	vec3 pNormalW;
+	vec3 pPosW;
+	vec3 pTangV;
+	vec4 pShadowTransform;
+} vOut;
 
 void main() {
 	gl_Position = gWorldViewProj * vec4(PosL, 1.0);
-	pNormalV = vec3(gWorldView * vec4(NormalL, 0.0));
-	pNormalW = vec3(gWorld * vec4(NormalL, 0.0));
-	pTangV = vec3(gWorldView * vec4(TangentL, 0.0));
-	pPosW = vec3(gWorld * vec4(NormalL, 1.0));
-	pTexUV = TexUV;
-	pShadowTransform = gShadowTransform * vec4(PosL, 1.0);
+	vOut.pNormalV = vec3(gWorldView * vec4(NormalL, 0.0));
+	vOut.pNormalW = vec3(gWorld * vec4(NormalL, 0.0));
+	vOut.pTangV = vec3(gWorldView * vec4(TangentL, 0.0));
+	vOut.pPosW = vec3(gWorld * vec4(NormalL, 1.0));
+	vOut.pTexUV = TexUV;
+	vOut.pShadowTransform = gShadowTransform * vec4(PosL, 1.0);
 }

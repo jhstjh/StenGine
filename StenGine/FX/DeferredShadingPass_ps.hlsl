@@ -206,7 +206,7 @@ PSOut main(PSIn input)
 
 	//float3 r = float3(0.2, 0.2, 0.2) + NdotL * (0.8 + (1 - 0.8) * Rs);
 
-	//ps_color = float4(r * diffuseFactor, 1);
+
 	pOut.DeferredShade = float4(final, 1.0);
 
 	// ---------------- SSAO ---------------//

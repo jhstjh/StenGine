@@ -84,7 +84,6 @@ public:
 					);
 				assert(tex != 0);
 
-				glBindTexture(GL_TEXTURE_2D, tex);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 				m_textureResourceMap[path] = tex;
@@ -185,7 +184,7 @@ public:
 					SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
 					);
 				assert(tex != 0);
-				glBindTexture(GL_TEXTURE_2D, tex);
+
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 				m_textureResourceMap[path] = tex;

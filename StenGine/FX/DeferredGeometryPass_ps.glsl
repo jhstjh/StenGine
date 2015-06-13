@@ -1,4 +1,4 @@
-#version 410
+#version 420
 
 struct Material {
 	vec4 ambient;
@@ -13,12 +13,14 @@ struct DirectionalLight {
 	float pad;
 };
 
-in vec2 pTexUV;
-in vec3 pNormalV;
-in vec3 pNormalW;
-in vec3 pPosW;
-in vec3 pTangV;
-in vec4 pShadowTransform;
+in VertexOut {
+	vec2 pTexUV;
+	vec3 pNormalV;
+	vec3 pNormalW;
+	vec3 pPosW;
+	vec3 pTangV;
+	vec4 pShadowTransform;
+} pIn;
 
 //out vec4 ps_color;
 layout(location = 0) out vec4 ps_norm;
@@ -30,7 +32,7 @@ uniform sampler2D gNormalMap;
 uniform sampler2D gShadowMap;
 uniform samplerCube gCubeMap;
 
-layout(std140) uniform ubPerObj {
+layout(std140, binding = 0) uniform ubPerObj{
 	mat4 gWorldViewProj;
 	mat4 gWorld;
 	mat4 gWorldView;
@@ -39,19 +41,19 @@ layout(std140) uniform ubPerObj {
 	vec4 DiffX_NormY_ShadZ;
 };
 
-layout(std140) uniform ubPerFrame {
+layout(std140, binding = 1) uniform ubPerFrame{
 	vec4 gEyePosW;
 	DirectionalLight gDirLight;
 };
 
 void main() {
-	vec3 normal = normalize(pNormalV);
+	vec3 normal = normalize(pIn.pNormalV);
 
-	vec3 normalMapNormal = texture(gNormalMap, pTexUV).xyz;
+	vec3 normalMapNormal = texture(gNormalMap, pIn.pTexUV).xyz;
 	normalMapNormal = 2.0f * normalMapNormal - 1.0;
 
 	vec3 N = normalize(normal);
-	vec3 T = normalize(pTangV - dot(pTangV, N)*N);
+	vec3 T = normalize(pIn.pTangV - dot(pIn.pTangV, N)*N);
 	vec3 B = cross(N, T);
 
 	mat3 TBN = mat3(T, B, N);
@@ -61,11 +63,11 @@ void main() {
 	ps_norm = (vec4(normal, 1.0) + 1) / 2.0f;
 	ps_norm.w = 1.0f;
 
-	vec3 eyeRay = normalize(pPosW - gEyePosW.xyz);
-	vec3 refRay = reflect(eyeRay, pNormalW);
+	vec3 eyeRay = normalize(pIn.pPosW - gEyePosW.xyz);
+	vec3 refRay = reflect(eyeRay, pIn.pNormalW);
 
 	if (DiffX_NormY_ShadZ.x > 0.5)
-		ps_diff = texture(gDiffuseMap, pTexUV) * gMat.diffuse;
+		ps_diff = texture(gDiffuseMap, pIn.pTexUV) * gMat.diffuse;
 	else
 		ps_diff = textureLod(gCubeMap, refRay, 7);
 
@@ -74,7 +76,7 @@ void main() {
 
 
 	ps_diff.w = 1.0; // 1: lit, 0: shadow
-	vec4 shadowTrans = pShadowTransform;
+	vec4 shadowTrans = pIn.pShadowTransform;
 
 	shadowTrans.xyz /= shadowTrans.w;
 

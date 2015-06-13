@@ -316,5 +316,8 @@
     <FxCompile Include="FX\DeferredGeometryTerrainPass_ps.hlsl">
       <Filter>FX</Filter>
     </FxCompile>
+    <FxCompile Include="FX\BrightnessFilter_ps.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
