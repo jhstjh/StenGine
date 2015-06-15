@@ -1,10 +1,18 @@
 #ifndef __EFFECTS_MANAGER__
 #define __EFFECTS_MANAGER__
+
+#ifndef PLATFORM_ANDROID
 #include "D3DIncludes.h"
 #include "MeshRenderer.h"
 #include "Material.h"
 #include "LightManager.h"
 #include "GL/glew.h"
+#else
+#include <EGL/egl.h>
+#include <GLES/gl.h>
+#include "NDKHelper.h"
+using namespace ndk_helper;
+#endif
 
 #define D3D_COMPILE_STANDARD_FILE_INCLUDE ((ID3DInclude*)(UINT_PTR)1)
 
@@ -12,6 +20,7 @@ class Mesh;
 
 class Effect {
 protected:
+#ifndef PLATFORM_ANDROID
 #ifdef GRAPHICS_D3D11
 	ID3D11VertexShader* m_vertexShader;
 	ID3D11PixelShader* m_pixelShader;
@@ -73,32 +82,27 @@ public:
 	// gl effect
 #endif
 	std::vector<Mesh*> m_associatedMeshes;
+
+#else
+protected:
+	GLuint m_vertexShader;
+	GLuint m_pixelShader;
+
+	GLuint m_shaderProgram;
+public:
+	Effect(const std::string vsPath, std::string psPath);
+
+	virtual void SetShader();
+	virtual void UpdateConstantBuffer() = 0;
+	virtual void BindConstantBuffer() = 0;
+	//virtual void BindShaderResource() {}
+	//virtual void UnBindConstantBuffer();
+	//virtual void UnBindShaderResource();
+	//virtual void UnSetShader();
+#endif
 };
 
-
-//--------------------------------------------------------------------//
-
-
-// class StdMeshEffect : public Effect {
-// public:
-// 	StdMeshEffect(const std::wstring& filename);
-// 	~StdMeshEffect();
-// 
-// 	ID3DX11EffectTechnique* StdMeshTech;
-// 	ID3DX11EffectMatrixVariable* WorldViewProj;
-// 	ID3DX11EffectMatrixVariable* WorldInvTranspose;
-// 	ID3DX11EffectMatrixVariable* World;
-// 	ID3DX11EffectMatrixVariable* ShadowTransform;
-// 	ID3DX11EffectVariable* DirLight;
-// 	ID3DX11EffectVariable* Mat;
-// 	ID3DX11EffectVectorVariable* EyePosW;
-// 	ID3DX11EffectShaderResourceVariable* DiffuseMap;
-// 	ID3DX11EffectShaderResourceVariable* TheShadowMap;
-// };
-
-
-//--------------------------------------------------------------------//
-
+#ifndef PLATFORM_ANDROID
 
 class DeferredGeometryPassEffect : public Effect {
 private:
@@ -563,33 +567,6 @@ public:
 //--------------------------------------------------------------------//
 
 
-// class ScreenQuadEffect : public Effect {
-// public:
-// 	ScreenQuadEffect(const std::wstring& filename);
-// 	~ScreenQuadEffect();
-// 
-// 	ID3DX11EffectTechnique* FullScreenQuadTech;
-// 	ID3DX11EffectTechnique* DeferredLightingTech;
-// 	ID3DX11EffectTechnique* HBlurTech;
-// 	ID3DX11EffectTechnique* VBlurTech;
-// 	ID3DX11EffectShaderResourceVariable* ScreenMap;
-// 	ID3DX11EffectShaderResourceVariable* SSAOMap;
-// 	ID3DX11EffectShaderResourceVariable* DiffuseGB;
-// 	ID3DX11EffectShaderResourceVariable* PositionGB;
-// 	ID3DX11EffectShaderResourceVariable* NormalGB;
-// 	ID3DX11EffectShaderResourceVariable* SpecularGB;
-// 	ID3DX11EffectShaderResourceVariable* DepthGB;
-// 	ID3DX11EffectVariable* DirLight;
-// 	//ID3DX11EffectVariable* Mat;
-// 	ID3DX11EffectVectorVariable* EyePosW;
-// 	ID3DX11EffectMatrixVariable* ProjInv;
-// 	ID3DX11EffectMatrixVariable* Proj;
-// };
-
-
-//--------------------------------------------------------------------//
-
-
 class GodRayEffect : public Effect {
 private:
 #ifdef GRAPHICS_D3D11
@@ -828,11 +805,34 @@ public:
 	virtual PEROBJ_CONSTANT_BUFFER* GetPerObjConstantBuffer() { return &m_perObjConstantBuffer; }
 #endif
 	//ID3D11ShaderResourceView *m_shaderResources[5];
-
 };
 
 
 /**************************************************************/
+
+#else
+
+class DebugLineEffect : public Effect {
+private:
+	GLuint m_perObjectUBO;
+
+public:
+	DebugLineEffect(const std::string &filename);
+	DebugLineEffect(const char* vsPath, const char* psPath);
+	~DebugLineEffect();
+
+	virtual void UpdateConstantBuffer();
+	virtual void BindConstantBuffer();
+
+	struct PEROBJ_UNIFORM_BUFFER
+	{
+		Mat4 ViewProj;
+	}
+	m_perObjUniformBuffer;
+};
+
+
+#endif
 
 class EffectsManager {
 private:
@@ -848,6 +848,7 @@ public:
 	EffectsManager();
 	~EffectsManager();
 
+#ifndef PLATFORM_ANDROID
 	//StdMeshEffect* m_stdMeshEffect;
 	ShadowMapEffect* m_shadowMapEffect;
 	TerrainShadowMapEffect* m_terrainShadowMapEffect;
@@ -863,6 +864,9 @@ public:
 	VBlurEffect* m_vblurEffect;
 	HBlurEffect* m_hblurEffect;
 	DebugLineEffect* m_debugLineEffect;
+#else
+	DebugLineEffect* m_debugLineEffect;
+#endif // !PLATFORM_ANDROID
 };
 
 #endif

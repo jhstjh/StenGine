@@ -1,4 +1,7 @@
 #include "EffectsManager.h"
+
+#ifndef PLATFORM_ANDROID
+
 #ifdef GRAPHICS_D3D11
 #include "D3D11Renderer.h"
 #endif
@@ -14,6 +17,10 @@
 #else
 #define EXT L".glsl"
 #endif
+
+#endif
+
+#ifndef PLATFORM_ANDROID
 
 Effect::Effect(const std::wstring& filename)
 {
@@ -329,43 +336,6 @@ ID3D11ShaderResourceView* Effect::GetOutputShaderResource(int idx) {
 	return m_outputShaderResources[idx];
 }
 #endif
-//------------------------------------------------------------//
-
-
-// StdMeshEffect::StdMeshEffect(const std::wstring& filename)
-// 	: Effect(filename)
-// {
-// 	StdMeshTech = m_fx->GetTechniqueByName("StdMeshTech");
-// 	WorldViewProj = m_fx->GetVariableByName("gWorldViewProj")->AsMatrix();
-// 	WorldInvTranspose = m_fx->GetVariableByName("gWorldInvTranspose")->AsMatrix();
-// 	ShadowTransform = m_fx->GetVariableByName("gShadowTransform")->AsMatrix();
-// 	World = m_fx->GetVariableByName("gWorld")->AsMatrix();
-// 	DirLight = m_fx->GetVariableByName("gDirLight");
-// 	Mat = m_fx->GetVariableByName("gMaterial");
-// 	EyePosW = m_fx->GetVariableByName("gEyePosW")->AsVector();
-// 	DiffuseMap = m_fx->GetVariableByName("gDiffuseMap")->AsShaderResource();
-// 	TheShadowMap = m_fx->GetVariableByName("gShadowMap")->AsShaderResource();
-// 
-// 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
-// 	{
-// 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-// 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-// 		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-// 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-// 	};
-// 
-// 	D3DX11_PASS_DESC passDesc;
-// 	StdMeshTech->GetPassByIndex(0)->GetDesc(&passDesc);
-// 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 4, passDesc.pIAInputSignature,
-// 	passDesc.IAInputSignatureSize, &m_inputLayout));
-// 
-// 	m_activeTech = StdMeshTech;
-// }
-// 
-// StdMeshEffect::~StdMeshEffect()
-// {
-// 	ReleaseCOM(m_inputLayout);
-// }
 
 
 //----------------------------------------------------------//
@@ -1055,36 +1025,8 @@ void GodRayEffect::BindShaderResource() {
 	glUniform1i(OcclusionMapPosition, 0);
 #endif
 }
-//------------------------------------------------------------//
-
-// GodRayEffect::GodRayEffect(const std::wstring& filename)
-// 	: Effect(filename)
-// {
-// 	GodRayTech = m_fx->GetTechniqueByName("t0");
-// 	OcclusionMap = m_fx->GetVariableByName("gOcclusionMap")->AsShaderResource();
-// 	LightPosH = m_fx->GetVariableByName("gLightPosH")->AsVector();
-// 
-// 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
-// 	{
-// 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-// 		//{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-// 	};
-// 
-// 	D3DX11_PASS_DESC passDesc;
-// 	GodRayTech->GetPassByIndex(0)->GetDesc(&passDesc);
-// 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, passDesc.pIAInputSignature,
-// 		passDesc.IAInputSignatureSize, &m_inputLayout));
-// 
-// 	m_activeTech = GodRayTech;
-// }
-// 
-// GodRayEffect::~GodRayEffect()
-// {
-// 	//ReleaseCOM(m_inputLayout);
-// }
 
 //----------------------------------------------------------//
-
 
 SkyboxEffect::SkyboxEffect(const std::wstring& filename)
 	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT)
@@ -2066,11 +2008,126 @@ bool Effect::ReadShaderFile(std::wstring filename, char* shaderContent, int maxL
 
 #endif
 
+#else
+Effect::Effect(const std::string vsPath, std::string psPath) {
+
+	// Create shader program
+	m_shaderProgram = glCreateProgram();
+	LOGI("Created Shader %d", m_shaderProgram);
+
+	// Create and compile vertex shader
+	if (!ndk_helper::shader::CompileShader(&m_vertexShader, GL_VERTEX_SHADER, vsPath.c_str()))
+	{
+		LOGI("Failed to compile vertex shader");
+		glDeleteProgram(m_shaderProgram);
+		return;
+	}
+
+	// Create and compile fragment shader
+	if (!ndk_helper::shader::CompileShader(&m_pixelShader, GL_FRAGMENT_SHADER, psPath.c_str()))
+	{
+		LOGI("Failed to compile fragment shader");
+		glDeleteProgram(m_shaderProgram);
+		return;
+	}
+
+	// Attach vertex shader to program
+	glAttachShader(m_shaderProgram, m_vertexShader);
+
+	// Attach fragment shader to program
+	glAttachShader(m_shaderProgram, m_pixelShader);
+
+// 	// Bind attribute locations
+// 	// this needs to be done prior to linking
+// 	glBindAttribLocation(program, ATTRIB_VERTEX, "myVertex");
+// 	glBindAttribLocation(program, ATTRIB_NORMAL, "myNormal");
+// 	glBindAttribLocation(program, ATTRIB_UV, "myUV");
+
+	// Link program
+	if (!ndk_helper::shader::LinkProgram(m_shaderProgram))
+	{
+		LOGI("Failed to link program: %d", m_shaderProgram);
+
+		if (m_vertexShader)
+		{
+			glDeleteShader(m_vertexShader);
+			m_vertexShader = 0;
+		}
+		if (m_pixelShader)
+		{
+			glDeleteShader(m_pixelShader);
+			m_pixelShader = 0;
+		}
+		if (m_shaderProgram)
+		{
+			glDeleteProgram(m_shaderProgram);
+		}
+
+		return;
+	}
+
+	// Get uniform locations
+// 	params->matrix_projection_ = glGetUniformLocation(program, "uPMatrix");
+// 	params->matrix_view_ = glGetUniformLocation(program, "uMVMatrix");
+// 
+// 	params->light0_ = glGetUniformLocation(program, "vLight0");
+// 	params->material_diffuse_ = glGetUniformLocation(program, "vMaterialDiffuse");
+// 	params->material_ambient_ = glGetUniformLocation(program, "vMaterialAmbient");
+// 	params->material_specular_ = glGetUniformLocation(program, "vMaterialSpecular");
+
+	// Release vertex and fragment shaders
+	if (m_vertexShader)
+		glDeleteShader(m_vertexShader);
+	if (m_pixelShader)
+		glDeleteShader(m_pixelShader);
+
+//	params->program_ = program;
+	return;
+}
+
+void Effect::SetShader() {
+	glUseProgram(m_shaderProgram);
+}
+
+/***************************************************************/
+
+DebugLineEffect::DebugLineEffect(const std::string &filename)
+	: Effect(filename + "_vs.glsl", filename + "_ps.glsl")
+{
+	glGenBuffers(1, &m_perObjectUBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectUBO);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
+}
+
+DebugLineEffect::~DebugLineEffect()
+{
+
+}
+
+void DebugLineEffect::UpdateConstantBuffer() {
+	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
+	PEROBJ_UNIFORM_BUFFER* perObjectUBOPtr = (PEROBJ_UNIFORM_BUFFER*)glMapBufferRange(
+		GL_UNIFORM_BUFFER,
+		0,
+		sizeof(PEROBJ_UNIFORM_BUFFER),
+		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+		);
+	memcpy(perObjectUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
+	glUnmapBuffer(GL_UNIFORM_BUFFER);
+}
+
+void DebugLineEffect::BindConstantBuffer() {
+
+}
+
+#endif
 
 //----------------------------------------------------------//
 EffectsManager* EffectsManager::_instance = nullptr;
 EffectsManager::EffectsManager() {
-	//m_stdMeshEffect = new StdMeshEffect(L"FX/StdMesh.fxo");
+
+#ifndef PLATFORM_ANDROID
+
 #ifdef GRAPHICS_D3D11
 	m_shadowMapEffect = new ShadowMapEffect(L"FX/ShadowMap");
 	m_terrainShadowMapEffect = new TerrainShadowMapEffect(L"FX/DeferredGeometryTerrainPass");
@@ -2096,6 +2153,10 @@ EffectsManager::EffectsManager() {
 	m_debugLineEffect = new DebugLineEffect(L"FX/DebugLine");
 	m_godrayEffect = new GodRayEffect(L"FX/GodRay");
 #endif
+
+#else
+	m_debugLineEffect = new DebugLineEffect("Shaders/DebugLine");
+#endif
 }
 
 EffectsManager::~EffectsManager() {
@@ -2103,6 +2164,7 @@ EffectsManager::~EffectsManager() {
 	//	delete m_effects[i];
 	//}
 	//SafeDelete(m_stdMeshEffect);
+#ifndef PLATFORM_ANDROID
 	SafeDelete(m_shadowMapEffect);
 	SafeDelete(m_deferredGeometryPassEffect);
 	SafeDelete(m_deferredShadingPassEffect);
@@ -2111,4 +2173,5 @@ EffectsManager::~EffectsManager() {
 	SafeDelete(m_skyboxEffect);
 	SafeDelete(m_blurEffect);
 	SafeDelete(m_vblurEffect);
+#endif
 }
