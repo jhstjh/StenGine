@@ -30,6 +30,10 @@
 #include "NDKHelper.h"
 #include "GLESRenderer.h"
 #include "EffectsManager.h"
+#include "CameraManager.h"
+#include "GameObject.h"
+#include "MeshRenderer.h"
+#include "ResourceManager.h"
 
 //-------------------------------------------------------------------------
 //Preprocessor
@@ -121,10 +125,10 @@ void Engine::LoadResources()
 {
 //     renderer_.Init();
 //     renderer_.Bind( &tap_camera_ );
+
+
 	GLESRenderer* renderer = new GLESRenderer();
 	GLESRenderer::Instance()->Init();
-
-	EffectsManager::Instance();
 }
 
 /**
@@ -167,6 +171,15 @@ int Engine::InitDisplay()
     glViewport( 0, 0, gl_context_->GetScreenWidth(), gl_context_->GetScreenHeight() );
 //    renderer_.UpdateViewport();
 
+
+	EffectsManager::Instance();
+	CameraManager::Instance();
+
+	GameObject* box0 = new GameObject("box0", 0, 1.2, 0);
+	Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
+	box0->AddComponent(box0Mesh);
+	box0->RotateAroundY(3.14159 / 5);
+
     tap_camera_.SetFlip( 1.f, -1.f, -1.f );
     tap_camera_.SetPinchTransformFactor( 2.f, 2.f, 8.f );
 
@@ -186,7 +199,7 @@ void Engine::DrawFrame()
 //    renderer_.Update( monitor_.GetCurrentTime() );
 
     // Just fill the screen with a color.
-    glClearColor( 0.5f, 0.5f, 0.5f, 1.f );
+    glClearColor( 0.2f, 0.2f, 0.2f, 1.f );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 //    renderer_.Render();
 

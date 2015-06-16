@@ -1,7 +1,11 @@
 #ifndef __GAMEOBJECT__
 #define __GAMEOBJECT__
 
+#ifdef PLATFORM_WIN32
 #include "D3DIncludes.h"
+#elif defined PLATFORM_ANDROID
+#include "AndroidType.h"
+#endif
 #include "Component.h"
 
 class Component;

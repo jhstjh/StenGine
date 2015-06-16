@@ -1,6 +1,8 @@
 #ifndef __MATERIAL__
 #define __MATERIAL__
+#ifdef PLATFORM_WIN32
 #include "D3DIncludes.h"
+#endif
 
 class Material {
 public:

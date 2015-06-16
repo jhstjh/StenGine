@@ -120,15 +120,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\CameraManager.h" />
+    <ClInclude Include="..\..\Component.h" />
     <ClInclude Include="..\..\EffectsManager.h" />
+    <ClInclude Include="..\..\GameObject.h" />
     <ClInclude Include="..\..\GLESRenderer.h" />
+    <ClInclude Include="..\..\LightManager.h" />
+    <ClInclude Include="..\..\Material.h" />
+    <ClInclude Include="..\..\MeshRenderer.h" />
+    <ClInclude Include="..\..\ResourceManager.h" />
+    <ClInclude Include="..\..\SubMesh.h" />
     <ClInclude Include="AndroidType.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="TeapotRenderer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\CameraManager.cpp" />
+    <ClCompile Include="..\..\Component.cpp" />
     <ClCompile Include="..\..\EffectsManager.cpp" />
+    <ClCompile Include="..\..\GameObject.cpp" />
     <ClCompile Include="..\..\GLESRenderer.cpp" />
+    <ClCompile Include="..\..\LightManager.cpp" />
+    <ClCompile Include="..\..\MeshRenderer.cpp" />
+    <ClCompile Include="..\..\ResourceManager.cpp" />
+    <ClCompile Include="..\..\SubMesh.cpp" />
     <ClCompile Include="StengineNativeActivity.cpp" />
     <ClCompile Include="TeapotRenderer.cpp" />
   </ItemGroup>

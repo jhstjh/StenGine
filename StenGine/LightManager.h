@@ -1,7 +1,10 @@
 #ifndef __LIGHT_MANAGER__
 #define __LIGHT_MANAGER__
+#ifdef PLATFORM_WIN32
 #include "D3DIncludes.h"
-//#include "ShadowMap.h"
+#elif defined PLATFORM_ANDROID
+#include "AndroidType.h"
+#endif
 
 struct DirectionalLight {
 	//DirectionalLight() { ZeroMemory(this, sizeof(this)); }
@@ -23,7 +26,9 @@ public:
 			_instance = new LightManager();
 		return _instance;
 	}
+#ifdef PLATFORM_WIN32
 	class ShadowMap* m_shadowMap;
+#endif
 };
 
 

@@ -3,8 +3,11 @@
 
 #include "Component.h"
 #include "Material.h"
+
+#ifdef PLATFORM_WIN32
 #include "D3DIncludes.h"
 #include "GL/glew.h"
+#endif
 
 class SubMesh : public Component {
 public:

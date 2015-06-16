@@ -1,11 +1,15 @@
 #ifndef __MESH_RENDERER__
 #define __MESH_RENDERER__
 #include <vector>
+#ifdef PLATFORM_WIN32
 #include "D3DIncludes.h"
+#include "GLRenderer.h"
+#elif defined PLATFORM_ANDROID
+#include "AndroidType.h"
+#endif
 #include "EffectsManager.h"
 #include "Component.h"
 #include "Material.h"
-#include "GLRenderer.h"
 #include "SubMesh.h"
 
 class Effect;
@@ -30,7 +34,6 @@ protected:
 #endif
 	Effect* m_associatedEffect;
 	Effect* m_associatedDeferredEffect;
-
 
 	void CreateBoxPrimitive();
 	void CreatePlanePrimitive();
@@ -64,8 +67,6 @@ public:
 	virtual void Draw();
 	virtual void DrawOnShadowMap();
 	void Prepare();
-
-
 };
 
 #endif // !__MESH_RENDERER__

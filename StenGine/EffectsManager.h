@@ -1,20 +1,21 @@
 #ifndef __EFFECTS_MANAGER__
 #define __EFFECTS_MANAGER__
 
-#ifndef PLATFORM_ANDROID
-#include "D3DIncludes.h"
-#include "MeshRenderer.h"
-#include "Material.h"
 #include "LightManager.h"
+#include "Material.h"
+#include "MeshRenderer.h"
+
+#ifdef PLATFORM_WIN32
+#include "D3DIncludes.h"
 #include "GL/glew.h"
-#else
+#define D3D_COMPILE_STANDARD_FILE_INCLUDE ((ID3DInclude*)(UINT_PTR)1)
+#elif defined PLATFORM_ANDROID
 #include <EGL/egl.h>
 #include <GLES/gl.h>
 #include "NDKHelper.h"
 using namespace ndk_helper;
 #endif
 
-#define D3D_COMPILE_STANDARD_FILE_INCLUDE ((ID3DInclude*)(UINT_PTR)1)
 
 class Mesh;
 
@@ -81,7 +82,6 @@ public:
 #else
 	// gl effect
 #endif
-	std::vector<Mesh*> m_associatedMeshes;
 
 #else
 protected:
@@ -100,6 +100,8 @@ public:
 	//virtual void UnBindShaderResource();
 	//virtual void UnSetShader();
 #endif
+	
+	std::vector<Mesh*> m_associatedMeshes;
 };
 
 #ifndef PLATFORM_ANDROID
@@ -812,6 +814,48 @@ public:
 
 #else
 
+class SimpleMeshEffect : public Effect {
+private:
+	GLuint m_perFrameUBO;
+	GLuint m_perObjectUBO;
+
+	//GLint DiffuseMapPosition;
+	//GLint NormalMapPosition;
+	//GLint ShadowMapPosition;
+	//GLint CubeMapPosition;
+
+public:
+	SimpleMeshEffect(const std::string& filename);
+	SimpleMeshEffect(const std::string& vsPath,
+		const std::string& psPath);
+	~SimpleMeshEffect();
+
+	virtual void UpdateConstantBuffer();
+	virtual void BindConstantBuffer();
+	//virtual void BindShaderResource();
+
+	struct PEROBJ_UNIFORM_BUFFER
+	{
+		XMMATRIX WorldViewProj;
+		XMMATRIX World;
+		XMMATRIX WorldView;
+		XMMATRIX ShadowTransform;
+		Material Mat;
+		XMFLOAT4 DiffX_NormY_ShadZ;
+	} m_perObjUniformBuffer;
+
+	struct PERFRAME_UNIFORM_BUFFER
+	{
+		XMFLOAT4 EyePosW;
+		DirectionalLight DirLight;
+	} m_perFrameUniformBuffer;
+
+	//GLint DiffuseMap;
+	//GLint NormalMap;
+	//GLint ShadowMapTex;
+	//GLint CubeMapTex;
+};
+
 class DebugLineEffect : public Effect {
 private:
 	GLuint m_perObjectUBO;
@@ -866,6 +910,7 @@ public:
 	DebugLineEffect* m_debugLineEffect;
 #else
 	DebugLineEffect* m_debugLineEffect;
+	SimpleMeshEffect* m_simpleMeshEffect;
 #endif // !PLATFORM_ANDROID
 };
 

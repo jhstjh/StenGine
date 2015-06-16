@@ -1,15 +1,18 @@
 #include "MeshRenderer.h"
+#include "EffectsManager.h"
+#include "CameraManager.h"
+#include "LightManager.h"
+#include "Component.h"
+#ifdef PLATFORM_WIN32
 #ifdef GRAPHICS_D3D11
 #include "D3D11Renderer.h"
 #endif
-#include "EffectsManager.h"
 #include "ObjReader.h"
-#include "CameraManager.h"
-#include "LightManager.h"
 #include "SOIL.h"
 #include "ResourceManager.h"
 #include "ShadowMap.h"
-#include "Component.h"
+#endif
+
 
 Mesh::Mesh(int type = 0):
 #ifdef GRAPHICS_D3D11
@@ -214,12 +217,15 @@ void Mesh::CreateBoxPrimitive() {
 	m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
 	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
 	m_subMeshes[0].m_indexBufferCPU = m_indexBufferCPU;
+
+#ifdef PLATFORM_WIN32
 #ifdef GRAPHICS_D3D11
 	m_subMeshes[0].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02.dds");
 	m_subMeshes[0].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02_normal.dds");
 #else
 	m_subMeshes[0].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<GLuint>(L"./Model/WoodCrate02.dds"));
 	m_subMeshes[0].m_normalMapTex = *(ResourceManager::Instance()->GetResource<GLuint>(L"./Model/WoodCrate02_normal.dds"));
+#endif
 #endif
 }
 
@@ -277,8 +283,14 @@ void Mesh::CreatePlanePrimitive() {
 }
 
 void Mesh::PrepareGPUBuffer() {
+#ifdef PLATFORM_WIN32
 	m_associatedDeferredEffect = EffectsManager::Instance()->m_deferredGeometryPassEffect;
 	m_associatedDeferredEffect->m_associatedMeshes.push_back(this);
+#elif defined PLATFORM_ANDROID
+ 	m_associatedEffect = EffectsManager::Instance()->m_simpleMeshEffect;
+ 	m_associatedEffect->m_associatedMeshes.push_back(this);
+#endif
+
 #ifdef GRAPHICS_D3D11
 	std::vector<Vertex::StdMeshVertex> vertices(m_positionBufferCPU.size());
 	UINT k = 0;
@@ -460,14 +472,20 @@ void Mesh::Draw() {
 	deferredGeoEffect->UnSetShader();
 #else
 	glBindVertexArray(m_vertexArrayObject);
-	
+#ifdef PLATFORM_WIN32
 	DeferredGeometryPassEffect* effect = dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect);
+#elif defined PLATFORM_ANDROID
+	SimpleMeshEffect* effect = (SimpleMeshEffect*)m_associatedEffect;
+#endif
 	
 	effect->m_perObjUniformBuffer.Mat = m_material;
 	effect->m_perFrameUniformBuffer.EyePosW = CameraManager::Instance()->GetActiveCamera()->GetPos();
+#ifdef PLATFORM_WIN32
 	effect->CubeMapTex = GLRenderer::Instance()->m_SkyBox->m_cubeMapTex;
+#endif
 
 	for (int iP = 0; iP < m_parents.size(); iP++) {
+#ifdef PLATFORM_WIN32
 		effect->m_perObjUniformBuffer.WorldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
 		effect->m_perObjUniformBuffer.World = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform());
 		effect->m_perObjUniformBuffer.WorldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
@@ -506,11 +524,52 @@ void Mesh::Draw() {
 			//break;
 		}
 		effect->UnBindConstantBuffer();
+#elif defined PLATFORM_ANDROID
+		effect->m_perObjUniformBuffer.WorldViewProj = (ndk_helper::Mat4)CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * *m_parents[iP]->GetWorldTransform();
+		effect->m_perObjUniformBuffer.World = *m_parents[iP]->GetWorldTransform();
+		effect->m_perObjUniformBuffer.WorldView = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix() * *m_parents[iP]->GetWorldTransform();
+		//effect->m_perObjUniformBuffer.ShadowTransform = LightManager::Instance()->m_shadowMap->GetShadowMapTransform() * *m_parents[iP]->GetWorldTransform();
+
+		int startIndex = 0;
+		for (int iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
+
+			XMFLOAT4 resourceMask(0, 0, 0, 0);
+
+// 			if (m_subMeshes[iSubMesh].m_diffuseMapTex > 0)
+// 				resourceMask.x = 1;
+// 			if (m_subMeshes[iSubMesh].m_normalMapTex > 0)
+// 				resourceMask.y = 1;
+
+			effect->m_perObjUniformBuffer.DiffX_NormY_ShadZ = resourceMask;
+
+			// TODO: this is a bad practice here
+			// should separate this material related cbuffer from transform
+			effect->UpdateConstantBuffer();
+			effect->BindConstantBuffer();
+
+// 			effect->DiffuseMap = m_subMeshes[iSubMesh].m_diffuseMapTex;
+// 			effect->NormalMap = m_subMeshes[iSubMesh].m_normalMapTex;
+// 			effect->BindShaderResource();
+
+			glDrawElements(
+				GL_TRIANGLES,      // mode
+				m_subMeshes[iSubMesh].m_indexBufferCPU.size(),    // count
+																  //m_indexBufferCPU.size(),
+				GL_UNSIGNED_INT,   // type
+				(void*)(startIndex * sizeof(unsigned int))           // element array buffer offset
+				);
+//			effect->UnBindShaderResource();
+			startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
+			//break;
+		}
+//		effect->UnBindConstantBuffer();
+#endif
 	}
 #endif
 }
 
 void Mesh::DrawOnShadowMap() {
+#ifdef PLATFORM_WIN32
 #ifdef GRAPHICS_D3D11
 	UINT stride = sizeof(Vertex::ShadowMapVertex);
 	UINT offset = 0;
@@ -546,5 +605,6 @@ void Mesh::DrawOnShadowMap() {
 		EffectsManager::Instance()->m_shadowMapEffect->UnBindConstantBuffer();
 		EffectsManager::Instance()->m_shadowMapEffect->UnBindShaderResource();
 	}
+#endif
 #endif
 }

@@ -2,12 +2,14 @@
 #define __RESOURCE_MANAGER__
 
 #include <unordered_map>
-#include "D3DIncludes.h"
 #include "MeshRenderer.h"
+#ifdef PLATFORM_WIN32
+#include "D3DIncludes.h"
 #include <type_traits>
 #include "FbxReaderSG.h"
 #include "GL/glew.h"
 #include "SOIL.h"
+#endif
 /*class Mesh;*/
 
 class ResourceManager {
@@ -43,6 +45,7 @@ public:
 					m_meshResourceMap[L"GeneratePlane"] = plane;
 					return (T*)plane;
 				}
+#ifdef PLATFORM_WIN32
 				else {
 					Mesh* newMesh = new Mesh(2);
 					bool result = FbxReaderSG::Read(path, newMesh);
@@ -52,11 +55,13 @@ public:
 					
 					return (T*)newMesh;
 				}
+#endif
 			}
 			else {
 				return (T*)got->second;
 			}
 		}
+#ifdef PLATFORM_WIN32
 #ifdef GRAPHICS_D3D11
 		else if (std::is_same<T, ID3D11ShaderResourceView>::value) {
 			auto got = m_textureSRVResourceMap.find(path);
@@ -94,11 +99,12 @@ public:
 			}
 		}
 #endif
+#endif
 	}
 
 	template <typename T>
 	T* GetResource(std::vector<std::wstring> &filenames) {
-
+#ifdef PLATFORM_WIN32
 #ifdef GRAPHICS_D3D11
 		if (std::is_same<T, ID3D11ShaderResourceView>::value) {
 			//
@@ -194,6 +200,7 @@ public:
 				return (T*)&(got->second);
 			}
 		}
+#endif
 #endif
 	}
 

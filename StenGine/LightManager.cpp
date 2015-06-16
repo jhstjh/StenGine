@@ -1,5 +1,8 @@
 #include "LightManager.h"
+
+#ifdef PLATFORM_WIN32
 #include "ShadowMap.h"
+#endif
 
 LightManager* LightManager::_instance = nullptr;
 

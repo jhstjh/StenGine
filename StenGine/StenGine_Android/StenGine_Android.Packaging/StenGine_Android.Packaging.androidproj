@@ -69,6 +69,8 @@
     <Content Include="assets\Shaders\DebugLine_ps.glsl" />
     <Content Include="assets\Shaders\DebugLine_vs.glsl" />
     <Content Include="assets\Shaders\ShaderPlain.fsh" />
+    <Content Include="assets\Shaders\SimpleMesh_ps.glsl" />
+    <Content Include="assets\Shaders\SimpleMesh_vs.glsl" />
     <Content Include="assets\Shaders\VS_ShaderPlain.vsh" />
     <Content Include="res\drawable-hdpi\ic_launcher.png" />
     <Content Include="res\drawable-ldpi\ic_launcher.png" />
@@ -78,7 +80,9 @@
     <Content Include="res\values-v11\styles.xml" />
     <Content Include="res\values-v14\styles.xml" />
     <Content Include="res\values\strings.xml" />
-    <AntBuildXml Include="build.xml" />
+    <AntBuildXml Include="build.xml">
+      <SubType>Designer</SubType>
+    </AntBuildXml>
     <AndroidManifest Include="AndroidManifest.xml">
       <SubType>Designer</SubType>
     </AndroidManifest>

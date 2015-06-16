@@ -33,6 +33,7 @@ public:
 	virtual void Draw();
 	
 	void DrawDebug();
+	void DrawMesh();
 
 private:
 	static GLESRenderer* _instance;

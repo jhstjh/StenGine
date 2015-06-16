@@ -1,10 +1,13 @@
 #ifndef __CAMERA_MANAGER__
 #define __CAMERA_MANAGER__
 
-//#include "D3DIncludes.h"
+#ifndef PLATFORM_ANDROID
 #include <DirectXMath.h>
 #include <windows.h>
 using namespace DirectX;
+#else
+#include "AndroidType.h"
+#endif
 
 class Camera {
 	XMFLOAT4 m_pos;
@@ -29,7 +32,13 @@ public:
 	XMMATRIX GetViewProjMatrix();
 	XMMATRIX GetViewMatrix();
 	XMMATRIX GetProjMatrix();
-	XMFLOAT4 GetPos() { /*return m_pos;*/return XMFLOAT4(m_worldTransform._41, m_worldTransform._42, m_worldTransform._43, 0.0); }
+	XMFLOAT4 GetPos() { 
+#ifdef PLATFORM_ANDROID
+		return m_pos;
+#else
+		return XMFLOAT4(m_worldTransform._41, m_worldTransform._42, m_worldTransform._43, 0.0); 
+#endif
+	}
 // 	void OnMouseDown(WPARAM btnState, int x, int y);
 // 	void OnMouseUp(WPARAM btnState, int x, int y);
 // 	void OnMouseMove(WPARAM btnState, int x, int y);

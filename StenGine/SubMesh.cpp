@@ -1,7 +1,9 @@
 #include "SubMesh.h"
+#ifdef PLATFORM_WIN32
 #include "D3DIncludes.h"
 #ifdef GRAPHICS_D3D11
 #include "D3D11Renderer.h"
+#endif
 #endif
 
 SubMesh::SubMesh() : m_indexBufferGPU(0), 
