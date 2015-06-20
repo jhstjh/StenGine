@@ -66,6 +66,8 @@
     </AntPackage>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <Content Include="assets\Models\earth.sgm" />
+    <Content Include="assets\Models\plants.sgm" />
     <Content Include="assets\Shaders\DebugLine_ps.glsl" />
     <Content Include="assets\Shaders\DebugLine_vs.glsl" />
     <Content Include="assets\Shaders\ShaderPlain.fsh" />

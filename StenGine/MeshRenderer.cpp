@@ -3,13 +3,14 @@
 #include "CameraManager.h"
 #include "LightManager.h"
 #include "Component.h"
+
 #ifdef PLATFORM_WIN32
+#include "ResourceManager.h"
 #ifdef GRAPHICS_D3D11
 #include "D3D11Renderer.h"
 #endif
 #include "ObjReader.h"
 #include "SOIL.h"
-#include "ResourceManager.h"
 #include "ShadowMap.h"
 #endif
 
@@ -326,7 +327,7 @@ void Mesh::PrepareGPUBuffer() {
 
 	//m_associatedEffect = EffectsManager::Instance()->m_stdMeshEffect;
 	//m_associatedEffect->m_associatedMeshes.push_back(this);
-#else
+#elif defined(GRAPHICS_OPENGL) || defined(PLATFORM_ANDROID)
 	glGenBuffers(1, &m_positionBufferGPU);
 	glBindBuffer(GL_ARRAY_BUFFER, m_positionBufferGPU);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(XMFLOAT3) * m_positionBufferCPU.size(), &(m_positionBufferCPU[0]), GL_STATIC_DRAW);
@@ -384,7 +385,7 @@ void Mesh::PrepareShadowMapBuffer() {
 	D3D11_SUBRESOURCE_DATA vinitData;
 	vinitData.pSysMem = &vertices[0];
 	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&vbd, &vinitData, &m_shadowMapVertexBufferGPU));
-#else
+#elif defined(GRAPHICS_OPENGL) || defined(PLATFORM_ANDROID)
 	glGenVertexArrays(1, &m_shadowVertexArrayObject);
 	glBindVertexArray(m_shadowVertexArrayObject);
 	glBindBuffer(GL_ARRAY_BUFFER, m_positionBufferGPU);
@@ -470,7 +471,7 @@ void Mesh::Draw() {
 		}
 	}
 	deferredGeoEffect->UnSetShader();
-#else
+#elif defined(GRAPHICS_OPENGL)
 	glBindVertexArray(m_vertexArrayObject);
 #ifdef PLATFORM_WIN32
 	DeferredGeometryPassEffect* effect = dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect);
@@ -478,8 +479,11 @@ void Mesh::Draw() {
 	SimpleMeshEffect* effect = (SimpleMeshEffect*)m_associatedEffect;
 #endif
 	
+#ifndef SG_TOOL
 	effect->m_perObjUniformBuffer.Mat = m_material;
 	effect->m_perFrameUniformBuffer.EyePosW = CameraManager::Instance()->GetActiveCamera()->GetPos();
+#endif
+	
 #ifdef PLATFORM_WIN32
 	effect->CubeMapTex = GLRenderer::Instance()->m_SkyBox->m_cubeMapTex;
 #endif

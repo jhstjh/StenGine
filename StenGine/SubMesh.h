@@ -4,7 +4,7 @@
 #include "Component.h"
 #include "Material.h"
 
-#ifdef PLATFORM_WIN32
+#if defined(PLATFORM_WIN32) || defined(SG_TOOL)
 #include "D3DIncludes.h"
 #include "GL/glew.h"
 #endif

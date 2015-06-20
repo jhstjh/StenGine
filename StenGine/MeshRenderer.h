@@ -1,13 +1,14 @@
 #ifndef __MESH_RENDERER__
 #define __MESH_RENDERER__
 #include <vector>
-#ifdef PLATFORM_WIN32
+#if defined(PLATFORM_WIN32) || defined(SG_TOOL)
 #include "D3DIncludes.h"
 #include "GLRenderer.h"
 #elif defined PLATFORM_ANDROID
 #include "AndroidType.h"
 #endif
 #include "EffectsManager.h"
+
 #include "Component.h"
 #include "Material.h"
 #include "SubMesh.h"

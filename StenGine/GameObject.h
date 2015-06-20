@@ -1,7 +1,7 @@
 #ifndef __GAMEOBJECT__
 #define __GAMEOBJECT__
 
-#ifdef PLATFORM_WIN32
+#if defined(PLATFORM_WIN32) || defined (SG_TOOL)
 #include "D3DIncludes.h"
 #elif defined PLATFORM_ANDROID
 #include "AndroidType.h"

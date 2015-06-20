@@ -56,6 +56,8 @@ XMFLOAT3 GameObject::GetPosition() {
 	return XMFLOAT3(m_worldTransform._41, m_worldTransform._42, m_worldTransform._43);
 #elif defined PLATFORM_ANDROID
 	//return XMFLOAT3(m_worldTransform[0][1], m_worldTransform._42, m_worldTransform._43);
+#else
+	return XMFLOAT3(0, 0, 0);
 #endif
 }
 

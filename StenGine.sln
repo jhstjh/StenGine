@@ -17,6 +17,8 @@ Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "StenGine_Android.Packaging"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ndkhelperlib", "StenGine\ndkhelperlib\ndkhelperlib.vcxproj", "{A885ABF7-C535-4F0E-979C-08095B5F56B5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DataConvertor", "DataConvertor\DataConvertor.vcxproj", "{B6E6B96D-8830-4D9E-9448-0768307F3B0E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -97,6 +99,14 @@ Global
 		{A885ABF7-C535-4F0E-979C-08095B5F56B5}.Release|Win32.ActiveCfg = Release|x86
 		{A885ABF7-C535-4F0E-979C-08095B5F56B5}.Release|Win32.Build.0 = Release|x86
 		{A885ABF7-C535-4F0E-979C-08095B5F56B5}.Release|x64.ActiveCfg = Release|x86
+		{B6E6B96D-8830-4D9E-9448-0768307F3B0E}.Debug|ARM.ActiveCfg = Debug|Win32
+		{B6E6B96D-8830-4D9E-9448-0768307F3B0E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B6E6B96D-8830-4D9E-9448-0768307F3B0E}.Debug|Win32.Build.0 = Debug|Win32
+		{B6E6B96D-8830-4D9E-9448-0768307F3B0E}.Debug|x64.ActiveCfg = Debug|Win32
+		{B6E6B96D-8830-4D9E-9448-0768307F3B0E}.Release|ARM.ActiveCfg = Release|Win32
+		{B6E6B96D-8830-4D9E-9448-0768307F3B0E}.Release|Win32.ActiveCfg = Release|Win32
+		{B6E6B96D-8830-4D9E-9448-0768307F3B0E}.Release|Win32.Build.0 = Release|Win32
+		{B6E6B96D-8830-4D9E-9448-0768307F3B0E}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

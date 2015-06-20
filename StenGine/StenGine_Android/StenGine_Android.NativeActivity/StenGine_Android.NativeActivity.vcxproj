@@ -63,6 +63,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <TargetName>libStengineNativeActivity</TargetName>
     <IncludePath>$(ProjectDir);$(SolutionDir)StenGine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)StenGine</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <TargetName>libStenGineNativeActivity</TargetName>
@@ -78,12 +79,15 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <CompileAs>CompileAsCpp</CompileAs>
-      <AdditionalIncludeDirectories>$(NDKRoot)\platforms\$(AndroidAPILevel)\arch-arm\usr\include;$(NDKRoot)\sources\android\native_app_glue;$(NDKRoot)\sources\android\ndk_helper;$(NDKRoot)\sources\android\cpufeatures;$(StlIncludeDirectories)%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(NDKRoot)\platforms\$(AndroidAPILevel)\arch-arm\usr\include;$(NDKRoot)\sources\android\native_app_glue;$(NDKRoot)\sources\android\ndk_helper;$(NDKRoot)\sources\android\cpufeatures;C:\Program Files\Autodesk\FBX\FBX SDK\2015.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-std=c++11 %(AdditionalOptions)</AdditionalOptions>
-      <PreprocessorDefinitions>PLATFORM_ANDROID;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PLATFORM_ANDROID;GRAPHICS_OPENGL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <LibraryDependencies>%(LibraryDependencies);OpenSLES;log;android;log;EGL;GLESv2;m</LibraryDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)StenGine;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <AdditionalDependencies>libSOIL.a</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -129,6 +133,8 @@
     <ClInclude Include="..\..\Material.h" />
     <ClInclude Include="..\..\MeshRenderer.h" />
     <ClInclude Include="..\..\ResourceManager.h" />
+    <ClInclude Include="..\..\SgmReader.h" />
+    <ClInclude Include="..\..\SOIL.h" />
     <ClInclude Include="..\..\SubMesh.h" />
     <ClInclude Include="AndroidType.h" />
     <ClInclude Include="pch.h" />
@@ -143,6 +149,7 @@
     <ClCompile Include="..\..\LightManager.cpp" />
     <ClCompile Include="..\..\MeshRenderer.cpp" />
     <ClCompile Include="..\..\ResourceManager.cpp" />
+    <ClCompile Include="..\..\SgmReader.cpp" />
     <ClCompile Include="..\..\SubMesh.cpp" />
     <ClCompile Include="StengineNativeActivity.cpp" />
     <ClCompile Include="TeapotRenderer.cpp" />

@@ -175,10 +175,19 @@ int Engine::InitDisplay()
 	EffectsManager::Instance();
 	CameraManager::Instance();
 
-	GameObject* box0 = new GameObject("box0", 0, 1.2, 0);
-	Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
-	box0->AddComponent(box0Mesh);
-	box0->RotateAroundY(3.14159 / 5);
+// 	GameObject* box0 = new GameObject("box0", 0, 1.2, 0);
+// 	Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
+// 	box0->AddComponent(box0Mesh);
+// 	box0->RotateAroundY(3.14159 / 5);
+
+// 	GameObject* sphere = new GameObject("sphere", 0, 3.7, -0.5);
+// 	Mesh* sphereMesh = ResourceManager::Instance()->GetResource<Mesh>("Models/earth.sgm");
+// 	sphere->AddComponent(sphereMesh);
+
+	//GameObject* plants0 = new GameObject("plants0", -4, 0.2, 0);
+	GameObject* plants0 = new GameObject("plants0", 0, 0.2, 0);
+	Mesh* plants0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Models/plants.sgm");
+	plants0->AddComponent(plants0Mesh);
 
     tap_camera_.SetFlip( 1.f, -1.f, -1.f );
     tap_camera_.SetPinchTransformFactor( 2.f, 2.f, 8.f );

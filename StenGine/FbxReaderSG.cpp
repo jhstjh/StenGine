@@ -1,11 +1,16 @@
 #include "FbxReaderSG.h"
 #include <fbxsdk.h>
+#ifdef PLATFORM_WIN32
+#include "ResourceManager.h"
 #ifdef GRAPHICS_D3D11
 #include "D3D11Renderer.h"
 #endif
 #include "Shlwapi.h"
 #include "SOIL.h"
-#include "ResourceManager.h"
+#elif defined PLATFORM_ANDROID
+#include "AndroidType.h"
+#endif
+
 
 void ReadFbxMesh(FbxNode* node, Mesh* mesh);
 void ReadFbxMaterial(FbxNode* node, Mesh* mesh);
@@ -224,10 +229,12 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 				//if (matCount == 1)
 				//	mesh->m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 				//else
+#ifdef PLATFORM_WIN32
 #ifdef GRAPHICS_D3D11
 					mesh->m_subMeshes[i].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 #else
 					mesh->m_subMeshes[i].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<GLuint>(tex->GetFileName()));
+#endif
 #endif
 			}
 		//}
@@ -239,10 +246,12 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 			//if (matCount == 1)
 			//	mesh->m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 			//else
+#ifdef PLATFORM_WIN32
 #ifdef GRAPHICS_D3D11
 				mesh->m_subMeshes[i].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 #else
 				mesh->m_subMeshes[i].m_normalMapTex = *(ResourceManager::Instance()->GetResource<GLuint>(tex->GetFileName()));
+#endif
 #endif
 		}
 
@@ -253,11 +262,13 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 			//if (matCount == 1)
 			//	mesh->m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 			//else
+#ifdef PLATFORM_WIN32
 #ifdef GRAPHICS_D3D11
 				mesh->m_subMeshes[i].m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 				int a = 100;
 #else
 				mesh->m_subMeshes[i].m_bumpMapTex = *(ResourceManager::Instance()->GetResource<GLuint>(tex->GetFileName()));
+#endif
 #endif
 		}
 	}

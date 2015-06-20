@@ -3,12 +3,15 @@
 
 #include <unordered_map>
 #include "MeshRenderer.h"
+#include "SOIL.h"
 #ifdef PLATFORM_WIN32
 #include "D3DIncludes.h"
 #include <type_traits>
 #include "FbxReaderSG.h"
 #include "GL/glew.h"
-#include "SOIL.h"
+#elif defined PLATFORM_ANDROID
+#include <assert.h>
+#include "SgmReader.h"
 #endif
 /*class Mesh;*/
 
@@ -27,7 +30,29 @@ public:
 		std::wstring ws(s.begin(), s.end());
 		return GetResource<T>(ws);
 	}
+	
+	template <typename T>
+	T* GetResource(std::string path) {
+		std::wstring _path(path.begin(), path.end());
+		if (std::is_same<T, Mesh>::value) {
+			auto got = m_meshResourceMap.find(_path);
+			if (got == m_meshResourceMap.end()) {
 
+				Mesh* newMesh = new Mesh(2);
+
+				bool result = SgmReader::Read(path, newMesh);
+				assert(result);
+				newMesh->Prepare();
+				m_meshResourceMap[_path] = newMesh;
+
+				return (T*)newMesh;
+			}
+			else {
+				return (T*)got->second;
+			}
+		}
+	}
+	
 	template <typename T>
 	T* GetResource(std::wstring path) {
 		if (std::is_same<T, Mesh>::value) {
@@ -45,8 +70,8 @@ public:
 					m_meshResourceMap[L"GeneratePlane"] = plane;
 					return (T*)plane;
 				}
-#ifdef PLATFORM_WIN32
 				else {
+#ifdef PLATFORM_WIN32
 					Mesh* newMesh = new Mesh(2);
 					bool result = FbxReaderSG::Read(path, newMesh);
 					assert(result);
@@ -54,14 +79,25 @@ public:
 					m_meshResourceMap[path] = newMesh;
 					
 					return (T*)newMesh;
-				}
+#elif defined(PLATFORM_ANDROID)
+					Mesh* newMesh = new Mesh(2);
+
+					std::string _path(path.begin(), path.end());
+					bool result = SgmReader::Read(_path, newMesh);
+					assert(result);
+					newMesh->Prepare();
+					m_meshResourceMap[path] = newMesh;
+
+					return (T*)newMesh;
 #endif
+				}
+
 			}
 			else {
 				return (T*)got->second;
 			}
 		}
-#ifdef PLATFORM_WIN32
+//#ifdef PLATFORM_WIN32
 #ifdef GRAPHICS_D3D11
 		else if (std::is_same<T, ID3D11ShaderResourceView>::value) {
 			auto got = m_textureSRVResourceMap.find(path);
@@ -99,7 +135,7 @@ public:
 			}
 		}
 #endif
-#endif
+//#endif
 	}
 
 	template <typename T>
