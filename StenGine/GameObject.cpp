@@ -23,7 +23,7 @@ GameObject::GameObject(const char* name, float x, float y, float z) {
 }
 
 GameObject::~GameObject() {
-	for (int i = 0; i < m_components.size(); i++) {
+	for (uint32_t i = 0; i < m_components.size(); i++) {
 		m_components[i]->m_parents.erase(std::remove(m_components[i]->m_parents.begin(), m_components[i]->m_parents.end(), this), m_components[i]->m_parents.end());
 		if (m_components[i]->m_parents.size() == 0) {
 //			SafeDelete(m_components[i]);
@@ -69,6 +69,6 @@ void GameObject::AddComponent(Component* c) {
 
 void GameObject::Update() {
 #ifdef PLATFORM_WIN32
-	RotateAroundY(-Timer::GetDeltaTime() * 3.14159);
+	RotateAroundY(-Timer::GetDeltaTime() * 3.14159f);
 #endif
 }

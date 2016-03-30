@@ -51,7 +51,7 @@ public:
 		SafeDelete(m_SkyBox);
 	}
 
-	void release() override {
+	void Release() override {
 		_instance = nullptr;
 		delete this;
 	}
@@ -441,15 +441,15 @@ public:
 
 		int initIdx = 6;
 		for (int i = 0; i <= 10; i++) {
-			coordVertexBuffer.push_back(XMFLOAT3(-5, 0, -5 + i));
-			coordVertexBuffer.push_back(XMFLOAT3(5, 0, -5 + i));
+			coordVertexBuffer.push_back(XMFLOAT3(-5.f, 0.f, -5.f + i));
+			coordVertexBuffer.push_back(XMFLOAT3(5.f, 0.f, -5.f + i));
 			coordIndexBuffer.push_back(initIdx++);
 			coordIndexBuffer.push_back(initIdx++);
 		}
 
 		for (int i = 0; i <= 10; i++) {
-			coordVertexBuffer.push_back(XMFLOAT3(-5 + i, 0, -5));
-			coordVertexBuffer.push_back(XMFLOAT3(-5 + i, 0, 5));
+			coordVertexBuffer.push_back(XMFLOAT3(-5.f + i, 0.f, -5.f));
+			coordVertexBuffer.push_back(XMFLOAT3(-5.f + i, 0.f, 5.f));
 			coordIndexBuffer.push_back(initIdx++);
 			coordIndexBuffer.push_back(initIdx++);
 		}
@@ -596,7 +596,7 @@ public:
 		m_d3d11DeviceContext->DSSetSamplers(0, 3, samplerState);
 		m_d3d11DeviceContext->HSSetSamplers(0, 3, samplerState);
 
-		for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
+		for (uint32_t iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
 			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->Draw();
 		}
 		EffectsManager::Instance()->m_deferredGeometryPassEffect->UnSetShader();
@@ -748,7 +748,7 @@ public:
 #endif
 		blurEffect->SetShaderResources(blurredSSAOSRV/*m_SSAOSRV*/, 1);
 		blurEffect->SetShaderResources(blurredSRV, 2);
-		blurEffect->m_settingConstantBuffer.texOffset = XMFLOAT2(1.0 / m_clientWidth, 0.0f);
+		blurEffect->m_settingConstantBuffer.texOffset = XMFLOAT2(1.0f / m_clientWidth, 0.0f);
 		m_d3d11DeviceContext->PSSetSamplers(0, 1, samplerState);
 
 		blurEffect->UpdateConstantBuffer();
@@ -778,7 +778,7 @@ public:
 		XMFLOAT4 lightPosHf;
 		XMStoreFloat4(&lightPosHf, lightPosH);
 		lightPosHf.x /= lightPosHf.w;
-		lightPosHf.x = 0.5 + lightPosHf.x / 2;
+		lightPosHf.x = 0.5f + lightPosHf.x / 2;
 		lightPosHf.y /= lightPosHf.w;
 		lightPosHf.y = 1 - (0.5f + lightPosHf.y / 2.0f);
 		lightPosHf.z /= lightPosHf.w;

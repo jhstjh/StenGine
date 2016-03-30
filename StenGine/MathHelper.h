@@ -26,7 +26,7 @@ public:
 	}
 	inline static void MoveLeft(XMFLOAT4X4& mat, float distance) { MoveRight(mat, -distance); }
 	inline static XMFLOAT3 NormalizeFloat3(XMFLOAT3& vec3) {
-		double len = sqrt(vec3.x * vec3.x + vec3.y * vec3.y + vec3.z * vec3.z);
+		float len = sqrt(vec3.x * vec3.x + vec3.y * vec3.y + vec3.z * vec3.z);
 		vec3.x /= len;
 		vec3.y /= len;
 		vec3.z /= len;

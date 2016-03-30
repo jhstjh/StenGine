@@ -92,31 +92,31 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	InputManager::Instance();
 
 
-	GameObject* box0 = new GameObject("box0", 0, 1.2, 0);
+	GameObject* box0 = new GameObject("box0", 0.f, 1.2f, 0.f);
 	Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
 	box0->AddComponent(box0Mesh);
-	box0->RotateAroundY(3.14159 / 5);
+	box0->RotateAroundY(3.14159f / 5);
 
- 	GameObject* sphere = new GameObject("sphere", 0, 3.7, -0.5);
+ 	GameObject* sphere = new GameObject("sphere", 0.f, 3.7f, -0.5f);
  	Mesh* sphereMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/earth.fbx");
  	sphere->AddComponent(sphereMesh);
  
- 	GameObject* plane0 = new GameObject("plane0", 4, 0.2, 0);
+ 	GameObject* plane0 = new GameObject("plane0", 4.f, 0.2f, 0.f);
 	Mesh* plane0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plane.fbx");
  	plane0->AddComponent(plane0Mesh);
 
-	GameObject* plane1 = new GameObject("plane1", -4, 0.2, 0);
+	GameObject* plane1 = new GameObject("plane1", -4.f, 0.2f, 0.f);
 	Mesh* plane1Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plane.fbx");
 	plane1->AddComponent(plane1Mesh);
 
-	GameObject* plants0 = new GameObject("plants0", -4, 0.2, 0);
+	GameObject* plants0 = new GameObject("plants0", -4.f, 0.2f, 0.f);
 	Mesh* plants0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plants.fbx");
 	plants0->AddComponent(plants0Mesh);
 
-	GameObject* house0 = new GameObject("plants0", 0, -0.1, 20);
+	GameObject* house0 = new GameObject("plants0", 0.f, -0.1f, 20.f);
 	Mesh* house0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/house.fbx");
 	house0->AddComponent(house0Mesh);
-	house0->RotateAroundY(3.1415926 / 2);
+	house0->RotateAroundY(3.1415926f / 2);
 
 
 // 	GameObject* dragon = new GameObject(-3, -1, 0);
@@ -160,7 +160,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 			elapsedTime += Timer::GetDeltaTime();
 			if (elapsedTime >= 1) {
 				elapsedTime -= 1;
-				FPS = elaspedFrame;
+				FPS = (float)elaspedFrame;
 				
 				std::wostringstream outs;
 				outs.precision(6);
@@ -255,7 +255,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow, HWND &hMainWnd)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	int wmId, wmEvent;
+	//int wmId, wmEvent;
 	PAINTSTRUCT ps;
 	HDC hdc;
 

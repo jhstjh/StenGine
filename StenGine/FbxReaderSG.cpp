@@ -9,6 +9,7 @@
 #include "AndroidType.h"
 #endif
 
+#pragma warning(disable:4244) // conversion from 'fbxsdk_2015_1::FbxDouble' to 'float', possible loss of data
 
 void ReadFbxMesh(FbxNode* node, Mesh* mesh);
 void ReadFbxMaterial(FbxNode* node, Mesh* mesh);
@@ -50,8 +51,8 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 	// Destroy the SDK manager and all the other objects it was handling.
 	lSdkManager->Destroy();
 
-	mesh->m_material.ambient = XMFLOAT4(0.2, 0.2, 0.2, 1);
-	mesh->m_material.diffuse = XMFLOAT4(1.0, 0.8, 0.7, 1);
+	mesh->m_material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f);
+	mesh->m_material.diffuse = XMFLOAT4(1.0f, 0.8f, 0.7f, 1.f);
 	mesh->m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
 
 	return true;
@@ -83,7 +84,7 @@ void ReadFbxMesh(FbxNode* node, Mesh* mesh) {
 
 			counter++;
 		}
-		for (int i = 0; i < mesh->m_subMeshes.size(); i++) {
+		for (uint32_t i = 0; i < mesh->m_subMeshes.size(); i++) {
 			mesh->m_indexBufferCPU.insert(mesh->m_indexBufferCPU.end(), 
 										  mesh->m_subMeshes[i].m_indexBufferCPU.begin(), 
 										  mesh->m_subMeshes[i].m_indexBufferCPU.end());

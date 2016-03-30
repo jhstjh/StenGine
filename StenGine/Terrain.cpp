@@ -220,8 +220,8 @@ float Terrain::GetHeight(float x, float z) const {
 void Terrain::BuildQuadPatchVB() {
 	std::vector<Vertex::TerrainVertex> patchVertices(m_numPatchVertRows * m_numPatchVertCols);
 
-	float halfWidth = 0.5 * GetWidth();
-	float halfDepth = 0.5 * GetDepth();
+	float halfWidth = 0.5f * GetWidth();
+	float halfDepth = 0.5f * GetDepth();
 
 	float patchWidth = GetWidth() / (m_numPatchVertCols - 1);
 	float patchDepth = GetDepth() / (m_numPatchVertRows - 1);

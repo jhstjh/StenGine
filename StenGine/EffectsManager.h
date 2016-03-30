@@ -15,11 +15,11 @@
 #include "NDKHelper.h"
 using namespace ndk_helper;
 #endif
-
+#include "AlignedClass.h"
 
 class Mesh;
 
-class Effect {
+class Effect : public AlignedClass<16> {
 protected:
 #ifndef PLATFORM_ANDROID
 #ifdef GRAPHICS_D3D11

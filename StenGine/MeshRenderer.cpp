@@ -52,7 +52,7 @@ void Mesh::Prepare() {
 	PrepareGPUBuffer();
 	PrepareShadowMapBuffer();
 
-	for (int i = 0; i < m_subMeshes.size(); i++) {
+	for (uint32_t i = 0; i < m_subMeshes.size(); i++) {
 		m_subMeshes[i].PrepareGPUBuffer();
 	}
 }
@@ -214,8 +214,8 @@ void Mesh::CreateBoxPrimitive() {
 
 	m_subMeshes.resize(1);
 
-	m_material.ambient = XMFLOAT4(0.2, 0.2, 0.2, 1);
-	m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
+	m_material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f);
+	m_material.diffuse = XMFLOAT4(1.0f, 0.5f, 0.3f, 1.f);
 	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
 	m_subMeshes[0].m_indexBufferCPU = m_indexBufferCPU;
 
@@ -270,8 +270,8 @@ void Mesh::CreatePlanePrimitive() {
 		2, 0, 3,
 	};
 
-	m_material.ambient = XMFLOAT4(0.2, 0.2, 0.2, 1);
-	m_material.diffuse = XMFLOAT4(1.0, 0.5, 0.3, 1);
+	m_material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f);
+	m_material.diffuse = XMFLOAT4(1.0f, 0.5f, 0.3f, 1.f);
 	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 16.0f);
 
 #ifdef GRAPHICS_D3D11
@@ -424,7 +424,7 @@ void Mesh::Draw() {
 	deferredGeoEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
 	deferredGeoEffect->GetPerObjConstantBuffer()->ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
-	for (int iP = 0; iP < m_parents.size(); iP++) {
+	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
 		deferredGeoEffect->GetPerObjConstantBuffer()->WorldViewProj = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 		deferredGeoEffect->GetPerObjConstantBuffer()->World = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
 		deferredGeoEffect->GetPerObjConstantBuffer()->WorldInvTranspose = XMMatrixTranspose(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform())));
@@ -438,7 +438,7 @@ void Mesh::Draw() {
 		deferredGeoEffect->GetPerObjConstantBuffer()->ShadowTransform = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
 
 		int startIndex = 0;
-		for (int iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
+		for (uint32_t iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
 			resourceMask.x = 0;
 			resourceMask.y = 0;
 			if (m_subMeshes[iSubMesh].m_diffuseMapSRV) {
@@ -488,7 +488,7 @@ void Mesh::Draw() {
 	effect->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;
 #endif
 
-	for (int iP = 0; iP < m_parents.size(); iP++) {
+	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
 #ifdef PLATFORM_WIN32
 		effect->m_perObjUniformBuffer.WorldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
 		effect->m_perObjUniformBuffer.World = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform());
@@ -496,7 +496,7 @@ void Mesh::Draw() {
 		effect->m_perObjUniformBuffer.ShadowTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
 		
 		int startIndex = 0;
-		for (int iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
+		for (uint32_t iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
 
 			XMFLOAT4 resourceMask(0, 0, 0, 0);
 
@@ -581,7 +581,7 @@ void Mesh::DrawOnShadowMap() {
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetVertexBuffers(0, 1, &m_shadowMapVertexBufferGPU, &stride, &offset);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
-	for (int iP = 0; iP < m_parents.size(); iP++) {
+	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
 		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
 		EffectsManager::Instance()->m_shadowMapEffect->m_perObjConstantBuffer.gWorldViewProj = XMMatrixTranspose(worldViewProj);
 		EffectsManager::Instance()->m_shadowMapEffect->UpdateConstantBuffer();
@@ -592,7 +592,7 @@ void Mesh::DrawOnShadowMap() {
 #else
 	glBindVertexArray(m_vertexArrayObject);
 	
-	for (int iP = 0; iP < m_parents.size(); iP++) {
+	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
 		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
 		EffectsManager::Instance()->m_shadowMapEffect->m_perObjUniformBuffer.gWorldViewProj = worldViewProj;
 		EffectsManager::Instance()->m_shadowMapEffect->UpdateConstantBuffer();

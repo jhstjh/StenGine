@@ -60,6 +60,7 @@
       <AdditionalIncludeDirectories>$(FBX_SDK)\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <MinimalRebuild>false</MinimalRebuild>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -90,6 +91,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AlignedClass.h" />
     <ClInclude Include="CameraManager.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="Component.h" />

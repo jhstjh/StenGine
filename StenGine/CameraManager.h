@@ -9,7 +9,9 @@ using namespace DirectX;
 #include "AndroidType.h"
 #endif
 
-class Camera {
+#include "AlignedClass.h"
+
+class Camera : public AlignedClass<16> {
 	XMFLOAT4 m_pos;
 	XMFLOAT4X4 m_view;
 	XMFLOAT4X4 m_proj;

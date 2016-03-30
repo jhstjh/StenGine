@@ -48,11 +48,11 @@ public:
 
 		int nPixelFormat = ChoosePixelFormat(m_deviceContext, &pfd);
 
-		assert(nPixelFormat != 0, "Error choosing pixel format");
+		assert(nPixelFormat != 0 && "Error choosing pixel format");
 
 		BOOL bResult = SetPixelFormat(m_deviceContext, nPixelFormat, &pfd);
 
-		assert(bResult != 0, "Error setting pixel format");
+		assert(bResult != 0 && "Error setting pixel format");
 
 		HGLRC tempContext = wglCreateContext(m_deviceContext);
 		wglMakeCurrent(m_deviceContext, tempContext);
@@ -97,17 +97,17 @@ public:
 		glGetIntegerv(GL_MAJOR_VERSION, &OpenGLVersion[0]);
 		glGetIntegerv(GL_MINOR_VERSION, &OpenGLVersion[1]);
 
-		assert(m_renderingContext, "Error creating gl context");
+		assert(m_renderingContext && "Error creating gl context");
 
 		wglSwapIntervalEXT(0);
 
-		glClearColor(0.2, 0.2, 0.2, 0);
+		glClearColor(0.2f, 0.2f, 0.2f, 0.f);
 		glClearDepth(1.0f);
 
 
 		m_renderingContext = wglGetCurrentContext();
 		m_deviceContext = wglGetCurrentDC();
-		bool noError = wglMakeCurrent(m_deviceContext, m_renderingContext);
+		BOOL noError = wglMakeCurrent(m_deviceContext, m_renderingContext);
 		assert(noError);
 
 		glEnable(GL_DEPTH_TEST); // enable depth-testing
@@ -205,15 +205,15 @@ public:
 
 		int initIdx = 6;
 		for (int i = 0; i <= 10; i++) {
-			coordVertexBuffer.push_back(XMFLOAT3(-5, 0, -5 + i));
-			coordVertexBuffer.push_back(XMFLOAT3(5, 0, -5 + i));
+			coordVertexBuffer.push_back(XMFLOAT3(-5.f, 0.f, -5.f + i));
+			coordVertexBuffer.push_back(XMFLOAT3(5.f, 0.f, -5.f + i));
 			coordIndexBuffer.push_back(initIdx++);
 			coordIndexBuffer.push_back(initIdx++);
 		}
 
 		for (int i = 0; i <= 10; i++) {
-			coordVertexBuffer.push_back(XMFLOAT3(-5 + i, 0, -5));
-			coordVertexBuffer.push_back(XMFLOAT3(-5 + i, 0, 5));
+			coordVertexBuffer.push_back(XMFLOAT3(-5.f + i, 0.f, -5.f));
+			coordVertexBuffer.push_back(XMFLOAT3(-5.f + i, 0.f, 5.f));
 			coordIndexBuffer.push_back(initIdx++);
 			coordIndexBuffer.push_back(initIdx++);
 		}
@@ -288,7 +288,7 @@ public:
 		effect->ShadowMapTex = LightManager::Instance()->m_shadowMap->GetDepthTex();
 		effect->CubeMapTex = m_SkyBox->m_cubeMapTex;
 
-		for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
+		for (uint32_t iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
 			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->Draw();
 		}
 
@@ -348,7 +348,7 @@ public:
 		XMFLOAT4 lightPosHf;
 		XMStoreFloat4(&lightPosHf, lightPosH);
 		lightPosHf.x /= lightPosHf.w;
-		lightPosHf.x = 0.5 + lightPosHf.x / 2;
+		lightPosHf.x = 0.5f + lightPosHf.x / 2;
 		lightPosHf.y /= lightPosHf.w;
 		lightPosHf.y = 0.5f + lightPosHf.y / 2;
 		lightPosHf.z /= lightPosHf.w;

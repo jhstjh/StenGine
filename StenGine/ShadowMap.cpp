@@ -164,7 +164,7 @@ void ShadowMap::RenderShadowMap() {
 #endif
 	EffectsManager::Instance()->m_shadowMapEffect->SetShader();
 	
-	for (int iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
+	for (uint32_t iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
 		if (EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->m_castShadow)
 			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->DrawOnShadowMap();
 	}

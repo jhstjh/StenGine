@@ -3,7 +3,6 @@
 #ifndef PLATFORM_ANDROID
 
 #include "RendererBase.h"
-
 #include "D3DCompiler.h"
 
 #ifdef GRAPHICS_D3D11
@@ -18,6 +17,8 @@
 #endif
 
 #endif
+
+#pragma warning( disable : 4996 )
 
 #ifndef PLATFORM_ANDROID
 
