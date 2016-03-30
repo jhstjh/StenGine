@@ -1,17 +1,15 @@
 #include "Skybox.h"
-#ifdef GRAPHICS_D3D11
-#include "D3D11Renderer.h"
-#endif
+#include "RendererBase.h"
 #include "CameraManager.h"
 #include "MeshRenderer.h"
 #include "SOIL.h"
 
 Skybox::Skybox(std::wstring &cubeMapPath) {
 // 	HR(D3DX11CreateShaderResourceViewFromFile(
-// 		D3D11Renderer::Instance()->GetD3DDevice(), 
+// 		static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice()), 
 // 		cubeMapPath.c_str(), 0, 0, &m_cubeMapSRV, 0));
 #ifdef GRAPHICS_D3D11
-	CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
+	CreateDDSTextureFromFile(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice()),
 		cubeMapPath.c_str(), nullptr, &m_cubeMapSRV);
 #else
 	std::string s(cubeMapPath.begin(), cubeMapPath.end());
@@ -108,7 +106,7 @@ void Skybox::Draw() {
 	SkyboxEffect* skyboxEffect = EffectsManager::Instance()->m_skyboxEffect;
 	skyboxEffect->SetShader();
 #ifdef GRAPHICS_D3D11
-	D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	//skyboxEffect->m_shaderResources[0] = m_cubeMapSRV;
 	skyboxEffect->SetShaderResources(m_cubeMapSRV, 0);
 	
@@ -122,7 +120,7 @@ void Skybox::Draw() {
 	skyboxEffect->UpdateConstantBuffer();
 	skyboxEffect->BindConstantBuffer();
 	skyboxEffect->BindShaderResource();
-	D3D11Renderer::Instance()->GetD3DContext()->Draw(36, 0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Draw(36, 0);
 
 #else
 	glBindVertexArray(m_skyboxVAO);

@@ -6,14 +6,14 @@
 
 #ifdef PLATFORM_WIN32
 #include "ResourceManager.h"
-#ifdef GRAPHICS_D3D11
-#include "D3D11Renderer.h"
-#endif
+#include "RendererBase.h"
 #include "ObjReader.h"
 #include "SOIL.h"
 #include "ShadowMap.h"
 #endif
 
+#include "Skybox.h"
+#include "MathHelper.h"
 
 Mesh::Mesh(int type = 0):
 #ifdef GRAPHICS_D3D11
@@ -312,7 +312,7 @@ void Mesh::PrepareGPUBuffer() {
 	//vbd.StructureByteStride = 0;
 	D3D11_SUBRESOURCE_DATA vinitData;
 	vinitData.pSysMem = &vertices[0];
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&vbd, &vinitData, &m_stdMeshVertexBufferGPU));
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&vbd, &vinitData, &m_stdMeshVertexBufferGPU));
 
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
@@ -323,7 +323,7 @@ void Mesh::PrepareGPUBuffer() {
 	ibd.StructureByteStride = 0;
 	D3D11_SUBRESOURCE_DATA iinitData;
 	iinitData.pSysMem = &m_indexBufferCPU[0];
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&ibd, &iinitData, &m_indexBufferGPU));
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&ibd, &iinitData, &m_indexBufferGPU));
 
 	//m_associatedEffect = EffectsManager::Instance()->m_stdMeshEffect;
 	//m_associatedEffect->m_associatedMeshes.push_back(this);
@@ -384,7 +384,7 @@ void Mesh::PrepareShadowMapBuffer() {
 	//vbd.StructureByteStride = 0;
 	D3D11_SUBRESOURCE_DATA vinitData;
 	vinitData.pSysMem = &vertices[0];
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&vbd, &vinitData, &m_shadowMapVertexBufferGPU));
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&vbd, &vinitData, &m_shadowMapVertexBufferGPU));
 #elif defined(GRAPHICS_OPENGL) || defined(PLATFORM_ANDROID)
 	glGenVertexArrays(1, &m_shadowVertexArrayObject);
 	glBindVertexArray(m_shadowVertexArrayObject);
@@ -400,10 +400,10 @@ void Mesh::Draw() {
 	UINT stride = sizeof(Vertex::StdMeshVertex);
 	UINT offset = 0;
 
-	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
 
 	//if (m_subMeshes.size() == 0)
-	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
 	DeferredGeometryPassEffect* deferredGeoEffect;
 
@@ -420,7 +420,7 @@ void Mesh::Draw() {
 	if (m_receiveShadow)
 		resourceMask.z = 1;
 
-	deferredGeoEffect->SetShaderResources(D3D11Renderer::Instance()->m_SkyBox->m_cubeMapSRV, 4);
+	deferredGeoEffect->SetShaderResources(Renderer::Instance()->GetSkyBox()->m_cubeMapSRV, 4);
 	deferredGeoEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
 	deferredGeoEffect->GetPerObjConstantBuffer()->ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
@@ -455,15 +455,15 @@ void Mesh::Draw() {
 			deferredGeoEffect->BindConstantBuffer();
 			
 			if (m_subMeshes[iSubMesh].m_bumpMapSRV) {
-				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+				static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 				deferredGeoEffect->SetShaderResources(m_subMeshes[iSubMesh].m_bumpMapSRV, 2);
 				deferredGeoEffect->BindShaderResource();
 			}
 			else {
-				D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+				static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				deferredGeoEffect->BindShaderResource();
 			}
-			D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_subMeshes[iSubMesh].m_indexBufferCPU.size(), startIndex, 0);
+			static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DrawIndexed(m_subMeshes[iSubMesh].m_indexBufferCPU.size(), startIndex, 0);
 			startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
 
 			deferredGeoEffect->UnBindShaderResource();
@@ -485,7 +485,7 @@ void Mesh::Draw() {
 #endif
 	
 #ifdef PLATFORM_WIN32
-	effect->CubeMapTex = GLRenderer::Instance()->m_SkyBox->m_cubeMapTex;
+	effect->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;
 #endif
 
 	for (int iP = 0; iP < m_parents.size(); iP++) {
@@ -578,15 +578,15 @@ void Mesh::DrawOnShadowMap() {
 	UINT stride = sizeof(Vertex::ShadowMapVertex);
 	UINT offset = 0;
 	
-	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_shadowMapVertexBufferGPU, &stride, &offset);
-	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetVertexBuffers(0, 1, &m_shadowMapVertexBufferGPU, &stride, &offset);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 
 	for (int iP = 0; iP < m_parents.size(); iP++) {
 		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
 		EffectsManager::Instance()->m_shadowMapEffect->m_perObjConstantBuffer.gWorldViewProj = XMMatrixTranspose(worldViewProj);
 		EffectsManager::Instance()->m_shadowMapEffect->UpdateConstantBuffer();
 		EffectsManager::Instance()->m_shadowMapEffect->BindConstantBuffer();
-		D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
 		EffectsManager::Instance()->m_shadowMapEffect->UnBindConstantBuffer();
 	}
 #else

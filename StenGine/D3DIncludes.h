@@ -39,6 +39,8 @@ using namespace DirectX::PackedVector;
 
 #define ReleaseCOM(x) { if(x){ x->Release(); x = 0; } }
 
+#define SafeRelease(x) { if (x) {x->Release(); x = 0; }}
+
 #if defined(DEBUG) | defined(_DEBUG)
 #ifndef HR
 #define HR(x) assert(SUCCEEDED(x))

@@ -2,14 +2,13 @@
 
 #ifdef PLATFORM_WIN32
 #include "InputManager.h"
-#ifdef GRAPHICS_D3D11
-#include "D3D11Renderer.h"
-#endif
-#include "GLRenderer.h"
+#include "RendererBase.h"
 using namespace DirectX;
 #elif defined PLATFORM_ANDROID
 #include "GLESRenderer.h"
 #endif
+
+#include "MathHelper.h"
 
 #define MOVE_SPEED 10
 
@@ -28,9 +27,9 @@ Camera::Camera(float px, float py, float pz,
 	XMMATRIX V = XMMatrixLookAtLH(pos, m_target, m_up);
 	XMStoreFloat4x4(&m_view, V);
 #ifdef GRAPHICS_D3D11
-	XMMATRIX P = XMMatrixPerspectiveFovLH(fov, D3D11Renderer::Instance()->GetAspectRatio(), np, fp);
+	XMMATRIX P = XMMatrixPerspectiveFovLH(fov, Renderer::Instance()->GetAspectRatio(), np, fp);
 #else
-	XMMATRIX P = XMMatrixPerspectiveFovLH(fov, GLRenderer::Instance()->GetAspectRatio(), np, fp);
+	XMMATRIX P = XMMatrixPerspectiveFovLH(fov, Renderer::Instance()->GetAspectRatio(), np, fp);
 #endif
 	XMStoreFloat4x4(&m_proj, P);
 

@@ -15,7 +15,7 @@ public:
 	static GLRenderer* Instance() { return _instance; }
 	virtual bool Init();
 	virtual void Draw();
-	Skybox* m_SkyBox;
+
 	
 	void DrawGBuffer();
 	void DrawDeferredShading();
@@ -26,20 +26,7 @@ public:
 private:
 	static GLRenderer* _instance;
 
-	HINSTANCE	m_hInst;
-	HWND		m_hMainWnd;
-	HDC			m_deviceContext;
-	HGLRC		m_renderingContext;
 
-	GLuint m_deferredGBuffers;
-
-	GLuint m_diffuseBufferTex;
-	GLuint m_normalBufferTex;
-	GLuint m_specularBufferTex;
-	GLuint m_depthBufferTex;
-
-	GLuint m_debugCoordVAO;
-	GLuint m_screenQuadVAO;
 
 	void GenerateColorTex(GLuint &bufferTex);
 	void GenerateDepthTex(GLuint &bufferTex);

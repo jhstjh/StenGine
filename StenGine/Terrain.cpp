@@ -1,11 +1,12 @@
 #include "Terrain.h"
-#include "D3D11Renderer.h"
+#include "RendererBase.h"
 #include "D3DIncludes.h"
 #include "CameraManager.h"
 #include "LightManager.h"
 #include "ResourceManager.h"
 #include "ShadowMap.h"
 #include <fstream>
+#include "MathHelper.h"
 
 Terrain* Terrain::_instance = nullptr;
 
@@ -190,14 +191,14 @@ void Terrain::BuildHeightMapSRV() {
 	data.SysMemSlicePitch = 0;
 
 	ID3D11Texture2D* hmapTex = 0;
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateTexture2D(&texDesc, &data, &hmapTex));
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateTexture2D(&texDesc, &data, &hmapTex));
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	srvDesc.Format = texDesc.Format;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MostDetailedMip = 0;
 	srvDesc.Texture2D.MipLevels = -1;
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateShaderResourceView(hmapTex, &srvDesc, &m_heightMapSRV));
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateShaderResourceView(hmapTex, &srvDesc, &m_heightMapSRV));
 
 	// SRV saves reference.
 	ReleaseCOM(hmapTex);
@@ -256,7 +257,7 @@ void Terrain::BuildQuadPatchVB() {
 
 	D3D11_SUBRESOURCE_DATA vinitData;
 	vinitData.pSysMem = &patchVertices[0];
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&vbd, &vinitData, &m_quadPatchVB));
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&vbd, &vinitData, &m_quadPatchVB));
 
 }
 
@@ -286,7 +287,7 @@ void Terrain::BuildQuadPatchIB() {
 
 	D3D11_SUBRESOURCE_DATA initData;
 	initData.pSysMem = &indices[0];
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&ibd, &initData, &m_quadPatchIB));
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&ibd, &initData, &m_quadPatchIB));
 }
 
 void Terrain::Draw() {
@@ -294,11 +295,11 @@ void Terrain::Draw() {
 	UINT offset = 0;
 
 	DeferredGeometryTerrainPassEffect* deferredGeoTerrainEffect = EffectsManager::Instance()->m_deferredGeometryTerrainPassEffect;
-	D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
 
-	D3D11Renderer::Instance()->GetD3DContext()->IASetInputLayout(deferredGeoTerrainEffect->GetInputLayout());
-	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_quadPatchVB, &stride, &offset);
-	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_quadPatchIB, DXGI_FORMAT_R16_UINT, 0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetInputLayout(deferredGeoTerrainEffect->GetInputLayout());
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetVertexBuffers(0, 1, &m_quadPatchVB, &stride, &offset);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetIndexBuffer(m_quadPatchIB, DXGI_FORMAT_R16_UINT, 0);
 	
 	deferredGeoTerrainEffect->SetShader();
 
@@ -336,7 +337,7 @@ void Terrain::Draw() {
 	deferredGeoTerrainEffect->SetShaderResources(m_blendMapSRV, 7);
 	deferredGeoTerrainEffect->BindShaderResource();
 
-	D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_numPatchQuadFaces * 4, 0, 0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DrawIndexed(m_numPatchQuadFaces * 4, 0, 0);
 
 	deferredGeoTerrainEffect->UnBindConstantBuffer();
 	deferredGeoTerrainEffect->UnBindShaderResource();
@@ -348,11 +349,11 @@ void Terrain::DrawOnShadowMap() {
 	UINT offset = 0;
 
 	TerrainShadowMapEffect* terrainShadowMapEffect = EffectsManager::Instance()->m_terrainShadowMapEffect;
-	D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
 
-	D3D11Renderer::Instance()->GetD3DContext()->IASetInputLayout(terrainShadowMapEffect->GetInputLayout());
-	D3D11Renderer::Instance()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_quadPatchVB, &stride, &offset);
-	D3D11Renderer::Instance()->GetD3DContext()->IASetIndexBuffer(m_quadPatchIB, DXGI_FORMAT_R16_UINT, 0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetInputLayout(terrainShadowMapEffect->GetInputLayout());
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetVertexBuffers(0, 1, &m_quadPatchVB, &stride, &offset);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetIndexBuffer(m_quadPatchIB, DXGI_FORMAT_R16_UINT, 0);
 
 	terrainShadowMapEffect->SetShader();
 
@@ -389,7 +390,7 @@ void Terrain::DrawOnShadowMap() {
 	terrainShadowMapEffect->SetShaderResources(m_blendMapSRV, 7);
 	terrainShadowMapEffect->BindShaderResource();
 
-	D3D11Renderer::Instance()->GetD3DContext()->DrawIndexed(m_numPatchQuadFaces * 4, 0, 0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DrawIndexed(m_numPatchQuadFaces * 4, 0, 0);
 
 	terrainShadowMapEffect->UnBindConstantBuffer();
 	terrainShadowMapEffect->UnBindShaderResource();

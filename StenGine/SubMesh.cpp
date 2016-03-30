@@ -1,9 +1,7 @@
 #include "SubMesh.h"
 #ifdef PLATFORM_WIN32
 #include "D3DIncludes.h"
-#ifdef GRAPHICS_D3D11
-#include "D3D11Renderer.h"
-#endif
+#include "RendererBase.h"
 #endif
 
 SubMesh::SubMesh() : m_indexBufferGPU(0), 
@@ -25,6 +23,6 @@ void SubMesh::PrepareGPUBuffer() {
 	ibd.StructureByteStride = 0;
 	D3D11_SUBRESOURCE_DATA iinitData;
 	iinitData.pSysMem = &m_indexBufferCPU[0];
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&ibd, &iinitData, &m_indexBufferGPU));
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&ibd, &iinitData, &m_indexBufferGPU));
 #endif
 }

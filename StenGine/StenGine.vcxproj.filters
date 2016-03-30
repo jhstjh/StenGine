@@ -42,9 +42,6 @@
     <ClInclude Include="StenGine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="D3D11Renderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="D3DIncludes.h">
       <Filter>Header Files</Filter>
     </ClInclude>

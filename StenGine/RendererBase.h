@@ -1,23 +1,65 @@
 #ifndef __RENDERERBASE__
 #define __RENDERERBASE__
 
+#include <Windows.h>
+#include <DirectXMath.h>
+
+namespace Vertex {
+	struct StdMeshVertex {
+		DirectX::XMFLOAT3 Pos;
+		DirectX::XMFLOAT3 Normal;
+		DirectX::XMFLOAT3 Tangent;
+		DirectX::XMFLOAT2 TexUV;
+	};
+
+	struct ShadowMapVertex {
+		DirectX::XMFLOAT3 Pos;
+	};
+
+	struct DebugLine {
+		DirectX::XMFLOAT3 Pos;
+		//XMFLOAT4 Color;
+	};
+
+	struct SkinnedMeshVertex {
+		DirectX::XMFLOAT3 Pos;
+		DirectX::XMFLOAT3 Normal;
+		DirectX::XMFLOAT3 Tangent;
+		DirectX::XMFLOAT2 TexUV;
+		DirectX::XMFLOAT4 JointWeights;
+		DirectX::XMUINT4  JointIndices;
+	};
+
+	struct TerrainVertex {
+		DirectX::XMFLOAT3 Pos;
+		DirectX::XMFLOAT2 TexUV;
+		DirectX::XMFLOAT2 BoundsY;
+	};
+}
+
 class Renderer {
 public:
-	//virtual ~Renderer();
-	//static Renderer* Instance() { return _instance; }
+	static Renderer* Create(HINSTANCE hInstance, HWND hMainWnd);
+	static Renderer* Instance() { return _instance; }
+
+	virtual void Release() = 0;
 	virtual bool Init() = 0;
 	virtual void Draw() = 0;
-	float GetAspectRatio() { return static_cast<float>(m_clientWidth) / static_cast<float>(m_clientHeight); }
-	int GetScreenWidth() { return m_clientWidth; }
-	int GetScreenHeight() { return m_clientHeight; }
-
+	virtual float GetAspectRatio() = 0; 
+	virtual int GetScreenWidth() = 0; 
+	virtual int GetScreenHeight() = 0;
+	virtual void DrawGBuffer() = 0;
+	virtual void DrawDeferredShading() = 0;
+	virtual void DrawBlurSSAOAndCombine() = 0;
+	virtual void DrawDebug() = 0;
+	virtual void DrawGodRay() = 0;
+	virtual class Skybox* GetSkyBox() = 0;
+	virtual void* GetDevice() = 0;
+	virtual void* GetDeviceContext() = 0;
+	virtual void* GetDepthRS() = 0;
 
 protected:
-	//static Renderer* _instance;
-
-	int m_clientWidth;
-	int m_clientHeight;
-	bool m_enable4xMsaa;
+	static Renderer* _instance;
 };
 
 

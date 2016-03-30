@@ -2,9 +2,7 @@
 #include <fbxsdk.h>
 #ifdef PLATFORM_WIN32
 #include "ResourceManager.h"
-#ifdef GRAPHICS_D3D11
-#include "D3D11Renderer.h"
-#endif
+#include "RendererBase.h"
 #include "Shlwapi.h"
 #include "SOIL.h"
 #elif defined PLATFORM_ANDROID

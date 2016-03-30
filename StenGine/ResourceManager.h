@@ -103,7 +103,7 @@ public:
 			auto got = m_textureSRVResourceMap.find(path);
 			if (got == m_textureSRVResourceMap.end()) {
 				ID3D11ShaderResourceView* texSRV;
-				HR(CreateDDSTextureFromFile(D3D11Renderer::Instance()->GetD3DDevice(),
+				HR(CreateDDSTextureFromFile(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice()),
 					path.c_str(), nullptr, &texSRV));
 				m_textureSRVResourceMap[path] = texSRV;
 				return (T*)texSRV;
@@ -151,7 +151,7 @@ public:
 			//
 			UINT size = filenames.size();
 			std::vector<ID3D11Texture2D*> srcTex(size);
-			auto device = D3D11Renderer::Instance()->GetD3DDevice();
+			auto device = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice());
 			for (UINT i = 0; i < size; ++i)
 			{
 				HR(CreateDDSTextureFromFileEx(device, filenames[i].c_str(), 0u, D3D11_USAGE_STAGING, 0, D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ, 0, false, (ID3D11Resource**)&srcTex[i], nullptr, nullptr));
@@ -181,7 +181,7 @@ public:
 			//
 			// Copy individual texture elements into texture array.
 			//
-			auto context = D3D11Renderer::Instance()->GetD3DContext();
+			auto context = static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext());
 
 			// for each texture element...
 			for (UINT texElement = 0; texElement < size; ++texElement)

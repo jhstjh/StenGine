@@ -7,10 +7,7 @@
 #include "windowsX.h"
 #include "stdafx.h"
 #include "StenGine.h"
-#ifdef GRAPHICS_D3D11
-#include "D3D11Renderer.h"
-#endif
-#include "GLRenderer.h"
+#include "RendererBase.h"
 #include "EffectsManager.h"
 #include "LightManager.h"
 #include "CameraManager.h"
@@ -72,19 +69,22 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	{
 		return FALSE;
 	}
-#ifdef GRAPHICS_D3D11
-	D3D11Renderer* renderer = new D3D11Renderer(hInstance, hMainWnd);
- 	if (!renderer->Init())
- 	{
- 		return FALSE;
- 	}
-#else
-	GLRenderer* renderer = new GLRenderer(hInstance, hMainWnd);
-	if (!renderer->Init())
-	{
-		return FALSE;
-	}
-#endif
+	//#ifdef GRAPHICS_D3D11
+	//	D3D11Renderer* renderer = new D3D11Renderer(hInstance, hMainWnd);
+	// 	if (!renderer->Init())
+	// 	{
+	// 		return FALSE;
+	// 	}
+	//#else
+	//	GLRenderer* renderer = new GLRenderer(hInstance, hMainWnd);
+	//	if (!renderer->Init())
+	//	{
+	//		return FALSE;
+	//	}
+	//#endif
+
+	Renderer* renderer = Renderer::Create(hInstance, hMainWnd);
+	renderer->Init();
 
 	EffectsManager::Instance();
 	CameraManager::Instance();
@@ -172,14 +172,12 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 			InputManager::Instance()->Update();
 			CameraManager::Instance()->GetActiveCamera()->Update();			
 			sphere->Update();
-#ifdef GRAPHICS_D3D11
-			D3D11Renderer::Instance()->Draw();
-#else
-			GLRenderer::Instance()->Draw();
-#endif
+			Renderer::Instance()->Draw();
 			elaspedFrame++;
 		}
 	}
+
+	SafeRelease(renderer);
 
 //  	SafeDelete(box0);
 //   	SafeDelete(sphere);

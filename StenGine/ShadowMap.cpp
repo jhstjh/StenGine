@@ -1,5 +1,5 @@
 #include "ShadowMap.h"
-#include "D3D11Renderer.h"
+#include "RendererBase.h"
 #include "LightManager.h"
 #include "EffectsManager.h"
 #include "Terrain.h"
@@ -30,21 +30,21 @@ ShadowMap::ShadowMap(UINT width, UINT height)
 	texDesc.MiscFlags = 0;
 
 	ID3D11Texture2D* depthMap;
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateTexture2D(&texDesc, 0, &depthMap));
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateTexture2D(&texDesc, 0, &depthMap));
 
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
 	dsvDesc.Flags = 0;
 	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	dsvDesc.Texture2D.MipSlice = 0;
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateDepthStencilView(depthMap, &dsvDesc, &m_depthDSV));
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateDepthStencilView(depthMap, &dsvDesc, &m_depthDSV));
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = texDesc.MipLevels;
 	srvDesc.Texture2D.MostDetailedMip = 0;
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateShaderResourceView(depthMap, &srvDesc, &m_depthSRV));
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateShaderResourceView(depthMap, &srvDesc, &m_depthSRV));
 
 	ReleaseCOM(depthMap);
 #else
@@ -146,7 +146,7 @@ void ShadowMap::RenderShadowMap() {
 
 #ifdef GRAPHICS_D3D11
 
-	ID3D11DeviceContext* dc = D3D11Renderer::Instance()->GetD3DContext();
+	ID3D11DeviceContext* dc = static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext());
 
 	dc->RSSetViewports(1, &m_viewPort);
 
@@ -154,9 +154,9 @@ void ShadowMap::RenderShadowMap() {
 	dc->OMSetRenderTargets(1, renderTargets, m_depthDSV);
 	dc->ClearDepthStencilView(m_depthDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	D3D11Renderer::Instance()->GetD3DContext()->RSSetState(D3D11Renderer::Instance()->m_depthRS);
-	D3D11Renderer::Instance()->GetD3DContext()->IASetInputLayout(EffectsManager::Instance()->m_shadowMapEffect->GetInputLayout());
-	D3D11Renderer::Instance()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->RSSetState(static_cast<ID3D11RasterizerState*>(Renderer::Instance()->GetDepthRS()));
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetInputLayout(EffectsManager::Instance()->m_shadowMapEffect->GetInputLayout());
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 #else
 	glBindFramebuffer(GL_FRAMEBUFFER, m_shadowBuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -174,7 +174,7 @@ void ShadowMap::RenderShadowMap() {
 	//Terrain::Instance()->DrawOnShadowMap();
 
 #ifdef GRAPHICS_D3D11
-	D3D11Renderer::Instance()->GetD3DContext()->RSSetState(0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->RSSetState(0);
 #else
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 #endif

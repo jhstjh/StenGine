@@ -2,9 +2,8 @@
 
 #ifndef PLATFORM_ANDROID
 
-#ifdef GRAPHICS_D3D11
-#include "D3D11Renderer.h"
-#endif
+#include "RendererBase.h"
+
 #include "D3DCompiler.h"
 
 #ifdef GRAPHICS_D3D11
@@ -57,7 +56,7 @@ Effect::Effect(const std::wstring& vsPath,
 
 	if (vsPath.length()) {
 		ReadShaderFile(vsPath, &m_vsBlob, "vs_5_0");
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateVertexShader(
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateVertexShader(
 			m_vsBlob->GetBufferPointer(),
 			m_vsBlob->GetBufferSize(),
 			nullptr,
@@ -68,7 +67,7 @@ Effect::Effect(const std::wstring& vsPath,
 
 	if (psPath.length()) {
 		ReadShaderFile(psPath, &m_psBlob, "ps_5_0");
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreatePixelShader(
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreatePixelShader(
 			m_psBlob->GetBufferPointer(),
 			m_psBlob->GetBufferSize(),
 			nullptr,
@@ -79,7 +78,7 @@ Effect::Effect(const std::wstring& vsPath,
 
 	if (gsPath.length()) {
 		ReadShaderFile(gsPath, &m_gsBlob, "gs_5_0");
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateGeometryShader(
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateGeometryShader(
 			m_gsBlob->GetBufferPointer(),
 			m_gsBlob->GetBufferSize(),
 			nullptr,
@@ -90,7 +89,7 @@ Effect::Effect(const std::wstring& vsPath,
 
 	if (hsPath.length()) {
 		ReadShaderFile(hsPath, &m_hsBlob, "hs_5_0");
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateHullShader(
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateHullShader(
 			m_hsBlob->GetBufferPointer(),
 			m_hsBlob->GetBufferSize(),
 			nullptr,
@@ -101,7 +100,7 @@ Effect::Effect(const std::wstring& vsPath,
 
 	if (dsPath.length()) {
 		ReadShaderFile(dsPath, &m_dsBlob, "ds_5_0");
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateDomainShader(
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateDomainShader(
 			m_dsBlob->GetBufferPointer(),
 			m_dsBlob->GetBufferSize(),
 			nullptr,
@@ -112,7 +111,7 @@ Effect::Effect(const std::wstring& vsPath,
 
 	if (csPath.length()) {
 		ReadShaderFile(csPath, &m_csBlob, "cs_5_0");
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateComputeShader(
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateComputeShader(
 			m_csBlob->GetBufferPointer(),
 			m_csBlob->GetBufferSize(),
 			nullptr,
@@ -242,12 +241,12 @@ Effect::~Effect()
 
 void Effect::UnBindConstantBuffer() {
 #ifdef GRAPHICS_D3D11
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 0, nullptr);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 0, nullptr);
-	D3D11Renderer::Instance()->GetD3DContext()->HSSetConstantBuffers(0, 0, nullptr);
-	D3D11Renderer::Instance()->GetD3DContext()->DSSetConstantBuffers(0, 0, nullptr);
-	D3D11Renderer::Instance()->GetD3DContext()->GSSetConstantBuffers(0, 0, nullptr);
-	D3D11Renderer::Instance()->GetD3DContext()->CSSetConstantBuffers(0, 0, nullptr);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 0, nullptr);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 0, nullptr);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetConstantBuffers(0, 0, nullptr);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetConstantBuffers(0, 0, nullptr);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->GSSetConstantBuffers(0, 0, nullptr);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetConstantBuffers(0, 0, nullptr);
 #else
 // gl
 #endif
@@ -256,12 +255,12 @@ void Effect::UnBindConstantBuffer() {
 void Effect::UnBindShaderResource() {
 #ifdef GRAPHICS_D3D11
 	static ID3D11ShaderResourceView* nullSRV[16] = { 0 };
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 16, nullSRV);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 16, nullSRV);
-	D3D11Renderer::Instance()->GetD3DContext()->HSSetShaderResources(0, 16, nullSRV);
-	D3D11Renderer::Instance()->GetD3DContext()->DSSetShaderResources(0, 16, nullSRV);
-	D3D11Renderer::Instance()->GetD3DContext()->GSSetShaderResources(0, 16, nullSRV);
-	D3D11Renderer::Instance()->GetD3DContext()->CSSetShaderResources(0, 16, nullSRV);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 16, nullSRV);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 16, nullSRV);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShaderResources(0, 16, nullSRV);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShaderResources(0, 16, nullSRV);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->GSSetShaderResources(0, 16, nullSRV);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetShaderResources(0, 16, nullSRV);
 #else
 // gl
 #endif
@@ -272,17 +271,17 @@ void Effect::UnBindShaderResource() {
 void Effect::SetShader() {
 #ifdef GRAPHICS_D3D11
 	//if (m_vertexShader)
-		D3D11Renderer::Instance()->GetD3DContext()->VSSetShader(m_vertexShader, 0, 0);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShader(m_vertexShader, 0, 0);
 	//if (m_pixelShader)
-		D3D11Renderer::Instance()->GetD3DContext()->PSSetShader(m_pixelShader, 0, 0);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShader(m_pixelShader, 0, 0);
 	//if (m_geometryShader)
-		D3D11Renderer::Instance()->GetD3DContext()->GSSetShader(m_geometryShader, 0, 0);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->GSSetShader(m_geometryShader, 0, 0);
 	//if (m_hullShader)
-		D3D11Renderer::Instance()->GetD3DContext()->HSSetShader(m_hullShader, 0, 0);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShader(m_hullShader, 0, 0);
 	//if (m_domainShader)
-		D3D11Renderer::Instance()->GetD3DContext()->DSSetShader(m_domainShader, 0, 0);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShader(m_domainShader, 0, 0);
 		//if (m_domainShader)
-		D3D11Renderer::Instance()->GetD3DContext()->CSSetShader(m_computeShader, 0, 0);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetShader(m_computeShader, 0, 0);
 #else
 	// gl
 	glUseProgram(m_shaderProgram);
@@ -291,12 +290,12 @@ void Effect::SetShader() {
 
 void Effect::UnSetShader() {
 #ifdef GRAPHICS_D3D11
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetShader(nullptr, 0, 0);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetShader(nullptr, 0, 0);
-	D3D11Renderer::Instance()->GetD3DContext()->HSSetShader(nullptr, 0, 0);
-	D3D11Renderer::Instance()->GetD3DContext()->GSSetShader(nullptr, 0, 0);
-	D3D11Renderer::Instance()->GetD3DContext()->DSSetShader(nullptr, 0, 0);
-	D3D11Renderer::Instance()->GetD3DContext()->CSSetShader(nullptr, 0, 0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShader(nullptr, 0, 0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShader(nullptr, 0, 0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShader(nullptr, 0, 0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->GSSetShader(nullptr, 0, 0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShader(nullptr, 0, 0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetShader(nullptr, 0, 0);
 #else
 	// gl
 #endif
@@ -305,7 +304,7 @@ void Effect::UnSetShader() {
 #ifdef GRAPHICS_D3D11
 void Effect::UnbindUnorderedAccessViews() {
 	static ID3D11UnorderedAccessView* nullUAV[7] = { 0 };
-	D3D11Renderer::Instance()->GetD3DContext()->CSSetUnorderedAccessViews(0, 7, nullUAV, 0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetUnorderedAccessViews(0, 7, nullUAV, 0);
 }
 
 void Effect::ReadShaderFile(std::wstring filename, ID3DBlob **blob, char* target, char* entryPoint) {
@@ -354,7 +353,7 @@ ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
 	{
@@ -373,7 +372,7 @@ ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
 
 		HRESULT hr;
 		// Create the buffer.
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
 			&m_perObjectCB);
 
 		assert(SUCCEEDED(hr));
@@ -396,9 +395,9 @@ void ShadowMapEffect::UpdateConstantBuffer() {
 #ifdef GRAPHICS_D3D11
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
-		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
-		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perObjectCB, NULL);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perObjectCB, NULL);
 	}
 #else
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
@@ -416,7 +415,7 @@ void ShadowMapEffect::UpdateConstantBuffer() {
 void ShadowMapEffect::BindConstantBuffer() {
 #ifdef GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perObjectCB };
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 1, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 1, cbuf);
 #endif
 }
 
@@ -448,7 +447,7 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filen
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 4, m_vsBlob->GetBufferPointer(),
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 4, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
 	m_shaderResources = new ID3D11ShaderResourceView*[5];
@@ -473,7 +472,7 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filen
 
 		HRESULT hr;
 		// Create the buffer.
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
 			&m_perObjectCB);
 
 		assert(SUCCEEDED(hr));
@@ -497,7 +496,7 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filen
 
 		HRESULT hr;
 		// Create the buffer.
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
 			&m_perFrameCB);
 
 		assert(SUCCEEDED(hr));
@@ -544,16 +543,16 @@ void DeferredGeometryPassEffect::UpdateConstantBuffer() {
 #ifdef GRAPHICS_D3D11
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
-		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
-		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perObjectCB, NULL);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perObjectCB, NULL);
 	}
 
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
-		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
-		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perFrameCB, NULL);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perFrameCB, NULL);
 	}
 #else
 
@@ -587,15 +586,15 @@ void DeferredGeometryPassEffect::UpdateConstantBuffer() {
 void DeferredGeometryPassEffect::BindConstantBuffer() {
 #ifdef GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perObjectCB, m_perFrameCB };
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 2, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 2, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 2, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 2, cbuf);
 #endif
 }
 
 void DeferredGeometryPassEffect::BindShaderResource() {
 #ifdef GRAPHICS_D3D11
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 5, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 5, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 5, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 5, m_shaderResources);
 #else
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, DiffuseMap);
@@ -638,7 +637,7 @@ DeferredGeometrySkinnedPassEffect::DeferredGeometrySkinnedPassEffect(const std::
 		{ "JOINTINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, 60, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 6, m_vsBlob->GetBufferPointer(),
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 6, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
 	m_shaderResources = new ID3D11ShaderResourceView*[5];
@@ -663,7 +662,7 @@ DeferredGeometrySkinnedPassEffect::DeferredGeometrySkinnedPassEffect(const std::
 
 		HRESULT hr;
 		// Create the buffer.
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
 			&m_perObjectCB);
 
 		assert(SUCCEEDED(hr));
@@ -687,7 +686,7 @@ DeferredGeometrySkinnedPassEffect::DeferredGeometrySkinnedPassEffect(const std::
 
 		HRESULT hr;
 		// Create the buffer.
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
 			&m_perFrameCB);
 
 		assert(SUCCEEDED(hr));
@@ -734,16 +733,16 @@ void DeferredGeometrySkinnedPassEffect::UpdateConstantBuffer() {
 #ifdef GRAPHICS_D3D11
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
-		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
-		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perObjectCB, NULL);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perObjectCB, NULL);
 	}
 
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
-		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
-		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perFrameCB, NULL);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perFrameCB, NULL);
 	}
 #else
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
@@ -771,15 +770,15 @@ void DeferredGeometrySkinnedPassEffect::UpdateConstantBuffer() {
 void DeferredGeometrySkinnedPassEffect::BindConstantBuffer() {
 #ifdef GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perObjectCB, m_perFrameCB };
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 2, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 2, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 2, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 2, cbuf);
 #endif
 }
 
 void DeferredGeometrySkinnedPassEffect::BindShaderResource() {
 #ifdef GRAPHICS_D3D11
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 5, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 5, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 5, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 5, m_shaderResources);
 #else
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, DiffuseMap);
@@ -811,7 +810,7 @@ DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filenam
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
 	m_shaderResources = new ID3D11ShaderResourceView*[5];
@@ -837,7 +836,7 @@ DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filenam
 
 		HRESULT hr;
 		// Create the buffer.
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
 			&m_perFrameCB);
 
 		assert(SUCCEEDED(hr));
@@ -872,9 +871,9 @@ void DeferredShadingPassEffect::UpdateConstantBuffer() {
 #ifdef GRAPHICS_D3D11
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
-		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
-		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perFrameCB, NULL);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perFrameCB, NULL);
 	}
 #else
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perFrameUBO);
@@ -892,15 +891,15 @@ void DeferredShadingPassEffect::UpdateConstantBuffer() {
 void DeferredShadingPassEffect::BindConstantBuffer() {
 #ifdef GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perFrameCB };
-	//D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 1, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 1, cbuf);
+	//static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 1, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 1, cbuf);
 #endif
 }
 
 void DeferredShadingPassEffect::BindShaderResource() {
 #ifdef GRAPHICS_D3D11
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 5, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 5, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 5, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 5, m_shaderResources);
 #else
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, NormalGMap);
@@ -933,7 +932,7 @@ GodRayEffect::GodRayEffect(const std::wstring& filename)
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
 	m_shaderResources = new ID3D11ShaderResourceView*[1];
@@ -959,7 +958,7 @@ GodRayEffect::GodRayEffect(const std::wstring& filename)
 
 		HRESULT hr;
 		// Create the buffer.
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
 			&m_perFrameCB);
 
 		assert(SUCCEEDED(hr));
@@ -991,9 +990,9 @@ void GodRayEffect::UpdateConstantBuffer() {
 #ifdef GRAPHICS_D3D11
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
-		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
-		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perFrameCB, NULL);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perFrameCB, NULL);
 	}
 #else
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perFrameUBO);
@@ -1011,14 +1010,14 @@ void GodRayEffect::UpdateConstantBuffer() {
 void GodRayEffect::BindConstantBuffer() {
 #ifdef GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perFrameCB };
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(1, 1, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(1, 1, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(1, 1, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(1, 1, cbuf);
 #endif
 }
 
 void GodRayEffect::BindShaderResource() {
 #ifdef GRAPHICS_D3D11
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 1, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 1, m_shaderResources);
 #else
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, OcclusionMap);
@@ -1042,7 +1041,7 @@ SkyboxEffect::SkyboxEffect(const std::wstring& filename)
 		m_shaderResources[i] = 0;
 	}
 
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
 	{
@@ -1061,7 +1060,7 @@ SkyboxEffect::SkyboxEffect(const std::wstring& filename)
 
 		HRESULT hr;
 		// Create the buffer.
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
 			&m_perObjectCB);
 
 		assert(SUCCEEDED(hr));
@@ -1087,9 +1086,9 @@ void SkyboxEffect::UpdateConstantBuffer() {
 #ifdef GRAPHICS_D3D11
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
-		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
-		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perObjectCB, NULL);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perObjectCB, NULL);
 	}
 #else
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
@@ -1107,7 +1106,7 @@ void SkyboxEffect::UpdateConstantBuffer() {
 void SkyboxEffect::BindConstantBuffer() {
 #ifdef GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perObjectCB };
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 1, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 1, cbuf);
 #endif
 }
 
@@ -1120,8 +1119,8 @@ SkyboxEffect::~SkyboxEffect()
 
 void SkyboxEffect::BindShaderResource() {
 #ifdef GRAPHICS_D3D11
-	//D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 4, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 1, m_shaderResources);
+	//static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 4, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 1, m_shaderResources);
 #else
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap);
@@ -1146,7 +1145,7 @@ DebugLineEffect::DebugLineEffect(const std::wstring& filename)
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
 	{
@@ -1165,7 +1164,7 @@ DebugLineEffect::DebugLineEffect(const std::wstring& filename)
 
 		HRESULT hr;
 		// Create the buffer.
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
 			&m_perObjectCB);
 
 		assert(SUCCEEDED(hr));
@@ -1195,9 +1194,9 @@ void DebugLineEffect::UpdateConstantBuffer() {
 #ifdef GRAPHICS_D3D11
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
-		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
-		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perObjectCB, NULL);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perObjectCB, NULL);
 	}
 #else
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
@@ -1215,8 +1214,8 @@ void DebugLineEffect::UpdateConstantBuffer() {
 void DebugLineEffect::BindConstantBuffer() {
 #ifdef GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perObjectCB };
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 1, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 1, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 1, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 1, cbuf);
 #endif
 }
 
@@ -1243,8 +1242,8 @@ VBlurEffect::VBlurEffect(const std::wstring& filename)
 	for (int i = 0; i < 2; i++) {
 
 		D3D11_TEXTURE2D_DESC blurredTexDesc;
-		blurredTexDesc.Width = D3D11Renderer::Instance()->GetScreenWidth();
-		blurredTexDesc.Height = D3D11Renderer::Instance()->GetScreenHeight();
+		blurredTexDesc.Width = Renderer::Instance()->GetScreenWidth();
+		blurredTexDesc.Height = Renderer::Instance()->GetScreenHeight();
 		blurredTexDesc.MipLevels = 1;
 		blurredTexDesc.ArraySize = 1;
 		blurredTexDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -1256,7 +1255,7 @@ VBlurEffect::VBlurEffect(const std::wstring& filename)
 		blurredTexDesc.MiscFlags = 0;
 
 		ID3D11Texture2D* blurredTex = 0;
-		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateTexture2D(&blurredTexDesc, 0, &blurredTex));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateTexture2D(&blurredTexDesc, 0, &blurredTex));
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 		srvDesc.Format = blurredTexDesc.Format;
@@ -1264,14 +1263,14 @@ VBlurEffect::VBlurEffect(const std::wstring& filename)
 		srvDesc.Texture2D.MostDetailedMip = 0;
 		srvDesc.Texture2D.MipLevels = 1;
 
-		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateShaderResourceView(blurredTex, &srvDesc, &m_outputShaderResources[i]));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateShaderResourceView(blurredTex, &srvDesc, &m_outputShaderResources[i]));
 
 		D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
 		uavDesc.Format = blurredTexDesc.Format;
 		uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
 		uavDesc.Texture2D.MipSlice = 0;
 
-		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateUnorderedAccessView(blurredTex, &uavDesc, &m_unorderedAccessViews[i]));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateUnorderedAccessView(blurredTex, &uavDesc, &m_unorderedAccessViews[i]));
 
 
 		ReleaseCOM(blurredTex);
@@ -1296,7 +1295,7 @@ VBlurEffect::VBlurEffect(const std::wstring& filename)
 
 		HRESULT hr;
 		// Create the buffer.
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
 			&m_settingCB);
 
 		assert(SUCCEEDED(hr));
@@ -1318,20 +1317,20 @@ VBlurEffect::~VBlurEffect()
 void VBlurEffect::UpdateConstantBuffer() {
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
-		D3D11Renderer::Instance()->GetD3DContext()->Map(m_settingCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_settingCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, &m_settingConstantBuffer, sizeof(SETTING_CONSTANT_BUFFER));
-		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_settingCB, NULL);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_settingCB, NULL);
 	}
 }
 
 void VBlurEffect::BindConstantBuffer() {
 	ID3D11Buffer* cbuf[] = { m_settingCB };
-	D3D11Renderer::Instance()->GetD3DContext()->CSSetConstantBuffers(0, 1, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetConstantBuffers(0, 1, cbuf);
 }
 
 void VBlurEffect::BindShaderResource(int idx) {
-	D3D11Renderer::Instance()->GetD3DContext()->CSSetShaderResources(0, 1, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->CSSetUnorderedAccessViews(0, 1, &m_unorderedAccessViews[idx], 0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetShaderResources(0, 1, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetUnorderedAccessViews(0, 1, &m_unorderedAccessViews[idx], 0);
 }
 
 
@@ -1353,7 +1352,7 @@ DeferredGeometryTessPassEffect::DeferredGeometryTessPassEffect(const std::wstrin
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 4, m_vsBlob->GetBufferPointer(),
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 4, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
 	m_shaderResources = new ID3D11ShaderResourceView*[5];
@@ -1378,7 +1377,7 @@ DeferredGeometryTessPassEffect::DeferredGeometryTessPassEffect(const std::wstrin
 
 		HRESULT hr;
 		// Create the buffer.
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
 			&m_perObjectCB);
 
 		assert(SUCCEEDED(hr));
@@ -1402,7 +1401,7 @@ DeferredGeometryTessPassEffect::DeferredGeometryTessPassEffect(const std::wstrin
 
 		HRESULT hr;
 		// Create the buffer.
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
 			&m_perFrameCB);
 
 		assert(SUCCEEDED(hr));
@@ -1424,32 +1423,32 @@ DeferredGeometryTessPassEffect::~DeferredGeometryTessPassEffect()
 void DeferredGeometryTessPassEffect::UpdateConstantBuffer() {
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
-		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
-		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perObjectCB, NULL);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perObjectCB, NULL);
 	}
 
 	{	
 		D3D11_MAPPED_SUBRESOURCE ms;
-		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
-		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perFrameCB, NULL);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perFrameCB, NULL);
 	}
 }
 
 void DeferredGeometryTessPassEffect::BindConstantBuffer() {
 	ID3D11Buffer* cbuf[] = { m_perObjectCB, m_perFrameCB };
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 2, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 2, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->HSSetConstantBuffers(0, 2, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->DSSetConstantBuffers(0, 2, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 2, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 2, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetConstantBuffers(0, 2, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetConstantBuffers(0, 2, cbuf);
 }
 
 void DeferredGeometryTessPassEffect::BindShaderResource() {
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 5, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 5, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->HSSetShaderResources(0, 5, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->DSSetShaderResources(0, 5, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 5, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 5, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShaderResources(0, 5, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShaderResources(0, 5, m_shaderResources);
 }
 
 
@@ -1470,7 +1469,7 @@ DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::
 		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	HRESULT hr = (D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
+	HRESULT hr = (static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
 	m_shaderResources = new ID3D11ShaderResourceView*[8];
@@ -1494,7 +1493,7 @@ DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::
 		InitData.SysMemSlicePitch = 0;
 
 		// Create the buffer.
-		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData, &m_perObjectCB));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData, &m_perObjectCB));
 	}
 
 	{
@@ -1514,7 +1513,7 @@ DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::
 		InitData.SysMemSlicePitch = 0;
 
 		// Create the buffer.
-		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData, &m_perFrameCB));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData, &m_perFrameCB));
 	}
 
 	ReleaseCOM(m_vsBlob);
@@ -1533,32 +1532,32 @@ DeferredGeometryTerrainPassEffect::~DeferredGeometryTerrainPassEffect()
 void DeferredGeometryTerrainPassEffect::UpdateConstantBuffer() {
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
-		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
-		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perObjectCB, NULL);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perObjectCB, NULL);
 	}
 
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
-		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
-		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perFrameCB, NULL);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perFrameCB, NULL);
 	}
 }
 
 void DeferredGeometryTerrainPassEffect::BindConstantBuffer() {
 	ID3D11Buffer* cbuf[] = { m_perObjectCB, m_perFrameCB };
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 2, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 2, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->HSSetConstantBuffers(0, 2, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->DSSetConstantBuffers(0, 2, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 2, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 2, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetConstantBuffers(0, 2, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetConstantBuffers(0, 2, cbuf);
 }
 
 void DeferredGeometryTerrainPassEffect::BindShaderResource() {
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 8, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 8, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->HSSetShaderResources(0, 8, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->DSSetShaderResources(0, 8, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 8, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 8, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShaderResources(0, 8, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShaderResources(0, 8, m_shaderResources);
 }
 
 
@@ -1579,7 +1578,7 @@ TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
 		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	HRESULT hr = (D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
+	HRESULT hr = (static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
 	m_shaderResources = new ID3D11ShaderResourceView*[8];
@@ -1603,7 +1602,7 @@ TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
 		InitData.SysMemSlicePitch = 0;
 
 		// Create the buffer.
-		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData, &m_perObjectCB));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData, &m_perObjectCB));
 	}
 
 	{
@@ -1623,7 +1622,7 @@ TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
 		InitData.SysMemSlicePitch = 0;
 
 		// Create the buffer.
-		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData, &m_perFrameCB));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData, &m_perFrameCB));
 	}
 
 	ReleaseCOM(m_vsBlob);
@@ -1642,32 +1641,32 @@ TerrainShadowMapEffect::~TerrainShadowMapEffect()
 void TerrainShadowMapEffect::UpdateConstantBuffer() {
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
-		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
-		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perObjectCB, NULL);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perObjectCB, NULL);
 	}
 
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
-		D3D11Renderer::Instance()->GetD3DContext()->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
-		D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perFrameCB, NULL);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perFrameCB, NULL);
 	}
 }
 
 void TerrainShadowMapEffect::BindConstantBuffer() {
 	ID3D11Buffer* cbuf[] = { m_perObjectCB, m_perFrameCB };
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 2, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 2, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->HSSetConstantBuffers(0, 2, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->DSSetConstantBuffers(0, 2, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 2, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 2, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetConstantBuffers(0, 2, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetConstantBuffers(0, 2, cbuf);
 }
 
 void TerrainShadowMapEffect::BindShaderResource() {
-	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 8, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 8, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->HSSetShaderResources(0, 8, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->DSSetShaderResources(0, 8, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 8, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 8, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShaderResources(0, 8, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShaderResources(0, 8, m_shaderResources);
 }
 
 
@@ -1700,7 +1699,7 @@ DeferredShadingCS::DeferredShadingCS(const std::wstring& filename)
 
 		HRESULT hr;
 		// Create the buffer.
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
 			&m_perFrameCB);
 
 		assert(SUCCEEDED(hr));
@@ -1713,8 +1712,8 @@ DeferredShadingCS::DeferredShadingCS(const std::wstring& filename)
 	for (int i = 0; i < 2; i++) {
 
 		D3D11_TEXTURE2D_DESC shadedTexDesc;
-		shadedTexDesc.Width = D3D11Renderer::Instance()->GetScreenWidth();
-		shadedTexDesc.Height = D3D11Renderer::Instance()->GetScreenHeight();
+		shadedTexDesc.Width = Renderer::Instance()->GetScreenWidth();
+		shadedTexDesc.Height = Renderer::Instance()->GetScreenHeight();
 		shadedTexDesc.MipLevels = 1;
 		shadedTexDesc.ArraySize = 1;
 		shadedTexDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -1726,7 +1725,7 @@ DeferredShadingCS::DeferredShadingCS(const std::wstring& filename)
 		shadedTexDesc.MiscFlags = 0;
 
 		ID3D11Texture2D* shadedTex = 0;
-		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateTexture2D(&shadedTexDesc, 0, &shadedTex));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateTexture2D(&shadedTexDesc, 0, &shadedTex));
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 		srvDesc.Format = shadedTexDesc.Format;
@@ -1734,14 +1733,14 @@ DeferredShadingCS::DeferredShadingCS(const std::wstring& filename)
 		srvDesc.Texture2D.MostDetailedMip = 0;
 		srvDesc.Texture2D.MipLevels = 1;
 
-		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateShaderResourceView(shadedTex, &srvDesc, &m_outputShaderResources[i]));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateShaderResourceView(shadedTex, &srvDesc, &m_outputShaderResources[i]));
 
 		D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
 		uavDesc.Format = shadedTexDesc.Format;
 		uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
 		uavDesc.Texture2D.MipSlice = 0;
 
-		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateUnorderedAccessView(shadedTex, &uavDesc, &m_unorderedAccessViews[i]));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateUnorderedAccessView(shadedTex, &uavDesc, &m_unorderedAccessViews[i]));
 
 
 		ReleaseCOM(shadedTex);
@@ -1764,20 +1763,20 @@ DeferredShadingCS::~DeferredShadingCS()
 void DeferredShadingCS::UpdateConstantBuffer() {
 
 	D3D11_MAPPED_SUBRESOURCE ms;
-	D3D11Renderer::Instance()->GetD3DContext()->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 	memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
-	D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_perFrameCB, NULL);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perFrameCB, NULL);
 
 }
 
 void DeferredShadingCS::BindConstantBuffer() {
 	ID3D11Buffer* cbuf[] = { m_perFrameCB };
-	D3D11Renderer::Instance()->GetD3DContext()->CSSetConstantBuffers(0, 1, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetConstantBuffers(0, 1, cbuf);
 }
 
 void DeferredShadingCS::BindShaderResource(int idx) {
-	D3D11Renderer::Instance()->GetD3DContext()->CSSetShaderResources(0, 4, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->CSSetUnorderedAccessViews(0, 2, &m_unorderedAccessViews[idx], 0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetShaderResources(0, 4, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetUnorderedAccessViews(0, 2, &m_unorderedAccessViews[idx], 0);
 }
 
 
@@ -1797,8 +1796,8 @@ HBlurEffect::HBlurEffect(const std::wstring& filename)
 
 	for (int i = 0; i < 2; i++) {
 		D3D11_TEXTURE2D_DESC blurredTexDesc;
-		blurredTexDesc.Width = D3D11Renderer::Instance()->GetScreenWidth();
-		blurredTexDesc.Height = D3D11Renderer::Instance()->GetScreenHeight();
+		blurredTexDesc.Width = Renderer::Instance()->GetScreenWidth();
+		blurredTexDesc.Height = Renderer::Instance()->GetScreenHeight();
 		blurredTexDesc.MipLevels = 1;
 		blurredTexDesc.ArraySize = 1;
 		blurredTexDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -1810,7 +1809,7 @@ HBlurEffect::HBlurEffect(const std::wstring& filename)
 		blurredTexDesc.MiscFlags = 0;
 
 		ID3D11Texture2D* blurredTex = 0;
-		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateTexture2D(&blurredTexDesc, 0, &blurredTex));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateTexture2D(&blurredTexDesc, 0, &blurredTex));
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 		srvDesc.Format = blurredTexDesc.Format;
@@ -1819,7 +1818,7 @@ HBlurEffect::HBlurEffect(const std::wstring& filename)
 		srvDesc.Texture2D.MipLevels = 1;
 
 		
-		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateShaderResourceView(blurredTex, &srvDesc, &m_outputShaderResources[i]));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateShaderResourceView(blurredTex, &srvDesc, &m_outputShaderResources[i]));
 
 		D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
 		uavDesc.Format = blurredTexDesc.Format;
@@ -1827,7 +1826,7 @@ HBlurEffect::HBlurEffect(const std::wstring& filename)
 		uavDesc.Texture2D.MipSlice = 0;
 
 		
-		HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateUnorderedAccessView(blurredTex, &uavDesc, &m_unorderedAccessViews[i]));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateUnorderedAccessView(blurredTex, &uavDesc, &m_unorderedAccessViews[i]));
 
 
 		ReleaseCOM(blurredTex);
@@ -1850,7 +1849,7 @@ HBlurEffect::HBlurEffect(const std::wstring& filename)
 
 			HRESULT hr;
 			// Create the buffer.
-			hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+			hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
 				&m_settingCB);
 
 			assert(SUCCEEDED(hr));
@@ -1872,20 +1871,20 @@ HBlurEffect::~HBlurEffect()
 void HBlurEffect::UpdateConstantBuffer() {
 		{
 			D3D11_MAPPED_SUBRESOURCE ms;
-			D3D11Renderer::Instance()->GetD3DContext()->Map(m_settingCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+			static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_settingCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 			memcpy(ms.pData, &m_settingConstantBuffer, sizeof(SETTING_CONSTANT_BUFFER));
-			D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_settingCB, NULL);
+			static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_settingCB, NULL);
 		}
 }
 
 void HBlurEffect::BindConstantBuffer() {
 	ID3D11Buffer* cbuf[] = { m_settingCB };
-	D3D11Renderer::Instance()->GetD3DContext()->CSSetConstantBuffers(0, 1, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetConstantBuffers(0, 1, cbuf);
 }
 
 void HBlurEffect::BindShaderResource(int idx) {
-	D3D11Renderer::Instance()->GetD3DContext()->CSSetShaderResources(0, 1, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->CSSetUnorderedAccessViews(0, 1, &m_unorderedAccessViews[idx], 0);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetShaderResources(0, 1, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetUnorderedAccessViews(0, 1, &m_unorderedAccessViews[idx], 0);
 }
 
 
@@ -1900,7 +1899,7 @@ BlurEffect::BlurEffect(const std::wstring& filename)
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	HR(D3D11Renderer::Instance()->GetD3DDevice()->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
 	m_shaderResources = new ID3D11ShaderResourceView*[3];
@@ -1926,7 +1925,7 @@ BlurEffect::BlurEffect(const std::wstring& filename)
 
 		HRESULT hr;
 		// Create the buffer.
-		hr = D3D11Renderer::Instance()->GetD3DDevice()->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
 			&m_settingCB);
 
 		assert(SUCCEEDED(hr));
@@ -1948,21 +1947,21 @@ BlurEffect::~BlurEffect()
 void BlurEffect::UpdateConstantBuffer() {
 		{
 			D3D11_MAPPED_SUBRESOURCE ms;
-			D3D11Renderer::Instance()->GetD3DContext()->Map(m_settingCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+			static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_settingCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 			memcpy(ms.pData, &m_settingConstantBuffer, sizeof(SETTING_CONSTANT_BUFFER));
-			D3D11Renderer::Instance()->GetD3DContext()->Unmap(m_settingCB, NULL);
+			static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_settingCB, NULL);
 		}
 }
 
 void BlurEffect::BindConstantBuffer() {
 	ID3D11Buffer* cbuf[] = { m_settingCB };
-	//D3D11Renderer::Instance()->GetD3DContext()->VSSetConstantBuffers(0, 1, cbuf);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetConstantBuffers(0, 1, cbuf);
+	//static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 1, cbuf);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 1, cbuf);
 }
 
 void BlurEffect::BindShaderResource() {
-	//	D3D11Renderer::Instance()->GetD3DContext()->VSSetShaderResources(0, 2, m_shaderResources);
-	D3D11Renderer::Instance()->GetD3DContext()->PSSetShaderResources(0, 3, m_shaderResources);
+	//	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 2, m_shaderResources);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 3, m_shaderResources);
 }
 
 #else
@@ -2124,6 +2123,8 @@ void DebugLineEffect::BindConstantBuffer() {
 
 //----------------------------------------------------------//
 
+#ifdef PLATFORM_ANDROID
+
 SimpleMeshEffect::SimpleMeshEffect(const std::string& vsPath, const std::string& psPath)
 	:Effect(vsPath, psPath)
 {
@@ -2210,6 +2211,10 @@ void SimpleMeshEffect::BindConstantBuffer() {
 // }
 
 //*********************************************************************//
+
+#endif
+
+
 EffectsManager* EffectsManager::_instance = nullptr;
 EffectsManager::EffectsManager() {
 
