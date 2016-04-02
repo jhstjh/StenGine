@@ -1,11 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StenGine_D3D11", "StenGine\StenGine.vcxproj", "{673A993C-EA5A-4DDF-8876-620314770CDC}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StenGine_OpenGL", "StenGine\StenGine_OpenGL.vcxproj", "{BAB0F6EC-181F-4DE0-BC89-E5CAF65182FB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DF2D976C-3014-48AC-A84A-2413355CA342} = {DF2D976C-3014-48AC-A84A-2413355CA342}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "android_native_app_gluelib", "StenGine\android_native_app_gluelib\android_native_app_gluelib.vcxproj", "{2ABD2107-42B8-4C1A-9B2F-2DE017647FB5}"
 EndProject
@@ -20,6 +23,15 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DataConvertor", "DataConvertor\DataConvertor.vcxproj", "{B6E6B96D-8830-4D9E-9448-0768307F3B0E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StenGine_Android", "StenGine_Android", "{31C03964-FC21-4D28-AAE1-DCB77688FDE6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "external", "external", "{D536AD25-44E0-4BF1-8F92-2E43EF76C5A7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GLI", "External\GLI\GLI.vcxproj", "{DF2D976C-3014-48AC-A84A-2413355CA342}"
+	ProjectSection(ProjectDependencies) = postProject
+		{78372CA9-B1F1-4E5E-A861-8B150C442874} = {78372CA9-B1F1-4E5E-A861-8B150C442874}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glm", "External\glm\glm.vcxproj", "{78372CA9-B1F1-4E5E-A861-8B150C442874}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -102,6 +114,26 @@ Global
 		{B6E6B96D-8830-4D9E-9448-0768307F3B0E}.Release|Win32.ActiveCfg = Release|Win32
 		{B6E6B96D-8830-4D9E-9448-0768307F3B0E}.Release|Win32.Build.0 = Release|Win32
 		{B6E6B96D-8830-4D9E-9448-0768307F3B0E}.Release|x64.ActiveCfg = Release|Win32
+		{DF2D976C-3014-48AC-A84A-2413355CA342}.Debug|ARM.ActiveCfg = Debug|Win32
+		{DF2D976C-3014-48AC-A84A-2413355CA342}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DF2D976C-3014-48AC-A84A-2413355CA342}.Debug|Win32.Build.0 = Debug|Win32
+		{DF2D976C-3014-48AC-A84A-2413355CA342}.Debug|x64.ActiveCfg = Debug|x64
+		{DF2D976C-3014-48AC-A84A-2413355CA342}.Debug|x64.Build.0 = Debug|x64
+		{DF2D976C-3014-48AC-A84A-2413355CA342}.Release|ARM.ActiveCfg = Release|Win32
+		{DF2D976C-3014-48AC-A84A-2413355CA342}.Release|Win32.ActiveCfg = Release|Win32
+		{DF2D976C-3014-48AC-A84A-2413355CA342}.Release|Win32.Build.0 = Release|Win32
+		{DF2D976C-3014-48AC-A84A-2413355CA342}.Release|x64.ActiveCfg = Release|x64
+		{DF2D976C-3014-48AC-A84A-2413355CA342}.Release|x64.Build.0 = Release|x64
+		{78372CA9-B1F1-4E5E-A861-8B150C442874}.Debug|ARM.ActiveCfg = Debug|Win32
+		{78372CA9-B1F1-4E5E-A861-8B150C442874}.Debug|Win32.ActiveCfg = Debug|Win32
+		{78372CA9-B1F1-4E5E-A861-8B150C442874}.Debug|Win32.Build.0 = Debug|Win32
+		{78372CA9-B1F1-4E5E-A861-8B150C442874}.Debug|x64.ActiveCfg = Debug|x64
+		{78372CA9-B1F1-4E5E-A861-8B150C442874}.Debug|x64.Build.0 = Debug|x64
+		{78372CA9-B1F1-4E5E-A861-8B150C442874}.Release|ARM.ActiveCfg = Release|Win32
+		{78372CA9-B1F1-4E5E-A861-8B150C442874}.Release|Win32.ActiveCfg = Release|Win32
+		{78372CA9-B1F1-4E5E-A861-8B150C442874}.Release|Win32.Build.0 = Release|Win32
+		{78372CA9-B1F1-4E5E-A861-8B150C442874}.Release|x64.ActiveCfg = Release|x64
+		{78372CA9-B1F1-4E5E-A861-8B150C442874}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -113,5 +145,7 @@ Global
 		{3B468758-79FA-44EF-841B-9239D6F07FAC} = {31C03964-FC21-4D28-AAE1-DCB77688FDE6}
 		{A885ABF7-C535-4F0E-979C-08095B5F56B5} = {31C03964-FC21-4D28-AAE1-DCB77688FDE6}
 		{B6E6B96D-8830-4D9E-9448-0768307F3B0E} = {31C03964-FC21-4D28-AAE1-DCB77688FDE6}
+		{DF2D976C-3014-48AC-A84A-2413355CA342} = {D536AD25-44E0-4BF1-8F92-2E43EF76C5A7}
+		{78372CA9-B1F1-4E5E-A861-8B150C442874} = {D536AD25-44E0-4BF1-8F92-2E43EF76C5A7}
 	EndGlobalSection
 EndGlobal

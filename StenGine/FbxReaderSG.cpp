@@ -4,7 +4,6 @@
 #include "ResourceManager.h"
 #include "RendererBase.h"
 #include "Shlwapi.h"
-#include "SOIL.h"
 #elif defined PLATFORM_ANDROID
 #include "AndroidType.h"
 #endif

@@ -1,0 +1,319 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\core">
+      <UniqueIdentifier>{d963f12c-3b84-466a-a52d-745066d8f9c8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="gli\clear.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\comparison.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\convert.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\copy.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\duplicate.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\dx.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\filter.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\format.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\generate_mipmaps.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\gl.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\gli.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\image.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\levels.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\load.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\load_dds.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\load_kmg.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\load_ktx.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\make_texture.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\reduce.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\sampler.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\sampler_cube.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\sampler_cube_array.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\sampler1d.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\sampler1d_array.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\sampler2d.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\sampler2d_array.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\sampler3d.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\save.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\save_dds.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\save_kmg.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\save_ktx.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\target.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\texture.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\texture_cube.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\texture_cube_array.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\texture1d.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\texture1d_array.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\texture2d.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\texture2d_array.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\texture3d.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\transform.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\type.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\view.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\core\convert_func.hpp">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\core\coord.hpp">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\core\filter_compute.hpp">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\core\flip.hpp">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\core\mipmaps_compute.hpp">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\core\storage.hpp">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\core\storage_linear.hpp">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\core\workaround.hpp">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="gli\core\clear.hpp">
+      <Filter>Source Files\core</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="gli\CMakeLists.txt">
+      <Filter>Source Files</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="gli\core\comparison.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\convert.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\copy.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\duplicate.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\dx.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\filter.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\flip.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\format.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\generate_mipmaps.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\gl.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\image.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\levels.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\load.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\load_dds.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\load_kmg.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\load_ktx.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\make_texture.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\reduce.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\sampler.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\sampler_cube.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\sampler_cube_array.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\sampler1d.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\sampler1d_array.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\sampler2d.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\sampler2d_array.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\sampler3d.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\save.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\save_dds.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\save_kmg.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\save_ktx.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\storage.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\storage_linear.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\texture.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\texture_cube.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\texture_cube_array.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\texture1d.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\texture1d_array.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\texture2d.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\texture2d_array.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\texture3d.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\transform.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\view.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+    <None Include="gli\core\clear.inl">
+      <Filter>Source Files\core</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="gli\core\dummy.cpp">
+      <Filter>Source Files\core</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

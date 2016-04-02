@@ -105,83 +105,9 @@ public:
 
 		m_SkyBox = new Skybox(std::wstring(L"Model/sunsetcube1024.dds"));
 
-		// init screen quad vbo
+		InitScreenQuad();
 
-		std::vector<XMFLOAT4> quadVertexBuffer = {
-			XMFLOAT4(-1.0, -1.0, -1.0, 1.0),
-			XMFLOAT4(-1.0, 1.0, -1.0, 1.0),
-			XMFLOAT4(1.0, 1.0, -1.0, 1.0),
-			XMFLOAT4(1.0, 1.0, -1.0, 1.0),
-			XMFLOAT4(1.0, -1.0, -1.0, 1.0),
-			XMFLOAT4(-1.0, -1.0, -1.0, 1.0),
-		};
-
-		std::vector<XMFLOAT2> quadUvVertexBuffer = {
-			XMFLOAT2(0, 0),
-			XMFLOAT2(0, 1),
-			XMFLOAT2(1, 1),
-			XMFLOAT2(1, 1),
-			XMFLOAT2(1, 0),
-			XMFLOAT2(0, 0),
-		};
-
-		GLuint screenQuadVertexVBO;
-		GLuint screenQuadUVVBO;
-		glGenBuffers(1, &screenQuadVertexVBO);
-		glBindBuffer(GL_ARRAY_BUFFER, screenQuadVertexVBO);
-		glBufferData(GL_ARRAY_BUFFER, quadVertexBuffer.size() * sizeof(XMFLOAT4), &quadVertexBuffer[0], GL_STATIC_DRAW);
-
-		glGenBuffers(1, &screenQuadUVVBO);
-		glBindBuffer(GL_ARRAY_BUFFER, screenQuadUVVBO);
-		glBufferData(GL_ARRAY_BUFFER, quadUvVertexBuffer.size() * sizeof(XMFLOAT2), &quadUvVertexBuffer[0], GL_STATIC_DRAW);
-
-		glGenVertexArrays(1, &m_screenQuadVAO);
-		glBindVertexArray(m_screenQuadVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, screenQuadVertexVBO);
-		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, NULL);
-		glBindBuffer(GL_ARRAY_BUFFER, screenQuadUVVBO);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
-
-		// init grid and coord debug draw
-		std::vector<XMFLOAT3> coordVertexBuffer = {
-			XMFLOAT3(0, 0, 0),
-			XMFLOAT3(5, 0, 0),
-			XMFLOAT3(0, 0, 0),
-			XMFLOAT3(0, 5, 0),
-			XMFLOAT3(0, 0, 0),
-			XMFLOAT3(0, 0, 5),
-		};
-
-		std::vector<UINT> coordIndexBuffer = { 0, 1, 2, 3, 4, 5 };
-
-
-		int initIdx = 6;
-		for (int i = 0; i <= 10; i++) {
-			coordVertexBuffer.push_back(XMFLOAT3(-5.f, 0.f, -5.f + i));
-			coordVertexBuffer.push_back(XMFLOAT3(5.f, 0.f, -5.f + i));
-			coordIndexBuffer.push_back(initIdx++);
-			coordIndexBuffer.push_back(initIdx++);
-		}
-
-		for (int i = 0; i <= 10; i++) {
-			coordVertexBuffer.push_back(XMFLOAT3(-5.f + i, 0.f, -5.f));
-			coordVertexBuffer.push_back(XMFLOAT3(-5.f + i, 0.f, 5.f));
-			coordIndexBuffer.push_back(initIdx++);
-			coordIndexBuffer.push_back(initIdx++);
-		}
-
-		GLuint debugDrawVertexVBO;
-		glGenBuffers(1, &debugDrawVertexVBO);
-		glBindBuffer(GL_ARRAY_BUFFER, debugDrawVertexVBO);
-		glBufferData(GL_ARRAY_BUFFER, coordVertexBuffer.size() * sizeof(XMFLOAT3), &coordVertexBuffer[0], GL_STATIC_DRAW);
-
-		glGenVertexArrays(1, &m_debugCoordVAO);
-		glBindVertexArray(m_debugCoordVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, debugDrawVertexVBO);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-		glEnableVertexAttribArray(0);
+		InitDebugCoord();
 
 		return true;
 	}
@@ -499,26 +425,109 @@ public:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 
-	private:
-		int m_clientWidth;
-		int m_clientHeight;
-		bool m_enable4xMsaa;
-		Skybox* m_SkyBox;
+private:
+	int m_clientWidth;
+	int m_clientHeight;
+	bool m_enable4xMsaa;
+	Skybox* m_SkyBox;
 
-		HINSTANCE	m_hInst;
-		HWND		m_hMainWnd;
-		HDC			m_deviceContext;
-		HGLRC		m_renderingContext;
+	HINSTANCE	m_hInst;
+	HWND		m_hMainWnd;
+	HDC			m_deviceContext;
+	HGLRC		m_renderingContext;
 
-		GLuint m_deferredGBuffers;
+	GLuint m_deferredGBuffers;
 
-		GLuint m_diffuseBufferTex;
-		GLuint m_normalBufferTex;
-		GLuint m_specularBufferTex;
-		GLuint m_depthBufferTex;
+	GLuint m_diffuseBufferTex;
+	GLuint m_normalBufferTex;
+	GLuint m_specularBufferTex;
+	GLuint m_depthBufferTex;
 
-		GLuint m_debugCoordVAO;
-		GLuint m_screenQuadVAO;
+	GLuint m_debugCoordVAO;
+	GLuint m_screenQuadVAO;
+
+	void InitScreenQuad()
+	{
+		// init screen quad vbo
+		std::vector<XMFLOAT4> quadVertexBuffer = {
+			XMFLOAT4(-1.0, -1.0, -1.0, 1.0),
+			XMFLOAT4(-1.0, 1.0, -1.0, 1.0),
+			XMFLOAT4(1.0, 1.0, -1.0, 1.0),
+			XMFLOAT4(1.0, 1.0, -1.0, 1.0),
+			XMFLOAT4(1.0, -1.0, -1.0, 1.0),
+			XMFLOAT4(-1.0, -1.0, -1.0, 1.0),
+		};
+
+		std::vector<XMFLOAT2> quadUvVertexBuffer = {
+			XMFLOAT2(0, 0),
+			XMFLOAT2(0, 1),
+			XMFLOAT2(1, 1),
+			XMFLOAT2(1, 1),
+			XMFLOAT2(1, 0),
+			XMFLOAT2(0, 0),
+		};
+
+		GLuint screenQuadVertexVBO;
+		GLuint screenQuadUVVBO;
+		glCreateBuffers(1, &screenQuadVertexVBO);
+		
+		glBindBuffer(GL_ARRAY_BUFFER, screenQuadVertexVBO);
+		glBufferData(GL_ARRAY_BUFFER, quadVertexBuffer.size() * sizeof(XMFLOAT4), &quadVertexBuffer[0], GL_STATIC_DRAW);
+
+		glCreateBuffers(1, &screenQuadUVVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, screenQuadUVVBO);
+		glBufferData(GL_ARRAY_BUFFER, quadUvVertexBuffer.size() * sizeof(XMFLOAT2), &quadUvVertexBuffer[0], GL_STATIC_DRAW);
+
+		glGenVertexArrays(1, &m_screenQuadVAO);
+		glBindVertexArray(m_screenQuadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, screenQuadVertexVBO);
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, NULL);
+		glBindBuffer(GL_ARRAY_BUFFER, screenQuadUVVBO);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+	}
+
+	void InitDebugCoord()
+	{
+		// init grid and coord debug draw
+		std::vector<XMFLOAT3> coordVertexBuffer = {
+			XMFLOAT3(0, 0, 0),
+			XMFLOAT3(5, 0, 0),
+			XMFLOAT3(0, 0, 0),
+			XMFLOAT3(0, 5, 0),
+			XMFLOAT3(0, 0, 0),
+			XMFLOAT3(0, 0, 5),
+		};
+
+		std::vector<UINT> coordIndexBuffer = { 0, 1, 2, 3, 4, 5 };
+
+		int initIdx = 6;
+		for (int i = 0; i <= 10; i++) {
+			coordVertexBuffer.push_back(XMFLOAT3(-5.f, 0.f, -5.f + i));
+			coordVertexBuffer.push_back(XMFLOAT3(5.f, 0.f, -5.f + i));
+			coordIndexBuffer.push_back(initIdx++);
+			coordIndexBuffer.push_back(initIdx++);
+		}
+
+		for (int i = 0; i <= 10; i++) {
+			coordVertexBuffer.push_back(XMFLOAT3(-5.f + i, 0.f, -5.f));
+			coordVertexBuffer.push_back(XMFLOAT3(-5.f + i, 0.f, 5.f));
+			coordIndexBuffer.push_back(initIdx++);
+			coordIndexBuffer.push_back(initIdx++);
+		}
+
+		GLuint debugDrawVertexVBO;
+		glCreateBuffers(1, &debugDrawVertexVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, debugDrawVertexVBO);
+		glBufferData(GL_ARRAY_BUFFER, coordVertexBuffer.size() * sizeof(XMFLOAT3), &coordVertexBuffer[0], GL_STATIC_DRAW);
+
+		glGenVertexArrays(1, &m_debugCoordVAO);
+		glBindVertexArray(m_debugCoordVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, debugDrawVertexVBO);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+		glEnableVertexAttribArray(0);
+	}
 };
 
 Renderer* Renderer::Create(HINSTANCE hInstance, HWND hMainWnd)

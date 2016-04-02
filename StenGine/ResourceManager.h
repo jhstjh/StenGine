@@ -3,7 +3,12 @@
 
 #include <unordered_map>
 #include "MeshRenderer.h"
-#include "SOIL.h"
+//#include "SOIL.h"
+
+#ifdef GRAPHICS_OPENGL
+#include "GLImageLoader.h"
+#endif
+
 #ifdef PLATFORM_WIN32
 #include "D3DIncludes.h"
 #include <type_traits>
@@ -117,15 +122,10 @@ public:
 			auto got = m_textureResourceMap.find(path);
 			if (got == m_textureResourceMap.end()) {
 				std::string s(path.begin(), path.end());
-				GLuint tex = SOIL_load_OGL_texture(
-					s.c_str(),
-					SOIL_LOAD_AUTO,
-					SOIL_CREATE_NEW_ID,
-					SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
-					);
+				GLuint tex = CreateGLTextureFromFile(s.c_str());
 				assert(tex != 0);
 
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 				m_textureResourceMap[path] = tex;
 				return (T*)&m_textureResourceMap[path];
@@ -219,15 +219,10 @@ public:
 			auto got = m_textureResourceMap.find(path);
 			if (got == m_textureResourceMap.end()) {
 				std::string s(path.begin(), path.end());
-				GLuint tex = SOIL_load_OGL_texture(
-					s.c_str(),
-					SOIL_LOAD_AUTO,
-					SOIL_CREATE_NEW_ID,
-					SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_TEXTURE_RECTANGLE
-					);
+				GLuint tex = CreateGLTextureFromFile(s.c_str());
 				assert(tex != 0);
 
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 				m_textureResourceMap[path] = tex;
 				return (T*)&m_textureResourceMap[path];

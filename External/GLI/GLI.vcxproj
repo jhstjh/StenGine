@@ -1,0 +1,222 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="gli\clear.hpp" />
+    <ClInclude Include="gli\comparison.hpp" />
+    <ClInclude Include="gli\convert.hpp" />
+    <ClInclude Include="gli\copy.hpp" />
+    <ClInclude Include="gli\core\clear.hpp" />
+    <ClInclude Include="gli\core\convert_func.hpp" />
+    <ClInclude Include="gli\core\coord.hpp" />
+    <ClInclude Include="gli\core\filter_compute.hpp" />
+    <ClInclude Include="gli\core\flip.hpp" />
+    <ClInclude Include="gli\core\mipmaps_compute.hpp" />
+    <ClInclude Include="gli\core\storage.hpp" />
+    <ClInclude Include="gli\core\storage_linear.hpp" />
+    <ClInclude Include="gli\core\workaround.hpp" />
+    <ClInclude Include="gli\duplicate.hpp" />
+    <ClInclude Include="gli\dx.hpp" />
+    <ClInclude Include="gli\filter.hpp" />
+    <ClInclude Include="gli\format.hpp" />
+    <ClInclude Include="gli\generate_mipmaps.hpp" />
+    <ClInclude Include="gli\gl.hpp" />
+    <ClInclude Include="gli\gli.hpp" />
+    <ClInclude Include="gli\image.hpp" />
+    <ClInclude Include="gli\levels.hpp" />
+    <ClInclude Include="gli\load.hpp" />
+    <ClInclude Include="gli\load_dds.hpp" />
+    <ClInclude Include="gli\load_kmg.hpp" />
+    <ClInclude Include="gli\load_ktx.hpp" />
+    <ClInclude Include="gli\make_texture.hpp" />
+    <ClInclude Include="gli\reduce.hpp" />
+    <ClInclude Include="gli\sampler.hpp" />
+    <ClInclude Include="gli\sampler1d.hpp" />
+    <ClInclude Include="gli\sampler1d_array.hpp" />
+    <ClInclude Include="gli\sampler2d.hpp" />
+    <ClInclude Include="gli\sampler2d_array.hpp" />
+    <ClInclude Include="gli\sampler3d.hpp" />
+    <ClInclude Include="gli\sampler_cube.hpp" />
+    <ClInclude Include="gli\sampler_cube_array.hpp" />
+    <ClInclude Include="gli\save.hpp" />
+    <ClInclude Include="gli\save_dds.hpp" />
+    <ClInclude Include="gli\save_kmg.hpp" />
+    <ClInclude Include="gli\save_ktx.hpp" />
+    <ClInclude Include="gli\target.hpp" />
+    <ClInclude Include="gli\texture.hpp" />
+    <ClInclude Include="gli\texture1d.hpp" />
+    <ClInclude Include="gli\texture1d_array.hpp" />
+    <ClInclude Include="gli\texture2d.hpp" />
+    <ClInclude Include="gli\texture2d_array.hpp" />
+    <ClInclude Include="gli\texture3d.hpp" />
+    <ClInclude Include="gli\texture_cube.hpp" />
+    <ClInclude Include="gli\texture_cube_array.hpp" />
+    <ClInclude Include="gli\transform.hpp" />
+    <ClInclude Include="gli\type.hpp" />
+    <ClInclude Include="gli\view.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="gli\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="gli\core\clear.inl" />
+    <None Include="gli\core\comparison.inl" />
+    <None Include="gli\core\convert.inl" />
+    <None Include="gli\core\copy.inl" />
+    <None Include="gli\core\duplicate.inl" />
+    <None Include="gli\core\dx.inl" />
+    <None Include="gli\core\filter.inl" />
+    <None Include="gli\core\flip.inl" />
+    <None Include="gli\core\format.inl" />
+    <None Include="gli\core\generate_mipmaps.inl" />
+    <None Include="gli\core\gl.inl" />
+    <None Include="gli\core\image.inl" />
+    <None Include="gli\core\levels.inl" />
+    <None Include="gli\core\load.inl" />
+    <None Include="gli\core\load_dds.inl" />
+    <None Include="gli\core\load_kmg.inl" />
+    <None Include="gli\core\load_ktx.inl" />
+    <None Include="gli\core\make_texture.inl" />
+    <None Include="gli\core\reduce.inl" />
+    <None Include="gli\core\sampler.inl" />
+    <None Include="gli\core\sampler1d.inl" />
+    <None Include="gli\core\sampler1d_array.inl" />
+    <None Include="gli\core\sampler2d.inl" />
+    <None Include="gli\core\sampler2d_array.inl" />
+    <None Include="gli\core\sampler3d.inl" />
+    <None Include="gli\core\sampler_cube.inl" />
+    <None Include="gli\core\sampler_cube_array.inl" />
+    <None Include="gli\core\save.inl" />
+    <None Include="gli\core\save_dds.inl" />
+    <None Include="gli\core\save_kmg.inl" />
+    <None Include="gli\core\save_ktx.inl" />
+    <None Include="gli\core\storage.inl" />
+    <None Include="gli\core\storage_linear.inl" />
+    <None Include="gli\core\texture.inl" />
+    <None Include="gli\core\texture1d.inl" />
+    <None Include="gli\core\texture1d_array.inl" />
+    <None Include="gli\core\texture2d.inl" />
+    <None Include="gli\core\texture2d_array.inl" />
+    <None Include="gli\core\texture3d.inl" />
+    <None Include="gli\core\texture_cube.inl" />
+    <None Include="gli\core\texture_cube_array.inl" />
+    <None Include="gli\core\transform.inl" />
+    <None Include="gli\core\view.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="gli\core\dummy.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{DF2D976C-3014-48AC-A84A-2413355CA342}</ProjectGuid>
+    <RootNamespace>GLI</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(SolutionDir)External\glm\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

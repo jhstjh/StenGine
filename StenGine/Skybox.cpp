@@ -2,7 +2,10 @@
 #include "RendererBase.h"
 #include "CameraManager.h"
 #include "MeshRenderer.h"
-#include "SOIL.h"
+
+#ifdef GRAPHICS_OPENGL
+#include "GLImageLoader.h"
+#endif
 
 Skybox::Skybox(std::wstring &cubeMapPath) {
 // 	HR(D3DX11CreateShaderResourceViewFromFile(
@@ -13,20 +16,13 @@ Skybox::Skybox(std::wstring &cubeMapPath) {
 		cubeMapPath.c_str(), nullptr, &m_cubeMapSRV);
 #else
 	std::string s(cubeMapPath.begin(), cubeMapPath.end());
-	m_cubeMapTex = SOIL_load_OGL_single_cubemap
-		(
-		s.c_str(),
-		SOIL_DDS_CUBEMAP_FACE_ORDER,
-		SOIL_LOAD_AUTO,
-		m_cubeMapTex,
-		SOIL_FLAG_MIPMAPS | SOIL_FLAG_DDS_LOAD_DIRECT | SOIL_FLAG_MIPMAPS
-	);
+	m_cubeMapTex = CreateGLTextureFromFile(s.c_str());
 	assert(m_cubeMapTex != 0);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 
 	// generate VAO

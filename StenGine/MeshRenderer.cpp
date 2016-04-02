@@ -8,7 +8,6 @@
 #include "ResourceManager.h"
 #include "RendererBase.h"
 #include "ObjReader.h"
-#include "SOIL.h"
 #include "ShadowMap.h"
 #endif
 
