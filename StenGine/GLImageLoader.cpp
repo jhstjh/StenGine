@@ -37,7 +37,7 @@ GLuint CreateGLTextureFromFile(const char* filename)
 	case gli::TARGET_CUBE:
 		glTexStorage2D(
 			Target, static_cast<GLint>(Texture.levels()), Format.Internal,
-			Extent.x, Texture.target() == gli::TARGET_2D ? Extent.y : FaceTotal);
+			Extent.x, Texture.target() == gli::TARGET_2D || Texture.target() == gli::TARGET_CUBE ? Extent.y : FaceTotal);
 		break;
 	case gli::TARGET_2D_ARRAY:
 	case gli::TARGET_3D:
