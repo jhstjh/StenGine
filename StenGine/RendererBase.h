@@ -3,6 +3,7 @@
 
 #include <Windows.h>
 #include <DirectXMath.h>
+#include <functional>
 
 namespace Vertex {
 	struct StdMeshVertex {
@@ -37,13 +38,15 @@ namespace Vertex {
 	};
 }
 
+using CreateWindowCallback = std::function<BOOL(int32_t, int32_t, HINSTANCE, /*int32_t,*/ HWND&)>;
+
 class Renderer {
 public:
 	static Renderer* Create(HINSTANCE hInstance, HWND hMainWnd);
 	static Renderer* Instance() { return _instance; }
 
 	virtual void Release() = 0;
-	virtual bool Init() = 0;
+	virtual bool Init(int32_t width, int32_t height, CreateWindowCallback callback) = 0;
 	virtual void Draw() = 0;
 	virtual float GetAspectRatio() = 0; 
 	virtual int GetScreenWidth() = 0; 

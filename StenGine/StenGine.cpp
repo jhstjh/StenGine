@@ -17,6 +17,9 @@
 #include "Terrain.h"
 //#include "MathHelper.h"
 #include "Timer.h"
+#include <memory>
+
+#pragma warning(disable:4996)
 
 #define MAX_LOADSTRING 100
 
@@ -30,7 +33,7 @@ float FPS;
 
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
-BOOL				InitInstance(HINSTANCE hInstance, int nCmdShow, HWND &hMainWnd);
+BOOL				CreateWindowInstance(int32_t w, int32_t h, HINSTANCE hInstance/*, int nCmdShow*/, HWND &hMainWnd);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
@@ -41,20 +44,21 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
+
 	/*******create console window**************/
 	AllocConsole();
 
-	HANDLE handle_out = GetStdHandle(STD_OUTPUT_HANDLE);
-	int hCrt = _open_osfhandle((long)handle_out, _O_TEXT);
-	FILE* hf_out = _fdopen(hCrt, "w");
-	setvbuf(hf_out, NULL, _IONBF, 1);
-	*stdout = *hf_out;
+	// redirect unbuffered STDOUT to the console
+	freopen("CONOUT$", "w+t", stdout);
 
-	HANDLE handle_in = GetStdHandle(STD_INPUT_HANDLE);
-	hCrt = _open_osfhandle((long)handle_in, _O_TEXT);
-	FILE* hf_in = _fdopen(hCrt, "r");
-	setvbuf(hf_in, NULL, _IONBF, 128);
-	*stdin = *hf_in;
+	// redirect unbuffered STDIN to the console
+	freopen("CONIN$", "r+t", stdin);
+
+	// redirect unbuffered STDERR to the console
+	freopen("CONOUT$", "w+t", stderr);
+
+	std::ios::sync_with_stdio();
+
 	/*********************************/
 
 	MSG msg = { 0 };
@@ -64,33 +68,13 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	LoadString(hInstance, IDC_STENGINE, szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
 
-	// Perform application initialization:
-	if (!InitInstance (hInstance, nCmdShow, hMainWnd))
-	{
-		return FALSE;
-	}
-	//#ifdef GRAPHICS_D3D11
-	//	D3D11Renderer* renderer = new D3D11Renderer(hInstance, hMainWnd);
-	// 	if (!renderer->Init())
-	// 	{
-	// 		return FALSE;
-	// 	}
-	//#else
-	//	GLRenderer* renderer = new GLRenderer(hInstance, hMainWnd);
-	//	if (!renderer->Init())
-	//	{
-	//		return FALSE;
-	//	}
-	//#endif
-
 	Renderer* renderer = Renderer::Create(hInstance, hMainWnd);
-	renderer->Init();
+	renderer->Init(1280, 720, CreateWindowInstance);
 
-	EffectsManager::Instance();
-	CameraManager::Instance();
-	ResourceManager::Instance();
-	InputManager::Instance();
-
+	std::unique_ptr<EffectsManager> effectManager = std::unique_ptr<EffectsManager>(EffectsManager::Instance()) ;
+	std::unique_ptr<CameraManager> cameraManager = std::unique_ptr<CameraManager>(CameraManager::Instance());
+	std::unique_ptr<ResourceManager> resourceManager = std::unique_ptr<ResourceManager>(ResourceManager::Instance());
+	std::unique_ptr<InputManager> inputManager = std::unique_ptr<InputManager>(InputManager::Instance());
 
 	GameObject* box0 = new GameObject("box0", 0.f, 1.2f, 0.f);
 	Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
@@ -147,7 +131,10 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
 	float elapsedTime = 0;
 	UINT elaspedFrame = 0;
-	while (msg.message != WM_QUIT) {
+
+	bool appIsRunning = false;
+
+	while (!(appIsRunning && msg.message == WM_QUIT)) {
 		// If there are Window messages then process them.
 		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
 			TranslateMessage(&msg);
@@ -156,6 +143,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 		// Otherwise, do animation/game stuff.
 		else
 		{
+			appIsRunning = true;
 			Timer::Update();
 			elapsedTime += Timer::GetDeltaTime();
 			if (elapsedTime >= 1) {
@@ -213,46 +201,26 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	return RegisterClassEx(&wcex);
 }
 
-//
-//   FUNCTION: InitInstance(HINSTANCE, int)
-//
-//   PURPOSE: Saves instance handle and creates main window
-//
-//   COMMENTS:
-//
-//        In this function, we save the instance handle in a global variable and
-//        create and display the main program window.
-//
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow, HWND &hMainWnd)
+BOOL CreateWindowInstance(int32_t w, int32_t h, HINSTANCE hInstance/*, int nCmdShow*/, HWND &hMainWnd)
 {
-	RECT wr = { 0, 0, 1280, 720 };    // set the size, but not the position
+	RECT wr = { 0, 0, w, h };    // set the size, but not the position
 	AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);    // adjust the size
 
-   hInst = hInstance; // Store instance handle in our global variable
+	hInst = hInstance; // Store instance handle in our global variable
 
-   hMainWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+	hMainWnd = CreateWindowEx(WS_EX_CLIENTEDGE, szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
 	   CW_USEDEFAULT, CW_USEDEFAULT, wr.right - wr.left, wr.bottom - wr.top, NULL, NULL, hInstance, NULL);
 
-   if (!hMainWnd)
-   {
-      return FALSE;
-   }
+	if (!hMainWnd)
+	{
+	   return FALSE;
+	}
 
-   ShowWindow(hMainWnd, nCmdShow);
-   UpdateWindow(hMainWnd);
+	UpdateWindow(hMainWnd);
 
-   return TRUE;
+	return TRUE;
 }
 
-//
-//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  PURPOSE:  Processes messages for the main window.
-//
-//  WM_PAINT	- Paint the main window
-//  WM_DESTROY	- post a quit message and return
-//
-//
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	//int wmId, wmEvent;

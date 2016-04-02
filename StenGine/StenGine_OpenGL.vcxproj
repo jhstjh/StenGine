@@ -97,6 +97,7 @@
     <ClInclude Include="Component.h" />
     <ClInclude Include="D3DIncludes.h" />
     <ClInclude Include="DDSTextureLoader.h" />
+    <ClInclude Include="DrawCmd.h" />
     <ClInclude Include="EffectsManager.h" />
     <ClInclude Include="FbxReaderSG.h" />
     <ClInclude Include="GameObject.h" />

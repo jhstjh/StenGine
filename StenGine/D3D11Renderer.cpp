@@ -56,7 +56,18 @@ public:
 		delete this;
 	}
 
-	bool Init() override {
+	bool Init(int32_t width, int32_t height, CreateWindowCallback createWindow) override {
+
+		if (!createWindow(width, height, m_hInst, m_hMainWnd))
+		{
+			return false;
+		}
+
+		SetWindowText(m_hMainWnd, L"StenGine");
+		ShowWindow(m_hMainWnd, SW_SHOW);
+
+		SetFocus(m_hMainWnd);
+
 		UINT createDeviceFlags = 0;
 #if (defined(DEBUG) || defined(_DEBUG))  
 		//createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;

@@ -2217,7 +2217,15 @@ void SimpleMeshEffect::BindConstantBuffer() {
 
 
 EffectsManager* EffectsManager::_instance = nullptr;
-EffectsManager::EffectsManager() {
+EffectsManager::EffectsManager() 
+	: m_shadowMapEffect(nullptr)
+	, m_deferredGeometryPassEffect(nullptr)
+	, m_deferredShadingPassEffect(nullptr)
+	, m_godrayEffect(nullptr)
+	, m_skyboxEffect(nullptr)
+	, m_blurEffect(nullptr)
+	, m_vblurEffect(nullptr)
+{
 
 #ifndef PLATFORM_ANDROID
 

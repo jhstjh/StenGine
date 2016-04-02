@@ -102,6 +102,9 @@
     <ClInclude Include="AlignedClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DrawCmd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

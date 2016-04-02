@@ -24,8 +24,6 @@ public:
 		: m_hInst(hInstance)
 		, m_hMainWnd(hMainWnd)
 	{
-		m_clientWidth = 1280;
-		m_clientHeight = 720;
 		_instance = this;
 	}
 	
@@ -34,82 +32,40 @@ public:
 		delete this;
 	}
 
-	bool Init() override {
-		m_deviceContext = GetWindowDC(m_hMainWnd);
-		PIXELFORMATDESCRIPTOR pfd;
-		memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
-		pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-		pfd.nVersion = 1;
-		pfd.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW;
-		pfd.iPixelType = PFD_TYPE_RGBA;
-		pfd.cColorBits = 32;
-		pfd.cDepthBits = 32;
-		pfd.iLayerType = PFD_MAIN_PLANE;
-
-		int nPixelFormat = ChoosePixelFormat(m_deviceContext, &pfd);
-
-		assert(nPixelFormat != 0 && "Error choosing pixel format");
-
-		BOOL bResult = SetPixelFormat(m_deviceContext, nPixelFormat, &pfd);
-
-		assert(bResult != 0 && "Error setting pixel format");
-
-		HGLRC tempContext = wglCreateContext(m_deviceContext);
-		wglMakeCurrent(m_deviceContext, tempContext);
-
-		GLenum glewerr = glewInit();
-		if (GLEW_OK != glewerr)
+	bool Init(int32_t width, int32_t height, CreateWindowCallback createWindow) override {
+		m_clientWidth = width;
+		m_clientHeight = height;
+		
+		if (!createWindow(0, 0, m_hInst, m_hMainWnd))
 		{
-			OutputDebugStringA("GLEW is not initialized!\n");
 			return false;
 		}
 
-		int attribs[] =
+		if (!initializeExtensions())
 		{
-			WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-			WGL_CONTEXT_MINOR_VERSION_ARB, 5,
+			return false;
+		}
 
-			//WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
-			//WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,                
+		DestroyWindow(m_hMainWnd);
 
-			// 			WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
-			// 			WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
-			// 			WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
-			// 			WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+		if (!createWindow(width, height, m_hInst, m_hMainWnd))
+		{
+			return false;
+		}
 
-			//WGL_COLOR_BITS_ARB, 32,
-			//WGL_DEPTH_BITS_ARB, 32,
-			//WGL_STENCIL_BITS_ARB, 8,
-			WGL_CONTEXT_FLAGS_ARB, 0,
-			0
-		};
+		SetWindowText(m_hMainWnd, L"StenGine");
+		ShowWindow(m_hMainWnd, SW_SHOW);
 
-		m_renderingContext = wglCreateContextAttribsARB(m_deviceContext, 0, attribs);
-		wglMakeCurrent(NULL, NULL);
-		wglDeleteContext(tempContext);
-		wglMakeCurrent(m_deviceContext, m_renderingContext);
+		SetFocus(m_hMainWnd);
 
-		//Checking GL version
-		const GLubyte *GLVersionString = glGetString(GL_VERSION);
+		if (!initializeOpenGL())
+		{
+			return false;
+		}
 
-		//Or better yet, use the GL3 way to get the version number
-		int OpenGLVersion[2];
-		glGetIntegerv(GL_MAJOR_VERSION, &OpenGLVersion[0]);
-		glGetIntegerv(GL_MINOR_VERSION, &OpenGLVersion[1]);
-
-		assert(m_renderingContext && "Error creating gl context");
-
-		wglSwapIntervalEXT(0);
-
+		
 		glClearColor(0.2f, 0.2f, 0.2f, 0.f);
 		glClearDepth(1.0f);
-
-
-		m_renderingContext = wglGetCurrentContext();
-		m_deviceContext = wglGetCurrentDC();
-		BOOL noError = wglMakeCurrent(m_deviceContext, m_renderingContext);
-		assert(noError);
-
 		glEnable(GL_DEPTH_TEST); // enable depth-testing
 		glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 		glEnable(GL_CULL_FACE); // cull face
@@ -118,7 +74,6 @@ public:
 		glDepthMask(GL_TRUE);
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 		glViewport(0, 0, m_clientWidth, m_clientHeight);
-
 		glGenFramebuffers(1, &m_deferredGBuffers);
 		GenerateColorTex(m_diffuseBufferTex);
 		GenerateColorTex(m_normalBufferTex);
@@ -139,8 +94,7 @@ public:
 			assert(false);
 			return false;
 		}
-
-
+		
 		DirectionalLight* dLight = new DirectionalLight();
 		dLight->intensity = XMFLOAT4(1, 1, 1, 1);
 		dLight->direction = MatrixHelper::NormalizeFloat3(XMFLOAT3(-0.5, -2, 1));
@@ -228,6 +182,111 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER, debugDrawVertexVBO);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 		glEnableVertexAttribArray(0);
+
+		return true;
+	}
+
+	bool initializeExtensions()
+	{
+		HDC deviceContext;
+		PIXELFORMATDESCRIPTOR pixelFormat;
+		int error;
+		HGLRC renderContext;
+		//bool result;
+
+		deviceContext = GetDC(m_hMainWnd);
+		if (!deviceContext)
+		{
+			return false;
+		}
+
+		error = SetPixelFormat(deviceContext, 1, &pixelFormat);
+		if (error != 1)
+		{
+			return false;
+		}
+
+		renderContext = wglCreateContext(deviceContext);
+		if (!renderContext)
+		{
+			return false;
+		}
+
+		error = wglMakeCurrent(deviceContext, renderContext);
+		if (error != 1)
+		{
+			return false;
+		}
+
+		GLenum glewerr = glewInit();
+		if (GLEW_OK != glewerr)
+		{
+			OutputDebugStringA("GLEW is not initialized!\n");
+			return false;
+		}
+
+		wglMakeCurrent(nullptr, nullptr);
+		wglDeleteContext(renderContext);
+		renderContext = nullptr;
+
+		ReleaseDC(m_hMainWnd, deviceContext);
+		deviceContext = 0;
+
+		return true;
+	}
+
+	bool initializeOpenGL()
+	{
+		int pixelFormat[1];
+		unsigned int formatCount;
+		int result;
+		PIXELFORMATDESCRIPTOR pixelFormatDescriptor;
+
+		m_deviceContext = GetDC(m_hMainWnd);
+		if (!m_deviceContext)
+		{
+			return false;
+		}
+
+		int attributeListInt[] = {
+			WGL_SUPPORT_OPENGL_ARB, TRUE,
+			WGL_DRAW_TO_WINDOW_ARB, TRUE,
+			WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
+			WGL_COLOR_BITS_ARB, 32,
+			WGL_DEPTH_BITS_ARB, 24,
+			WGL_DOUBLE_BUFFER_ARB, TRUE,
+			WGL_SWAP_METHOD_ARB, WGL_SWAP_EXCHANGE_ARB,
+			WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+			0
+		};
+
+		result = wglChoosePixelFormatARB(m_deviceContext, attributeListInt, NULL, 1, pixelFormat, &formatCount);
+		if (result != 1)
+		{
+			return false;
+		}
+
+		result = SetPixelFormat(m_deviceContext, pixelFormat[0], &pixelFormatDescriptor);
+		if (result != 1)
+		{
+			return false;
+		}
+
+		// Set the 4.5 version of OpenGL
+		int attributeList[] = {
+			WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+			WGL_CONTEXT_MINOR_VERSION_ARB, 5,
+			//WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+			0
+		};
+
+		m_renderingContext = wglCreateContextAttribsARB(m_deviceContext, 0, attributeList);
+		if (m_renderingContext == NULL)
+		{
+			return false;
+		}
+
+		wglMakeCurrent(m_deviceContext, m_renderingContext);
 
 		return true;
 	}
