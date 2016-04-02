@@ -1,4 +1,4 @@
-#include "EffectsManager.h"
+﻿#include "EffectsManager.h"
 
 #ifndef PLATFORM_ANDROID
 
@@ -430,14 +430,22 @@ ShadowMapEffect::~ShadowMapEffect()
 
 //------------------------------------------------------------//
 
-DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath) 
+DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath)
 	:Effect(vsPath, psPath, gsPath, hsPath, dsPath)
+#ifdef GRAPHICS_OPENGL
+	, m_buffer(4096)
+	, m_bufferOffset(0)
+#endif
 {
 
 }
 
 DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filename)
 	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT)
+#ifdef GRAPHICS_OPENGL
+	, m_buffer{ 1024 * 256 }
+	, m_bufferOffset(0)
+#endif
 {
 #ifdef GRAPHICS_D3D11
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
@@ -511,25 +519,26 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filen
 	ReleaseCOM(m_csBlob);
 #else
 
-	glGenBuffers(1, &m_perFrameUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_perFrameUBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PERFRAME_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
+	//glGenBuffers(1, &m_perFrameUBO);
+	//glBindBuffer(GL_UNIFORM_BUFFER, m_perFrameUBO);
+	//glBufferData(GL_UNIFORM_BUFFER, sizeof(PERFRAME_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
+	//
+	//glGenBuffers(1, &m_perObjectUBO);
+	//glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectUBO);
+	//glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
 
-	glGenBuffers(1, &m_perObjectUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectUBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
-
-
-	GLuint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
-	//glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
+	GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
+	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 0);
 
 	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
-	//glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
+	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 1);
 
 	DiffuseMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseMap");
 	NormalMapPosition = glGetUniformLocation(m_shaderProgram, "gNormalMap");
 	ShadowMapPosition = glGetUniformLocation(m_shaderProgram, "gShadowMap");
 	CubeMapPosition = glGetUniformLocation(m_shaderProgram, "gCubeMap");
+
+	m_bufferBase = m_buffer.lock();
 #endif
 }
 
@@ -537,6 +546,8 @@ DeferredGeometryPassEffect::~DeferredGeometryPassEffect()
 {
 #ifdef GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
+#else
+	m_buffer.unlock();
 #endif
 }
 
@@ -562,26 +573,58 @@ void DeferredGeometryPassEffect::UpdateConstantBuffer() {
 	// call glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
 	// to specify the binding point and math 2nd param with it
 
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
-	PEROBJ_UNIFORM_BUFFER* perObjUBOPtr = (PEROBJ_UNIFORM_BUFFER*)glMapBufferRange(
-		GL_UNIFORM_BUFFER,
-		0,
-		sizeof(PEROBJ_UNIFORM_BUFFER),
-		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-		);
-	memcpy(perObjUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
-	glUnmapBuffer(GL_UNIFORM_BUFFER);
+	//glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
+	//PEROBJ_UNIFORM_BUFFER* perObjUBOPtr = (PEROBJ_UNIFORM_BUFFER*)glMapBufferRange(
+	//	GL_UNIFORM_BUFFER,
+	//	0,
+	//	sizeof(PEROBJ_UNIFORM_BUFFER),
+	//	GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+	//	);
+	//memcpy(perObjUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
+	//glUnmapBuffer(GL_UNIFORM_BUFFER);
+	//
+	//glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_perFrameUBO);
+	//PERFRAME_UNIFORM_BUFFER* perFrameUBOPtr = (PERFRAME_UNIFORM_BUFFER*)glMapBufferRange(
+	//	GL_UNIFORM_BUFFER,
+	//	0,
+	//	sizeof(PERFRAME_UNIFORM_BUFFER),
+	//	GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+	//	);
+	//memcpy(perFrameUBOPtr, &m_perFrameUniformBuffer, sizeof(PERFRAME_UNIFORM_BUFFER));
+	//glUnmapBuffer(GL_UNIFORM_BUFFER);
 
-	glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_perFrameUBO);
-	PERFRAME_UNIFORM_BUFFER* perFrameUBOPtr = (PERFRAME_UNIFORM_BUFFER*)glMapBufferRange(
-		GL_UNIFORM_BUFFER,
-		0,
-		sizeof(PERFRAME_UNIFORM_BUFFER),
-		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-		);
-	memcpy(perFrameUBOPtr, &m_perFrameUniformBuffer, sizeof(PERFRAME_UNIFORM_BUFFER));
-	glUnmapBuffer(GL_UNIFORM_BUFFER);
+	m_constantBuffers.emplace_back(0, sizeof(PERFRAME_UNIFORM_BUFFER), 0, &m_perFrameUniformBuffer);
+	m_constantBuffers.emplace_back((sizeof(PERFRAME_UNIFORM_BUFFER) / 256 + 1) * 256, sizeof(PEROBJ_UNIFORM_BUFFER), 1, &m_perObjUniformBuffer);
+	// 256 is from glGetIntegerv​(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, ...);
+
+	memcpy((uint8_t*)m_bufferBase + m_bufferOffset, &m_perFrameUniformBuffer, sizeof(PERFRAME_UNIFORM_BUFFER));
+	glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_buffer.GetBuffer(), m_bufferOffset, sizeof(PERFRAME_UNIFORM_BUFFER));
+	m_bufferOffset += ((sizeof(PERFRAME_UNIFORM_BUFFER) / 256 + 1) * 256);
+	if (m_bufferOffset >= 1024 * 256 - sizeof(PEROBJ_UNIFORM_BUFFER)) m_bufferOffset = 0;
+
+	memcpy((uint8_t*)m_bufferBase + m_bufferOffset, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
+	glBindBufferRange(GL_UNIFORM_BUFFER, 1, m_buffer.GetBuffer(), m_bufferOffset, sizeof(PEROBJ_UNIFORM_BUFFER));
+	m_bufferOffset += ((sizeof(PEROBJ_UNIFORM_BUFFER) / 256 + 1) * 256);
+	if (m_bufferOffset >= 1024 * 256 - sizeof(PERFRAME_UNIFORM_BUFFER)) m_bufferOffset = 0;
+
+	//for (uint32_t i = 0; i < m_constantBuffers.size(); i++)
+	//{
+	//	memcpy((uint8_t*)m_bufferBase + m_constantBuffers[i].offset, m_constantBuffers[i].data, m_constantBuffers[i].size);
+	//	glBindBufferRange(GL_UNIFORM_BUFFER, m_constantBuffers[i].pos, m_buffer.GetBuffer(), m_constantBuffers[i].offset, m_constantBuffers[i].size);
+	//	auto err = glGetError();
+	//	err += 0;
+	//}
+
 #endif
+}
+
+void DeferredGeometryPassEffect::MapConstantBuffer(void* bufferBase)
+{
+	//m_perFrameUniformBuffer = (PERFRAME_UNIFORM_BUFFER*)bufferBase;
+	//m_perObjUniformBuffer = (PEROBJ_UNIFORM_BUFFER*)((uint8_t*)bufferBase + (sizeof(PERFRAME_UNIFORM_BUFFER) / 256 + 1) * 256);
+
+	//m_constantBuffers.emplace_back(0, sizeof(PERFRAME_UNIFORM_BUFFER), 0, &m_perFrameUniformBuffer);
+	//m_constantBuffers.emplace_back((sizeof(PERFRAME_UNIFORM_BUFFER) / 256 + 1) * 256, sizeof(PEROBJ_UNIFORM_BUFFER), 1, &m_perObjUniformBuffer);
 }
 
 void DeferredGeometryPassEffect::BindConstantBuffer() {

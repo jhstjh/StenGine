@@ -6,6 +6,12 @@
 #include "MeshRenderer.h"
 
 #ifdef PLATFORM_WIN32
+
+#ifdef GRAPHICS_OPENGL
+#include "GLBuffer.h"
+#include "ConstantBuffer.h"
+#endif
+
 #include "D3DIncludes.h"
 #include "GL/glew.h"
 #define D3D_COMPILE_STANDARD_FILE_INCLUDE ((ID3DInclude*)(UINT_PTR)1)
@@ -119,6 +125,11 @@ private:
 	GLint NormalMapPosition;
 	GLint ShadowMapPosition;
 	GLint CubeMapPosition;
+
+	GLBuffer m_buffer;
+	void* m_bufferBase;
+	std::vector<ConstantBuffer> m_constantBuffers;
+
 #endif
 
 public:
@@ -176,6 +187,10 @@ public:
 	GLint NormalMap;
 	GLint ShadowMapTex;
 	GLint CubeMapTex;
+
+	void MapConstantBuffer(void* bufferBase);
+
+	uint32_t m_bufferOffset;
 
 #endif
 };

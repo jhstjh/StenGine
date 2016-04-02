@@ -95,12 +95,14 @@
     <ClInclude Include="CameraManager.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="Component.h" />
+    <ClInclude Include="ConstantBuffer.h" />
     <ClInclude Include="D3DIncludes.h" />
     <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="DrawCmd.h" />
     <ClInclude Include="EffectsManager.h" />
     <ClInclude Include="FbxReaderSG.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="GLBuffer.h" />
     <ClInclude Include="GLImageLoader.h" />
     <ClInclude Include="LightManager.h" />
     <ClInclude Include="Material.h" />
@@ -128,6 +130,7 @@
     <ClCompile Include="EffectsManager.cpp" />
     <ClCompile Include="FbxReaderSG.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="GLBuffer.cpp" />
     <ClCompile Include="GLImageLoader.cpp" />
     <ClCompile Include="GLRenderer.cpp" />
     <ClCompile Include="LightManager.cpp" />

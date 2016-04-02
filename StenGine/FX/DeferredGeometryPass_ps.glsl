@@ -32,7 +32,7 @@ uniform sampler2D gNormalMap;
 uniform sampler2D gShadowMap;
 uniform samplerCube gCubeMap;
 
-layout(std140, binding = 0) uniform ubPerObj{
+layout(std140) uniform ubPerObj{
 	mat4 gWorldViewProj;
 	mat4 gWorld;
 	mat4 gWorldView;
@@ -41,7 +41,7 @@ layout(std140, binding = 0) uniform ubPerObj{
 	vec4 DiffX_NormY_ShadZ;
 };
 
-layout(std140, binding = 1) uniform ubPerFrame{
+layout(std140) uniform ubPerFrame{
 	vec4 gEyePosW;
 	DirectionalLight gDirLight;
 };
