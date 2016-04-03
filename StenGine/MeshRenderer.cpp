@@ -474,23 +474,28 @@ void Mesh::GatherDrawCall() {
 
 	DeferredGeometryPassEffect* effect = dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect);
 	effect->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;
-	DeferredGeometryPassEffect::PERFRAME_UNIFORM_BUFFER perframeData;
-
-	perframeData.EyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
-	perframeData.DirLight = *LightManager::Instance()->m_dirLights[0];
+	
+	GLConstantBuffer cbuffer0(0, sizeof(DeferredGeometryPassEffect::PERFRAME_UNIFORM_BUFFER), effect->m_perFrameUBO);
+	GLConstantBuffer cbuffer1(1, sizeof(DeferredGeometryPassEffect::PEROBJ_UNIFORM_BUFFER), effect->m_perObjectUBO);
 
 	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
 #ifdef PLATFORM_WIN32
-		DeferredGeometryPassEffect::PEROBJ_UNIFORM_BUFFER perObjData;
-
-		perObjData.Mat = m_material;
-		perObjData.WorldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
-		perObjData.World = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform());
-		perObjData.WorldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
-		perObjData.ShadowTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
-		
 		int startIndex = 0;
 		for (uint32_t iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
+			GLConstantBuffer cbuffer0(0, sizeof(DeferredGeometryPassEffect::PERFRAME_UNIFORM_BUFFER), effect->m_perFrameUBO);
+			GLConstantBuffer cbuffer1(1, sizeof(DeferredGeometryPassEffect::PEROBJ_UNIFORM_BUFFER), effect->m_perObjectUBO);
+
+			DeferredGeometryPassEffect::PERFRAME_UNIFORM_BUFFER* perframeData = (DeferredGeometryPassEffect::PERFRAME_UNIFORM_BUFFER*)cbuffer0.GetBuffer();
+			DeferredGeometryPassEffect::PEROBJ_UNIFORM_BUFFER* perObjData = (DeferredGeometryPassEffect::PEROBJ_UNIFORM_BUFFER*)cbuffer1.GetBuffer();
+
+			perframeData->EyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
+			perframeData->DirLight = *LightManager::Instance()->m_dirLights[0];
+
+			perObjData->Mat = m_material;
+			perObjData->WorldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
+			perObjData->World = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform());
+			perObjData->WorldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
+			perObjData->ShadowTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
 
 			XMFLOAT4 resourceMask(0, 0, 0, 0);
 
@@ -499,25 +504,20 @@ void Mesh::GatherDrawCall() {
 			if (m_subMeshes[iSubMesh].m_normalMapTex > 0)
 				resourceMask.y = 1;
 
-			perObjData.DiffX_NormY_ShadZ = resourceMask;
+			perObjData->DiffX_NormY_ShadZ = resourceMask;
 
-			DrawCmd* cmd = new DrawCmd();
-			cmd->m_vertexArrayObject = m_vertexArrayObject;
-			cmd->m_offset = (void*)(startIndex * sizeof(unsigned int));
-			cmd->m_effect = effect;
-			cmd->m_elementCount = m_subMeshes[iSubMesh].m_indexBufferCPU.size();
-			cmd->m_textures.emplace_back(effect->DiffuseMapPosition, m_subMeshes[iSubMesh].m_diffuseMapTex, 0);
-			cmd->m_textures.emplace_back(effect->NormalMapPosition, m_subMeshes[iSubMesh].m_normalMapTex, 1);
-			cmd->m_textures.emplace_back(effect->ShadowMapPosition, LightManager::Instance()->m_shadowMap->GetDepthTex(), 2);
-			cmd->m_textures.emplace_back(effect->CubeMapPosition, Renderer::Instance()->GetSkyBox()->m_cubeMapTex, 3);
+			DrawCmd cmd;
+			cmd.m_vertexArrayObject = m_vertexArrayObject;
+			cmd.m_offset = (void*)(startIndex * sizeof(unsigned int));
+			cmd.m_effect = effect;
+			cmd.m_elementCount = m_subMeshes[iSubMesh].m_indexBufferCPU.size();
+			cmd.m_textures.emplace_back(effect->DiffuseMapPosition, m_subMeshes[iSubMesh].m_diffuseMapTex, 0, GL_TEXTURE_2D);
+			cmd.m_textures.emplace_back(effect->NormalMapPosition, m_subMeshes[iSubMesh].m_normalMapTex, 1, GL_TEXTURE_2D);
+			cmd.m_textures.emplace_back(effect->ShadowMapPosition, LightManager::Instance()->m_shadowMap->GetDepthTex(), 2, GL_TEXTURE_2D);
+			cmd.m_textures.emplace_back(effect->CubeMapPosition, Renderer::Instance()->GetSkyBox()->m_cubeMapTex, 3, GL_TEXTURE_CUBE_MAP);
 
-			GLConstantBuffer cbuffer0(0, sizeof(perframeData), effect->m_perFrameUBO);
-			memcpy(cbuffer0.GetBuffer(), &perframeData, sizeof(perframeData));
-			cmd->m_cbuffers.push_back(std::move(cbuffer0));
-			
-			GLConstantBuffer cbuffer1(1, sizeof(perObjData), effect->m_perObjectUBO);
-			memcpy(cbuffer1.GetBuffer(), &perObjData, sizeof(perObjData));
-			cmd->m_cbuffers.push_back(std::move(cbuffer1));
+			cmd.m_cbuffers.push_back(std::move(cbuffer0));
+			cmd.m_cbuffers.push_back(std::move(cbuffer1));
 
 			Renderer::Instance()->AddDrawCmd(cmd);
 

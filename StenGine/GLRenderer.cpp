@@ -281,24 +281,24 @@ public:
 
 		for (auto &cmd : m_drawList)
 		{
-			cmd->m_effect->SetShader();
-			glBindVertexArray(cmd->m_vertexArrayObject);
+			cmd.m_effect->SetShader();
+			glBindVertexArray(cmd.m_vertexArrayObject);
 
-			for (auto &tex : cmd->m_textures)
+			for (auto &tex : cmd.m_textures)
 			{
 				tex.Bind();
 			}
 
-			for (auto &cbuffer : cmd->m_cbuffers)
+			for (auto &cbuffer : cmd.m_cbuffers)
 			{
 				cbuffer.Bind();
 			}
 
 			glDrawElements(
 				GL_TRIANGLES,
-				cmd->m_elementCount,
+				cmd.m_elementCount,
 				GL_UNSIGNED_INT,
-				cmd->m_offset
+				cmd.m_offset
 			);
 		}
 
@@ -450,9 +450,9 @@ public:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 
-	void AddDrawCmd(DrawCmd* cmd)
+	void AddDrawCmd(DrawCmd &cmd)
 	{
-		m_drawList.push_back(std::unique_ptr<DrawCmd>(cmd));
+		m_drawList.push_back(std::move(cmd));
 	}
 
 private:
@@ -476,7 +476,7 @@ private:
 	GLuint m_debugCoordVAO;
 	GLuint m_screenQuadVAO;
 
-	std::vector<std::unique_ptr<DrawCmd>> m_drawList;
+	std::vector<DrawCmd> m_drawList;
 
 	void InitScreenQuad()
 	{

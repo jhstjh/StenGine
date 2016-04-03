@@ -63,7 +63,7 @@ public:
 	virtual void* GetDeviceContext() = 0;
 	virtual void* GetDepthRS() = 0;
 	virtual void UpdateTitle(const char*) = 0;
-	virtual void AddDrawCmd(DrawCmd* cmd) = 0;
+	virtual void AddDrawCmd(DrawCmd &cmd) = 0;
 
 protected:
 	static Renderer* _instance;

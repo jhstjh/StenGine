@@ -9,17 +9,45 @@ GLConstantBuffer::GLConstantBuffer(uint32_t index, uint32_t size, int32_t buffer
 	, m_bufferName(bufferName)
 	, m_size(size)
 {
-	m_data.resize(size);
+	m_data = _aligned_malloc(m_size, 16);
 }
 
 GLConstantBuffer::~GLConstantBuffer()
 {
-	
+	if (m_data)
+		_aligned_free(m_data);
+}
+
+GLConstantBuffer::GLConstantBuffer(GLConstantBuffer&& other)
+{
+	m_index = other.m_index;
+	m_bufferName = other.m_bufferName;
+	m_size = other.m_size;
+	m_data = other.m_data;
+
+	other.m_data = nullptr;
+}
+
+GLConstantBuffer& GLConstantBuffer::operator=(GLConstantBuffer&& other)
+{
+	if (this != &other)
+	{
+		if (m_data)
+			_aligned_free(m_data);
+
+		m_index = other.m_index;
+		m_bufferName = other.m_bufferName;
+		m_size = other.m_size;
+		m_data = other.m_data;
+
+		other.m_data = nullptr;
+	}
+	return *this;
 }
 
 void *GLConstantBuffer::GetBuffer()
 {
-	return m_data.data();
+	return m_data;
 }
 
 void GLConstantBuffer::Bind()
@@ -31,6 +59,6 @@ void GLConstantBuffer::Bind()
 		m_size,
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
 		);
-	memcpy(ubo, m_data.data(), m_size);
+	memcpy(ubo, m_data, m_size);
 	glUnmapBuffer(GL_UNIFORM_BUFFER);
 }
