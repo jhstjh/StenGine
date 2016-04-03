@@ -65,7 +65,7 @@ public:
 	bool m_receiveShadow;
 	Mesh(int type);
 	~Mesh();
-	virtual void Draw();
+	virtual void GatherDrawCall();
 	virtual void DrawOnShadowMap();
 	void Prepare();
 };

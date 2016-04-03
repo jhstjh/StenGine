@@ -103,7 +103,9 @@
     <ClInclude Include="FbxReaderSG.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GLBuffer.h" />
+    <ClInclude Include="GLConstantBuffer.h" />
     <ClInclude Include="GLImageLoader.h" />
+    <ClInclude Include="GLTextureBinding.h" />
     <ClInclude Include="LightManager.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MathHelper.h" />
@@ -131,8 +133,10 @@
     <ClCompile Include="FbxReaderSG.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GLBuffer.cpp" />
+    <ClCompile Include="GLConstantBuffer.cpp" />
     <ClCompile Include="GLImageLoader.cpp" />
     <ClCompile Include="GLRenderer.cpp" />
+    <ClCompile Include="GLTextureBinding.cpp" />
     <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="ObjReader.cpp" />

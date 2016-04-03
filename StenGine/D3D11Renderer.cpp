@@ -884,6 +884,10 @@ public:
 		return m_d3d11DeviceContext;
 	}
 
+	void UpdateTitle(const char* str) override {
+		SetWindowTextA(m_hMainWnd, str);
+	}
+
 private:
 	int m_clientWidth;
 	int m_clientHeight;

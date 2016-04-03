@@ -84,7 +84,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	GameObject* sphere = new GameObject("sphere", 0.f, 3.7f, -0.5f);
 	Mesh* sphereMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/earth.fbx");
 	sphere->AddComponent(sphereMesh);
-
+	
 	GameObject* plane0 = new GameObject("plane0", 4.f, 0.2f, 0.f);
 	Mesh* plane0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plane.fbx");
 	plane0->AddComponent(plane0Mesh);
@@ -150,11 +150,12 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 				elapsedTime -= 1;
 				FPS = (float)elaspedFrame;
 				
-				std::wostringstream outs;
+				std::ostringstream outs;
 				outs.precision(6);
-				outs << L"StenGine    "
-					<< L"FPS: " << FPS << L"    ";
-				SetWindowText(hMainWnd, outs.str().c_str());
+				outs << "StenGine    "
+					<< "FPS: " << FPS << "    ";
+				//SetWindowText(hMainWnd, outs.str().c_str());
+				renderer->UpdateTitle(outs.str().c_str());
 				elaspedFrame = 0;
 			}
 			InputManager::Instance()->Update();

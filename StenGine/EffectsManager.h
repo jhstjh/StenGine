@@ -118,13 +118,7 @@ private:
 	ID3D11Buffer* m_perFrameCB;
 	ID3D11Buffer* m_perObjectCB;
 #else
-	GLuint m_perFrameUBO;
-	GLuint m_perObjectUBO;
 
-	GLint DiffuseMapPosition;
-	GLint NormalMapPosition;
-	GLint ShadowMapPosition;
-	GLint CubeMapPosition;
 
 	GLBuffer m_buffer;
 	void* m_bufferBase;
@@ -187,6 +181,14 @@ public:
 	GLint NormalMap;
 	GLint ShadowMapTex;
 	GLint CubeMapTex;
+
+	GLint DiffuseMapPosition;
+	GLint NormalMapPosition;
+	GLint ShadowMapPosition;
+	GLint CubeMapPosition;
+
+	GLuint m_perFrameUBO;
+	GLuint m_perObjectUBO;
 
 	void MapConstantBuffer(void* bufferBase);
 

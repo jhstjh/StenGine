@@ -5,6 +5,8 @@
 #include <DirectXMath.h>
 #include <functional>
 
+#include "DrawCmd.h"
+
 namespace Vertex {
 	struct StdMeshVertex {
 		DirectX::XMFLOAT3 Pos;
@@ -60,6 +62,8 @@ public:
 	virtual void* GetDevice() = 0;
 	virtual void* GetDeviceContext() = 0;
 	virtual void* GetDepthRS() = 0;
+	virtual void UpdateTitle(const char*) = 0;
+	virtual void AddDrawCmd(DrawCmd* cmd) = 0;
 
 protected:
 	static Renderer* _instance;

@@ -394,7 +394,7 @@ void Mesh::PrepareShadowMapBuffer() {
 #endif
 }
 
-void Mesh::Draw() {
+void Mesh::GatherDrawCall() {
 #ifdef GRAPHICS_D3D11
 	UINT stride = sizeof(Vertex::StdMeshVertex);
 	UINT offset = 0;
@@ -471,28 +471,23 @@ void Mesh::Draw() {
 	}
 	deferredGeoEffect->UnSetShader();
 #elif defined(GRAPHICS_OPENGL)
-	glBindVertexArray(m_vertexArrayObject);
-#ifdef PLATFORM_WIN32
+
 	DeferredGeometryPassEffect* effect = dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect);
-#elif defined PLATFORM_ANDROID
-	SimpleMeshEffect* effect = (SimpleMeshEffect*)m_associatedEffect;
-#endif
-	
-#ifndef SG_TOOL
-	effect->m_perObjUniformBuffer.Mat = m_material;
-	effect->m_perFrameUniformBuffer.EyePosW = CameraManager::Instance()->GetActiveCamera()->GetPos();
-#endif
-	
-#ifdef PLATFORM_WIN32
 	effect->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;
-#endif
+	DeferredGeometryPassEffect::PERFRAME_UNIFORM_BUFFER perframeData;
+
+	perframeData.EyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
+	perframeData.DirLight = *LightManager::Instance()->m_dirLights[0];
 
 	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
 #ifdef PLATFORM_WIN32
-		effect->m_perObjUniformBuffer.WorldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
-		effect->m_perObjUniformBuffer.World = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform());
-		effect->m_perObjUniformBuffer.WorldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
-		effect->m_perObjUniformBuffer.ShadowTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
+		DeferredGeometryPassEffect::PEROBJ_UNIFORM_BUFFER perObjData;
+
+		perObjData.Mat = m_material;
+		perObjData.WorldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
+		perObjData.World = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform());
+		perObjData.WorldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
+		perObjData.ShadowTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
 		
 		int startIndex = 0;
 		for (uint32_t iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
@@ -504,29 +499,32 @@ void Mesh::Draw() {
 			if (m_subMeshes[iSubMesh].m_normalMapTex > 0)
 				resourceMask.y = 1;
 
-			effect->m_perObjUniformBuffer.DiffX_NormY_ShadZ = resourceMask;
+			perObjData.DiffX_NormY_ShadZ = resourceMask;
 
-			// TODO: this is a bad practice here
-			// should separate this material related cbuffer from transform
-			effect->UpdateConstantBuffer();
-			effect->BindConstantBuffer();
+			DrawCmd* cmd = new DrawCmd();
+			cmd->m_vertexArrayObject = m_vertexArrayObject;
+			cmd->m_offset = (void*)(startIndex * sizeof(unsigned int));
+			cmd->m_effect = effect;
+			cmd->m_elementCount = m_subMeshes[iSubMesh].m_indexBufferCPU.size();
+			cmd->m_textures.emplace_back(effect->DiffuseMapPosition, m_subMeshes[iSubMesh].m_diffuseMapTex, 0);
+			cmd->m_textures.emplace_back(effect->NormalMapPosition, m_subMeshes[iSubMesh].m_normalMapTex, 1);
+			cmd->m_textures.emplace_back(effect->ShadowMapPosition, LightManager::Instance()->m_shadowMap->GetDepthTex(), 2);
+			cmd->m_textures.emplace_back(effect->CubeMapPosition, Renderer::Instance()->GetSkyBox()->m_cubeMapTex, 3);
 
-			effect->DiffuseMap = m_subMeshes[iSubMesh].m_diffuseMapTex;
-			effect->NormalMap = m_subMeshes[iSubMesh].m_normalMapTex;
-			effect->BindShaderResource();
+			GLConstantBuffer cbuffer0(0, sizeof(perframeData), effect->m_perFrameUBO);
+			memcpy(cbuffer0.GetBuffer(), &perframeData, sizeof(perframeData));
+			cmd->m_cbuffers.push_back(std::move(cbuffer0));
+			
+			GLConstantBuffer cbuffer1(1, sizeof(perObjData), effect->m_perObjectUBO);
+			memcpy(cbuffer1.GetBuffer(), &perObjData, sizeof(perObjData));
+			cmd->m_cbuffers.push_back(std::move(cbuffer1));
 
-			glDrawElements(
-				GL_TRIANGLES,      // mode
-				m_subMeshes[iSubMesh].m_indexBufferCPU.size(),    // count
-				//m_indexBufferCPU.size(),
-				GL_UNSIGNED_INT,   // type
-				(void*)(startIndex * sizeof(unsigned int))           // element array buffer offset
-			);
-			effect->UnBindShaderResource();
+			Renderer::Instance()->AddDrawCmd(cmd);
+
 			startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
 			//break;
 		}
-		effect->UnBindConstantBuffer();
+
 #elif defined PLATFORM_ANDROID
 		effect->m_perObjUniformBuffer.WorldViewProj = (ndk_helper::Mat4)CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * *m_parents[iP]->GetWorldTransform();
 		effect->m_perObjUniformBuffer.World = *m_parents[iP]->GetWorldTransform();

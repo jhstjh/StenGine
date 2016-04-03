@@ -14,6 +14,8 @@
 #include "LightManager.h"
 #include "ShadowMap.h"
 #include "Skybox.h"
+#include <vector>
+#include <memory>
 
 Renderer* Renderer::_instance = nullptr;
 
@@ -63,7 +65,8 @@ public:
 			return false;
 		}
 
-		
+		wglSwapIntervalEXT(0);
+
 		glClearColor(0.2f, 0.2f, 0.2f, 0.f);
 		glClearDepth(1.0f);
 		glEnable(GL_DEPTH_TEST); // enable depth-testing
@@ -258,6 +261,10 @@ public:
 		return nullptr;
 	}
 
+	void UpdateTitle(const char* str) override {
+		SetWindowTextA(m_hMainWnd, str);
+	}
+
 	void DrawGBuffer() override {
 		glViewport(0, 0, m_clientWidth, m_clientHeight);
 
@@ -268,16 +275,34 @@ public:
 
 		// TODO: should separate perobj and perframe's updateconstantbuffer
 
-		effect->m_perFrameUniformBuffer.EyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
-		effect->m_perFrameUniformBuffer.DirLight = *LightManager::Instance()->m_dirLights[0];
-		effect->ShadowMapTex = LightManager::Instance()->m_shadowMap->GetDepthTex();
-		effect->CubeMapTex = m_SkyBox->m_cubeMapTex;
-
 		for (uint32_t iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
-			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->Draw();
+			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->GatherDrawCall();
 		}
 
-		EffectsManager::Instance()->m_deferredGeometryPassEffect->UnSetShader();
+		for (auto &cmd : m_drawList)
+		{
+			cmd->m_effect->SetShader();
+			glBindVertexArray(cmd->m_vertexArrayObject);
+
+			for (auto &tex : cmd->m_textures)
+			{
+				tex.Bind();
+			}
+
+			for (auto &cbuffer : cmd->m_cbuffers)
+			{
+				cbuffer.Bind();
+			}
+
+			glDrawElements(
+				GL_TRIANGLES,
+				cmd->m_elementCount,
+				GL_UNSIGNED_INT,
+				cmd->m_offset
+			);
+		}
+
+		m_drawList.clear();
 	}
 
 	void DrawDeferredShading() override {
@@ -425,6 +450,11 @@ public:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 
+	void AddDrawCmd(DrawCmd* cmd)
+	{
+		m_drawList.push_back(std::unique_ptr<DrawCmd>(cmd));
+	}
+
 private:
 	int m_clientWidth;
 	int m_clientHeight;
@@ -445,6 +475,8 @@ private:
 
 	GLuint m_debugCoordVAO;
 	GLuint m_screenQuadVAO;
+
+	std::vector<std::unique_ptr<DrawCmd>> m_drawList;
 
 	void InitScreenQuad()
 	{
