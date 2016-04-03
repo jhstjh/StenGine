@@ -3,7 +3,7 @@
 #include "GLImageLoader.h"
 #include "gli/gli.hpp"
 
-uint64_t CreateGLTextureFromFile(const char* filename)
+GLuint CreateGLTextureFromFile(const char* filename)
 {
 	gli::texture Texture = gli::load(filename);
 	if (Texture.empty())
@@ -119,5 +119,5 @@ uint64_t CreateGLTextureFromFile(const char* filename)
 				default: assert(0); break;
 				}
 			}
-	return glGetTextureHandleARB(TextureName);
+	return TextureName;
 }

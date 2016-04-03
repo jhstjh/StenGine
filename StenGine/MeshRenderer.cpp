@@ -509,7 +509,7 @@ void Mesh::GatherDrawCall() {
 			cmd.m_vertexArrayObject = m_vertexArrayObject;
 			cmd.m_offset = (void*)(startIndex * sizeof(unsigned int));
 			cmd.m_effect = effect;
-			cmd.m_elementCount = m_subMeshes[iSubMesh].m_indexBufferCPU.size();
+			cmd.m_elementCount = (GLsizei)m_subMeshes[iSubMesh].m_indexBufferCPU.size();
 			cmd.m_textures.emplace_back(effect->DiffuseMapPosition, m_subMeshes[iSubMesh].m_diffuseMapTex, 0, GL_TEXTURE_2D);
 			cmd.m_textures.emplace_back(effect->NormalMapPosition, m_subMeshes[iSubMesh].m_normalMapTex, 1, GL_TEXTURE_2D);
 			cmd.m_textures.emplace_back(effect->ShadowMapPosition, LightManager::Instance()->m_shadowMap->GetDepthTexHandle(), 2, GL_TEXTURE_2D);
@@ -520,7 +520,7 @@ void Mesh::GatherDrawCall() {
 
 			Renderer::Instance()->AddDeferredDrawCmd(cmd);
 
-			startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
+			startIndex += (GLsizei)m_subMeshes[iSubMesh].m_indexBufferCPU.size();
 			//break;
 		}
 
@@ -596,7 +596,7 @@ void Mesh::DrawOnShadowMap() {
 
 		glDrawElements(
 			GL_TRIANGLES,      // mode
-			m_indexBufferCPU.size(),    // count
+			(GLsizei)m_indexBufferCPU.size(),    // count
 			GL_UNSIGNED_INT,   // type
 			(void*)0           // element array buffer offset
 		);

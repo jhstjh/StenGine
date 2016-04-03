@@ -9,16 +9,7 @@
 // opengl version first
 
 struct DrawCmd {
-	GLuint m_indexBufferGPU;
-	GLuint m_indexBufferShadowGPU;
-
-	GLuint m_positionBufferGPU;
-	GLuint m_normalBufferGPU;
-	GLuint m_texUVBufferGPU;
-	GLuint m_tangentBufferGPU;
-
 	GLuint m_vertexArrayObject;
-	GLuint m_shadowVertexArrayObject;
 
 	GLsizei m_elementCount;
 	void*	m_offset;

@@ -4,7 +4,7 @@
 #include "GL/glew.h"
 #include <stdint.h>
 
-uint64_t CreateGLTextureFromFile(const char* filename);
+GLuint CreateGLTextureFromFile(const char* filename);
 
 
 #endif

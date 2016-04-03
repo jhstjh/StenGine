@@ -2019,7 +2019,7 @@ bool Effect::ReadShaderFile(std::wstring filename, char* shaderContent, int maxL
 	std::string s(filename.begin(), filename.end());
 	const char* lFilename = s.c_str();
 	FILE* file = fopen(lFilename, "r");
-	int current_len = 0;
+	size_t current_len = 0;
 	char line[2048];
 
 	shaderContent[0] = '\0'; /* reset string */

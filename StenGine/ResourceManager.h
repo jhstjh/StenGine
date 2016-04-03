@@ -122,10 +122,11 @@ public:
 			auto got = m_textureResourceMap.find(path);
 			if (got == m_textureResourceMap.end()) {
 				std::string s(path.begin(), path.end());
-				uint64_t tex = CreateGLTextureFromFile(s.c_str());
+				GLuint tex = CreateGLTextureFromFile(s.c_str());
 				assert(tex != 0);
-				glMakeTextureHandleResidentARB(tex);
-				m_textureResourceMap[path] = tex;
+				uint64_t texHandle = glGetTextureHandleARB(tex);
+				glMakeTextureHandleResidentARB(texHandle);
+				m_textureResourceMap[path] = texHandle;
 				return (T*)&m_textureResourceMap[path];
 			}
 			else {
@@ -223,7 +224,11 @@ public:
 
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-				m_textureResourceMap[path] = tex;
+
+				uint64_t texHandle = glGetTextureHandleARB(tex);
+				glMakeTextureHandleResidentARB(texHandle);
+
+				m_textureResourceMap[path] = texHandle;
 				return (T*)&m_textureResourceMap[path];
 			}
 			else {

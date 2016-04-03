@@ -1,4 +1,4 @@
-#ifdef GRAPHICS_OPENGL
+﻿#ifdef GRAPHICS_OPENGL
 
 #include "GL/glew.h"
 #include "GL/wglew.h"
@@ -16,6 +16,15 @@
 #include "Skybox.h"
 #include <vector>
 #include <memory>
+
+
+void APIENTRY GLErrorCallback(GLenum source​, GLenum type​, GLuint id​, GLenum severity​, GLsizei length​, const GLchar* message​, const void* userParam​)
+{
+	if (GL_DEBUG_SEVERITY_HIGH == severity​)
+	{
+		printf("%s\n", message​);
+	}
+}
 
 Renderer* Renderer::_instance = nullptr;
 
@@ -66,6 +75,9 @@ public:
 		}
 
 		wglSwapIntervalEXT(0);
+
+		glDebugMessageCallback(GLErrorCallback, nullptr);
+		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 
 		glClearColor(0.2f, 0.2f, 0.2f, 0.f);
 		glClearDepth(1.0f);

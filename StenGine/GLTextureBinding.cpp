@@ -14,6 +14,5 @@ void GLTextureBinding::Bind()
 	//glActiveTexture(GL_TEXTURE0 + m_index);
 	//glBindTexture(m_target, m_tex);
 	//glUniform1i(m_pos, m_index);
-
 	glUniformHandleui64ARB(m_pos, m_tex);
 }

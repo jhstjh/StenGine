@@ -13,12 +13,22 @@
     <LaunchActivity>.TeapotNativeActivity</LaunchActivity>
     <DebuggerFlavor>AndroidDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PackageName>com.sample.teapot</PackageName>
+    <LaunchActivity>.TeapotNativeActivity</LaunchActivity>
+    <DebuggerFlavor>AndroidDebugger</DebuggerFlavor>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <PackageName>com.shentu.stengine</PackageName>
     <DebuggerFlavor>AndroidDebugger</DebuggerFlavor>
     <LaunchActivity>.StenGineActivity</LaunchActivity>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <PackageName>com.sample.teapot</PackageName>
+    <DebuggerFlavor>AndroidDebugger</DebuggerFlavor>
+    <LaunchActivity>.TeapotNativeActivity</LaunchActivity>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <PackageName>com.sample.teapot</PackageName>
     <DebuggerFlavor>AndroidDebugger</DebuggerFlavor>
     <LaunchActivity>.TeapotNativeActivity</LaunchActivity>
