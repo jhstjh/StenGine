@@ -36,6 +36,9 @@ public:
 	GLRenderer(HINSTANCE hInstance, HWND hMainWnd) 
 		: m_hInst(hInstance)
 		, m_hMainWnd(hMainWnd)
+		, m_currentVao(0)
+		, m_currentEffect(nullptr)
+		, m_currentFbo(0)
 	{
 		_instance = this;
 	}
@@ -291,18 +294,20 @@ public:
 		uint32_t width, height;
 		LightManager::Instance()->m_shadowMap->GetDimension(width, height);
 
+		EffectsManager::Instance()->m_shadowMapEffect->SetShader();
+
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glViewport(0, 0, width, height);
 
 		for (auto &cmd : m_shadowMapDrawList)
 		{
-			cmd.m_effect->SetShader();
-			glBindVertexArray((uint64_t)cmd.m_vertexArrayObject);
+			//cmd.m_effect->SetShader();
 
-			for (auto &tex : cmd.m_textures)
+			if (m_currentVao != (uint64_t)cmd.m_vertexArrayObject)
 			{
-				tex.Bind();
+				m_currentVao = (uint64_t)cmd.m_vertexArrayObject;
+				glBindVertexArray((uint64_t)cmd.m_vertexArrayObject);
 			}
 
 			for (auto &cbuffer : cmd.m_cbuffers)
@@ -337,12 +342,12 @@ public:
 
 		for (auto &cmd : m_deferredDrawList)
 		{
-			cmd.m_effect->SetShader();
-			glBindVertexArray((uint64_t)cmd.m_vertexArrayObject);
+			//cmd.m_effect->SetShader();
 
-			for (auto &tex : cmd.m_textures)
+			if (m_currentVao != (uint64_t)cmd.m_vertexArrayObject)
 			{
-				tex.Bind();
+				m_currentVao = (uint64_t)cmd.m_vertexArrayObject;
+				glBindVertexArray((uint64_t)cmd.m_vertexArrayObject);
 			}
 
 			for (auto &cbuffer : cmd.m_cbuffers)
@@ -539,6 +544,10 @@ private:
 
 	std::vector<DrawCmd> m_shadowMapDrawList;
 	std::vector<DrawCmd> m_deferredDrawList;
+
+	uint64_t m_currentVao;
+	Effect* m_currentEffect;
+	uint64_t m_currentFbo;
 
 	void InitScreenQuad()
 	{

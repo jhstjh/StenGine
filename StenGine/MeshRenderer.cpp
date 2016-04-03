@@ -499,6 +499,11 @@ void Mesh::GatherDrawCall() {
 			perObjData->WorldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
 			perObjData->ShadowTransform = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
 
+			perObjData->DiffuseMap = m_subMeshes[iSubMesh].m_diffuseMapTex;
+			perObjData->NormalMap = m_subMeshes[iSubMesh].m_normalMapTex;
+			perObjData->ShadowMapTex = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
+			perObjData->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;
+
 			XMFLOAT4 resourceMask(0, 0, 0, 0);
 
 			if (m_subMeshes[iSubMesh].m_diffuseMapTex > 0)
@@ -514,10 +519,6 @@ void Mesh::GatherDrawCall() {
 			cmd.m_offset = (void*)(startIndex * sizeof(unsigned int));
 			cmd.m_effect = effect;
 			cmd.m_elementCount = m_subMeshes[iSubMesh].m_indexBufferCPU.size();
-			cmd.m_textures.emplace_back(effect->DiffuseMapPosition, m_subMeshes[iSubMesh].m_diffuseMapTex, 0, GL_TEXTURE_2D);
-			cmd.m_textures.emplace_back(effect->NormalMapPosition, m_subMeshes[iSubMesh].m_normalMapTex, 1, GL_TEXTURE_2D);
-			cmd.m_textures.emplace_back(effect->ShadowMapPosition, LightManager::Instance()->m_shadowMap->GetDepthTexHandle(), 2, GL_TEXTURE_2D);
-			cmd.m_textures.emplace_back(effect->CubeMapPosition, Renderer::Instance()->GetSkyBox()->m_cubeMapTex, 3, GL_TEXTURE_CUBE_MAP);
 
 			cmd.m_cbuffers.push_back(std::move(cbuffer0));
 			cmd.m_cbuffers.push_back(std::move(cbuffer1));

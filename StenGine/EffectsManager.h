@@ -169,6 +169,10 @@ public:
 		XMMATRIX ShadowTransform;
 		Material Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
+		uint64_t DiffuseMap;
+		uint64_t NormalMap;
+		uint64_t ShadowMapTex;
+		uint64_t CubeMapTex;
 	} m_perObjUniformBuffer;
 
 	struct PERFRAME_UNIFORM_BUFFER

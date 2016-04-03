@@ -19,7 +19,6 @@ struct DrawCmd {
 
 	class Effect* m_effect;
 
-	std::vector<GLTextureBinding> m_textures;
 	std::vector<GLConstantBuffer> m_cbuffers;
 };
 

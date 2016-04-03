@@ -1,4 +1,5 @@
-#version 420
+#version 450
+#extension GL_ARB_bindless_texture : require
 
 struct Material {
 	vec4 ambient;
@@ -27,10 +28,10 @@ layout(location = 0) out vec4 ps_norm;
 layout(location = 1) out vec4 ps_diff;
 layout(location = 2) out vec4 ps_spec;
 
-uniform sampler2D gDiffuseMap;
-uniform sampler2D gNormalMap;
-uniform sampler2D gShadowMap;
-uniform samplerCube gCubeMap;
+//uniform sampler2D gDiffuseMap;
+//uniform sampler2D gNormalMap;
+//uniform sampler2D gShadowMap;
+//uniform samplerCube gCubeMap;
 
 layout(std140) uniform ubPerObj{
 	mat4 gWorldViewProj;
@@ -39,6 +40,11 @@ layout(std140) uniform ubPerObj{
 	mat4 gShadowTransform;
 	Material gMat;
 	vec4 DiffX_NormY_ShadZ;
+
+	sampler2D gDiffuseMap;
+	sampler2D gNormalMap;
+	sampler2D gShadowMap;
+	samplerCube gCubeMap;
 };
 
 layout(std140) uniform ubPerFrame{

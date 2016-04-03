@@ -1,4 +1,5 @@
-#version 420
+#version 450
+#extension GL_ARB_bindless_texture : require
 
 // input layout
 layout(location = 0) in vec3 PosL;
@@ -19,13 +20,18 @@ struct DirectionalLight {
 	float pad;
 };
 
-layout(std140) uniform ubPerObj {
+layout(std140) uniform ubPerObj{
 	mat4 gWorldViewProj;
 	mat4 gWorld;
 	mat4 gWorldView;
 	mat4 gShadowTransform;
 	Material gMat;
 	vec4 DiffX_NormY_ShadZ;
+	
+	sampler2D gDiffuseMap;
+	sampler2D gNormalMap;
+	sampler2D gShadowMap;
+	samplerCube gCubeMap;
 };
 
 layout(std140) uniform ubPerFrame{
