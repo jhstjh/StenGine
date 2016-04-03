@@ -231,7 +231,7 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 #ifdef GRAPHICS_D3D11
 					mesh->m_subMeshes[i].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 #else
-					mesh->m_subMeshes[i].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<GLuint>(tex->GetFileName()));
+					mesh->m_subMeshes[i].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(tex->GetFileName()));
 #endif
 #endif
 			}
@@ -248,7 +248,7 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 #ifdef GRAPHICS_D3D11
 				mesh->m_subMeshes[i].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 #else
-				mesh->m_subMeshes[i].m_normalMapTex = *(ResourceManager::Instance()->GetResource<GLuint>(tex->GetFileName()));
+				mesh->m_subMeshes[i].m_normalMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(tex->GetFileName()));
 #endif
 #endif
 		}
@@ -265,7 +265,7 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 				mesh->m_subMeshes[i].m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 				int a = 100;
 #else
-				mesh->m_subMeshes[i].m_bumpMapTex = *(ResourceManager::Instance()->GetResource<GLuint>(tex->GetFileName()));
+				mesh->m_subMeshes[i].m_bumpMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(tex->GetFileName()));
 #endif
 #endif
 		}

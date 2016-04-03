@@ -664,7 +664,7 @@ public:
 
 	//ID3D11ShaderResourceView *m_shaderResources[1];
 #ifdef GRAPHICS_OPENGL
-	GLuint CubeMap;
+	uint64_t CubeMap;
 #endif
 };
 

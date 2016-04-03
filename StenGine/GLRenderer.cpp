@@ -279,7 +279,7 @@ public:
 			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->GatherDrawCall();
 		}
 
-		for (auto &cmd : m_drawList)
+		for (auto &cmd : m_deferredDrawList)
 		{
 			cmd.m_effect->SetShader();
 			glBindVertexArray(cmd.m_vertexArrayObject);
@@ -302,7 +302,7 @@ public:
 			);
 		}
 
-		m_drawList.clear();
+		m_deferredDrawList.clear();
 	}
 
 	void DrawDeferredShading() override {
@@ -450,9 +450,9 @@ public:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 
-	void AddDrawCmd(DrawCmd &cmd)
+	void AddDeferredDrawCmd(DrawCmd &cmd)
 	{
-		m_drawList.push_back(std::move(cmd));
+		m_deferredDrawList.push_back(std::move(cmd));
 	}
 
 private:
@@ -476,7 +476,7 @@ private:
 	GLuint m_debugCoordVAO;
 	GLuint m_screenQuadVAO;
 
-	std::vector<DrawCmd> m_drawList;
+	std::vector<DrawCmd> m_deferredDrawList;
 
 	void InitScreenQuad()
 	{

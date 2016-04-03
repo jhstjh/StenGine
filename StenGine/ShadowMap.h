@@ -15,6 +15,7 @@ private:
 #else
 	GLuint m_depthTex;
 	GLuint m_shadowBuffer;
+	uint64_t m_depthTexHandle;
 #endif
 	XMFLOAT4X4 m_lightView;
 	XMFLOAT4X4 m_lightProj;
@@ -27,6 +28,7 @@ public:
 	ID3D11ShaderResourceView* GetDepthSRV() { return m_depthSRV; }
 #else
 	GLuint GetDepthTex() { return m_depthTex; }
+	uint64_t GetDepthTexHandle() { return m_depthTexHandle; }
 #endif
 	void RenderShadowMap();
 	XMMATRIX GetViewProjMatrix();

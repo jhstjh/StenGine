@@ -7,13 +7,13 @@
 class GLTextureBinding
 {
 public:
-	GLTextureBinding(GLint pos, GLint tex, uint32_t index, GLenum target);
+	GLTextureBinding(GLint pos, uint64_t tex, uint32_t index, GLenum target);
 
 	void Bind();
 
 private:
 	GLint m_pos;
-	GLint m_tex;
+	uint64_t m_tex;
 	uint32_t m_index;
 	GLenum m_target;
 };

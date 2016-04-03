@@ -223,8 +223,8 @@ void Mesh::CreateBoxPrimitive() {
 	m_subMeshes[0].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02.dds");
 	m_subMeshes[0].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02_normal.dds");
 #else
-	m_subMeshes[0].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<GLuint>(L"./Model/WoodCrate02.dds"));
-	m_subMeshes[0].m_normalMapTex = *(ResourceManager::Instance()->GetResource<GLuint>(L"./Model/WoodCrate02_normal.dds"));
+	m_subMeshes[0].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(L"./Model/WoodCrate02.dds"));
+	m_subMeshes[0].m_normalMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(L"./Model/WoodCrate02_normal.dds"));
 #endif
 #endif
 }
@@ -473,7 +473,6 @@ void Mesh::GatherDrawCall() {
 #elif defined(GRAPHICS_OPENGL)
 
 	DeferredGeometryPassEffect* effect = dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect);
-	effect->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;
 	
 	GLConstantBuffer cbuffer0(0, sizeof(DeferredGeometryPassEffect::PERFRAME_UNIFORM_BUFFER), effect->m_perFrameUBO);
 	GLConstantBuffer cbuffer1(1, sizeof(DeferredGeometryPassEffect::PEROBJ_UNIFORM_BUFFER), effect->m_perObjectUBO);
@@ -513,13 +512,13 @@ void Mesh::GatherDrawCall() {
 			cmd.m_elementCount = m_subMeshes[iSubMesh].m_indexBufferCPU.size();
 			cmd.m_textures.emplace_back(effect->DiffuseMapPosition, m_subMeshes[iSubMesh].m_diffuseMapTex, 0, GL_TEXTURE_2D);
 			cmd.m_textures.emplace_back(effect->NormalMapPosition, m_subMeshes[iSubMesh].m_normalMapTex, 1, GL_TEXTURE_2D);
-			cmd.m_textures.emplace_back(effect->ShadowMapPosition, LightManager::Instance()->m_shadowMap->GetDepthTex(), 2, GL_TEXTURE_2D);
+			cmd.m_textures.emplace_back(effect->ShadowMapPosition, LightManager::Instance()->m_shadowMap->GetDepthTexHandle(), 2, GL_TEXTURE_2D);
 			cmd.m_textures.emplace_back(effect->CubeMapPosition, Renderer::Instance()->GetSkyBox()->m_cubeMapTex, 3, GL_TEXTURE_CUBE_MAP);
 
 			cmd.m_cbuffers.push_back(std::move(cbuffer0));
 			cmd.m_cbuffers.push_back(std::move(cbuffer1));
 
-			Renderer::Instance()->AddDrawCmd(cmd);
+			Renderer::Instance()->AddDeferredDrawCmd(cmd);
 
 			startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
 			//break;

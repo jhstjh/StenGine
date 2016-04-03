@@ -13,7 +13,7 @@ public:
 #ifdef GRAPHICS_D3D11
 	ID3D11ShaderResourceView* m_cubeMapSRV;
 #else
-	GLuint m_cubeMapTex;
+	uint64_t m_cubeMapTex;
 	GLuint m_skyboxVAO;
 #endif
 

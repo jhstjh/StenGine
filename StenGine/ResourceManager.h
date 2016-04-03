@@ -118,15 +118,13 @@ public:
 			}
 		}
 #else
-		else if (std::is_same<T, GLuint>::value) {
+		else if (std::is_same<T, uint64_t>::value) {
 			auto got = m_textureResourceMap.find(path);
 			if (got == m_textureResourceMap.end()) {
 				std::string s(path.begin(), path.end());
-				GLuint tex = CreateGLTextureFromFile(s.c_str());
+				uint64_t tex = CreateGLTextureFromFile(s.c_str());
 				assert(tex != 0);
-
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				glMakeTextureHandleResidentARB(tex);
 				m_textureResourceMap[path] = tex;
 				return (T*)&m_textureResourceMap[path];
 			}
@@ -136,6 +134,7 @@ public:
 		}
 #endif
 //#endif
+		return nullptr;
 	}
 
 	template <typename T>
@@ -243,7 +242,7 @@ private:
 #ifdef GRAPHICS_D3D11
 	std::unordered_map<std::wstring, ID3D11ShaderResourceView*> m_textureSRVResourceMap;
 #else
-	std::unordered_map<std::wstring, GLuint> m_textureResourceMap;
+	std::unordered_map<std::wstring, uint64_t> m_textureResourceMap;
 #endif
 };
 

@@ -1166,9 +1166,10 @@ void SkyboxEffect::BindShaderResource() {
 	//static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 4, m_shaderResources);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 1, m_shaderResources);
 #else
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap);
-	glUniform1i(CubeMapPosition, 0);
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap);
+	//glUniform1i(CubeMapPosition, 0);
+	glUniformHandleui64ARB(CubeMapPosition, CubeMap);
 #endif
 }
 

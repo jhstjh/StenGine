@@ -24,9 +24,9 @@ public:
 	ID3D11ShaderResourceView* m_bumpMapSRV;
 #else
 	GLuint m_indexBufferGPU;
-	GLuint m_diffuseMapTex;
-	GLuint m_normalMapTex;
-	GLuint m_bumpMapTex;
+	uint64_t m_diffuseMapTex;
+	uint64_t m_normalMapTex;
+	uint64_t m_bumpMapTex;
 #endif
 
 	Material m_material;

@@ -83,6 +83,9 @@ ShadowMap::ShadowMap(UINT width, UINT height)
 
 	// bind default framebuffer again
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	m_depthTexHandle = glGetTextureHandleARB(m_depthTex);
+	glMakeTextureHandleResidentARB(m_depthTexHandle);
 #endif
 }
 
@@ -90,6 +93,8 @@ ShadowMap::~ShadowMap() {
 #ifdef GRAPHICS_D3D11
 	ReleaseCOM(m_depthSRV);
 	ReleaseCOM(m_depthDSV);
+#else
+	glMakeTextureHandleNonResidentARB(m_depthTexHandle);
 #endif
 }
 
