@@ -609,21 +609,6 @@ void Mesh::GatherShadowDrawCall() {
 		cmd.m_cbuffers.push_back(std::move(cbuffer0));
 
 		Renderer::Instance()->AddShadowDrawCmd(cmd);
-// 
-// 
-// 		glDrawElements(
-// 			GL_TRIANGLES,      // mode
-// 			(GLsizei)m_indexBufferCPU.size(),    // count
-// 			GL_UNSIGNED_INT,   // type
-// 			(void*)0           // element array buffer offset
-// 		);
-// 
-// 		//glDrawArrays(GL_TRIANGLES, 0, 3);
-// 		EffectsManager::Instance()->m_shadowMapEffect->UnBindConstantBuffer();
-// 		EffectsManager::Instance()->m_shadowMapEffect->UnBindShaderResource();
-// 
-// 
-
 	}
 #endif
 #endif

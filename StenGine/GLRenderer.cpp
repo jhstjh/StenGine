@@ -115,6 +115,16 @@ public:
 			return false;
 		}
 		
+		m_diffuseBufferTexHandle = glGetTextureHandleARB(m_diffuseBufferTex);
+		m_normalBufferTexHandle = glGetTextureHandleARB(m_normalBufferTex);
+		m_specularBufferTexHandle = glGetTextureHandleARB(m_specularBufferTex);
+		m_depthBufferTexHandle = glGetTextureHandleARB(m_depthBufferTex);
+
+		glMakeTextureHandleResidentARB(m_diffuseBufferTexHandle);
+		glMakeTextureHandleResidentARB(m_normalBufferTexHandle);
+		glMakeTextureHandleResidentARB(m_specularBufferTexHandle);
+		glMakeTextureHandleResidentARB(m_depthBufferTexHandle);
+
 		DirectionalLight* dLight = new DirectionalLight();
 		dLight->intensity = XMFLOAT4(1, 1, 1, 1);
 		dLight->direction = MatrixHelper::NormalizeFloat3(XMFLOAT3(-0.5, -2, 1));
@@ -374,11 +384,10 @@ public:
 		deferredShadingFX->SetShader();
 		glBindVertexArray(m_screenQuadVAO);
 
-		deferredShadingFX->DiffuseGMap = m_diffuseBufferTex;//LightManager::Instance()->m_shadowMap->GetDepthTex();//
-		deferredShadingFX->NormalGMap = m_normalBufferTex;
-		deferredShadingFX->SpecularGMap = m_specularBufferTex;
-		deferredShadingFX->DepthGMap = m_depthBufferTex;
-		deferredShadingFX->BindShaderResource();
+		deferredShadingFX->m_perFrameUniformBuffer.NormalGMap = m_normalBufferTexHandle;
+		deferredShadingFX->m_perFrameUniformBuffer.DiffuseGMap = m_diffuseBufferTexHandle;//LightManager::Instance()->m_shadowMap->GetDepthTex();//
+		deferredShadingFX->m_perFrameUniformBuffer.SpecularGMap = m_specularBufferTexHandle;
+		deferredShadingFX->m_perFrameUniformBuffer.DepthGMap = m_depthBufferTexHandle;
 
 		XMMATRIX &viewMat = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
 		XMMATRIX viewInvTranspose = MatrixHelper::InverseTranspose(viewMat);
@@ -468,7 +477,13 @@ public:
 		glDepthMask(GL_TRUE);
 	}
 
-	GLRenderer::~GLRenderer() {}
+	GLRenderer::~GLRenderer() 
+	{
+		glMakeTextureHandleNonResidentARB(m_diffuseBufferTexHandle);
+		glMakeTextureHandleNonResidentARB(m_normalBufferTexHandle);
+		glMakeTextureHandleNonResidentARB(m_specularBufferTexHandle);
+		glMakeTextureHandleNonResidentARB(m_depthBufferTexHandle);
+	}
 
 	void GenerateColorTex(GLuint &bufferTex) {
 		glGenTextures(1, &bufferTex);
@@ -538,6 +553,11 @@ private:
 	GLuint m_normalBufferTex;
 	GLuint m_specularBufferTex;
 	GLuint m_depthBufferTex;
+
+	uint64_t m_diffuseBufferTexHandle;
+	uint64_t m_normalBufferTexHandle;
+	uint64_t m_specularBufferTexHandle;
+	uint64_t m_depthBufferTexHandle;
 
 	GLuint m_debugCoordVAO;
 	GLuint m_screenQuadVAO;

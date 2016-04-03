@@ -1,4 +1,5 @@
-#version 410
+#version 450
+#extension GL_ARB_bindless_texture : require
 
 layout(location = 0) in vec3 PosL;
 
@@ -8,6 +9,7 @@ out vec3 pPosL;
 
 layout(std140) uniform ubPerObj{
 	mat4 gWorldViewProj;
+	samplerCube gCubeMap;
 };
 
 void main() {

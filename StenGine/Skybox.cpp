@@ -124,12 +124,13 @@ void Skybox::Draw() {
 
 #else
 	glBindVertexArray(m_skyboxVAO);
-	skyboxEffect->CubeMap = m_cubeMapTex;
+	//skyboxEffect->CubeMap = m_cubeMapTex;
 	XMFLOAT4 eyePos = CameraManager::Instance()->GetActiveCamera()->GetPos();
 	XMMATRIX T = XMMatrixTranslation(eyePos.x, eyePos.y, eyePos.z);
 	XMMATRIX WVP = XMMatrixMultiply(T, CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
 	skyboxEffect->m_perObjUniformBuffer.gWorldViewProj = WVP;
+	skyboxEffect->m_perObjUniformBuffer.gCubeMap = m_cubeMapTex;
 	skyboxEffect->UpdateConstantBuffer();
 
 	//glDrawArrays(GL_TRIANGLES, 0, 36);

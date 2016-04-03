@@ -1,4 +1,5 @@
-#version 420
+#version 450
+#extension GL_ARB_bindless_texture : require
 
 struct Material {
 	vec4 ambient;
@@ -16,18 +17,15 @@ in vec2 pTexUV;
 
 out vec4 ps_color;
 
-
-uniform sampler2D gNormalGMap;
-uniform sampler2D gDiffuseGMap;
-uniform sampler2D gSpecularGMap;
-uniform sampler2D gDepthGMap;
-
-
 layout(std140) uniform ubPerFrame {
 	DirectionalLight gDirLight;
 	vec4 gEyePosV;
 	mat4 gProjInv;
 	mat4 gProj;
+	sampler2D gNormalGMap;
+	sampler2D gDiffuseGMap;
+	sampler2D gSpecularGMap;
+	sampler2D gDepthGMap;
 };
 
 void main() {

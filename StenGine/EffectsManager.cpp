@@ -533,11 +533,6 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filen
 	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
 	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 1);
 
-	DiffuseMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseMap");
-	NormalMapPosition = glGetUniformLocation(m_shaderProgram, "gNormalMap");
-	ShadowMapPosition = glGetUniformLocation(m_shaderProgram, "gShadowMap");
-	CubeMapPosition = glGetUniformLocation(m_shaderProgram, "gCubeMap");
-
 	m_bufferBase = m_buffer.lock();
 #endif
 }
@@ -640,21 +635,7 @@ void DeferredGeometryPassEffect::BindShaderResource() {
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 5, m_shaderResources);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 5, m_shaderResources);
 #else
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, DiffuseMap);
-	glUniform1i(DiffuseMapPosition, 0);
 
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, NormalMap);
-	glUniform1i(NormalMapPosition, 1);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, ShadowMapTex);
-	glUniform1i(ShadowMapPosition, 2);
-
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMapTex);
-	glUniform1i(CubeMapPosition, 3);
 #endif
 }
 
@@ -896,11 +877,6 @@ DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filenam
 	glGenBuffers(1, &m_perFrameUBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, m_perFrameUBO);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(PERFRAME_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
-
-	DiffuseGMapPosition = glGetUniformLocation(m_shaderProgram, "gDiffuseGMap");
-	NormalGMapPosition = glGetUniformLocation(m_shaderProgram, "gNormalGMap");
-	SpecularGMapPosition = glGetUniformLocation(m_shaderProgram, "gSpecularGMap");
-	DepthGMapPosition = glGetUniformLocation(m_shaderProgram, "gDepthGMap");
 #endif
 }
 
@@ -945,21 +921,7 @@ void DeferredShadingPassEffect::BindShaderResource() {
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 5, m_shaderResources);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 5, m_shaderResources);
 #else
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, NormalGMap);
-	glUniform1i(NormalGMapPosition, 0);
 
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, DiffuseGMap);
-	glUniform1i(DiffuseGMapPosition, 1);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, SpecularGMap);
-	glUniform1i(SpecularGMapPosition, 2);
-
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, DepthGMap);
-	glUniform1i(DepthGMapPosition, 3);
 #endif
 }
 
@@ -1121,8 +1083,6 @@ SkyboxEffect::SkyboxEffect(const std::wstring& filename)
 	glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectUBO);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
 
-	CubeMapPosition = glGetUniformLocation(m_shaderProgram, "gCubeMap");
-	assert(CubeMapPosition >= 0);
 #endif
 }
 
@@ -1166,10 +1126,7 @@ void SkyboxEffect::BindShaderResource() {
 	//static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 4, m_shaderResources);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 1, m_shaderResources);
 #else
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_CUBE_MAP, CubeMap);
-	//glUniform1i(CubeMapPosition, 0);
-	glUniformHandleui64ARB(CubeMapPosition, CubeMap);
+
 #endif
 }
 

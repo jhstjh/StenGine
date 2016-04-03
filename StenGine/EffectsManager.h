@@ -181,16 +181,6 @@ public:
 		DirectionalLight DirLight;
 	} m_perFrameUniformBuffer;
 
-	GLint DiffuseMap;
-	GLint NormalMap;
-	GLint ShadowMapTex;
-	GLint CubeMapTex;
-
-	GLint DiffuseMapPosition;
-	GLint NormalMapPosition;
-	GLint ShadowMapPosition;
-	GLint CubeMapPosition;
-
 	GLuint m_perFrameUBO;
 	GLuint m_perObjectUBO;
 
@@ -502,11 +492,6 @@ private:
 #ifdef GRAPHICS_D3D11
 	ID3D11Buffer* m_perFrameCB;
 #else
-	GLint DiffuseGMapPosition;
-	GLint NormalGMapPosition;
-	GLint SpecularGMapPosition;
-	GLint DepthGMapPosition;
-
 	GLuint m_perFrameUBO;
 #endif
 
@@ -521,26 +506,28 @@ public:
 	struct 
 #ifdef GRAPHICS_D3D11		
 	PERFRAME_CONSTANT_BUFFER
-#else
-	PERFRAME_UNIFORM_BUFFER
-#endif
 	{
 		DirectionalLight gDirLight;
 		XMFLOAT4 gEyePosV;
 		XMMATRIX gProjInv;
 		XMMATRIX gProj;
 	} 
-#ifdef GRAPHICS_D3D11		
 	m_perFrameConstantBuffer;
-#else
-	m_perFrameUniformBuffer;
 #endif
 
 #ifdef GRAPHICS_OPENGL
-	GLuint DiffuseGMap;
-	GLuint NormalGMap;
-	GLuint SpecularGMap;
-	GLuint DepthGMap;
+	PERFRAME_UNIFORM_BUFFER
+	{
+		DirectionalLight gDirLight;
+		XMFLOAT4 gEyePosV;
+		XMMATRIX gProjInv;
+		XMMATRIX gProj;
+		uint64_t NormalGMap;
+		uint64_t DiffuseGMap;
+		uint64_t SpecularGMap;
+		uint64_t DepthGMap;
+	}
+	m_perFrameUniformBuffer;
 #endif
 
 	/// Texture Ordering:
@@ -641,7 +628,6 @@ private:
 	ID3D11Buffer* m_perObjectCB;
 #else
 	GLuint m_perObjectUBO;
-	GLint CubeMapPosition;
 #endif
 
 public:
@@ -655,22 +641,21 @@ public:
 	struct 
 #ifdef GRAPHICS_D3D11
 	PEROBJ_CONSTANT_BUFFER
-#else
-	PEROBJ_UNIFORM_BUFFER
-#endif
 	{
 		XMMATRIX gWorldViewProj;
 	} 
-#ifdef GRAPHICS_D3D11
 	m_perObjConstantBuffer;
-#else
-	m_perObjUniformBuffer;
 #endif
 
-	//ID3D11ShaderResourceView *m_shaderResources[1];
 #ifdef GRAPHICS_OPENGL
-	uint64_t CubeMap;
+	PEROBJ_UNIFORM_BUFFER
+	{
+		XMMATRIX gWorldViewProj;
+		uint64_t gCubeMap;
+	}
+	m_perObjUniformBuffer;
 #endif
+	//ID3D11ShaderResourceView *m_shaderResources[1];
 };
 
 

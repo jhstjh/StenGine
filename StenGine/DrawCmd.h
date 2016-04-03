@@ -10,7 +10,7 @@
 
 struct DrawCmd {
 	// type : triangle/line/point...
-	// framebuffer : default/shadowmap/gbuffer...
+
 	void* m_framebuffer;
 	void* m_vertexArrayObject;
 
