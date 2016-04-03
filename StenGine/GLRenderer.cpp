@@ -17,6 +17,8 @@
 #include <vector>
 #include <memory>
 
+#pragma warning(disable: 4244) // conversion from 'int64_t' to 'GLsizei', possible loss of data
+#pragma warning(disable: 4312) // 'type cast': conversion from 'GLuint' to 'void *' of greater size
 
 void APIENTRY GLErrorCallback(GLenum source​, GLenum type​, GLuint id​, GLenum severity​, GLsizei length​, const GLchar* message​, const void* userParam​)
 {
@@ -233,9 +235,7 @@ public:
 	}
 
 	void Draw() override {
-
-		LightManager::Instance()->m_shadowMap->RenderShadowMap();
-
+		DrawShadowMap();
 		DrawGBuffer();
 		DrawDeferredShading();
 		//DrawBlurSSAOAndCombine();
@@ -277,6 +277,50 @@ public:
 		SetWindowTextA(m_hMainWnd, str);
 	}
 
+	void* GetGbuffer() override {
+		return (void*)m_deferredGBuffers;
+	}
+
+	void DrawShadowMap() override
+	{
+		LightManager::Instance()->m_shadowMap->GatherShadowDrawCall();
+
+		// todo
+		uint64_t framebuffer = (uint64_t)LightManager::Instance()->m_shadowMap->GetRenderTarget();
+		
+		uint32_t width, height;
+		LightManager::Instance()->m_shadowMap->GetDimension(width, height);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glViewport(0, 0, width, height);
+
+		for (auto &cmd : m_shadowMapDrawList)
+		{
+			cmd.m_effect->SetShader();
+			glBindVertexArray((uint64_t)cmd.m_vertexArrayObject);
+
+			for (auto &tex : cmd.m_textures)
+			{
+				tex.Bind();
+			}
+
+			for (auto &cbuffer : cmd.m_cbuffers)
+			{
+				cbuffer.Bind();
+			}
+
+			glDrawElements(
+				GL_TRIANGLES,
+				cmd.m_elementCount,
+				GL_UNSIGNED_INT,
+				cmd.m_offset
+			);
+		}
+
+		m_shadowMapDrawList.clear();
+	}
+
 	void DrawGBuffer() override {
 		glViewport(0, 0, m_clientWidth, m_clientHeight);
 
@@ -294,7 +338,7 @@ public:
 		for (auto &cmd : m_deferredDrawList)
 		{
 			cmd.m_effect->SetShader();
-			glBindVertexArray(cmd.m_vertexArrayObject);
+			glBindVertexArray((uint64_t)cmd.m_vertexArrayObject);
 
 			for (auto &tex : cmd.m_textures)
 			{
@@ -467,6 +511,11 @@ public:
 		m_deferredDrawList.push_back(std::move(cmd));
 	}
 
+	void AddShadowDrawCmd(DrawCmd &cmd)
+	{
+		m_shadowMapDrawList.push_back(std::move(cmd));
+	}
+
 private:
 	int m_clientWidth;
 	int m_clientHeight;
@@ -488,6 +537,7 @@ private:
 	GLuint m_debugCoordVAO;
 	GLuint m_screenQuadVAO;
 
+	std::vector<DrawCmd> m_shadowMapDrawList;
 	std::vector<DrawCmd> m_deferredDrawList;
 
 	void InitScreenQuad()

@@ -4,6 +4,8 @@
 #include "EffectsManager.h"
 #include "Terrain.h"
 
+#pragma warning(disable: 4312) // 'type cast': conversion from 'GLuint' to 'void *' of greater size
+
 
 ShadowMap::ShadowMap(UINT width, UINT height)
 	:m_width(width), m_height(height)
@@ -106,7 +108,14 @@ XMMATRIX ShadowMap::GetShadowMapTransform() {
 	return XMLoadFloat4x4(&m_shadowTransform);
 }
 
-void ShadowMap::RenderShadowMap() {
+void* ShadowMap::GetRenderTarget()
+{
+#ifdef GRAPHICS_OPENGL
+	return (void*)m_shadowBuffer;
+#endif
+}
+
+void ShadowMap::GatherShadowDrawCall() {
 	// only build shadow map for first directional light for now
 
 	XMVECTOR lightDir = XMLoadFloat3(&(LightManager::Instance()->m_dirLights[0]->direction));
@@ -163,15 +172,12 @@ void ShadowMap::RenderShadowMap() {
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetInputLayout(EffectsManager::Instance()->m_shadowMapEffect->GetInputLayout());
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 #else
-	glBindFramebuffer(GL_FRAMEBUFFER, m_shadowBuffer);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glViewport(0, 0, m_width, m_height);
 #endif
 	EffectsManager::Instance()->m_shadowMapEffect->SetShader();
 	
 	for (uint32_t iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
 		if (EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->m_castShadow)
-			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->DrawOnShadowMap();
+			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->GatherShadowDrawCall();
 	}
 
 	EffectsManager::Instance()->m_shadowMapEffect->UnSetShader();
@@ -181,7 +187,6 @@ void ShadowMap::RenderShadowMap() {
 #ifdef GRAPHICS_D3D11
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->RSSetState(0);
 #else
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 #endif
 
 }

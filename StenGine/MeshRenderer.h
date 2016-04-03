@@ -66,7 +66,7 @@ public:
 	Mesh(int type);
 	~Mesh();
 	virtual void GatherDrawCall();
-	virtual void DrawOnShadowMap();
+	virtual void GatherShadowDrawCall();
 	void Prepare();
 };
 

@@ -92,11 +92,11 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	GameObject* plane1 = new GameObject("plane1", -4.f, 0.2f, 0.f);
 	Mesh* plane1Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plane.fbx");
 	plane1->AddComponent(plane1Mesh);
-	
+
 	GameObject* plants0 = new GameObject("plants0", -4.f, 0.2f, 0.f);
 	Mesh* plants0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plants.fbx");
 	plants0->AddComponent(plants0Mesh);
-	
+
 	GameObject* house0 = new GameObject("plants0", 0.f, -0.1f, 20.f);
 	Mesh* house0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/house.fbx");
 	house0->AddComponent(house0Mesh);

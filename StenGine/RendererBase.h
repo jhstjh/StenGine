@@ -53,6 +53,7 @@ public:
 	virtual float GetAspectRatio() = 0; 
 	virtual int GetScreenWidth() = 0; 
 	virtual int GetScreenHeight() = 0;
+	virtual void DrawShadowMap() = 0;
 	virtual void DrawGBuffer() = 0;
 	virtual void DrawDeferredShading() = 0;
 	virtual void DrawBlurSSAOAndCombine() = 0;
@@ -64,6 +65,8 @@ public:
 	virtual void* GetDepthRS() = 0;
 	virtual void UpdateTitle(const char*) = 0;
 	virtual void AddDeferredDrawCmd(DrawCmd &cmd) = 0;
+	virtual void AddShadowDrawCmd(DrawCmd &cmd) = 0;
+	virtual void* GetGbuffer() = 0;
 
 protected:
 	static Renderer* _instance;

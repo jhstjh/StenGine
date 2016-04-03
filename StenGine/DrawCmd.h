@@ -9,9 +9,12 @@
 // opengl version first
 
 struct DrawCmd {
-	GLuint m_vertexArrayObject;
+	// type : triangle/line/point...
+	// framebuffer : default/shadowmap/gbuffer...
+	void* m_framebuffer;
+	void* m_vertexArrayObject;
 
-	GLsizei m_elementCount;
+	int64_t m_elementCount;
 	void*	m_offset;
 
 	class Effect* m_effect;

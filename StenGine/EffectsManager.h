@@ -556,7 +556,7 @@ private:
 #ifdef GRAPHICS_D3D11
 	ID3D11Buffer* m_perObjectCB;
 #else
-	GLuint m_perObjectUBO;
+	
 #endif
 
 public:
@@ -579,6 +579,7 @@ public:
 	m_perObjConstantBuffer;
 #else
 	m_perObjUniformBuffer;
+	GLuint m_perObjectUBO;
 #endif
 };
 

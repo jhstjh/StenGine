@@ -14,6 +14,9 @@
 #include "Skybox.h"
 #include "MathHelper.h"
 
+#pragma warning(disable: 4312) // 'type cast': conversion from 'GLuint' to 'void *' of greater size
+
+
 Mesh::Mesh(int type = 0):
 #ifdef GRAPHICS_D3D11
 m_indexBufferCPU(0),
@@ -506,10 +509,11 @@ void Mesh::GatherDrawCall() {
 			perObjData->DiffX_NormY_ShadZ = resourceMask;
 
 			DrawCmd cmd;
-			cmd.m_vertexArrayObject = m_vertexArrayObject;
+			cmd.m_framebuffer = Renderer::Instance()->GetGbuffer();
+			cmd.m_vertexArrayObject = (void*)m_vertexArrayObject;
 			cmd.m_offset = (void*)(startIndex * sizeof(unsigned int));
 			cmd.m_effect = effect;
-			cmd.m_elementCount = (GLsizei)m_subMeshes[iSubMesh].m_indexBufferCPU.size();
+			cmd.m_elementCount = m_subMeshes[iSubMesh].m_indexBufferCPU.size();
 			cmd.m_textures.emplace_back(effect->DiffuseMapPosition, m_subMeshes[iSubMesh].m_diffuseMapTex, 0, GL_TEXTURE_2D);
 			cmd.m_textures.emplace_back(effect->NormalMapPosition, m_subMeshes[iSubMesh].m_normalMapTex, 1, GL_TEXTURE_2D);
 			cmd.m_textures.emplace_back(effect->ShadowMapPosition, LightManager::Instance()->m_shadowMap->GetDepthTexHandle(), 2, GL_TEXTURE_2D);
@@ -568,7 +572,8 @@ void Mesh::GatherDrawCall() {
 #endif
 }
 
-void Mesh::DrawOnShadowMap() {
+void Mesh::GatherShadowDrawCall() {
+	ShadowMapEffect* effect = EffectsManager::Instance()->m_shadowMapEffect;
 #ifdef PLATFORM_WIN32
 #ifdef GRAPHICS_D3D11
 	UINT stride = sizeof(Vertex::ShadowMapVertex);
@@ -586,24 +591,38 @@ void Mesh::DrawOnShadowMap() {
 		EffectsManager::Instance()->m_shadowMapEffect->UnBindConstantBuffer();
 	}
 #else
-	glBindVertexArray(m_vertexArrayObject);
-	
 	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
 		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
 		EffectsManager::Instance()->m_shadowMapEffect->m_perObjUniformBuffer.gWorldViewProj = worldViewProj;
-		EffectsManager::Instance()->m_shadowMapEffect->UpdateConstantBuffer();
-		EffectsManager::Instance()->m_shadowMapEffect->BindConstantBuffer();
 
-		glDrawElements(
-			GL_TRIANGLES,      // mode
-			(GLsizei)m_indexBufferCPU.size(),    // count
-			GL_UNSIGNED_INT,   // type
-			(void*)0           // element array buffer offset
-		);
+		GLConstantBuffer cbuffer0(0, sizeof(ShadowMapEffect::PEROBJ_UNIFORM_BUFFER), effect->m_perObjectUBO);
+		ShadowMapEffect::PEROBJ_UNIFORM_BUFFER* perObjData = (ShadowMapEffect::PEROBJ_UNIFORM_BUFFER*)cbuffer0.GetBuffer();
+		perObjData->gWorldViewProj = worldViewProj;
 
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
-		EffectsManager::Instance()->m_shadowMapEffect->UnBindConstantBuffer();
-		EffectsManager::Instance()->m_shadowMapEffect->UnBindShaderResource();
+		DrawCmd cmd;
+		cmd.m_framebuffer = LightManager::Instance()->m_shadowMap->GetRenderTarget();
+		cmd.m_vertexArrayObject = (void*)m_vertexArrayObject;
+		cmd.m_offset = (void*)(0);
+		cmd.m_effect = effect;
+		cmd.m_elementCount = (GLsizei)m_indexBufferCPU.size();
+		cmd.m_cbuffers.push_back(std::move(cbuffer0));
+
+		Renderer::Instance()->AddShadowDrawCmd(cmd);
+// 
+// 
+// 		glDrawElements(
+// 			GL_TRIANGLES,      // mode
+// 			(GLsizei)m_indexBufferCPU.size(),    // count
+// 			GL_UNSIGNED_INT,   // type
+// 			(void*)0           // element array buffer offset
+// 		);
+// 
+// 		//glDrawArrays(GL_TRIANGLES, 0, 3);
+// 		EffectsManager::Instance()->m_shadowMapEffect->UnBindConstantBuffer();
+// 		EffectsManager::Instance()->m_shadowMapEffect->UnBindShaderResource();
+// 
+// 
+
 	}
 #endif
 #endif
