@@ -112,6 +112,8 @@ void* ShadowMap::GetRenderTarget()
 {
 #ifdef GRAPHICS_OPENGL
 	return (void*)m_shadowBuffer;
+#else
+	return nullptr;
 #endif
 }
 

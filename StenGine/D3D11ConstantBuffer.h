@@ -1,0 +1,26 @@
+#pragma once
+
+#include "ConstantBufferBase.h"
+#include "D3DIncludes.h"
+
+class D3D11ConstantBuffer : public ConstantBufferBase<D3D11ConstantBuffer>
+{
+public:
+	D3D11ConstantBuffer(uint32_t index, uint32_t size, void* bufferName);
+	~D3D11ConstantBuffer();
+
+	D3D11ConstantBuffer(D3D11ConstantBuffer&& other);
+	D3D11ConstantBuffer& operator=(D3D11ConstantBuffer&& other);
+
+	void* GetBuffer();
+	void Bind();
+	// void Unbind(); need to impl this for D3D11
+
+private:
+	void* m_data;
+	uint32_t m_size;
+	uint32_t m_index;
+	ID3D11Buffer* m_bufferName;
+};
+
+using ConstantBuffer = D3D11ConstantBuffer; 

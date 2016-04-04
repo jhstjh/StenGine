@@ -1,13 +1,11 @@
 #pragma once
 
-#include <stdint.h>
-#include <vector>
+#include "ConstantBufferBase.h"
 
-class GLConstantBuffer
+class GLConstantBuffer : public ConstantBufferBase<GLConstantBuffer>
 {
 public:
-	GLConstantBuffer() = delete;
-	GLConstantBuffer(uint32_t index, uint32_t size, int32_t bufferName);
+	GLConstantBuffer(uint32_t index, uint32_t size, void* bufferName);
 	~GLConstantBuffer();
 
 	GLConstantBuffer(GLConstantBuffer&& other);
@@ -22,3 +20,5 @@ private:
 	int32_t m_bufferName;
 	uint32_t m_size;
 };
+
+using ConstantBuffer = GLConstantBuffer;

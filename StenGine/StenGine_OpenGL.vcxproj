@@ -78,6 +78,8 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\GL\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\GL\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -175,6 +177,7 @@
     <ClInclude Include="FbxReaderSG.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GLBuffer.h" />
+    <ClInclude Include="ConstantBufferBase.h" />
     <ClInclude Include="GLConstantBuffer.h" />
     <ClInclude Include="GLImageLoader.h" />
     <ClInclude Include="GLTextureBinding.h" />

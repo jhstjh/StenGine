@@ -12,6 +12,8 @@
 #include "Terrain.h"
 #include "Skybox.h"
 
+#pragma warning(disable: 4267 4244)
+
 #define FORWARD 0
 
 class D3D11Renderer : public Renderer
@@ -544,7 +546,7 @@ public:
 		m_d3d11DeviceContext->DSSetSamplers(0, 3, samplerState);
 		m_d3d11DeviceContext->HSSetSamplers(0, 3, samplerState);
 
-		LightManager::Instance()->m_shadowMap->RenderShadowMap();
+		LightManager::Instance()->m_shadowMap->GatherShadowDrawCall();
 		DrawGBuffer();
 		DrawDeferredShading();
 		DrawBlurSSAOAndCombine();
@@ -608,9 +610,47 @@ public:
 		m_d3d11DeviceContext->HSSetSamplers(0, 3, samplerState);
 
 		for (uint32_t iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
-			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->Draw();
+			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->GatherDrawCall();
 		}
-		EffectsManager::Instance()->m_deferredGeometryPassEffect->UnSetShader();
+
+		for (auto &cmd : m_deferredDrawList)
+		{
+			cmd.m_effect->SetShader();
+			m_d3d11DeviceContext->IASetPrimitiveTopology((D3D_PRIMITIVE_TOPOLOGY)cmd.m_type);
+
+			//if (m_currentVao != (uint64_t)cmd.m_vertexArrayObject)
+			//{
+			//	m_currentVao = (uint64_t)cmd.m_vertexArrayObject;
+			//	glBindVertexArray((uint64_t)cmd.m_vertexArrayObject);
+			//}
+
+			m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &cmd.m_vertexBuffer, &cmd.m_vertexStride, &cmd.m_vertexOffset);
+			m_d3d11DeviceContext->IASetIndexBuffer(cmd.m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+			for (auto &cbuffer : cmd.m_cbuffers)
+			{
+				cbuffer.Bind();
+			}
+
+			cmd.m_srvs.Bind();
+
+			m_d3d11DeviceContext->DrawIndexed(cmd.m_elementCount, (int64_t)cmd.m_offset, 0);
+
+			//glDrawElements(
+			//	GL_TRIANGLES,
+			//	cmd.m_elementCount,
+			//	GL_UNSIGNED_INT,
+			//	cmd.m_offset
+			//);
+
+			cmd.m_srvs.Unbind();
+		}
+
+		m_deferredDrawList.clear();
+
+
+
+		//EffectsManager::Instance()->m_deferredGeometryPassEffect->UnSetShader();
 
 		//m_d3d11DeviceContext->RSSetState(m_wireFrameRS);
 		Terrain::Instance()->Draw();
@@ -888,6 +928,25 @@ public:
 		SetWindowTextA(m_hMainWnd, str);
 	}
 
+	void DrawShadowMap() override {
+
+	}
+
+	void AddDeferredDrawCmd(DrawCmd &cmd)
+	{
+		m_deferredDrawList.push_back(std::move(cmd));
+	}
+
+	void AddShadowDrawCmd(DrawCmd &cmd) override
+	{
+
+	}
+
+	void* GetGbuffer() override
+	{
+		return nullptr;
+	}
+
 private:
 	int m_clientWidth;
 	int m_clientHeight;
@@ -949,6 +1008,8 @@ private:
 	ID3D11Buffer* m_gridCoordVertexBufferGPU;
 
 	ID3D11RasterizerState* m_depthRS;
+
+	std::vector<DrawCmd> m_deferredDrawList;
 };
 
 Renderer* Renderer::_instance = nullptr;

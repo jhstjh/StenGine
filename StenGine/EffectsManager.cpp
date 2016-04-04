@@ -613,15 +613,6 @@ void DeferredGeometryPassEffect::UpdateConstantBuffer() {
 #endif
 }
 
-void DeferredGeometryPassEffect::MapConstantBuffer(void* bufferBase)
-{
-	//m_perFrameUniformBuffer = (PERFRAME_UNIFORM_BUFFER*)bufferBase;
-	//m_perObjUniformBuffer = (PEROBJ_UNIFORM_BUFFER*)((uint8_t*)bufferBase + (sizeof(PERFRAME_UNIFORM_BUFFER) / 256 + 1) * 256);
-
-	//m_constantBuffers.emplace_back(0, sizeof(PERFRAME_UNIFORM_BUFFER), 0, &m_perFrameUniformBuffer);
-	//m_constantBuffers.emplace_back((sizeof(PERFRAME_UNIFORM_BUFFER) / 256 + 1) * 256, sizeof(PEROBJ_UNIFORM_BUFFER), 1, &m_perObjUniformBuffer);
-}
-
 void DeferredGeometryPassEffect::BindConstantBuffer() {
 #ifdef GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perObjectCB, m_perFrameCB };

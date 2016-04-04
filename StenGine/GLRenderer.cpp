@@ -326,7 +326,7 @@ public:
 			}
 
 			glDrawElements(
-				GL_TRIANGLES,
+				cmd.m_type,
 				cmd.m_elementCount,
 				GL_UNSIGNED_INT,
 				cmd.m_offset

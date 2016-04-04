@@ -4,11 +4,14 @@
 
 #include "gl\glew.h"
 
-GLConstantBuffer::GLConstantBuffer(uint32_t index, uint32_t size, int32_t bufferName)
-	: m_index(index)
-	, m_bufferName(bufferName)
-	, m_size(size)
+#pragma warning(disable: 4311  4302)
+
+GLConstantBuffer::GLConstantBuffer(uint32_t index, uint32_t size, void* bufferName)
 {
+	m_index = index;
+	m_bufferName = (uint32_t)bufferName;
+	m_size = size;
+
 	m_data = _aligned_malloc(m_size, 16);
 }
 

@@ -15,7 +15,7 @@
 #include "MathHelper.h"
 
 #pragma warning(disable: 4312) // 'type cast': conversion from 'GLuint' to 'void *' of greater size
-
+#pragma warning(disable: 4267) // conversion from 'size_t' to 'UINT', possible loss of data
 
 Mesh::Mesh(int type = 0):
 #ifdef GRAPHICS_D3D11
@@ -402,90 +402,101 @@ void Mesh::GatherDrawCall() {
 	UINT stride = sizeof(Vertex::StdMeshVertex);
 	UINT offset = 0;
 
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetVertexBuffers(0, 1, &m_stdMeshVertexBufferGPU, &stride, &offset);
+	DeferredGeometryPassEffect* effect;
 
-	//if (m_subMeshes.size() == 0)
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
+	//if (!m_subMeshes[0].m_bumpMapSRV)
+		effect = (dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect));
+	//else
+	//	effect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect;
 
-	DeferredGeometryPassEffect* deferredGeoEffect;
-
-	if (!m_subMeshes[0].m_bumpMapSRV)
-		deferredGeoEffect = (dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect));
-	else
-		deferredGeoEffect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect;
-
-	deferredGeoEffect->SetShader();
-
-	deferredGeoEffect->GetPerObjConstantBuffer()->Mat = m_material;
 	XMFLOAT4 resourceMask(0, 0, 0, 0);
 
 	if (m_receiveShadow)
 		resourceMask.z = 1;
 
-	deferredGeoEffect->SetShaderResources(Renderer::Instance()->GetSkyBox()->m_cubeMapSRV, 4);
-	deferredGeoEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-	deferredGeoEffect->GetPerObjConstantBuffer()->ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
-
 	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
-		deferredGeoEffect->GetPerObjConstantBuffer()->WorldViewProj = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
-		deferredGeoEffect->GetPerObjConstantBuffer()->World = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
-		deferredGeoEffect->GetPerObjConstantBuffer()->WorldInvTranspose = XMMatrixTranspose(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform())));
-
-		XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
-		deferredGeoEffect->GetPerObjConstantBuffer()->WorldView = XMMatrixTranspose(worldView);
-
-		XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
-		deferredGeoEffect->GetPerObjConstantBuffer()->WorldViewInvTranspose = XMMatrixTranspose(worldViewInvTranspose);
-
-		deferredGeoEffect->GetPerObjConstantBuffer()->ShadowTransform = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
-
 		int startIndex = 0;
 		for (uint32_t iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
+
+			ConstantBuffer cbuffer0(1, sizeof(DeferredGeometryPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB);
+			ConstantBuffer cbuffer1(0, sizeof(DeferredGeometryPassEffect::PEROBJ_CONSTANT_BUFFER), (void*)effect->m_perObjectCB);
+
+			DeferredGeometryPassEffect::PERFRAME_CONSTANT_BUFFER* perframeData = (DeferredGeometryPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+			DeferredGeometryPassEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (DeferredGeometryPassEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
+
+			DrawCmd cmd;
+
+			perframeData->EyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
+
+			perObjData->Mat = m_material;
+			perObjData->ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+
+			perObjData->WorldViewProj = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+			perObjData->World = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
+			perObjData->WorldInvTranspose = XMMatrixTranspose(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform())));
+
+			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
+			perObjData->WorldView = XMMatrixTranspose(worldView);
+			XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
+			perObjData->WorldViewInvTranspose = XMMatrixTranspose(worldViewInvTranspose);
+			perObjData->ShadowTransform = XMMatrixTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
+
+			cmd.m_srvs.AddSRV(Renderer::Instance()->GetSkyBox()->m_cubeMapSRV, 4);
+			cmd.m_srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
+
 			resourceMask.x = 0;
 			resourceMask.y = 0;
 			if (m_subMeshes[iSubMesh].m_diffuseMapSRV) {
 				resourceMask.x = 1;
-				deferredGeoEffect->SetShaderResources(m_subMeshes[iSubMesh].m_diffuseMapSRV, 0);
+				cmd.m_srvs.AddSRV(m_subMeshes[iSubMesh].m_diffuseMapSRV, 0);
 			}
 			if (m_subMeshes[iSubMesh].m_normalMapSRV) {
 				resourceMask.y = 1;
-				deferredGeoEffect->SetShaderResources(m_subMeshes[iSubMesh].m_normalMapSRV, 1);
+				cmd.m_srvs.AddSRV(m_subMeshes[iSubMesh].m_normalMapSRV, 1);
 			}
-			deferredGeoEffect->GetPerObjConstantBuffer()->DiffX_NormY_ShadZ = resourceMask;
-
-			deferredGeoEffect->UpdateConstantBuffer();
-			deferredGeoEffect->BindConstantBuffer();
+			perObjData->DiffX_NormY_ShadZ = resourceMask;
 			
-			if (m_subMeshes[iSubMesh].m_bumpMapSRV) {
-				static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-				deferredGeoEffect->SetShaderResources(m_subMeshes[iSubMesh].m_bumpMapSRV, 2);
-				deferredGeoEffect->BindShaderResource();
-			}
-			else {
-				static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-				deferredGeoEffect->BindShaderResource();
-			}
-			static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DrawIndexed(m_subMeshes[iSubMesh].m_indexBufferCPU.size(), startIndex, 0);
-			startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
 
-			deferredGeoEffect->UnBindShaderResource();
-			deferredGeoEffect->UnBindConstantBuffer();
+			//if (m_subMeshes[iSubMesh].m_bumpMapSRV) {
+			//	cmd.m_type = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
+			//	cmd.m_srvs.AddSRV(m_subMeshes[iSubMesh].m_bumpMapSRV, 2);
+			//	//deferredGeoEffect->BindShaderResource();
+			//}
+			//else 
+			{
+				cmd.m_type = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+				//deferredGeoEffect->BindShaderResource();
+			}
+
+			
+			cmd.m_type = GL_TRIANGLES;
+			cmd.m_framebuffer = Renderer::Instance()->GetGbuffer();
+			cmd.m_offset = (void*)(startIndex);
+			cmd.m_effect = effect;
+			cmd.m_elementCount = m_subMeshes[iSubMesh].m_indexBufferCPU.size();
+			cmd.m_vertexBuffer = m_stdMeshVertexBufferGPU;
+			cmd.m_indexBuffer = m_indexBufferGPU;
+			cmd.m_vertexStride = stride;
+			cmd.m_vertexOffset = offset;
+
+			cmd.m_cbuffers.push_back(std::move(cbuffer0));
+			cmd.m_cbuffers.push_back(std::move(cbuffer1));
+
+			Renderer::Instance()->AddDeferredDrawCmd(cmd);
+			
+			startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
 		}
 	}
-	deferredGeoEffect->UnSetShader();
 #elif defined(GRAPHICS_OPENGL)
 
 	DeferredGeometryPassEffect* effect = dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect);
 	
-	GLConstantBuffer cbuffer0(0, sizeof(DeferredGeometryPassEffect::PERFRAME_UNIFORM_BUFFER), effect->m_perFrameUBO);
-	GLConstantBuffer cbuffer1(1, sizeof(DeferredGeometryPassEffect::PEROBJ_UNIFORM_BUFFER), effect->m_perObjectUBO);
-
 	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
 #ifdef PLATFORM_WIN32
 		int startIndex = 0;
 		for (uint32_t iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
-			GLConstantBuffer cbuffer0(0, sizeof(DeferredGeometryPassEffect::PERFRAME_UNIFORM_BUFFER), effect->m_perFrameUBO);
-			GLConstantBuffer cbuffer1(1, sizeof(DeferredGeometryPassEffect::PEROBJ_UNIFORM_BUFFER), effect->m_perObjectUBO);
+			ConstantBuffer cbuffer0(0, sizeof(DeferredGeometryPassEffect::PERFRAME_UNIFORM_BUFFER), (void*)effect->m_perFrameUBO);
+			ConstantBuffer cbuffer1(1, sizeof(DeferredGeometryPassEffect::PEROBJ_UNIFORM_BUFFER), (void*)effect->m_perObjectUBO);
 
 			DeferredGeometryPassEffect::PERFRAME_UNIFORM_BUFFER* perframeData = (DeferredGeometryPassEffect::PERFRAME_UNIFORM_BUFFER*)cbuffer0.GetBuffer();
 			DeferredGeometryPassEffect::PEROBJ_UNIFORM_BUFFER* perObjData = (DeferredGeometryPassEffect::PEROBJ_UNIFORM_BUFFER*)cbuffer1.GetBuffer();
@@ -514,6 +525,7 @@ void Mesh::GatherDrawCall() {
 			perObjData->DiffX_NormY_ShadZ = resourceMask;
 
 			DrawCmd cmd;
+			cmd.m_type = GL_TRIANGLES;
 			cmd.m_framebuffer = Renderer::Instance()->GetGbuffer();
 			cmd.m_vertexArrayObject = (void*)m_vertexArrayObject;
 			cmd.m_offset = (void*)(startIndex * sizeof(unsigned int));
@@ -596,7 +608,7 @@ void Mesh::GatherShadowDrawCall() {
 		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
 		EffectsManager::Instance()->m_shadowMapEffect->m_perObjUniformBuffer.gWorldViewProj = worldViewProj;
 
-		GLConstantBuffer cbuffer0(0, sizeof(ShadowMapEffect::PEROBJ_UNIFORM_BUFFER), effect->m_perObjectUBO);
+		ConstantBuffer cbuffer0(0, sizeof(ShadowMapEffect::PEROBJ_UNIFORM_BUFFER), (void*)effect->m_perObjectUBO);
 		ShadowMapEffect::PEROBJ_UNIFORM_BUFFER* perObjData = (ShadowMapEffect::PEROBJ_UNIFORM_BUFFER*)cbuffer0.GetBuffer();
 		perObjData->gWorldViewProj = worldViewProj;
 
