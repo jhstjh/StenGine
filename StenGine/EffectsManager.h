@@ -551,11 +551,7 @@ public:
 
 class ShadowMapEffect : public Effect {
 private:
-#ifdef GRAPHICS_D3D11
-	ID3D11Buffer* m_perObjectCB;
-#else
-	
-#endif
+
 
 public:
 	ShadowMapEffect(const std::wstring& filename);
@@ -565,19 +561,16 @@ public:
 	virtual void BindConstantBuffer();
 	
 	struct 
-#ifdef GRAPHICS_D3D11
 	PEROBJ_CONSTANT_BUFFER
-#else
-	PEROBJ_UNIFORM_BUFFER
-#endif
 	{
 		XMMATRIX gWorldViewProj;
 	} 
-#ifdef GRAPHICS_D3D11
 	m_perObjConstantBuffer;
+
+#ifdef GRAPHICS_D3D11
+	ID3D11Buffer* m_perObjectCB;
 #else
-	m_perObjUniformBuffer;
-	GLuint m_perObjectUBO;
+	GLuint m_perObjectCB;
 #endif
 };
 

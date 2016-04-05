@@ -113,7 +113,7 @@ void* ShadowMap::GetRenderTarget()
 #ifdef GRAPHICS_OPENGL
 	return (void*)m_shadowBuffer;
 #else
-	return nullptr;
+	return (void*)m_depthDSV;
 #endif
 }
 
@@ -161,18 +161,6 @@ void ShadowMap::GatherShadowDrawCall() {
 	XMStoreFloat4x4(&m_shadowTransform, S);
 
 #ifdef GRAPHICS_D3D11
-
-	ID3D11DeviceContext* dc = static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext());
-
-	dc->RSSetViewports(1, &m_viewPort);
-
-	ID3D11RenderTargetView* renderTargets[1] = { 0 };
-	dc->OMSetRenderTargets(1, renderTargets, m_depthDSV);
-	dc->ClearDepthStencilView(m_depthDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->RSSetState(static_cast<ID3D11RasterizerState*>(Renderer::Instance()->GetDepthRS()));
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetInputLayout(EffectsManager::Instance()->m_shadowMapEffect->GetInputLayout());
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 #else
 #endif
 	EffectsManager::Instance()->m_shadowMapEffect->SetShader();

@@ -556,31 +556,29 @@ void Mesh::GatherShadowDrawCall() {
 #ifdef GRAPHICS_D3D11
 	UINT stride = sizeof(Vertex::ShadowMapVertex);
 	UINT offset = 0;
-	
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetVertexBuffers(0, 1, &m_shadowMapVertexBufferGPU, &stride, &offset);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetIndexBuffer(m_indexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
-
+	#endif
 	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
-		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
-		EffectsManager::Instance()->m_shadowMapEffect->m_perObjConstantBuffer.gWorldViewProj = XMMatrixTranspose(worldViewProj);
-		EffectsManager::Instance()->m_shadowMapEffect->UpdateConstantBuffer();
-		EffectsManager::Instance()->m_shadowMapEffect->BindConstantBuffer();
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DrawIndexed(m_indexBufferCPU.size(), 0, 0);
-		EffectsManager::Instance()->m_shadowMapEffect->UnBindConstantBuffer();
-	}
-#else
-	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
-		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
-		EffectsManager::Instance()->m_shadowMapEffect->m_perObjUniformBuffer.gWorldViewProj = worldViewProj;
 
-		ConstantBuffer cbuffer0(0, sizeof(ShadowMapEffect::PEROBJ_UNIFORM_BUFFER), (void*)effect->m_perObjectUBO);
-		ShadowMapEffect::PEROBJ_UNIFORM_BUFFER* perObjData = (ShadowMapEffect::PEROBJ_UNIFORM_BUFFER*)cbuffer0.GetBuffer();
-		perObjData->gWorldViewProj = worldViewProj;
+		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
+
+		ConstantBuffer cbuffer0(0, sizeof(ShadowMapEffect::PEROBJ_CONSTANT_BUFFER), (void*)effect->m_perObjectCB);
+		ShadowMapEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (ShadowMapEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+		perObjData->gWorldViewProj = TRASNPOSE_API_CHOOSER(worldViewProj);
 
 		DrawCmd cmd;
+
+#ifdef GRAPHICS_D3D11
+		cmd.m_vertexBuffer = m_shadowMapVertexBufferGPU;
+		cmd.m_indexBuffer = m_indexBufferGPU;
+		cmd.m_vertexStride = stride;
+		cmd.m_vertexOffset = offset;
+		cmd.m_type = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+#elif GRAPHICS_OPENGL
 		cmd.m_type = GL_TRIANGLES;
-		cmd.m_framebuffer = LightManager::Instance()->m_shadowMap->GetRenderTarget();
 		cmd.m_vertexArrayObject = (void*)m_vertexArrayObject;
+#endif
+		
+		cmd.m_framebuffer = LightManager::Instance()->m_shadowMap->GetRenderTarget();	
 		cmd.m_offset = (void*)(0);
 		cmd.m_effect = effect;
 		cmd.m_elementCount = (GLsizei)m_indexBufferCPU.size();
@@ -588,6 +586,5 @@ void Mesh::GatherShadowDrawCall() {
 
 		Renderer::Instance()->AddShadowDrawCmd(cmd);
 	}
-#endif
 #endif
 }

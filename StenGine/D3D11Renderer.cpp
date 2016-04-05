@@ -546,7 +546,7 @@ public:
 		m_d3d11DeviceContext->DSSetSamplers(0, 3, samplerState);
 		m_d3d11DeviceContext->HSSetSamplers(0, 3, samplerState);
 
-		LightManager::Instance()->m_shadowMap->GatherShadowDrawCall();
+		DrawShadowMap();
 		DrawGBuffer();
 		DrawDeferredShading();
 		DrawBlurSSAOAndCombine();
@@ -593,15 +593,9 @@ public:
 		m_d3d11DeviceContext->ClearDepthStencilView(m_deferredRenderDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		m_d3d11DeviceContext->RSSetState(0);
-		//EffectsManager::Instance()->m_deferredGeometryPassEffect->SetShader();
 		m_d3d11DeviceContext->IASetInputLayout(EffectsManager::Instance()->m_deferredGeometryPassEffect->GetInputLayout());
-		//DirectionalLight* d = LightManager::Instance()->m_dirLights[0];
-		//EffectsManager::Instance()->m_deferredGeometryPassEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-		//EffectsManager::Instance()->m_deferredGeometryTessPassEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
 
 		XMFLOAT4 pos = CameraManager::Instance()->GetActiveCamera()->GetPos();
-		//EffectsManager::Instance()->m_deferredGeometryPassEffect->GetPerFrameConstantBuffer()->EyePosW = pos;
-		//EffectsManager::Instance()->m_deferredGeometryTessPassEffect->GetPerFrameConstantBuffer()->EyePosW = pos;
 
 		ID3D11SamplerState* samplerState[] = { m_samplerState, m_shadowSamplerState, m_heightMapSamplerState };
 		m_d3d11DeviceContext->PSSetSamplers(0, 3, samplerState);
@@ -641,13 +635,7 @@ public:
 
 		m_deferredDrawList.clear();
 
-
-
-		//EffectsManager::Instance()->m_deferredGeometryPassEffect->UnSetShader();
-
-		//m_d3d11DeviceContext->RSSetState(m_wireFrameRS);
 		Terrain::Instance()->Draw();
-		//m_d3d11DeviceContext->RSSetState(0);
 	}
 
 	void D3D11Renderer::DrawDeferredShading() {
@@ -922,7 +910,58 @@ public:
 	}
 
 	void DrawShadowMap() override {
+		LightManager::Instance()->m_shadowMap->GatherShadowDrawCall();
 
+		//dc->RSSetViewports(1, &m_viewPort);
+	
+
+		m_d3d11DeviceContext->RSSetState(static_cast<ID3D11RasterizerState*>(Renderer::Instance()->GetDepthRS()));
+		m_d3d11DeviceContext->IASetInputLayout(EffectsManager::Instance()->m_shadowMapEffect->GetInputLayout());
+		m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		// todo
+		ID3D11DepthStencilView* dsv = (ID3D11DepthStencilView*)LightManager::Instance()->m_shadowMap->GetRenderTarget();
+
+		uint32_t width, height;
+		LightManager::Instance()->m_shadowMap->GetDimension(width, height);
+
+		ID3D11RenderTargetView* renderTargets[1] = { 0 };
+		m_d3d11DeviceContext->OMSetRenderTargets(1, renderTargets, dsv);
+		m_d3d11DeviceContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+		//glViewport(0, 0, width, height);
+
+		D3D11_VIEWPORT vp;
+		vp.TopLeftX = 0;
+		vp.TopLeftY = 0;
+		vp.Height = static_cast<float>(height);
+		vp.Width = static_cast<float>(width);
+		vp.MaxDepth = 1;
+		vp.MinDepth = 0;
+
+		m_d3d11DeviceContext->RSSetViewports(1, &vp);
+
+		for (auto &cmd : m_shadowMapDrawList)
+		{
+			cmd.m_effect->SetShader();
+
+			//if (m_currentVao != (uint64_t)cmd.m_vertexArrayObject)
+			//{
+			//	m_currentVao = (uint64_t)cmd.m_vertexArrayObject;
+			//	glBindVertexArray((uint64_t)cmd.m_vertexArrayObject);
+			//}
+			m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &cmd.m_vertexBuffer, &cmd.m_vertexStride, &cmd.m_vertexOffset);
+			m_d3d11DeviceContext->IASetIndexBuffer(cmd.m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+			for (auto &cbuffer : cmd.m_cbuffers)
+			{
+				cbuffer.Bind();
+			}
+
+			m_d3d11DeviceContext->DrawIndexed(cmd.m_elementCount, 0, 0);
+		}
+
+		m_shadowMapDrawList.clear();
 	}
 
 	void AddDeferredDrawCmd(DrawCmd &cmd)
@@ -932,7 +971,7 @@ public:
 
 	void AddShadowDrawCmd(DrawCmd &cmd) override
 	{
-
+		m_shadowMapDrawList.push_back(std::move(cmd));
 	}
 
 	void* GetGbuffer() override
@@ -1003,6 +1042,7 @@ private:
 	ID3D11RasterizerState* m_depthRS;
 
 	std::vector<DrawCmd> m_deferredDrawList;
+	std::vector<DrawCmd> m_shadowMapDrawList;
 };
 
 Renderer* Renderer::_instance = nullptr;

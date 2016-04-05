@@ -386,31 +386,14 @@ ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
 	ReleaseCOM(m_dsBlob);
 	ReleaseCOM(m_csBlob);
 #else
-	glGenBuffers(1, &m_perObjectUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectUBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
+	glGenBuffers(1, &m_perObjectCB);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectCB);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_CONSTANT_BUFFER), NULL, GL_DYNAMIC_DRAW);
 #endif
 }
 
 void ShadowMapEffect::UpdateConstantBuffer() {
-#ifdef GRAPHICS_D3D11
-	{
-		D3D11_MAPPED_SUBRESOURCE ms;
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perObjectCB, NULL);
-	}
-#else
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
-	PEROBJ_UNIFORM_BUFFER* perObjUBOPtr = (PEROBJ_UNIFORM_BUFFER*)glMapBufferRange(
-		GL_UNIFORM_BUFFER,
-		0,
-		sizeof(PEROBJ_UNIFORM_BUFFER),
-		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-		);
-	memcpy(perObjUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
-	glUnmapBuffer(GL_UNIFORM_BUFFER);
-#endif
+
 }
 
 void ShadowMapEffect::BindConstantBuffer() {
@@ -553,45 +536,9 @@ void DeferredGeometryPassEffect::PrepareBuffer()
 
 void DeferredGeometryPassEffect::UpdateConstantBuffer() {
 #ifdef GRAPHICS_D3D11
-	//{
-	//	D3D11_MAPPED_SUBRESOURCE ms;
-	//	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-	//	memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
-	//	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perObjectCB, NULL);
-	//}
-	//
-	//{
-	//	D3D11_MAPPED_SUBRESOURCE ms;
-	//	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-	//	memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
-	//	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perFrameCB, NULL);
-	//}
+
 #else
 
-	// 2nd para, should match layout binding in GLSL
-	// if no binding is specified
-	// call glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
-	// to specify the binding point and math 2nd param with it
-
-	//glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
-	//PEROBJ_UNIFORM_BUFFER* perObjUBOPtr = (PEROBJ_UNIFORM_BUFFER*)glMapBufferRange(
-	//	GL_UNIFORM_BUFFER,
-	//	0,
-	//	sizeof(PEROBJ_UNIFORM_BUFFER),
-	//	GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-	//	);
-	//memcpy(perObjUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
-	//glUnmapBuffer(GL_UNIFORM_BUFFER);
-	//
-	//glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_perFrameUBO);
-	//PERFRAME_UNIFORM_BUFFER* perFrameUBOPtr = (PERFRAME_UNIFORM_BUFFER*)glMapBufferRange(
-	//	GL_UNIFORM_BUFFER,
-	//	0,
-	//	sizeof(PERFRAME_UNIFORM_BUFFER),
-	//	GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-	//	);
-	//memcpy(perFrameUBOPtr, &m_perFrameUniformBuffer, sizeof(PERFRAME_UNIFORM_BUFFER));
-	//glUnmapBuffer(GL_UNIFORM_BUFFER);
 
 	//m_constantBuffers.emplace_back(0, sizeof(PERFRAME_UNIFORM_BUFFER), 0, &m_perFrameUniformBuffer);
 	//m_constantBuffers.emplace_back((sizeof(PERFRAME_UNIFORM_BUFFER) / 256 + 1) * 256, sizeof(PEROBJ_UNIFORM_BUFFER), 1, &m_perObjUniformBuffer);
