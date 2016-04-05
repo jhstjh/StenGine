@@ -5,6 +5,12 @@
 
 using namespace DirectX;
 
+#ifdef GRAPHICS_D3D11
+#define TRASNPOSE_API_CHOOSER(M) XMMatrixTranspose(M) 
+#elif defined GRAPHICS_OPENGL
+#define TRASNPOSE_API_CHOOSER(M) (M) 
+#endif
+
 class MatrixHelper {
 public:
 	inline static XMFLOAT3 GetPosition(const XMFLOAT4X4& mat) { return XMFLOAT3(mat._41, mat._42, mat._43); }

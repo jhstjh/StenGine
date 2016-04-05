@@ -1,8 +1,5 @@
 #pragma once
 
-#include <stdint.h>
-#include <vector>
-
 template <class Impl>
 class ConstantBufferBase
 {
@@ -10,12 +7,12 @@ public:
 
 	void* GetBuffer()
 	{
-		return impl().GetBuffer();
+		return impl().ImplGetBuffer();
 	}
 
 	void Bind()
 	{
-		impl().Bind();
+		impl().ImplBind();
 	}
 
 private:

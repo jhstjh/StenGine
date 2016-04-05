@@ -137,6 +137,9 @@ public:
 	virtual void UpdateConstantBuffer();
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
+
+	virtual void PrepareBuffer();
+
 #ifdef GRAPHICS_D3D11
 	struct PEROBJ_CONSTANT_BUFFER
 	{
@@ -163,7 +166,7 @@ public:
 	ID3D11Buffer* m_perFrameCB;
 	ID3D11Buffer* m_perObjectCB;
 #else
-	struct PEROBJ_UNIFORM_BUFFER
+	struct PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX WorldViewProj;
 		XMMATRIX World;
@@ -177,16 +180,14 @@ public:
 		uint64_t CubeMapTex;
 	} m_perObjUniformBuffer;
 
-	struct PERFRAME_UNIFORM_BUFFER
+	struct PERFRAME_CONSTANT_BUFFER
 	{
 		XMFLOAT4 EyePosW;
 		DirectionalLight DirLight;
 	} m_perFrameUniformBuffer;
 
-	GLuint m_perFrameUBO;
-	GLuint m_perObjectUBO;
-
-	void MapConstantBuffer(void* bufferBase);
+	GLuint m_perFrameCB;
+	GLuint m_perObjectCB;
 
 	uint32_t m_bufferOffset;
 
@@ -224,6 +225,7 @@ public:
 	virtual void UpdateConstantBuffer();
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
+
 #ifdef GRAPHICS_D3D11
 	struct PEROBJ_CONSTANT_BUFFER
 	{
@@ -474,16 +476,19 @@ public:
 
 class DeferredGeometryTessPassEffect : public DeferredGeometryPassEffect {
 private:
-	ID3D11Buffer* m_perFrameCB;
-	ID3D11Buffer* m_perObjectCB;
+
 
 public:
+	//ID3D11Buffer* m_perFrameCB;
+	//ID3D11Buffer* m_perObjectCB;
+
 	DeferredGeometryTessPassEffect(const std::wstring& filename);
 	~DeferredGeometryTessPassEffect();
 
 	virtual void UpdateConstantBuffer();
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
+	virtual void PrepareBuffer() override;
 };
 
 

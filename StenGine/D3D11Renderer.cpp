@@ -593,15 +593,15 @@ public:
 		m_d3d11DeviceContext->ClearDepthStencilView(m_deferredRenderDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		m_d3d11DeviceContext->RSSetState(0);
-		EffectsManager::Instance()->m_deferredGeometryPassEffect->SetShader();
+		//EffectsManager::Instance()->m_deferredGeometryPassEffect->SetShader();
 		m_d3d11DeviceContext->IASetInputLayout(EffectsManager::Instance()->m_deferredGeometryPassEffect->GetInputLayout());
-		DirectionalLight* d = LightManager::Instance()->m_dirLights[0];
-		EffectsManager::Instance()->m_deferredGeometryPassEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-		EffectsManager::Instance()->m_deferredGeometryTessPassEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
+		//DirectionalLight* d = LightManager::Instance()->m_dirLights[0];
+		//EffectsManager::Instance()->m_deferredGeometryPassEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
+		//EffectsManager::Instance()->m_deferredGeometryTessPassEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
 
 		XMFLOAT4 pos = CameraManager::Instance()->GetActiveCamera()->GetPos();
-		EffectsManager::Instance()->m_deferredGeometryPassEffect->GetPerFrameConstantBuffer()->EyePosW = pos;
-		EffectsManager::Instance()->m_deferredGeometryTessPassEffect->GetPerFrameConstantBuffer()->EyePosW = pos;
+		//EffectsManager::Instance()->m_deferredGeometryPassEffect->GetPerFrameConstantBuffer()->EyePosW = pos;
+		//EffectsManager::Instance()->m_deferredGeometryTessPassEffect->GetPerFrameConstantBuffer()->EyePosW = pos;
 
 		ID3D11SamplerState* samplerState[] = { m_samplerState, m_shadowSamplerState, m_heightMapSamplerState };
 		m_d3d11DeviceContext->PSSetSamplers(0, 3, samplerState);
@@ -635,13 +635,6 @@ public:
 			cmd.m_srvs.Bind();
 
 			m_d3d11DeviceContext->DrawIndexed(cmd.m_elementCount, (int64_t)cmd.m_offset, 0);
-
-			//glDrawElements(
-			//	GL_TRIANGLES,
-			//	cmd.m_elementCount,
-			//	GL_UNSIGNED_INT,
-			//	cmd.m_offset
-			//);
 
 			cmd.m_srvs.Unbind();
 		}

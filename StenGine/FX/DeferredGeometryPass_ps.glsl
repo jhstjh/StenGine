@@ -28,10 +28,6 @@ layout(location = 0) out vec4 ps_norm;
 layout(location = 1) out vec4 ps_diff;
 layout(location = 2) out vec4 ps_spec;
 
-//uniform sampler2D gDiffuseMap;
-//uniform sampler2D gNormalMap;
-//uniform sampler2D gShadowMap;
-//uniform samplerCube gCubeMap;
 
 layout(std140) uniform ubPerObj{
 	mat4 gWorldViewProj;

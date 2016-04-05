@@ -46,18 +46,21 @@ D3D11ConstantBuffer& D3D11ConstantBuffer::operator=(D3D11ConstantBuffer&& other)
 	return *this;
 }
 
-void *D3D11ConstantBuffer::GetBuffer()
+void *D3D11ConstantBuffer::ImplGetBuffer()
 {
 	return m_data;
 }
 
-void D3D11ConstantBuffer::Bind()
+void D3D11ConstantBuffer::ImplBind()
 {
 	D3D11_MAPPED_SUBRESOURCE ms;
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_bufferName, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
 	memcpy(ms.pData, m_data, m_size);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_bufferName, NULL);
 
+	// TODO only set shader in interest
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(m_index, 1, &m_bufferName);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(m_index, 1, &m_bufferName);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetConstantBuffers(m_index, 1, &m_bufferName);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetConstantBuffers(m_index, 1, &m_bufferName);
 }

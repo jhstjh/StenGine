@@ -48,12 +48,12 @@ GLConstantBuffer& GLConstantBuffer::operator=(GLConstantBuffer&& other)
 	return *this;
 }
 
-void *GLConstantBuffer::GetBuffer()
+void *GLConstantBuffer::ImplGetBuffer()
 {
 	return m_data;
 }
 
-void GLConstantBuffer::Bind()
+void GLConstantBuffer::ImplBind()
 {
 	glBindBufferBase(GL_UNIFORM_BUFFER, m_index, m_bufferName);
 	void* ubo = glMapBufferRange(
