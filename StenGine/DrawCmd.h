@@ -16,25 +16,25 @@
 // opengl version first
 
 struct DrawCmd {
-	// type : triangle/line/point...
-	uint32_t m_type;
-	void* m_framebuffer;
-	void* m_vertexArrayObject;
+	uint32_t type;
+	void* framebuffer;
+	void* inputLayout;
 
-	int64_t m_elementCount;
-	void*	m_offset;
+	int64_t elementCount;
+	void*	offset;
 
-	class Effect* m_effect;
+	class Effect* effect;
+	
+	void* indexBuffer;
+	void* vertexBuffer;
 
-	std::vector<ConstantBuffer> m_cbuffers;
+	uint32_t vertexStride;
+	uint32_t vertexOffset;
+
+	std::vector<ConstantBuffer> cbuffers;
 
 #ifdef GRAPHICS_D3D11
-	D3D11SRVBinding m_srvs;
-
-	ID3D11Buffer* m_indexBuffer;
-	ID3D11Buffer* m_vertexBuffer;
-	uint32_t m_vertexStride;
-	uint32_t m_vertexOffset;
+	D3D11SRVBinding srvs;
 #endif
 };
 

@@ -215,6 +215,7 @@
     <ClCompile Include="LightManager.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="ObjReader.cpp" />
+    <ClCompile Include="MeshPrimitives.cpp" />
     <ClCompile Include="RendererBase.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="ShadowMap.cpp" />

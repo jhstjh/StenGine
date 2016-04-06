@@ -4,8 +4,8 @@
 // input layout
 layout(location = 0) in vec3 PosL;
 layout(location = 1) in vec3 NormalL;
-layout(location = 2) in vec2 TexUV;
-layout(location = 3) in vec3 TangentL;
+layout(location = 2) in vec3 TangentL;
+layout(location = 3) in vec2 TexUV;
 
 struct Material {
 	vec4 ambient;

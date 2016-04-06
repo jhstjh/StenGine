@@ -386,6 +386,12 @@ ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
 	ReleaseCOM(m_dsBlob);
 	ReleaseCOM(m_csBlob);
 #else
+	glCreateVertexArrays(1, &m_inputLayout);
+	glEnableVertexArrayAttrib(m_inputLayout, 0);
+	glVertexArrayAttribFormat(m_inputLayout, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Pos));
+	glVertexArrayAttribBinding(m_inputLayout, 0, 0);
+
+
 	glGenBuffers(1, &m_perObjectCB);
 	glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectCB);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_CONSTANT_BUFFER), NULL, GL_DYNAMIC_DRAW);
@@ -515,6 +521,24 @@ void DeferredGeometryPassEffect::PrepareBuffer()
 	ReleaseCOM(m_dsBlob);
 	ReleaseCOM(m_csBlob);
 #else
+
+	glCreateVertexArrays(1, &m_inputLayout);
+
+	glEnableVertexArrayAttrib(m_inputLayout, 0);
+	glEnableVertexArrayAttrib(m_inputLayout, 1);
+	glEnableVertexArrayAttrib(m_inputLayout, 2);
+	glEnableVertexArrayAttrib(m_inputLayout, 3);
+
+	glVertexArrayAttribFormat(m_inputLayout, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Pos));
+	glVertexArrayAttribFormat(m_inputLayout, 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Normal));
+	glVertexArrayAttribFormat(m_inputLayout, 2, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Tangent));
+	glVertexArrayAttribFormat(m_inputLayout, 3, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, TexUV));
+
+	glVertexArrayAttribBinding(m_inputLayout, 0, 0);
+	glVertexArrayAttribBinding(m_inputLayout, 1, 0);
+	glVertexArrayAttribBinding(m_inputLayout, 2, 0);
+	glVertexArrayAttribBinding(m_inputLayout, 3, 0);
+
 
 	glGenBuffers(1, &m_perFrameCB);
 	glBindBuffer(GL_UNIFORM_BUFFER, m_perFrameCB);

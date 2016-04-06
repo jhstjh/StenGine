@@ -593,7 +593,7 @@ public:
 		m_d3d11DeviceContext->ClearDepthStencilView(m_deferredRenderDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		m_d3d11DeviceContext->RSSetState(0);
-		m_d3d11DeviceContext->IASetInputLayout(EffectsManager::Instance()->m_deferredGeometryPassEffect->GetInputLayout());
+		m_d3d11DeviceContext->IASetInputLayout((ID3D11InputLayout *)EffectsManager::Instance()->m_deferredGeometryPassEffect->GetInputLayout());
 
 		XMFLOAT4 pos = CameraManager::Instance()->GetActiveCamera()->GetPos();
 
@@ -609,28 +609,30 @@ public:
 
 		for (auto &cmd : m_deferredDrawList)
 		{
-			cmd.m_effect->SetShader();
-			m_d3d11DeviceContext->IASetPrimitiveTopology((D3D_PRIMITIVE_TOPOLOGY)cmd.m_type);
+			cmd.effect->SetShader();
+			m_d3d11DeviceContext->IASetPrimitiveTopology((D3D_PRIMITIVE_TOPOLOGY)cmd.type);
 
 			//if (m_currentVao != (uint64_t)cmd.m_vertexArrayObject)
 			//{
 			//	m_currentVao = (uint64_t)cmd.m_vertexArrayObject;
 			//	glBindVertexArray((uint64_t)cmd.m_vertexArrayObject);
 			//}
+			ID3D11Buffer* vertexBuffer = static_cast<ID3D11Buffer*>(cmd.vertexBuffer);
+			ID3D11Buffer* indexBuffer = static_cast<ID3D11Buffer*>(cmd.indexBuffer);
 
-			m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &cmd.m_vertexBuffer, &cmd.m_vertexStride, &cmd.m_vertexOffset);
-			m_d3d11DeviceContext->IASetIndexBuffer(cmd.m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+			m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &cmd.vertexStride, &cmd.vertexOffset);
+			m_d3d11DeviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-			for (auto &cbuffer : cmd.m_cbuffers)
+			for (auto &cbuffer : cmd.cbuffers)
 			{
 				cbuffer.Bind();
 			}
 
-			cmd.m_srvs.Bind();
+			cmd.srvs.Bind();
 
-			m_d3d11DeviceContext->DrawIndexed(cmd.m_elementCount, (int64_t)cmd.m_offset, 0);
+			m_d3d11DeviceContext->DrawIndexed(cmd.elementCount, (int64_t)cmd.offset, 0);
 
-			cmd.m_srvs.Unbind();
+			cmd.srvs.Unbind();
 		}
 
 		m_deferredDrawList.clear();
@@ -843,7 +845,7 @@ public:
 
 		DebugLineEffect* debugFX = EffectsManager::Instance()->m_debugLineEffect;
 		debugFX->SetShader();
-		m_d3d11DeviceContext->IASetInputLayout(debugFX->GetInputLayout());
+		m_d3d11DeviceContext->IASetInputLayout((ID3D11InputLayout *)debugFX->GetInputLayout());
 		m_d3d11DeviceContext->IASetIndexBuffer(m_gridCoordIndexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
 		m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &m_gridCoordVertexBufferGPU, &stride, &offset);
 		debugFX->GetPerObjConstantBuffer()->ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
@@ -916,7 +918,7 @@ public:
 	
 
 		m_d3d11DeviceContext->RSSetState(static_cast<ID3D11RasterizerState*>(Renderer::Instance()->GetDepthRS()));
-		m_d3d11DeviceContext->IASetInputLayout(EffectsManager::Instance()->m_shadowMapEffect->GetInputLayout());
+		m_d3d11DeviceContext->IASetInputLayout((ID3D11InputLayout *)EffectsManager::Instance()->m_shadowMapEffect->GetInputLayout());
 		m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		// todo
@@ -943,22 +945,26 @@ public:
 
 		for (auto &cmd : m_shadowMapDrawList)
 		{
-			cmd.m_effect->SetShader();
+			cmd.effect->SetShader();
 
 			//if (m_currentVao != (uint64_t)cmd.m_vertexArrayObject)
 			//{
 			//	m_currentVao = (uint64_t)cmd.m_vertexArrayObject;
 			//	glBindVertexArray((uint64_t)cmd.m_vertexArrayObject);
 			//}
-			m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &cmd.m_vertexBuffer, &cmd.m_vertexStride, &cmd.m_vertexOffset);
-			m_d3d11DeviceContext->IASetIndexBuffer(cmd.m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-			for (auto &cbuffer : cmd.m_cbuffers)
+			ID3D11Buffer* vertexBuffer = static_cast<ID3D11Buffer*>(cmd.vertexBuffer);
+			ID3D11Buffer* indexBuffer = static_cast<ID3D11Buffer*>(cmd.indexBuffer);
+
+			m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &cmd.vertexStride, &cmd.vertexOffset);
+			m_d3d11DeviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+			for (auto &cbuffer : cmd.cbuffers)
 			{
 				cbuffer.Bind();
 			}
 
-			m_d3d11DeviceContext->DrawIndexed(cmd.m_elementCount, 0, 0);
+			m_d3d11DeviceContext->DrawIndexed(cmd.elementCount, 0, 0);
 		}
 
 		m_shadowMapDrawList.clear();

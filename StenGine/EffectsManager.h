@@ -23,6 +23,8 @@ using namespace ndk_helper;
 #endif
 #include "AlignedClass.h"
 
+#pragma warning(disable: 4312)
+
 class Mesh;
 
 class Effect : public AlignedClass<16> {
@@ -59,6 +61,8 @@ protected:
 	GLuint m_domainShader;
 	GLuint m_computeShader;
 
+	GLuint m_inputLayout;
+
 	GLuint m_shaderProgram;
 	bool ReadShaderFile(std::wstring filename, char* shaderContent, int maxLength);
 
@@ -79,12 +83,16 @@ public:
 	virtual void UnBindConstantBuffer();
 	virtual void UnBindShaderResource();
 	virtual void UnSetShader();
+
+	void* GetInputLayout() 
+	{ 
+		return (void*)m_inputLayout; 
+	}
 #ifdef GRAPHICS_D3D11
 	virtual void UnbindUnorderedAccessViews();
 	virtual void SetShaderResources(ID3D11ShaderResourceView* res, int idx);
 	virtual ID3D11ShaderResourceView* GetOutputShaderResource(int idx);
 	//virtual void GetUAVResources(ID3D11UnorderedAccessView* res, int idx) {}
-	ID3D11InputLayout* GetInputLayout() { return m_inputLayout; }
 #else
 	// gl effect
 #endif

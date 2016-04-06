@@ -207,6 +207,7 @@
     <ClCompile Include="FbxReaderSG.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="LightManager.cpp" />
+    <ClCompile Include="MeshPrimitives.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="ObjReader.cpp" />
     <ClCompile Include="ResourceManager.cpp" />

@@ -314,22 +314,25 @@ public:
 		{
 			//cmd.m_effect->SetShader();
 
-			if (m_currentVao != (uint64_t)cmd.m_vertexArrayObject)
+			if (m_currentVao != (uint64_t)cmd.inputLayout)
 			{
-				m_currentVao = (uint64_t)cmd.m_vertexArrayObject;
-				glBindVertexArray((uint64_t)cmd.m_vertexArrayObject);
+				m_currentVao = (uint64_t)cmd.inputLayout;
+				glBindVertexArray((uint64_t)cmd.inputLayout);
 			}
 
-			for (auto &cbuffer : cmd.m_cbuffers)
+			glBindVertexBuffer(0, (uint64_t)cmd.vertexBuffer, cmd.vertexOffset, cmd.vertexStride);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (uint64_t)cmd.indexBuffer);
+
+			for (auto &cbuffer : cmd.cbuffers)
 			{
 				cbuffer.Bind();
 			}
 
 			glDrawElements(
-				cmd.m_type,
-				cmd.m_elementCount,
+				cmd.type,
+				cmd.elementCount,
 				GL_UNSIGNED_INT,
-				cmd.m_offset
+				cmd.offset
 			);
 		}
 
@@ -354,22 +357,26 @@ public:
 		{
 			//cmd.m_effect->SetShader();
 
-			if (m_currentVao != (uint64_t)cmd.m_vertexArrayObject)
+			if (m_currentVao != (uint64_t)cmd.inputLayout)
 			{
-				m_currentVao = (uint64_t)cmd.m_vertexArrayObject;
-				glBindVertexArray((uint64_t)cmd.m_vertexArrayObject);
+				m_currentVao = (uint64_t)cmd.inputLayout;
+				glBindVertexArray((uint64_t)cmd.inputLayout);
 			}
 
-			for (auto &cbuffer : cmd.m_cbuffers)
+			//TODO check current vbo
+			glBindVertexBuffer(0, (uint64_t)cmd.vertexBuffer, cmd.vertexOffset, cmd.vertexStride);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (uint64_t)cmd.indexBuffer);
+
+			for (auto &cbuffer : cmd.cbuffers)
 			{
 				cbuffer.Bind();
 			}
 
 			glDrawElements(
 				GL_TRIANGLES,
-				cmd.m_elementCount,
+				cmd.elementCount,
 				GL_UNSIGNED_INT,
-				cmd.m_offset
+				cmd.offset
 			);
 		}
 

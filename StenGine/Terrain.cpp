@@ -297,7 +297,7 @@ void Terrain::Draw() {
 	DeferredGeometryTerrainPassEffect* deferredGeoTerrainEffect = EffectsManager::Instance()->m_deferredGeometryTerrainPassEffect;
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
 
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetInputLayout(deferredGeoTerrainEffect->GetInputLayout());
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetInputLayout((ID3D11InputLayout *)deferredGeoTerrainEffect->GetInputLayout());
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetVertexBuffers(0, 1, &m_quadPatchVB, &stride, &offset);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetIndexBuffer(m_quadPatchIB, DXGI_FORMAT_R16_UINT, 0);
 	
@@ -351,7 +351,7 @@ void Terrain::DrawOnShadowMap() {
 	TerrainShadowMapEffect* terrainShadowMapEffect = EffectsManager::Instance()->m_terrainShadowMapEffect;
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
 
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetInputLayout(terrainShadowMapEffect->GetInputLayout());
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetInputLayout((ID3D11InputLayout *)terrainShadowMapEffect->GetInputLayout());
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetVertexBuffers(0, 1, &m_quadPatchVB, &stride, &offset);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetIndexBuffer(m_quadPatchIB, DXGI_FORMAT_R16_UINT, 0);
 
