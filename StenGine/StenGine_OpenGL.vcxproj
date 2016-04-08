@@ -254,6 +254,10 @@
     <None Include="FX\DebugLine_vs.glsl" />
     <None Include="FX\DeferredGeometryPass_ps.glsl" />
     <None Include="FX\DeferredGeometryPass_vs.glsl" />
+    <None Include="FX\DeferredGeometryTessPass_ps.glsl" />
+    <None Include="FX\DeferredGeometryTessPass_hs.glsl" />
+    <None Include="FX\DeferredGeometryTessPass_ds.glsl" />
+    <None Include="FX\DeferredGeometryTessPass_vs.glsl" />
     <None Include="FX\DeferredShadingPass_ps.glsl" />
     <None Include="FX\GodRay_ps.glsl" />
     <None Include="FX\ScreenQuad_vs.glsl" />

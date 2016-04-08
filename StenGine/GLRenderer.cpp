@@ -329,7 +329,7 @@ public:
 			}
 
 			glDrawElements(
-				cmd.type,
+				(GLenum)cmd.type,
 				cmd.elementCount,
 				GL_UNSIGNED_INT,
 				cmd.offset
@@ -355,7 +355,7 @@ public:
 
 		for (auto &cmd : m_deferredDrawList)
 		{
-			//cmd.m_effect->SetShader();
+			cmd.effect->SetShader();
 
 			if (m_currentVao != (uint64_t)cmd.inputLayout)
 			{
@@ -372,8 +372,11 @@ public:
 				cbuffer.Bind();
 			}
 
+			if (cmd.type == PrimitiveTopology::CONTROL_POINT_3_PATCHLIST)
+				glPatchParameteri(GL_PATCH_VERTICES, 3);
+
 			glDrawElements(
-				GL_TRIANGLES,
+				(GLenum)cmd.type,
 				cmd.elementCount,
 				GL_UNSIGNED_INT,
 				cmd.offset

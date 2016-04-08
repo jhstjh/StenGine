@@ -13,10 +13,24 @@
 #include <vector>
 #include "GLTextureBinding.h"
 #include "ConstantBuffer.h"
-// opengl version first
+
+enum class PrimitiveTopology : uint32_t
+{
+#ifdef GRAPHICS_D3D11
+	POINTLIST					= D3D11_PRIMITIVE_TOPOLOGY_POINTLIST,
+	LINELIST					= D3D11_PRIMITIVE_TOPOLOGY_LINELIST,
+	TRIANGLELIST				= D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+	CONTROL_POINT_3_PATCHLIST	= D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST,
+#elif defined GRAPHICS_OPENGL
+	POINTLIST					= GL_POINTS,
+	LINELIST					= GL_LINES,
+	TRIANGLELIST				= GL_TRIANGLES,
+	CONTROL_POINT_3_PATCHLIST	= GL_PATCHES,
+#endif
+};
 
 struct DrawCmd {
-	uint32_t type;
+	PrimitiveTopology type;
 	void* framebuffer;
 	void* inputLayout;
 

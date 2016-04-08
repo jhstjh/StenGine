@@ -20,7 +20,7 @@ struct DirectionalLight {
 	float pad;
 };
 
-layout(std140) uniform ubPerObj{
+layout(std140) uniform ubPerObj {
 	mat4 gWorldViewProj;
 	mat4 gWorld;
 	mat4 gWorldView;
@@ -41,13 +41,14 @@ layout(std140) uniform ubPerFrame{
 	DirectionalLight gDirLight;
 };
 
-out VertexOut {
+out TessVertexOut{
 	vec2 pTexUV;
 	vec3 pNormalV;
 	vec3 pNormalW;
 	vec3 pPosW;
 	vec3 pTangV;
 	vec4 pShadowTransform;
+	float pTessFactor;
 } vOut;
 
 void main() {
@@ -58,4 +59,5 @@ void main() {
 	vOut.pPosW = vec3(gWorld * vec4(NormalL, 1.0));
 	vOut.pTexUV = TexUV;
 	vOut.pShadowTransform = gShadowTransform * vec4(PosL, 1.0);
+	vOut.pTessFactor = 32.f;
 }

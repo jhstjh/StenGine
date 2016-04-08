@@ -14,12 +14,12 @@ struct DirectionalLight {
 	float pad;
 };
 
-in VertexOut {
-	vec2 pTexUV;
+in TcsOut {
+	vec3 pPosW;
 	vec3 pNormalV;
 	vec3 pNormalW;
-	vec3 pPosW;
 	vec3 pTangV;
+	vec2 pTexUV;
 	vec4 pShadowTransform;
 } pIn;
 

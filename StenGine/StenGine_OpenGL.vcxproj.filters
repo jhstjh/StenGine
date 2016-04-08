@@ -299,5 +299,17 @@
     <None Include="FX\GodRay_ps.glsl">
       <Filter>FX</Filter>
     </None>
+    <None Include="FX\DeferredGeometryTessPass_vs.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\DeferredGeometryTessPass_ps.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\DeferredGeometryTessPass_hs.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\DeferredGeometryTessPass_ds.glsl">
+      <Filter>FX</Filter>
+    </None>
   </ItemGroup>
 </Project>

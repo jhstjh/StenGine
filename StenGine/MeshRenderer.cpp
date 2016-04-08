@@ -108,11 +108,8 @@ void Mesh::PrepareGPUBuffer() {
 	glCreateBuffers(1, &m_stdMeshVertexBufferGPU);
 	glCreateBuffers(1, &m_indexBufferGPU);
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_stdMeshVertexBufferGPU);
-	glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)vertices.size() * sizeof(Vertex::StdMeshVertex), (GLvoid*)&vertices.front(), GL_STREAM_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferGPU);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)m_indexBufferCPU.size() * sizeof(UINT), (GLvoid*)&m_indexBufferCPU.front(), GL_STREAM_DRAW);
+	glNamedBufferStorageEXT(m_stdMeshVertexBufferGPU, (GLsizeiptr)vertices.size() * sizeof(Vertex::StdMeshVertex), (GLvoid*)&vertices.front(), 0);
+	glNamedBufferStorageEXT(m_indexBufferGPU, (GLsizeiptr)m_indexBufferCPU.size() * sizeof(UINT), (GLvoid*)&m_indexBufferCPU.front(), 0);
 
 #endif
 }
@@ -139,9 +136,7 @@ void Mesh::PrepareShadowMapBuffer() {
 #elif defined(GRAPHICS_OPENGL) || defined(PLATFORM_ANDROID)
 
 	glCreateBuffers(1, &m_shadowMapVertexBufferGPU);
-
-	glBindBuffer(GL_ARRAY_BUFFER, m_shadowMapVertexBufferGPU);
-	glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)m_positionBufferCPU.size() * sizeof(Vertex::ShadowMapVertex), (GLvoid*)&m_positionBufferCPU.front(), GL_STREAM_DRAW);
+	glNamedBufferStorageEXT(m_shadowMapVertexBufferGPU, (GLsizeiptr)m_positionBufferCPU.size() * sizeof(Vertex::ShadowMapVertex), (GLvoid*)&m_positionBufferCPU.front(), 0);
 
 #endif
 }
@@ -155,8 +150,12 @@ void Mesh::GatherDrawCall() {
 
 #ifdef GRAPHICS_D3D11
 	if (m_subMeshes[0].m_bumpMapSRV)
-		effect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect;
 #endif
+#ifdef GRAPHICS_OPENGL
+	if (m_subMeshes[0].m_bumpMapTex)
+#endif
+		effect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect;
+
 
 	XMFLOAT4 resourceMask(0, 0, 0, 0);
 
@@ -185,6 +184,7 @@ void Mesh::GatherDrawCall() {
 			XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
 
 			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
+			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
 			resourceMask.x = 0;
 			resourceMask.y = 0;
@@ -192,8 +192,6 @@ void Mesh::GatherDrawCall() {
 #ifdef GRAPHICS_D3D11
 			cmd.srvs.AddSRV(Renderer::Instance()->GetSkyBox()->m_cubeMapSRV, 4);
 			cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-
-			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 			perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform())));
 			perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
@@ -207,12 +205,12 @@ void Mesh::GatherDrawCall() {
 			}
 			
 			if (m_subMeshes[iSubMesh].m_bumpMapSRV) {
-				cmd.type = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
+				cmd.type = PrimitiveTopology::CONTROL_POINT_3_PATCHLIST;
 				cmd.srvs.AddSRV(m_subMeshes[iSubMesh].m_bumpMapSRV, 2);
 			}
 			else 
 			{
-				cmd.type = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+				cmd.type = PrimitiveTopology::TRIANGLELIST;
 			}
 
 			cmd.offset = (void*)(startIndex);
@@ -223,13 +221,21 @@ void Mesh::GatherDrawCall() {
 				resourceMask.x = 1;
 			if (m_subMeshes[iSubMesh].m_normalMapTex > 0)
 				resourceMask.y = 1;
+			if (m_subMeshes[iSubMesh].m_bumpMapTex > 0)
+			{
+				cmd.type = PrimitiveTopology::CONTROL_POINT_3_PATCHLIST;
+			}
+			else
+			{
+				cmd.type = PrimitiveTopology::TRIANGLELIST;
+			}
 
 			perObjData->DiffuseMap = m_subMeshes[iSubMesh].m_diffuseMapTex;
 			perObjData->NormalMap = m_subMeshes[iSubMesh].m_normalMapTex;
 			perObjData->ShadowMapTex = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
-			perObjData->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;
-			cmd.type = GL_TRIANGLES;
-			
+			perObjData->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;			
+			perObjData->BumpMapTex = m_subMeshes[iSubMesh].m_bumpMapTex;
+
 			cmd.offset = (void*)(startIndex * sizeof(unsigned int));
 
 #endif
@@ -314,11 +320,7 @@ void Mesh::GatherShadowDrawCall() {
 
 		DrawCmd cmd;
 
-#ifdef GRAPHICS_D3D11
-		cmd.type = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-#elif defined GRAPHICS_OPENGL
-		cmd.type = GL_TRIANGLES;
-#endif
+		cmd.type = PrimitiveTopology::TRIANGLELIST;
 		cmd.vertexBuffer = (void*)m_shadowMapVertexBufferGPU;
 		cmd.indexBuffer = (void*)m_indexBufferGPU;
 		cmd.vertexStride = stride;
