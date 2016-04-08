@@ -393,7 +393,7 @@ public:
 		for (uint32_t iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
 			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->GatherDrawCall();
 		}
-		glPatchParameteri(GL_PATCH_VERTICES, 3);
+
 		for (auto &cmd : m_deferredDrawList)
 		{
 			cmd.effect->SetShader();
@@ -456,7 +456,7 @@ public:
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		//m_SkyBox->Draw();
+		m_SkyBox->Draw();
 
 		deferredShadingFX->UnSetShader();
 		deferredShadingFX->UnBindShaderResource();

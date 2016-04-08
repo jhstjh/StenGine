@@ -56,7 +56,7 @@ void main() {
 	vOut.pNormalV = vec3(gWorldView * vec4(NormalL, 0.0));
 	vOut.pNormalW = vec3(gWorld * vec4(NormalL, 0.0));
 	vOut.pTangV = vec3(gWorldView * vec4(TangentL, 0.0));
-	vOut.pPosW = vec3(gWorld * vec4(NormalL, 1.0));
+	vOut.pPosW = vec3(gWorld * vec4(PosL, 1.0));
 	vOut.pTexUV = TexUV;
 	vOut.pShadowTransform = gShadowTransform * vec4(PosL, 1.0);
 	vOut.pTessFactor = 32.f;

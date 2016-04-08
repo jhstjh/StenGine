@@ -3,7 +3,7 @@
 #version 450
 #extension GL_ARB_bindless_texture : require
 
-layout(triangles, fractional_odd_spacing, cw) in;
+layout(triangles, fractional_odd_spacing, ccw) in;
 
 struct Material {
 	vec4 ambient;
