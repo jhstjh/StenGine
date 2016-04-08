@@ -146,7 +146,7 @@ public:
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
 
-	virtual void PrepareBuffer();
+	void PrepareBuffer();
 
 #ifdef GRAPHICS_D3D11
 	struct PEROBJ_CONSTANT_BUFFER
@@ -498,7 +498,7 @@ public:
 	virtual void UpdateConstantBuffer();
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
-	virtual void PrepareBuffer() override;
+	void PrepareBuffer();
 };
 
 

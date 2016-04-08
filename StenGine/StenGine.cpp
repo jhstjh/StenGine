@@ -76,11 +76,11 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	std::unique_ptr<ResourceManager> resourceManager = std::unique_ptr<ResourceManager>(ResourceManager::Instance());
 	std::unique_ptr<InputManager> inputManager = std::unique_ptr<InputManager>(InputManager::Instance());
 
-	GameObject* box0 = new GameObject("box0", 0.f, 1.2f, 0.f);
-	Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
-	box0->AddComponent(box0Mesh);
-	box0->RotateAroundY(3.14159f / 5);
-
+	//GameObject* box0 = new GameObject("box0", 0.f, 1.2f, 0.f);
+	//Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
+	//box0->AddComponent(box0Mesh);
+	//box0->RotateAroundY(3.14159f / 5);
+	//
 	GameObject* sphere = new GameObject("sphere", 0.f, 3.7f, -0.5f);
 	Mesh* sphereMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/earth.fbx");
 	sphere->AddComponent(sphereMesh);
@@ -160,7 +160,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 			}
 			InputManager::Instance()->Update();
 			CameraManager::Instance()->GetActiveCamera()->Update();			
-			sphere->Update();
+			//sphere->Update();
 			Renderer::Instance()->Draw();
 			elaspedFrame++;
 		}

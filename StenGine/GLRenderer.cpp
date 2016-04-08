@@ -17,15 +17,56 @@
 #include <vector>
 #include <memory>
 
+#include <iostream>
+using namespace std;
+
 #pragma warning(disable: 4244) // conversion from 'int64_t' to 'GLsizei', possible loss of data
-#pragma warning(disable: 4312) // 'type cast': conversion from 'GLuint' to 'void *' of greater size
+#pragma warning(disable: 4312 4311 4302) // 'type cast': conversion from 'GLuint' to 'void *' of greater size
 
 void APIENTRY GLErrorCallback(GLenum source​, GLenum type​, GLuint id​, GLenum severity​, GLsizei length​, const GLchar* message​, const void* userParam​)
 {
-	if (GL_DEBUG_SEVERITY_HIGH == severity​)
-	{
-		printf("%s\n", message​);
+	return;
+
+	cout << "---------------------opengl-callback-start------------" << endl;
+	cout << "message: " << message​ << endl;
+	cout << "type: ";
+	switch (type​) {
+	case GL_DEBUG_TYPE_ERROR:
+		cout << "ERROR";
+		break;
+	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+		cout << "DEPRECATED_BEHAVIOR";
+		break;
+	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+		cout << "UNDEFINED_BEHAVIOR";
+		break;
+	case GL_DEBUG_TYPE_PORTABILITY:
+		cout << "PORTABILITY";
+		break;
+	case GL_DEBUG_TYPE_PERFORMANCE:
+		cout << "PERFORMANCE";
+		break;
+	case GL_DEBUG_TYPE_OTHER:
+		cout << "OTHER";
+		break;
 	}
+	cout << endl;
+
+	cout << "id: " << id​ << endl;
+	cout << "severity: ";
+	switch (severity​) {
+	case GL_DEBUG_SEVERITY_LOW:
+		cout << "LOW";
+		break;
+	case GL_DEBUG_SEVERITY_MEDIUM:
+		cout << "MEDIUM";
+		break;
+	case GL_DEBUG_SEVERITY_HIGH:
+		cout << "HIGH";
+		break;
+	}
+	cout << endl;
+	cout << "---------------------opengl-callback-end--------------" << endl;
 }
 
 Renderer* Renderer::_instance = nullptr;
@@ -253,7 +294,7 @@ public:
 		DrawDeferredShading();
 		//DrawBlurSSAOAndCombine();
 		//DrawGodRay();
-		DrawDebug();
+		//DrawDebug();
 
 		SwapBuffers(m_deviceContext);
 	}
@@ -314,11 +355,11 @@ public:
 		{
 			//cmd.m_effect->SetShader();
 
-			if (m_currentVao != (uint64_t)cmd.inputLayout)
-			{
-				m_currentVao = (uint64_t)cmd.inputLayout;
+			//if (m_currentVao != (uint64_t)cmd.inputLayout)
+			//{
+			//	m_currentVao = (uint64_t)cmd.inputLayout;
 				glBindVertexArray((uint64_t)cmd.inputLayout);
-			}
+			//}
 
 			glBindVertexBuffer(0, (uint64_t)cmd.vertexBuffer, cmd.vertexOffset, cmd.vertexStride);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (uint64_t)cmd.indexBuffer);
@@ -352,20 +393,20 @@ public:
 		for (uint32_t iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
 			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->GatherDrawCall();
 		}
-
+		glPatchParameteri(GL_PATCH_VERTICES, 3);
 		for (auto &cmd : m_deferredDrawList)
 		{
 			cmd.effect->SetShader();
 
-			if (m_currentVao != (uint64_t)cmd.inputLayout)
-			{
-				m_currentVao = (uint64_t)cmd.inputLayout;
-				glBindVertexArray((uint64_t)cmd.inputLayout);
-			}
+			//if (m_currentVao != (uint64_t)cmd.inputLayout)
+			//{
+			//	m_currentVao = (uint64_t)cmd.inputLayout;
+				glBindVertexArray((GLuint)cmd.inputLayout);
+			//}
 
 			//TODO check current vbo
-			glBindVertexBuffer(0, (uint64_t)cmd.vertexBuffer, cmd.vertexOffset, cmd.vertexStride);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (uint64_t)cmd.indexBuffer);
+			glBindVertexBuffer(0, (GLuint)cmd.vertexBuffer, cmd.vertexOffset, cmd.vertexStride);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (GLuint)cmd.indexBuffer);
 
 			for (auto &cbuffer : cmd.cbuffers)
 			{
@@ -373,7 +414,9 @@ public:
 			}
 
 			if (cmd.type == PrimitiveTopology::CONTROL_POINT_3_PATCHLIST)
+			{
 				glPatchParameteri(GL_PATCH_VERTICES, 3);
+			}
 
 			glDrawElements(
 				(GLenum)cmd.type,
@@ -413,7 +456,7 @@ public:
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		m_SkyBox->Draw();
+		//m_SkyBox->Draw();
 
 		deferredShadingFX->UnSetShader();
 		deferredShadingFX->UnBindShaderResource();
