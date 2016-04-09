@@ -77,8 +77,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(IncludePath)</IncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)lib;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\D3D11\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\D3D11\</IntDir>
   </PropertyGroup>
@@ -162,70 +162,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="CameraManager.h" />
-    <ClInclude Include="Color.h" />
-    <ClInclude Include="Component.h" />
-    <ClInclude Include="ConstantBufferBase.h" />
-    <ClInclude Include="D3D11ConstantBuffer.h" />
-    <ClInclude Include="D3D11SRVBinding.h" />
-    <ClInclude Include="D3DIncludes.h" />
-    <ClInclude Include="DDSTextureLoader.h" />
-    <ClInclude Include="EffectsManager.h" />
-    <ClInclude Include="FbxReaderSG.h" />
-    <ClInclude Include="GameObject.h" />
-    <ClInclude Include="GameObjects\box.h" />
-    <ClInclude Include="LightManager.h" />
-    <ClInclude Include="Material.h" />
-    <ClInclude Include="MathHelper.h" />
-    <ClInclude Include="MeshRenderer.h" />
-    <ClInclude Include="ObjReader.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="ResourceManager.h" />
-    <ClInclude Include="ShadowMap.h" />
-    <ClInclude Include="Skeleton.h" />
-    <ClInclude Include="SkinnedMesh.h" />
-    <ClInclude Include="Skybox.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="StenGine.h" />
-    <ClInclude Include="SubMesh.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="Terrain.h" />
-    <ClInclude Include="Timer.h" />
-    <ClInclude Include="InputManager.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="CameraManager.cpp" />
-    <ClCompile Include="Color.cpp" />
-    <ClCompile Include="Component.cpp" />
-    <ClCompile Include="D3D11ConstantBuffer.cpp" />
-    <ClCompile Include="D3D11Renderer.cpp" />
-    <ClCompile Include="D3D11SRVBinding.cpp" />
-    <ClCompile Include="DDSTextureLoader.cpp" />
-    <ClCompile Include="EffectsManager.cpp" />
-    <ClCompile Include="FbxReaderSG.cpp" />
-    <ClCompile Include="GameObject.cpp" />
-    <ClCompile Include="LightManager.cpp" />
-    <ClCompile Include="MeshPrimitives.cpp" />
-    <ClCompile Include="MeshRenderer.cpp" />
-    <ClCompile Include="ObjReader.cpp" />
-    <ClCompile Include="ResourceManager.cpp" />
-    <ClCompile Include="ShadowMap.cpp" />
-    <ClCompile Include="Skeleton.cpp" />
-    <ClCompile Include="SkinnedMesh.cpp" />
-    <ClCompile Include="Skybox.cpp" />
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="StenGine.cpp" />
-    <ClCompile Include="SubMesh.cpp" />
-    <ClCompile Include="Terrain.cpp" />
-    <ClCompile Include="Timer.cpp" />
-    <ClCompile Include="InputManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="StenGine.rc" />
@@ -497,6 +433,73 @@
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</EnableDebuggingInformation>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\Graphics\Abstraction\ConstantBuffer.h" />
+    <ClInclude Include="include\Graphics\Abstraction\ConstantBufferBase.h" />
+    <ClInclude Include="include\Graphics\Abstraction\DrawCmd.h" />
+    <ClInclude Include="include\Graphics\Abstraction\RendererBase.h" />
+    <ClInclude Include="include\Graphics\Color.h" />
+    <ClInclude Include="include\Graphics\D3D11\D3D11ConstantBuffer.h" />
+    <ClInclude Include="include\Graphics\D3D11\D3D11SRVBinding.h" />
+    <ClInclude Include="include\Graphics\D3DIncludes.h" />
+    <ClInclude Include="include\Graphics\Effect\EffectsManager.h" />
+    <ClInclude Include="include\Graphics\Effect\Material.h" />
+    <ClInclude Include="include\Graphics\Effect\ShadowMap.h" />
+    <ClInclude Include="include\Graphics\Effect\Skybox.h" />
+    <ClInclude Include="include\Input\InputManager.h" />
+    <ClInclude Include="include\Math\MathHelper.h" />
+    <ClInclude Include="include\Mesh\MeshRenderer.h" />
+    <ClInclude Include="include\Mesh\Skeleton.h" />
+    <ClInclude Include="include\Mesh\SkinnedMesh.h" />
+    <ClInclude Include="include\Mesh\SubMesh.h" />
+    <ClInclude Include="include\Mesh\Terrain.h" />
+    <ClInclude Include="include\Resource\Resource.h" />
+    <ClInclude Include="include\Resource\ResourceManager.h" />
+    <ClInclude Include="include\Scene\CameraManager.h" />
+    <ClInclude Include="include\Scene\Component.h" />
+    <ClInclude Include="include\Scene\GameObject.h" />
+    <ClInclude Include="include\Scene\LightManager.h" />
+    <ClInclude Include="include\stdafx.h" />
+    <ClInclude Include="include\StenGine.h" />
+    <ClInclude Include="include\System\AlignedClass.h" />
+    <ClInclude Include="include\targetver.h" />
+    <ClInclude Include="include\Utility\FbxReaderSG.h" />
+    <ClInclude Include="include\Utility\ObjReader.h" />
+    <ClInclude Include="include\Utility\SgmReader.h" />
+    <ClInclude Include="include\Utility\Timer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Graphics\Color.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\D3D11ConstantBuffer.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\D3D11Renderer.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\D3D11SRVBinding.cpp" />
+    <ClCompile Include="src\Graphics\Effect\EffectsManager.cpp" />
+    <ClCompile Include="src\Graphics\Effect\ShadowMap.cpp" />
+    <ClCompile Include="src\Graphics\Effect\Skybox.cpp" />
+    <ClCompile Include="src\Input\InputManager.cpp" />
+    <ClCompile Include="src\Mesh\MeshPrimitives.cpp" />
+    <ClCompile Include="src\Mesh\MeshRenderer.cpp" />
+    <ClCompile Include="src\Mesh\Skeleton.cpp" />
+    <ClCompile Include="src\Mesh\SkinnedMesh.cpp" />
+    <ClCompile Include="src\Mesh\SubMesh.cpp" />
+    <ClCompile Include="src\Mesh\Terrain.cpp" />
+    <ClCompile Include="src\Resource\ResourceManager.cpp" />
+    <ClCompile Include="src\Scene\CameraManager.cpp" />
+    <ClCompile Include="src\Scene\Component.cpp" />
+    <ClCompile Include="src\Scene\GameObject.cpp" />
+    <ClCompile Include="src\Scene\LightManager.cpp" />
+    <ClCompile Include="src\stdafx.cpp" />
+    <ClCompile Include="src\StenGine.cpp" />
+    <ClCompile Include="src\Utility\FbxReaderSG.cpp" />
+    <ClCompile Include="src\Utility\ObjReader.cpp" />
+    <ClCompile Include="src\Utility\SgmReader.cpp" />
+    <ClCompile Include="src\Utility\Timer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\External\DirectXTex\DDSTextureLoader\DDSTextureLoader.vcxproj">
+      <Project>{0cde1fd5-2c0a-407e-a345-ca98d30ca53c}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

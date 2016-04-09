@@ -1,14 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
@@ -19,184 +11,75 @@
     <Filter Include="Model">
       <UniqueIdentifier>{952cac11-8329-40dc-a3d5-f781578b9f9a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\GameObjects">
-      <UniqueIdentifier>{873c737a-1a44-497c-aca6-b8ea45c06770}</UniqueIdentifier>
+    <Filter Include="include">
+      <UniqueIdentifier>{79bd8e05-dcf5-4ef2-ab3e-2fdf1756639a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\GameObjects">
-      <UniqueIdentifier>{7782b763-16bc-4d8a-a756-5e54673e05a8}</UniqueIdentifier>
+    <Filter Include="include\Graphics">
+      <UniqueIdentifier>{ce1fcac8-0581-477d-bf75-11f3bbf2e158}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Graphics\Abstraction">
+      <UniqueIdentifier>{de73a8a8-da4f-4137-97e7-51d79ea6702d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Graphics\Effect">
+      <UniqueIdentifier>{d1c1ba45-564e-4e16-9869-44a02ea16ef1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Input">
+      <UniqueIdentifier>{34720c51-88a4-485c-943c-e789622fb2c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Math">
+      <UniqueIdentifier>{75288dc7-8770-4a9a-932f-24c152e9dea2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Mesh">
+      <UniqueIdentifier>{df11ffcb-1ec8-46b2-9be4-ae82a6c5eaee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Resource">
+      <UniqueIdentifier>{ec35a2ec-3903-4206-83c2-adc44e0c22f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Scene">
+      <UniqueIdentifier>{17138018-712a-4f71-94f5-0127bccb1bbd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\System">
+      <UniqueIdentifier>{01af8c88-3dab-4f3f-ad38-8808578bb164}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Utility">
+      <UniqueIdentifier>{4e1ebe29-191c-4b58-aa87-8fbba25169fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{21639e70-a6f3-4bfd-8f44-e59feca71f9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Graphics">
+      <UniqueIdentifier>{658cea93-dd05-4389-a7bd-14272ac71952}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Graphics\Effect">
+      <UniqueIdentifier>{a40ae87e-0e37-4edd-a8b7-dbf589e2bf76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Input">
+      <UniqueIdentifier>{8a01de03-26b2-4411-8ec1-84e1fccdc5ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Mesh">
+      <UniqueIdentifier>{11344416-b33e-40e4-926c-b9a373afcc9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Resource">
+      <UniqueIdentifier>{8e638b72-ba40-43eb-852a-433bd823d3e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Scene">
+      <UniqueIdentifier>{0547209b-344d-41f9-90e8-30e4ba955c4d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\System">
+      <UniqueIdentifier>{a434f512-e7ff-494e-9101-8dd8b5296b2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Utility">
+      <UniqueIdentifier>{77f27dee-9510-48e2-9267-2c81fbd9b8da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Graphics\D3D11">
+      <UniqueIdentifier>{509a87bb-2f11-4fbe-8a79-16184f99665c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Graphics\D3D11">
+      <UniqueIdentifier>{2b15a4ea-cb29-4cd0-a8e3-df74dcb7c887}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="StenGine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DIncludes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EffectsManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Timer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjReader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LightManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MathHelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CameraManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ShadowMap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Component.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ResourceManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FbxReaderSG.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="InputManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Skybox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Color.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DDSTextureLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Material.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SubMesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Skeleton.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SkinnedMesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GameObjects\box.h">
-      <Filter>Header Files\GameObjects</Filter>
-    </ClInclude>
-    <ClInclude Include="Terrain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="D3D11SRVBinding.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ConstantBufferBase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="D3D11ConstantBuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="StenGine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="D3D11Renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="EffectsManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Timer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ObjReader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LightManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CameraManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ShadowMap.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Component.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GameObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ResourceManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="FbxReaderSG.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="InputManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Skybox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DDSTextureLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Color.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SubMesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Skeleton.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SkinnedMesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Terrain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="D3D11SRVBinding.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="D3D11ConstantBuffer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshPrimitives.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="StenGine.rc">
@@ -334,5 +217,183 @@
     <FxCompile Include="FX\BrightnessFilter_ps.hlsl">
       <Filter>FX</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\stdafx.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\StenGine.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\targetver.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\Color.h">
+      <Filter>include\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\D3DIncludes.h">
+      <Filter>include\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\Abstraction\ConstantBuffer.h">
+      <Filter>include\Graphics\Abstraction</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\Abstraction\ConstantBufferBase.h">
+      <Filter>include\Graphics\Abstraction</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\Abstraction\DrawCmd.h">
+      <Filter>include\Graphics\Abstraction</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\Abstraction\RendererBase.h">
+      <Filter>include\Graphics\Abstraction</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\Effect\Material.h">
+      <Filter>include\Graphics\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\Effect\ShadowMap.h">
+      <Filter>include\Graphics\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\Effect\Skybox.h">
+      <Filter>include\Graphics\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\Effect\EffectsManager.h">
+      <Filter>include\Graphics\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Input\InputManager.h">
+      <Filter>include\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Math\MathHelper.h">
+      <Filter>include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Mesh\Skeleton.h">
+      <Filter>include\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Mesh\SkinnedMesh.h">
+      <Filter>include\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Mesh\SubMesh.h">
+      <Filter>include\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Mesh\Terrain.h">
+      <Filter>include\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Mesh\MeshRenderer.h">
+      <Filter>include\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Resource\ResourceManager.h">
+      <Filter>include\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Scene\Component.h">
+      <Filter>include\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Scene\GameObject.h">
+      <Filter>include\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Scene\LightManager.h">
+      <Filter>include\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Scene\CameraManager.h">
+      <Filter>include\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\System\AlignedClass.h">
+      <Filter>include\System</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Utility\SgmReader.h">
+      <Filter>include\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Utility\Timer.h">
+      <Filter>include\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Utility\FbxReaderSG.h">
+      <Filter>include\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Utility\ObjReader.h">
+      <Filter>include\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Resource\Resource.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\D3D11\D3D11SRVBinding.h">
+      <Filter>include\Graphics\D3D11</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\D3D11\D3D11ConstantBuffer.h">
+      <Filter>include\Graphics\D3D11</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\stdafx.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\StenGine.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Color.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Effect\ShadowMap.cpp">
+      <Filter>src\Graphics\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Effect\Skybox.cpp">
+      <Filter>src\Graphics\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Effect\EffectsManager.cpp">
+      <Filter>src\Graphics\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Input\InputManager.cpp">
+      <Filter>src\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh\Skeleton.cpp">
+      <Filter>src\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh\SkinnedMesh.cpp">
+      <Filter>src\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh\SubMesh.cpp">
+      <Filter>src\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh\Terrain.cpp">
+      <Filter>src\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh\MeshPrimitives.cpp">
+      <Filter>src\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh\MeshRenderer.cpp">
+      <Filter>src\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Resource\ResourceManager.cpp">
+      <Filter>src\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\LightManager.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\CameraManager.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\Component.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\GameObject.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utility\ObjReader.cpp">
+      <Filter>src\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utility\SgmReader.cpp">
+      <Filter>src\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utility\Timer.cpp">
+      <Filter>src\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utility\FbxReaderSG.cpp">
+      <Filter>src\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\D3D11ConstantBuffer.cpp">
+      <Filter>src\Graphics\D3D11</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\D3D11Renderer.cpp">
+      <Filter>src\Graphics\D3D11</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\D3D11SRVBinding.cpp">
+      <Filter>src\Graphics\D3D11</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
