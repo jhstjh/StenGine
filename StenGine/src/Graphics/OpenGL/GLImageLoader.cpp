@@ -1,6 +1,6 @@
 #pragma warning(disable: 4996)
 
-#include "GLImageLoader.h"
+#include "Graphics/OpenGL/GLImageLoader.h"
 #include "gli/gli.hpp"
 
 GLuint CreateGLTextureFromFile(const char* filename)

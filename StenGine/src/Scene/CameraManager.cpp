@@ -1,10 +1,10 @@
 #include "Scene/CameraManager.h"
 
-#ifdef PLATFORM_WIN32
+#if PLATFORM_WIN32
 #include "Input/InputManager.h"
 #include "Graphics/Abstraction/RendererBase.h"
 using namespace DirectX;
-#elif defined PLATFORM_ANDROID
+#elif  PLATFORM_ANDROID
 #include "GLESRenderer.h"
 #endif
 
@@ -17,7 +17,7 @@ Camera::Camera(float px, float py, float pz,
 	float ux, float uy, float uz,
 	float fov, float np, float fp)
 {
-#ifdef PLATFORM_WIN32
+#if PLATFORM_WIN32
 
 	XMVECTOR pos = XMVectorSet(px, py, pz, 0.0f);
 	m_target = XMVectorSet(tx, ty, tz, 0.0f);
@@ -26,14 +26,14 @@ Camera::Camera(float px, float py, float pz,
 
 	XMMATRIX V = XMMatrixLookAtLH(pos, m_target, m_up);
 	XMStoreFloat4x4(&m_view, V);
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	XMMATRIX P = XMMatrixPerspectiveFovLH(fov, Renderer::Instance()->GetAspectRatio(), np, fp);
 #else
 	XMMATRIX P = XMMatrixPerspectiveFovLH(fov, Renderer::Instance()->GetAspectRatio(), np, fp);
 #endif
 	XMStoreFloat4x4(&m_proj, P);
 
-#ifdef GRAPHICS_OPENGL
+#if GRAPHICS_OPENGL
 	m_proj.m[2][2] = (np + fp) / (fp - np);
 	m_proj.m[3][2] = - 2 * (np * fp) / (fp - np);
 #endif
@@ -43,7 +43,7 @@ Camera::Camera(float px, float py, float pz,
 	m_theta = asinf((pz - tz) / (m_radius * sinf(m_phi)));
 
 	XMStoreFloat4x4(&m_worldTransform, MatrixHelper::Inverse(V));
-#elif defined PLATFORM_ANDROID
+#elif  PLATFORM_ANDROID
 
 // 	m_target = ndk_helper::Vec4(tx, ty, tz, 0.0f);
 // 	m_up = XMVectorSet(ux, uy, uz, 0.0f);
@@ -67,25 +67,25 @@ Camera::~Camera()
 }
 
 XMMATRIX Camera::GetViewProjMatrix() {
-#ifdef PLATFORM_WIN32
+#if PLATFORM_WIN32
 	return XMLoadFloat4x4(&m_view) * XMLoadFloat4x4(&m_proj);
-#elif defined PLATFORM_ANDROID
+#elif  PLATFORM_ANDROID
 	return m_proj * m_view;
 #endif
 }
 
 XMMATRIX Camera::GetViewMatrix() {
-#ifdef PLATFORM_WIN32
+#if PLATFORM_WIN32
 	return XMLoadFloat4x4(&m_view);
-#elif defined PLATFORM_ANDROID
+#elif  PLATFORM_ANDROID
 	return m_view;
 #endif
 }
 
 XMMATRIX Camera::GetProjMatrix() {
-#ifdef PLATFORM_WIN32
+#if PLATFORM_WIN32
 	return XMLoadFloat4x4(&m_proj);
-#elif defined PLATFORM_ANDROID
+#elif  PLATFORM_ANDROID
 	return m_proj;
 #endif
 }
@@ -125,7 +125,7 @@ XMMATRIX Camera::GetProjMatrix() {
 //}
 
 void Camera::Update() {
-#ifdef PLATFORM_WIN32
+#if PLATFORM_WIN32
 	if (InputManager::Instance()->GetKeyHold('W')) {
 		MatrixHelper::MoveForward(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
 		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));

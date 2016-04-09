@@ -3,11 +3,11 @@
 
 #include <vector>
 
-#ifdef GRAPHICS_OPENGL
+#if GRAPHICS_OPENGL
 #include "glew.h"
 #endif
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 #include "Graphics/D3D11/D3D11SRVBinding.h"
 #endif
 
@@ -16,12 +16,12 @@
 
 enum class PrimitiveTopology : uint32_t
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	POINTLIST					= D3D11_PRIMITIVE_TOPOLOGY_POINTLIST,
 	LINELIST					= D3D11_PRIMITIVE_TOPOLOGY_LINELIST,
 	TRIANGLELIST				= D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
 	CONTROL_POINT_3_PATCHLIST	= D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST,
-#elif defined GRAPHICS_OPENGL
+#elif  GRAPHICS_OPENGL
 	POINTLIST					= GL_POINTS,
 	LINELIST					= GL_LINES,
 	TRIANGLELIST				= GL_TRIANGLES,
@@ -47,7 +47,7 @@ struct DrawCmd {
 
 	std::vector<ConstantBuffer> cbuffers;
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	D3D11SRVBinding srvs;
 #endif
 };

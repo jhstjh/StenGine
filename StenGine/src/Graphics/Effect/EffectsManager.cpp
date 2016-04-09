@@ -1,10 +1,10 @@
 ﻿#include "Graphics/Effect/EffectsManager.h"
 
-#ifndef PLATFORM_ANDROID
+#if PLATFORM_WIN32
 
 #include "Graphics/Abstraction/RendererBase.h"
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 #include "D3DCompiler.h"
 
 #define READ_SHADER_FROM_FILE 0
@@ -21,7 +21,7 @@
 
 #pragma warning( disable : 4996 )
 
-#ifndef PLATFORM_ANDROID
+#if PLATFORM_WIN32
 
 Effect::Effect(const std::wstring& filename)
 {
@@ -40,7 +40,7 @@ Effect::Effect(const std::wstring& vsPath,
 			   m_hullShader(0),
 			   m_domainShader(0),
 			   m_computeShader(0)
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 			   ,
 			   m_vsBlob(0),
 			   m_psBlob(0),
@@ -52,7 +52,7 @@ Effect::Effect(const std::wstring& vsPath,
 			   // gl
 #endif
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	// Add error checking
 	HRESULT hr;
 
@@ -288,7 +288,7 @@ Effect::Effect(const std::wstring& vsPath,
 
 Effect::~Effect()
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	SafeDeleteArray(m_shaderResources);
 	ReleaseCOM(m_vertexShader);
 	ReleaseCOM(m_pixelShader);
@@ -302,7 +302,7 @@ Effect::~Effect()
 }
 
 void Effect::UnBindConstantBuffer() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 0, nullptr);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 0, nullptr);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetConstantBuffers(0, 0, nullptr);
@@ -315,7 +315,7 @@ void Effect::UnBindConstantBuffer() {
 }
 
 void Effect::UnBindShaderResource() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	static ID3D11ShaderResourceView* nullSRV[16] = { 0 };
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 16, nullSRV);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 16, nullSRV);
@@ -331,7 +331,7 @@ void Effect::UnBindShaderResource() {
 
 
 void Effect::SetShader() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	//if (m_vertexShader)
 		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShader(m_vertexShader, 0, 0);
 	//if (m_pixelShader)
@@ -351,7 +351,7 @@ void Effect::SetShader() {
 }
 
 void Effect::UnSetShader() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShader(nullptr, 0, 0);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShader(nullptr, 0, 0);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShader(nullptr, 0, 0);
@@ -363,7 +363,7 @@ void Effect::UnSetShader() {
 #endif
 }
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 void Effect::UnbindUnorderedAccessViews() {
 	static ID3D11UnorderedAccessView* nullUAV[7] = { 0 };
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetUnorderedAccessViews(0, 7, nullUAV, 0);
@@ -403,13 +403,13 @@ ID3D11ShaderResourceView* Effect::GetOutputShaderResource(int idx) {
 
 
 ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	: Effect(filename + L"_vs" + EXT, L"")
 #else
 	: Effect(filename + L"_vs" + EXT, std::wstring(L"FX/ZOnly_ps") + EXT)
 #endif
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -464,7 +464,7 @@ void ShadowMapEffect::UpdateConstantBuffer() {
 }
 
 void ShadowMapEffect::BindConstantBuffer() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perObjectCB };
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 1, cbuf);
 #endif
@@ -472,7 +472,7 @@ void ShadowMapEffect::BindConstantBuffer() {
 
 ShadowMapEffect::~ShadowMapEffect()
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
 #endif
 }
@@ -482,7 +482,7 @@ ShadowMapEffect::~ShadowMapEffect()
 
 DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath)
 	:Effect(vsPath, psPath, gsPath, hsPath, dsPath)
-#ifdef GRAPHICS_OPENGL
+#if GRAPHICS_OPENGL
 	, m_buffer(4096)
 	, m_bufferOffset(0)
 #endif
@@ -492,7 +492,7 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& vsPat
 
 DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filename)
 	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT)
-#ifdef GRAPHICS_OPENGL
+#if GRAPHICS_OPENGL
 	, m_buffer{ 1024 * 256 }
 	, m_bufferOffset(0)
 #endif
@@ -502,7 +502,7 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filen
 
 DeferredGeometryPassEffect::~DeferredGeometryPassEffect()
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
 #else
 	m_buffer.unlock();
@@ -511,7 +511,7 @@ DeferredGeometryPassEffect::~DeferredGeometryPassEffect()
 
 void DeferredGeometryPassEffect::PrepareBuffer()
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -620,7 +620,7 @@ void DeferredGeometryPassEffect::PrepareBuffer()
 }
 
 void DeferredGeometryPassEffect::UpdateConstantBuffer() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 
 #else
 
@@ -651,7 +651,7 @@ void DeferredGeometryPassEffect::UpdateConstantBuffer() {
 }
 
 void DeferredGeometryPassEffect::BindConstantBuffer() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perObjectCB, m_perFrameCB };
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 2, cbuf);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 2, cbuf);
@@ -659,7 +659,7 @@ void DeferredGeometryPassEffect::BindConstantBuffer() {
 }
 
 void DeferredGeometryPassEffect::BindShaderResource() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 5, m_shaderResources);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 5, m_shaderResources);
 #else
@@ -679,7 +679,7 @@ DeferredGeometrySkinnedPassEffect::DeferredGeometrySkinnedPassEffect(const std::
 DeferredGeometrySkinnedPassEffect::DeferredGeometrySkinnedPassEffect(const std::wstring& filename)
 	: Effect(filename + L"_vs" + EXT, std::wstring(L"DeferredGeometryPass_vs") + EXT)
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -777,13 +777,13 @@ DeferredGeometrySkinnedPassEffect::DeferredGeometrySkinnedPassEffect(const std::
 
 DeferredGeometrySkinnedPassEffect::~DeferredGeometrySkinnedPassEffect()
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
 #endif
 }
 
 void DeferredGeometrySkinnedPassEffect::UpdateConstantBuffer() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
 		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
@@ -821,7 +821,7 @@ void DeferredGeometrySkinnedPassEffect::UpdateConstantBuffer() {
 }
 
 void DeferredGeometrySkinnedPassEffect::BindConstantBuffer() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perObjectCB, m_perFrameCB };
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 2, cbuf);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 2, cbuf);
@@ -829,7 +829,7 @@ void DeferredGeometrySkinnedPassEffect::BindConstantBuffer() {
 }
 
 void DeferredGeometrySkinnedPassEffect::BindShaderResource() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 5, m_shaderResources);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 5, m_shaderResources);
 #else
@@ -857,7 +857,7 @@ void DeferredGeometrySkinnedPassEffect::BindShaderResource() {
 DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filename)
 	: Effect(std::wstring(L"FX/ScreenQuad_vs") + EXT, filename + L"_ps" + EXT)
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -910,13 +910,13 @@ DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filenam
 
 DeferredShadingPassEffect::~DeferredShadingPassEffect()
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
 #endif
 }
 
 void DeferredShadingPassEffect::UpdateConstantBuffer() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
 		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
@@ -937,7 +937,7 @@ void DeferredShadingPassEffect::UpdateConstantBuffer() {
 }
 
 void DeferredShadingPassEffect::BindConstantBuffer() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perFrameCB };
 	//static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 1, cbuf);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 1, cbuf);
@@ -945,7 +945,7 @@ void DeferredShadingPassEffect::BindConstantBuffer() {
 }
 
 void DeferredShadingPassEffect::BindShaderResource() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 5, m_shaderResources);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 5, m_shaderResources);
 #else
@@ -960,7 +960,7 @@ void DeferredShadingPassEffect::BindShaderResource() {
 GodRayEffect::GodRayEffect(const std::wstring& filename)
 	: Effect(std::wstring(L"FX/ScreenQuad_vs") + EXT, filename + L"_ps" + EXT)
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -1015,13 +1015,13 @@ GodRayEffect::GodRayEffect(const std::wstring& filename)
 
 GodRayEffect::~GodRayEffect()
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
 #endif
 }
 
 void GodRayEffect::UpdateConstantBuffer() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
 		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
@@ -1042,7 +1042,7 @@ void GodRayEffect::UpdateConstantBuffer() {
 }
 
 void GodRayEffect::BindConstantBuffer() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perFrameCB };
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(1, 1, cbuf);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(1, 1, cbuf);
@@ -1050,7 +1050,7 @@ void GodRayEffect::BindConstantBuffer() {
 }
 
 void GodRayEffect::BindShaderResource() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 1, m_shaderResources);
 #else
 	glActiveTexture(GL_TEXTURE0);
@@ -1064,7 +1064,7 @@ void GodRayEffect::BindShaderResource() {
 SkyboxEffect::SkyboxEffect(const std::wstring& filename)
 	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT)
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -1115,7 +1115,7 @@ SkyboxEffect::SkyboxEffect(const std::wstring& filename)
 }
 
 void SkyboxEffect::UpdateConstantBuffer() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
 		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
@@ -1136,7 +1136,7 @@ void SkyboxEffect::UpdateConstantBuffer() {
 }
 
 void SkyboxEffect::BindConstantBuffer() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perObjectCB };
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 1, cbuf);
 #endif
@@ -1144,13 +1144,13 @@ void SkyboxEffect::BindConstantBuffer() {
 
 SkyboxEffect::~SkyboxEffect()
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
 #endif
 }
 
 void SkyboxEffect::BindShaderResource() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	//static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 4, m_shaderResources);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 1, m_shaderResources);
 #else
@@ -1169,7 +1169,7 @@ DebugLineEffect::DebugLineEffect(const std::wstring& vsPath, const std::wstring&
 DebugLineEffect::DebugLineEffect(const std::wstring& filename)
 	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT)
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -1215,13 +1215,13 @@ DebugLineEffect::DebugLineEffect(const std::wstring& filename)
 
 DebugLineEffect::~DebugLineEffect()
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
 #endif
 }
 
 void DebugLineEffect::UpdateConstantBuffer() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
 		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
@@ -1242,7 +1242,7 @@ void DebugLineEffect::UpdateConstantBuffer() {
 }
 
 void DebugLineEffect::BindConstantBuffer() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perObjectCB };
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 1, cbuf);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 1, cbuf);
@@ -1269,14 +1269,14 @@ DeferredGeometryTessPassEffect::DeferredGeometryTessPassEffect(const std::wstrin
 
 DeferredGeometryTessPassEffect::~DeferredGeometryTessPassEffect()
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
 #endif
 }
 
 void DeferredGeometryTessPassEffect::PrepareBuffer()
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -1348,7 +1348,7 @@ void DeferredGeometryTessPassEffect::PrepareBuffer()
 	ReleaseCOM(m_csBlob);
 #endif
 
-#ifdef GRAPHICS_OPENGL
+#if GRAPHICS_OPENGL
 	glCreateVertexArrays(1, &m_inputLayout);
 
 	glEnableVertexArrayAttrib(m_inputLayout, 0);
@@ -1386,7 +1386,7 @@ void DeferredGeometryTessPassEffect::PrepareBuffer()
 
 void DeferredGeometryTessPassEffect::UpdateConstantBuffer()
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	{
 		D3D11_MAPPED_SUBRESOURCE ms;
 		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
@@ -1404,7 +1404,7 @@ void DeferredGeometryTessPassEffect::UpdateConstantBuffer()
 }
 
 void DeferredGeometryTessPassEffect::BindConstantBuffer() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* cbuf[] = { m_perObjectCB, m_perFrameCB };
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 2, cbuf);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 2, cbuf);
@@ -1414,7 +1414,7 @@ void DeferredGeometryTessPassEffect::BindConstantBuffer() {
 }
 
 void DeferredGeometryTessPassEffect::BindShaderResource() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 5, m_shaderResources);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 5, m_shaderResources);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShaderResources(0, 5, m_shaderResources);
@@ -1425,7 +1425,7 @@ void DeferredGeometryTessPassEffect::BindShaderResource() {
 
 //----------------------------------------------------------//
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 //----------------------------------------------------------//
 
 
@@ -2203,7 +2203,7 @@ void DebugLineEffect::BindConstantBuffer() {
 
 //----------------------------------------------------------//
 
-#ifdef PLATFORM_ANDROID
+#if PLATFORM_ANDROID
 
 SimpleMeshEffect::SimpleMeshEffect(const std::string& vsPath, const std::string& psPath)
 	:Effect(vsPath, psPath)
@@ -2306,7 +2306,7 @@ EffectsManager::EffectsManager()
 	, m_vblurEffect(nullptr)
 {
 
-#ifndef PLATFORM_ANDROID
+#if PLATFORM_WIN32
 	m_shadowMapEffect = new ShadowMapEffect(L"FX/ShadowMap");
 	m_deferredGeometryPassEffect = new DeferredGeometryPassEffect(L"FX/DeferredGeometryPass");
 	m_deferredShadingPassEffect = new DeferredShadingPassEffect(L"FX/DeferredShadingPass");
@@ -2315,7 +2315,7 @@ EffectsManager::EffectsManager()
 	m_debugLineEffect = new DebugLineEffect(L"FX/DebugLine");
 	m_godrayEffect = new GodRayEffect(L"FX/GodRay");
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	m_terrainShadowMapEffect = new TerrainShadowMapEffect(L"FX/DeferredGeometryTerrainPass");
 	m_deferredGeometryTerrainPassEffect = new DeferredGeometryTerrainPassEffect(L"FX/DeferredGeometryTerrainPass");
 	m_deferredShadingCSEffect = new DeferredShadingCS(L"FX/DeferredShading");

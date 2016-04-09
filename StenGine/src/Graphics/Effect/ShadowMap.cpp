@@ -11,7 +11,7 @@
 ShadowMap::ShadowMap(UINT width, UINT height)
 	:m_width(width), m_height(height)
 {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	m_viewPort.TopLeftX = 0;
 	m_viewPort.TopLeftY = 0;
 	m_viewPort.Height = static_cast<float>(height);
@@ -93,7 +93,7 @@ ShadowMap::ShadowMap(UINT width, UINT height)
 }
 
 ShadowMap::~ShadowMap() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ReleaseCOM(m_depthSRV);
 	ReleaseCOM(m_depthDSV);
 #else
@@ -111,7 +111,7 @@ XMMATRIX ShadowMap::GetShadowMapTransform() {
 
 void* ShadowMap::GetRenderTarget()
 {
-#ifdef GRAPHICS_OPENGL
+#if GRAPHICS_OPENGL
 	return (void*)m_shadowBuffer;
 #else
 	return (void*)m_depthDSV;
@@ -139,7 +139,7 @@ void ShadowMap::GatherShadowDrawCall() {
 	float f = sphereCenterLS.z + 50;
 	XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	float yScale = -0.5;
 	float zScale = 1.0;
 	float zTrans = 0.0;
@@ -161,7 +161,7 @@ void ShadowMap::GatherShadowDrawCall() {
 	XMStoreFloat4x4(&m_lightProj, P);
 	XMStoreFloat4x4(&m_shadowTransform, S);
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 #else
 #endif
 	EffectsManager::Instance()->m_shadowMapEffect->SetShader();
@@ -175,7 +175,7 @@ void ShadowMap::GatherShadowDrawCall() {
 
 	//Terrain::Instance()->DrawOnShadowMap();
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->RSSetState(0);
 #else
 #endif

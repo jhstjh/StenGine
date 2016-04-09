@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ConstantBufferBase.h"
+#include "Graphics/Abstraction/ConstantBufferBase.h"
 #include <stdint.h>
 
 class GLConstantBuffer : public ConstantBufferBase<GLConstantBuffer>

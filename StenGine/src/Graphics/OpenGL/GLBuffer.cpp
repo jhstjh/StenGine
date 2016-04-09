@@ -1,4 +1,4 @@
-#include "GLBuffer.h"
+#include "Graphics/OpenGL/GLBuffer.h"
 
 GLBuffer::GLBuffer(uint32_t size)
 	: m_size(size)

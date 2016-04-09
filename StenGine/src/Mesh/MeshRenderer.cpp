@@ -4,7 +4,7 @@
 #include "Scene/LightManager.h"
 #include "Scene/Component.h"
 
-#ifdef PLATFORM_WIN32
+#if PLATFORM_WIN32
 #include "Resource/ResourceManager.h"
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Utility/ObjReader.h"
@@ -18,7 +18,7 @@
 #pragma warning(disable: 4267) // conversion from 'size_t' to 'UINT', possible loss of data
 
 Mesh::Mesh(int type = 0):
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 m_indexBufferCPU(0),
 m_stdMeshVertexBufferGPU(0),
 m_shadowMapVertexBufferGPU(0),
@@ -37,7 +37,7 @@ m_receiveShadow(true)
 }
 
 Mesh::~Mesh() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ReleaseCOM(m_indexBufferGPU);
 	ReleaseCOM(m_stdMeshVertexBufferGPU);
 	ReleaseCOM(m_shadowMapVertexBufferGPU);
@@ -60,10 +60,10 @@ void Mesh::Prepare() {
 }
 
 void Mesh::PrepareGPUBuffer() {
-#ifdef PLATFORM_WIN32
+#if PLATFORM_WIN32
 	m_associatedDeferredEffect = EffectsManager::Instance()->m_deferredGeometryPassEffect;
 	m_associatedDeferredEffect->m_associatedMeshes.push_back(this);
-#elif defined PLATFORM_ANDROID
+#elif  PLATFORM_ANDROID
  	m_associatedEffect = EffectsManager::Instance()->m_simpleMeshEffect;
  	m_associatedEffect->m_associatedMeshes.push_back(this);
 #endif
@@ -78,7 +78,7 @@ void Mesh::PrepareGPUBuffer() {
 		vertices[k].TexUV = m_texUVBufferCPU[i];
 	}
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
 	vbd.ByteWidth = sizeof(Vertex::StdMeshVertex) * m_positionBufferCPU.size();
@@ -103,7 +103,7 @@ void Mesh::PrepareGPUBuffer() {
 
 	//m_associatedEffect = EffectsManager::Instance()->m_stdMeshEffect;
 	//m_associatedEffect->m_associatedMeshes.push_back(this);
-#elif defined(GRAPHICS_OPENGL) || defined(PLATFORM_ANDROID)
+#elif (GRAPHICS_OPENGL) || defined(PLATFORM_ANDROID)
 
 	glCreateBuffers(1, &m_stdMeshVertexBufferGPU);
 	glCreateBuffers(1, &m_indexBufferGPU);
@@ -115,7 +115,7 @@ void Mesh::PrepareGPUBuffer() {
 }
 
 void Mesh::PrepareShadowMapBuffer() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	std::vector<Vertex::ShadowMapVertex> vertices(m_positionBufferCPU.size());
 	UINT k = 0;
 	for (size_t i = 0; i < m_positionBufferCPU.size(); ++i, ++k)
@@ -133,7 +133,7 @@ void Mesh::PrepareShadowMapBuffer() {
 	D3D11_SUBRESOURCE_DATA vinitData;
 	vinitData.pSysMem = &vertices[0];
 	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&vbd, &vinitData, &m_shadowMapVertexBufferGPU));
-#elif defined(GRAPHICS_OPENGL) || defined(PLATFORM_ANDROID)
+#elif (GRAPHICS_OPENGL) || defined(PLATFORM_ANDROID)
 
 	glCreateBuffers(1, &m_shadowMapVertexBufferGPU);
 	glNamedBufferStorageEXT(m_shadowMapVertexBufferGPU, (GLsizeiptr)m_positionBufferCPU.size() * sizeof(Vertex::ShadowMapVertex), (GLvoid*)&m_positionBufferCPU.front(), 0);
@@ -142,16 +142,16 @@ void Mesh::PrepareShadowMapBuffer() {
 }
 
 void Mesh::GatherDrawCall() {
-#ifdef PLATFORM_WIN32
+#if PLATFORM_WIN32
 	DeferredGeometryPassEffect* effect = (dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect));
 
 	UINT stride = sizeof(Vertex::StdMeshVertex);
 	UINT offset = 0;
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	if (m_subMeshes[0].m_bumpMapSRV)
 #endif
-#ifdef GRAPHICS_OPENGL
+#if GRAPHICS_OPENGL
 	if (m_subMeshes[0].m_bumpMapTex)
 #endif
 		effect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect;
@@ -189,7 +189,7 @@ void Mesh::GatherDrawCall() {
 			resourceMask.x = 0;
 			resourceMask.y = 0;
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 			cmd.srvs.AddSRV(Renderer::Instance()->GetSkyBox()->m_cubeMapSRV, 4);
 			cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
 			perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform())));
@@ -216,7 +216,7 @@ void Mesh::GatherDrawCall() {
 			cmd.offset = (void*)(startIndex);
 #endif
 
-#ifdef GRAPHICS_OPENGL
+#if GRAPHICS_OPENGL
 			if (m_subMeshes[iSubMesh].m_diffuseMapTex > 0)
 				resourceMask.x = 1;
 			if (m_subMeshes[iSubMesh].m_normalMapTex > 0)
@@ -259,7 +259,7 @@ void Mesh::GatherDrawCall() {
 		}
 	}
 
-#elif defined PLATFORM_ANDROID
+#elif  PLATFORM_ANDROID
 	DeferredGeometryPassEffect* effect = dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect);
 	
 	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {

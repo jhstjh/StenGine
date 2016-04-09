@@ -1,13 +1,15 @@
 #ifndef __SUB_MESH__
 #define __SUB_MESH__
 
+#include "System/API/PlatformAPIDefs.h"
+
 #include "Scene/Component.h"
 #include "Graphics/Effect/Material.h"
 
-#if defined(PLATFORM_WIN32) || defined(SG_TOOL)
+#if (PLATFORM_WIN32) || (SG_TOOL)
 #include "Graphics/D3DIncludes.h"
 
-#ifdef GRAPHICS_OPENGL
+#if GRAPHICS_OPENGL
 #include "glew.h"
 #endif
 
@@ -21,7 +23,7 @@ public:
 
 	std::vector<UINT> m_indexBufferCPU;
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* m_indexBufferGPU;
 	ID3D11ShaderResourceView* m_diffuseMapSRV;
 	ID3D11ShaderResourceView* m_normalMapSRV;

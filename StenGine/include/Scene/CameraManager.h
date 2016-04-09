@@ -1,7 +1,9 @@
 #ifndef __CAMERA_MANAGER__
 #define __CAMERA_MANAGER__
 
-#ifndef PLATFORM_ANDROID
+#include "System/API/PlatformAPIDefs.h"
+
+#if PLATFORM_WIN32
 #include <DirectXMath.h>
 #include <windows.h>
 using namespace DirectX;
@@ -35,7 +37,7 @@ public:
 	XMMATRIX GetViewMatrix();
 	XMMATRIX GetProjMatrix();
 	XMFLOAT4 GetPos() { 
-#ifdef PLATFORM_ANDROID
+#if PLATFORM_ANDROID
 		return m_pos;
 #else
 		return XMFLOAT4(m_worldTransform._41, m_worldTransform._42, m_worldTransform._43, 0.0); 

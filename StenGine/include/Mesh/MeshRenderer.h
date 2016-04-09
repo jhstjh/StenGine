@@ -1,10 +1,13 @@
 #ifndef __MESH_RENDERER__
 #define __MESH_RENDERER__
+
+#include "System/API/PlatformAPIDefs.h"
 #include <vector>
-#if defined(PLATFORM_WIN32) || defined(SG_TOOL)
+
+#if (PLATFORM_WIN32) || (SG_TOOL)
 #include "Graphics/D3DIncludes.h"
 #include "Graphics/Abstraction/RendererBase.h"
-#elif defined PLATFORM_ANDROID
+#elif  PLATFORM_ANDROID
 #include "AndroidType.h"
 #endif
 #include "Graphics/Effect/EffectsManager.h"
@@ -17,7 +20,7 @@ class Effect;
 
 class Mesh: public Component {
 protected:
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* m_indexBufferGPU;
 	ID3D11Buffer* m_stdMeshVertexBufferGPU;
 	ID3D11Buffer* m_shadowMapVertexBufferGPU;
@@ -50,7 +53,7 @@ public:
 	std::vector<XMFLOAT2> m_texUVBufferCPU;
 	std::vector<XMFLOAT4> m_colorBufferCPU;
 	std::vector<XMFLOAT3> m_tangentBufferCPU;
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11ShaderResourceView* m_diffuseMapSRV;
 	ID3D11ShaderResourceView* m_normalMapSRV;
 	ID3D11ShaderResourceView* m_bumpMapSRV;

@@ -1,6 +1,9 @@
 #ifndef __MATERIAL__
 #define __MATERIAL__
-#ifdef PLATFORM_WIN32
+
+#include "System/API/PlatformAPIDefs.h"
+
+#if PLATFORM_WIN32
 #include "Graphics/D3DIncludes.h"
 #endif
 

@@ -463,6 +463,7 @@
     <ClInclude Include="include\stdafx.h" />
     <ClInclude Include="include\StenGine.h" />
     <ClInclude Include="include\System\AlignedClass.h" />
+    <ClInclude Include="include\System\API\PlatformAPIDefs.h" />
     <ClInclude Include="include\targetver.h" />
     <ClInclude Include="include\Utility\FbxReaderSG.h" />
     <ClInclude Include="include\Utility\ObjReader.h" />

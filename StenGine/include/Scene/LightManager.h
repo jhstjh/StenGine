@@ -1,8 +1,11 @@
 #ifndef __LIGHT_MANAGER__
 #define __LIGHT_MANAGER__
-#ifdef PLATFORM_WIN32
+
+#include "System/API/PlatformAPIDefs.h"
+
+#if PLATFORM_WIN32
 #include "Graphics/D3DIncludes.h"
-#elif defined PLATFORM_ANDROID
+#elif  PLATFORM_ANDROID
 #include "AndroidType.h"
 #endif
 
@@ -26,7 +29,7 @@ public:
 			_instance = new LightManager();
 		return _instance;
 	}
-#ifdef PLATFORM_WIN32
+#if PLATFORM_WIN32
 	class ShadowMap* m_shadowMap;
 #endif
 };

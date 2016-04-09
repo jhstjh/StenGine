@@ -1,6 +1,6 @@
 #include "Scene/LightManager.h"
 
-#ifdef PLATFORM_WIN32
+#if PLATFORM_WIN32
 #include "Graphics/Effect/ShadowMap.h"
 #endif
 

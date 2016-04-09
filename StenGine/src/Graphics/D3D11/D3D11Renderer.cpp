@@ -1,4 +1,4 @@
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Graphics/Color.h"

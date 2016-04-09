@@ -5,9 +5,9 @@
 
 using namespace DirectX;
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 #define TRASNPOSE_API_CHOOSER(M) XMMatrixTranspose(M) 
-#elif defined GRAPHICS_OPENGL
+#elif  GRAPHICS_OPENGL
 #define TRASNPOSE_API_CHOOSER(M) (M) 
 #endif
 

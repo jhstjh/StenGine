@@ -15,7 +15,7 @@ SkinnedMesh::~SkinnedMesh() {
 void SkinnedMesh::PrepareGPUBuffer() {
 	m_associatedDeferredEffect = EffectsManager::Instance()->m_deferredGeometryPassEffect;
 	m_associatedDeferredEffect->m_associatedMeshes.push_back(this);
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	std::vector<Vertex::SkinnedMeshVertex> vertices(m_positionBufferCPU.size());
 	UINT k = 0;
 	for (size_t i = 0; i < m_positionBufferCPU.size(); ++i, ++k)

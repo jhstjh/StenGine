@@ -1,14 +1,16 @@
 #ifndef __EFFECTS_MANAGER__
 #define __EFFECTS_MANAGER__
 
+#include "System/API/PlatformAPIDefs.h"
+
 #include "Scene/LightManager.h"
 #include "Graphics/Abstraction/ConstantBuffer.h"
 #include "Graphics/Effect/Material.h"
 #include "Mesh/MeshRenderer.h"
 
-#ifdef PLATFORM_WIN32
+#if PLATFORM_WIN32
 
-#ifdef GRAPHICS_OPENGL
+#if GRAPHICS_OPENGL
 #include "Graphics/OpenGL/GLBuffer.h"
 #include "glew.h"
 #endif
@@ -16,7 +18,7 @@
 #include "Graphics/D3DIncludes.h"
 
 #define D3D_COMPILE_STANDARD_FILE_INCLUDE ((ID3DInclude*)(UINT_PTR)1)
-#elif defined PLATFORM_ANDROID
+#elif  PLATFORM_ANDROID
 #include <EGL/egl.h>
 #include <GLES/gl.h>
 #include "NDKHelper.h"
@@ -31,8 +33,8 @@ class Mesh;
 
 class Effect : public AlignedClass<16> {
 protected:
-#ifndef PLATFORM_ANDROID
-#ifdef GRAPHICS_D3D11
+#if PLATFORM_WIN32
+#if GRAPHICS_D3D11
 	ID3D11VertexShader* m_vertexShader;
 	ID3D11PixelShader* m_pixelShader;
 	ID3D11GeometryShader* m_geometryShader;
@@ -90,7 +92,7 @@ public:
 	{ 
 		return (void*)m_inputLayout; 
 	}
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	virtual void UnbindUnorderedAccessViews();
 	virtual void SetShaderResources(ID3D11ShaderResourceView* res, int idx);
 	virtual ID3D11ShaderResourceView* GetOutputShaderResource(int idx);
@@ -120,11 +122,11 @@ public:
 	std::vector<Mesh*> m_associatedMeshes;
 };
 
-#ifndef PLATFORM_ANDROID
+#if PLATFORM_WIN32
 
 class DeferredGeometryPassEffect : public Effect {
 private:
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 
 #else
 
@@ -150,7 +152,7 @@ public:
 
 	void PrepareBuffer();
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	struct PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX WorldViewProj;
@@ -212,7 +214,7 @@ public:
 
 class DeferredGeometryTerrainPassEffect : public Effect {
 private:
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* m_perFrameCB;
 	ID3D11Buffer* m_perObjectCB;
 #else
@@ -238,7 +240,7 @@ public:
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	struct PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX WorldViewProj;
@@ -313,7 +315,7 @@ public:
 
 class TerrainShadowMapEffect : public Effect {
 private:
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* m_perFrameCB;
 	ID3D11Buffer* m_perObjectCB;
 #else
@@ -338,7 +340,7 @@ public:
 	virtual void UpdateConstantBuffer();
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	struct PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX WorldViewProj;
@@ -412,7 +414,7 @@ public:
 
 class DeferredGeometrySkinnedPassEffect : public Effect {
 private:
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* m_perFrameCB;
 	ID3D11Buffer* m_perObjectCB;
 #else
@@ -437,7 +439,7 @@ public:
 	virtual void UpdateConstantBuffer();
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	struct PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX WorldViewProj;
@@ -508,7 +510,7 @@ public:
 
 class DeferredShadingPassEffect : public Effect {
 private:
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* m_perFrameCB;
 #else
 	GLuint m_perFrameUBO;
@@ -523,7 +525,7 @@ public:
 	virtual void BindShaderResource();
 
 	struct 
-#ifdef GRAPHICS_D3D11		
+#if GRAPHICS_D3D11		
 	PERFRAME_CONSTANT_BUFFER
 	{
 		DirectionalLight gDirLight;
@@ -534,7 +536,7 @@ public:
 	m_perFrameConstantBuffer;
 #endif
 
-#ifdef GRAPHICS_OPENGL
+#if GRAPHICS_OPENGL
 	PERFRAME_UNIFORM_BUFFER
 	{
 		DirectionalLight gDirLight;
@@ -579,7 +581,7 @@ public:
 	} 
 	m_perObjConstantBuffer;
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* m_perObjectCB;
 #else
 	GLuint m_perObjectCB;
@@ -592,7 +594,7 @@ public:
 
 class GodRayEffect : public Effect {
 private:
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* m_perFrameCB;
 #else
 	GLuint m_perFrameUBO;
@@ -608,7 +610,7 @@ public:
 	virtual void BindShaderResource();
 
 	struct
-#ifdef GRAPHICS_D3D11		
+#if GRAPHICS_D3D11		
 		PERFRAME_CONSTANT_BUFFER
 #else
 		PERFRAME_UNIFORM_BUFFER
@@ -616,13 +618,13 @@ public:
 	{
 		XMFLOAT4 gLightPosH;
 	}
-#ifdef GRAPHICS_D3D11		
+#if GRAPHICS_D3D11		
 	m_perFrameConstantBuffer;
 #else
 	m_perFrameUniformBuffer;
 #endif
 
-#ifdef GRAPHICS_OPENGL
+#if GRAPHICS_OPENGL
 	GLuint OcclusionMap;
 #endif
 
@@ -636,7 +638,7 @@ public:
 class SkyboxEffect : public Effect {
 public:
 private:
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* m_perObjectCB;
 #else
 	GLuint m_perObjectUBO;
@@ -651,7 +653,7 @@ public:
 	virtual void BindShaderResource();
 
 	struct 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX gWorldViewProj;
@@ -659,7 +661,7 @@ public:
 	m_perObjConstantBuffer;
 #endif
 
-#ifdef GRAPHICS_OPENGL
+#if GRAPHICS_OPENGL
 	PEROBJ_UNIFORM_BUFFER
 	{
 		XMMATRIX gWorldViewProj;
@@ -788,7 +790,7 @@ public:
 
 class DebugLineEffect : public Effect {
 private:
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11Buffer* m_perObjectCB;
 #else
 	GLuint m_perObjectUBO;
@@ -808,7 +810,7 @@ public:
 	virtual void BindShaderResource();
 
 	struct 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	PEROBJ_CONSTANT_BUFFER
 #else
 	PEROBJ_UNIFORM_BUFFER
@@ -816,13 +818,13 @@ public:
 	{
 		XMMATRIX ViewProj;
 	} 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	m_perObjConstantBuffer;
 #else
 	m_perObjUniformBuffer;
 #endif
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	virtual PEROBJ_CONSTANT_BUFFER* GetPerObjConstantBuffer() { return &m_perObjConstantBuffer; }
 #endif
 	//ID3D11ShaderResourceView *m_shaderResources[5];
@@ -911,7 +913,7 @@ public:
 	EffectsManager();
 	~EffectsManager();
 
-#ifndef PLATFORM_ANDROID
+#if PLATFORM_WIN32
 	//StdMeshEffect* m_stdMeshEffect;
 	ShadowMapEffect* m_shadowMapEffect;
 	TerrainShadowMapEffect* m_terrainShadowMapEffect;

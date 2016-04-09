@@ -4,16 +4,16 @@
 #include <unordered_map>
 #include "Mesh/MeshRenderer.h"
 
-#ifdef GRAPHICS_OPENGL
+#if GRAPHICS_OPENGL
 #include "Graphics/OpenGL/GLImageLoader.h"
 #include "glew.h"
 #endif
 
-#ifdef PLATFORM_WIN32
+#if PLATFORM_WIN32
 #include "Graphics/D3DIncludes.h"
 #include <type_traits>
 #include "Utility/FbxReaderSG.h"
-#elif defined PLATFORM_ANDROID
+#elif  PLATFORM_ANDROID
 #include <assert.h>
 #include "SgmReader.h"
 #endif
@@ -75,7 +75,7 @@ public:
 					return (T*)plane;
 				}
 				else {
-#ifdef PLATFORM_WIN32
+#if PLATFORM_WIN32
 					Mesh* newMesh = new Mesh(2);
 					bool result = FbxReaderSG::Read(path, newMesh);
 					assert(result);
@@ -83,7 +83,7 @@ public:
 					m_meshResourceMap[path] = newMesh;
 					
 					return (T*)newMesh;
-#elif defined(PLATFORM_ANDROID)
+#elif (PLATFORM_ANDROID)
 					Mesh* newMesh = new Mesh(2);
 
 					std::string _path(path.begin(), path.end());
@@ -101,8 +101,8 @@ public:
 				return (T*)got->second;
 			}
 		}
-//#ifdef PLATFORM_WIN32
-#ifdef GRAPHICS_D3D11
+//#if PLATFORM_WIN32
+#if GRAPHICS_D3D11
 		else if (std::is_same<T, ID3D11ShaderResourceView>::value) {
 			auto got = m_textureSRVResourceMap.find(path);
 			if (got == m_textureSRVResourceMap.end()) {
@@ -139,8 +139,8 @@ public:
 
 	template <typename T>
 	T* GetResource(std::vector<std::wstring> &filenames) {
-#ifdef PLATFORM_WIN32
-#ifdef GRAPHICS_D3D11
+#if PLATFORM_WIN32
+#if GRAPHICS_D3D11
 		if (std::is_same<T, ID3D11ShaderResourceView>::value) {
 			//
 			// Load the texture elements individually from file.  These textures
@@ -243,7 +243,7 @@ public:
 private:
 	static ResourceManager* _instance;
 	std::unordered_map<std::wstring, Mesh*> m_meshResourceMap;
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	std::unordered_map<std::wstring, ID3D11ShaderResourceView*> m_textureSRVResourceMap;
 #else
 	std::unordered_map<std::wstring, uint64_t> m_textureResourceMap;

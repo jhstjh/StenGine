@@ -1,19 +1,19 @@
 ﻿#ifdef GRAPHICS_OPENGL
 
-#include "GL/glew.h"
-#include "GL/wglew.h"
+#include "glew.h"
+#include "wglew.h"
 
-#include "RendererBase.h"
-#include "D3DIncludes.h"
-#include "EffectsManager.h"
-#include "MeshRenderer.h"
-#include "LightManager.h"
-#include "MathHelper.h"
-#include "CameraManager.h"
-#include "Color.h"
-#include "LightManager.h"
-#include "ShadowMap.h"
-#include "Skybox.h"
+#include "Graphics/Abstraction/RendererBase.h"
+#include "Graphics/D3DIncludes.h"
+#include "Graphics/Effect/EffectsManager.h"
+#include "Mesh/MeshRenderer.h"
+#include "Scene/LightManager.h"
+#include "Math/MathHelper.h"
+#include "Scene/CameraManager.h"
+#include "Graphics/Color.h"
+#include "Scene/LightManager.h"
+#include "Graphics/Effect/ShadowMap.h"
+#include "Graphics/Effect/Skybox.h"
 #include <vector>
 #include <memory>
 

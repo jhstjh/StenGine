@@ -3,7 +3,7 @@
 
 #include "Graphics/D3DIncludes.h"
 
-#ifdef GRAPHICS_OPENGL
+#if GRAPHICS_OPENGL
 #include "glew.h"
 #endif
 
@@ -11,7 +11,7 @@ class ShadowMap {
 private:
 	UINT m_width;
 	UINT m_height;
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11ShaderResourceView* m_depthSRV;
 	ID3D11DepthStencilView* m_depthDSV;
 	D3D11_VIEWPORT m_viewPort;
@@ -27,7 +27,7 @@ private:
 public:
 	ShadowMap(UINT width, UINT height);
 	~ShadowMap();
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ID3D11ShaderResourceView* GetDepthSRV() { return m_depthSRV; }
 #else
 	GLuint GetDepthTex() { return m_depthTex; }

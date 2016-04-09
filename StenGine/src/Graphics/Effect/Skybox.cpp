@@ -3,12 +3,12 @@
 #include "Scene/CameraManager.h"
 #include "Mesh/MeshRenderer.h"
 
-#ifdef GRAPHICS_OPENGL
+#if GRAPHICS_OPENGL
 #include "Graphics/OpenGL/GLImageLoader.h"
 #endif
 
 Skybox::Skybox(std::wstring &cubeMapPath) {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	CreateDDSTextureFromFile(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice()),
 		cubeMapPath.c_str(), nullptr, &m_cubeMapSRV);
 #else
@@ -92,7 +92,7 @@ Skybox::Skybox(std::wstring &cubeMapPath) {
 }
 
 Skybox::~Skybox() {
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	ReleaseCOM(m_cubeMapSRV);
 #else
 	glMakeTextureHandleNonResidentARB(m_cubeMapTex);
@@ -102,7 +102,7 @@ Skybox::~Skybox() {
 void Skybox::Draw() {
 	SkyboxEffect* skyboxEffect = EffectsManager::Instance()->m_skyboxEffect;
 	skyboxEffect->SetShader();
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	//skyboxEffect->m_shaderResources[0] = m_cubeMapSRV;
 	skyboxEffect->SetShaderResources(m_cubeMapSRV, 0);

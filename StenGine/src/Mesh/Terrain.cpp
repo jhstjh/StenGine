@@ -1,4 +1,4 @@
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 
 #include <fstream>
 

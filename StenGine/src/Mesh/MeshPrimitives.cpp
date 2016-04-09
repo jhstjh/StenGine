@@ -163,8 +163,8 @@ void Mesh::CreateBoxPrimitive() {
 	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
 	m_subMeshes[0].m_indexBufferCPU = m_indexBufferCPU;
 
-#ifdef PLATFORM_WIN32
-#ifdef GRAPHICS_D3D11
+#if PLATFORM_WIN32
+#if GRAPHICS_D3D11
 	m_subMeshes[0].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02.dds");
 	m_subMeshes[0].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02_normal.dds");
 #else
@@ -218,7 +218,7 @@ void Mesh::CreatePlanePrimitive() {
 	m_material.diffuse = XMFLOAT4(1.0f, 0.5f, 0.3f, 1.f);
 	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 16.0f);
 
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/darkbrickdxt1.dds");
 	m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/darkbrickdxt1_normal.dds");
 	m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/darkbrickdxt1_bump.dds");

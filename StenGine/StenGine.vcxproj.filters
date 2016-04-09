@@ -77,6 +77,9 @@
     <Filter Include="include\Graphics\D3D11">
       <UniqueIdentifier>{2b15a4ea-cb29-4cd0-a8e3-df74dcb7c887}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\System\API">
+      <UniqueIdentifier>{a3ada901-62ef-4229-ae0a-541211f10800}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -317,6 +320,9 @@
     </ClInclude>
     <ClInclude Include="include\Graphics\D3D11\D3D11ConstantBuffer.h">
       <Filter>include\Graphics\D3D11</Filter>
+    </ClInclude>
+    <ClInclude Include="include\System\API\PlatformAPIDefs.h">
+      <Filter>include\System\API</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

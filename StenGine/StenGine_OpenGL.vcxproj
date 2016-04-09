@@ -113,7 +113,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;FBXSDK_SHARED;GRAPHICS_OPENGL;PLATFORM_WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;FBXSDK_SHARED;GRAPHICS_OPENGL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalIncludeDirectories>$(FBX_SDK)\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -238,6 +238,7 @@
     <ClInclude Include="include\stdafx.h" />
     <ClInclude Include="include\StenGine.h" />
     <ClInclude Include="include\System\AlignedClass.h" />
+    <ClInclude Include="include\System\API\PlatformAPIDefs.h" />
     <ClInclude Include="include\targetver.h" />
     <ClInclude Include="include\Utility\FbxReaderSG.h" />
     <ClInclude Include="include\Utility\ObjReader.h" />
@@ -271,6 +272,11 @@
     <ClCompile Include="src\Utility\ObjReader.cpp" />
     <ClCompile Include="src\Utility\SgmReader.cpp" />
     <ClCompile Include="src\Utility\Timer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\External\GLI\GLI.vcxproj">
+      <Project>{df2d976c-3014-48ac-a84a-2413355ca342}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

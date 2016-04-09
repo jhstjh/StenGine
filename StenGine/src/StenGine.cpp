@@ -106,7 +106,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 // 	GameObject* dragon = new GameObject(-3, -1, 0);
 // 	Mesh* dragonMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/dragon.fbx");
 // 	dragon->AddComponent(dragonMesh);
-#ifdef GRAPHICS_D3D11
+#if GRAPHICS_D3D11
 	Terrain::InitInfo tii;
 	tii.HeightMapFilename = L"Terrain/terrain.raw";
 	tii.LayerMapFilenames.resize(5);

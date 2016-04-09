@@ -1,9 +1,11 @@
 #ifndef __GAMEOBJECT__
 #define __GAMEOBJECT__
 
-#if defined(PLATFORM_WIN32) || defined (SG_TOOL)
+#include "System/API/PlatformAPIDefs.h"
+
+#if (PLATFORM_WIN32) || (SG_TOOL)
 #include "Graphics/D3DIncludes.h"
-#elif defined PLATFORM_ANDROID
+#elif  PLATFORM_ANDROID
 #include "AndroidType.h"
 #endif
 #include "Scene/Component.h"
