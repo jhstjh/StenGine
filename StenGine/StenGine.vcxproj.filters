@@ -324,6 +324,12 @@
     <ClInclude Include="include\System\API\PlatformAPIDefs.h">
       <Filter>include\System\API</Filter>
     </ClInclude>
+    <ClInclude Include="include\Graphics\Abstraction\GPUBuffer.h">
+      <Filter>include\Graphics\Abstraction</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\Abstraction\GPUBufferBase.h">
+      <Filter>include\Graphics\Abstraction</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -399,6 +405,12 @@
       <Filter>src\Graphics\D3D11</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\D3D11\D3D11SRVBinding.cpp">
+      <Filter>src\Graphics\D3D11</Filter>
+    </ClCompile>
+    <ClCompile Include="include\Graphics\D3D11\D3D11Buffer.h">
+      <Filter>include\Graphics\D3D11</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\D3D11Buffer.cpp">
       <Filter>src\Graphics\D3D11</Filter>
     </ClCompile>
   </ItemGroup>

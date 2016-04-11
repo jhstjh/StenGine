@@ -427,14 +427,14 @@ ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
 		cbDesc.MiscFlags = 0;
 		cbDesc.StructureByteStride = 0;
 
-		D3D11_SUBRESOURCE_DATA InitData;
-		InitData.pSysMem = &m_perObjConstantBuffer;
-		InitData.SysMemPitch = 0;
-		InitData.SysMemSlicePitch = 0;
+		//D3D11_SUBRESOURCE_DATA InitData;
+		//InitData.pSysMem = &m_perObjConstantBuffer;
+		//InitData.SysMemPitch = 0;
+		//InitData.SysMemSlicePitch = 0;
 
 		HRESULT hr;
 		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
 			&m_perObjectCB);
 
 		assert(SUCCEEDED(hr));
@@ -453,20 +453,8 @@ ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
 	glVertexArrayAttribBinding(m_inputLayout, 0, 0);
 
 
-	glGenBuffers(1, &m_perObjectCB);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectCB);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_CONSTANT_BUFFER), NULL, GL_DYNAMIC_DRAW);
-#endif
-}
-
-void ShadowMapEffect::UpdateConstantBuffer() {
-
-}
-
-void ShadowMapEffect::BindConstantBuffer() {
-#if GRAPHICS_D3D11
-	ID3D11Buffer* cbuf[] = { m_perObjectCB };
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 1, cbuf);
+	glCreateBuffers(1, &m_perObjectCB);
+	glNamedBufferStorage(m_perObjectCB, sizeof(PEROBJ_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
 #endif
 }
 
@@ -474,6 +462,8 @@ ShadowMapEffect::~ShadowMapEffect()
 {
 #if GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
+#else
+	glDeleteVertexArrays(1, &m_inputLayout);
 #endif
 }
 
@@ -482,20 +472,12 @@ ShadowMapEffect::~ShadowMapEffect()
 
 DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath)
 	:Effect(vsPath, psPath, gsPath, hsPath, dsPath)
-#if GRAPHICS_OPENGL
-	, m_buffer(4096)
-	, m_bufferOffset(0)
-#endif
 {
 
 }
 
 DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filename)
 	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT)
-#if GRAPHICS_OPENGL
-	, m_buffer{ 1024 * 256 }
-	, m_bufferOffset(0)
-#endif
 {
 	PrepareBuffer();
 }
@@ -505,7 +487,7 @@ DeferredGeometryPassEffect::~DeferredGeometryPassEffect()
 #if GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
 #else
-	m_buffer.unlock();
+	glDeleteVertexArrays(1, &m_inputLayout);
 #endif
 }
 
@@ -538,14 +520,9 @@ void DeferredGeometryPassEffect::PrepareBuffer()
 		cbDesc.MiscFlags = 0;
 		cbDesc.StructureByteStride = 0;
 
-		D3D11_SUBRESOURCE_DATA InitData;
-		InitData.pSysMem = &m_perObjConstantBuffer;
-		InitData.SysMemPitch = 0;
-		InitData.SysMemSlicePitch = 0;
-
 		HRESULT hr;
 		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
 			&m_perObjectCB);
 
 		assert(SUCCEEDED(hr));
@@ -561,15 +538,9 @@ void DeferredGeometryPassEffect::PrepareBuffer()
 		cbDesc.MiscFlags = 0;
 		cbDesc.StructureByteStride = 0;
 
-		// Fill in the subresource data.
-		D3D11_SUBRESOURCE_DATA InitData;
-		InitData.pSysMem = &m_perFrameConstantBuffer;
-		InitData.SysMemPitch = 0;
-		InitData.SysMemSlicePitch = 0;
-
 		HRESULT hr;
 		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
 			&m_perFrameCB);
 
 		assert(SUCCEEDED(hr));
@@ -601,72 +572,19 @@ void DeferredGeometryPassEffect::PrepareBuffer()
 	glVertexArrayAttribBinding(m_inputLayout, 3, 0);
 
 
-	glGenBuffers(1, &m_perFrameCB);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_perFrameCB);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PERFRAME_CONSTANT_BUFFER), NULL, GL_DYNAMIC_DRAW);
+	glCreateBuffers(1, &m_perFrameCB);
+	glNamedBufferStorage(m_perFrameCB, sizeof(PERFRAME_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
 
-	glGenBuffers(1, &m_perObjectCB);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectCB);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_CONSTANT_BUFFER), NULL, GL_DYNAMIC_DRAW);
+	glCreateBuffers(1, &m_perObjectCB);
+	glNamedBufferStorage(m_perObjectCB, sizeof(PEROBJ_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
 
 	GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
 	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
 
 	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
 	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
-
-	m_bufferBase = m_buffer.lock();
 #endif
 }
-
-void DeferredGeometryPassEffect::UpdateConstantBuffer() {
-#if GRAPHICS_D3D11
-
-#else
-
-
-	//m_constantBuffers.emplace_back(0, sizeof(PERFRAME_UNIFORM_BUFFER), 0, &m_perFrameUniformBuffer);
-	//m_constantBuffers.emplace_back((sizeof(PERFRAME_UNIFORM_BUFFER) / 256 + 1) * 256, sizeof(PEROBJ_UNIFORM_BUFFER), 1, &m_perObjUniformBuffer);
-	//// 256 is from glGetIntegerv​(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, ...);
-	//
-	//memcpy((uint8_t*)m_bufferBase + m_bufferOffset, &m_perFrameUniformBuffer, sizeof(PERFRAME_UNIFORM_BUFFER));
-	//glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_buffer.GetBuffer(), m_bufferOffset, sizeof(PERFRAME_UNIFORM_BUFFER));
-	//m_bufferOffset += ((sizeof(PERFRAME_UNIFORM_BUFFER) / 256 + 1) * 256);
-	//if (m_bufferOffset >= 1024 * 256 - sizeof(PEROBJ_UNIFORM_BUFFER)) m_bufferOffset = 0;
-	//
-	//memcpy((uint8_t*)m_bufferBase + m_bufferOffset, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
-	//glBindBufferRange(GL_UNIFORM_BUFFER, 1, m_buffer.GetBuffer(), m_bufferOffset, sizeof(PEROBJ_UNIFORM_BUFFER));
-	//m_bufferOffset += ((sizeof(PEROBJ_UNIFORM_BUFFER) / 256 + 1) * 256);
-	//if (m_bufferOffset >= 1024 * 256 - sizeof(PERFRAME_UNIFORM_BUFFER)) m_bufferOffset = 0;
-
-	//for (uint32_t i = 0; i < m_constantBuffers.size(); i++)
-	//{
-	//	memcpy((uint8_t*)m_bufferBase + m_constantBuffers[i].offset, m_constantBuffers[i].data, m_constantBuffers[i].size);
-	//	glBindBufferRange(GL_UNIFORM_BUFFER, m_constantBuffers[i].pos, m_buffer.GetBuffer(), m_constantBuffers[i].offset, m_constantBuffers[i].size);
-	//	auto err = glGetError();
-	//	err += 0;
-	//}
-
-#endif
-}
-
-void DeferredGeometryPassEffect::BindConstantBuffer() {
-#if GRAPHICS_D3D11
-	ID3D11Buffer* cbuf[] = { m_perObjectCB, m_perFrameCB };
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 2, cbuf);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 2, cbuf);
-#endif
-}
-
-void DeferredGeometryPassEffect::BindShaderResource() {
-#if GRAPHICS_D3D11
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 5, m_shaderResources);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 5, m_shaderResources);
-#else
-
-#endif
-}
-
 
 //------------------------------------------------------------//
 
@@ -1273,155 +1191,6 @@ DeferredGeometryTessPassEffect::~DeferredGeometryTessPassEffect()
 	ReleaseCOM(m_inputLayout);
 #endif
 }
-
-void DeferredGeometryTessPassEffect::PrepareBuffer()
-{
-#if GRAPHICS_D3D11
-	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-	};
-
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 4, m_vsBlob->GetBufferPointer(),
-		m_vsBlob->GetBufferSize(), &m_inputLayout));
-
-	m_shaderResources = new ID3D11ShaderResourceView*[5];
-
-	for (int i = 0; i < 5; i++) {
-		m_shaderResources[i] = 0;
-	}
-
-	{
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		D3D11_SUBRESOURCE_DATA InitData;
-		InitData.pSysMem = &m_perObjConstantBuffer;
-		InitData.SysMemPitch = 0;
-		InitData.SysMemSlicePitch = 0;
-
-		HRESULT hr;
-		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
-			&m_perObjectCB);
-
-		assert(SUCCEEDED(hr));
-	}
-
-	{
-		// Fill in a buffer description.
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		// Fill in the subresource data.
-		D3D11_SUBRESOURCE_DATA InitData;
-		InitData.pSysMem = &m_perFrameConstantBuffer;
-		InitData.SysMemPitch = 0;
-		InitData.SysMemSlicePitch = 0;
-
-		HRESULT hr;
-		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
-			&m_perFrameCB);
-
-		assert(SUCCEEDED(hr));
-	}
-
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-#endif
-
-#if GRAPHICS_OPENGL
-	glCreateVertexArrays(1, &m_inputLayout);
-
-	glEnableVertexArrayAttrib(m_inputLayout, 0);
-	glEnableVertexArrayAttrib(m_inputLayout, 1);
-	glEnableVertexArrayAttrib(m_inputLayout, 2);
-	glEnableVertexArrayAttrib(m_inputLayout, 3);
-
-	glVertexArrayAttribFormat(m_inputLayout, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Pos));
-	glVertexArrayAttribFormat(m_inputLayout, 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Normal));
-	glVertexArrayAttribFormat(m_inputLayout, 2, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Tangent));
-	glVertexArrayAttribFormat(m_inputLayout, 3, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, TexUV));
-
-	glVertexArrayAttribBinding(m_inputLayout, 0, 0);
-	glVertexArrayAttribBinding(m_inputLayout, 1, 0);
-	glVertexArrayAttribBinding(m_inputLayout, 2, 0);
-	glVertexArrayAttribBinding(m_inputLayout, 3, 0);
-
-
-	glGenBuffers(1, &m_perFrameCB);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_perFrameCB);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PERFRAME_CONSTANT_BUFFER), NULL, GL_DYNAMIC_DRAW);
-
-	glGenBuffers(1, &m_perObjectCB);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectCB);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_CONSTANT_BUFFER), NULL, GL_DYNAMIC_DRAW);
-
-	GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
-	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
-
-	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
-	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
-
-#endif
-}
-
-void DeferredGeometryTessPassEffect::UpdateConstantBuffer()
-{
-#if GRAPHICS_D3D11
-	{
-		D3D11_MAPPED_SUBRESOURCE ms;
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perObjectCB, NULL);
-	}
-
-	{
-		D3D11_MAPPED_SUBRESOURCE ms;
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perFrameCB, NULL);
-	}
-#endif
-}
-
-void DeferredGeometryTessPassEffect::BindConstantBuffer() {
-#if GRAPHICS_D3D11
-	ID3D11Buffer* cbuf[] = { m_perObjectCB, m_perFrameCB };
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 2, cbuf);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 2, cbuf);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetConstantBuffers(0, 2, cbuf);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetConstantBuffers(0, 2, cbuf);
-#endif
-}
-
-void DeferredGeometryTessPassEffect::BindShaderResource() {
-#if GRAPHICS_D3D11
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 5, m_shaderResources);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 5, m_shaderResources);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShaderResources(0, 5, m_shaderResources);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShaderResources(0, 5, m_shaderResources);
-#endif
-}
-
 
 //----------------------------------------------------------//
 

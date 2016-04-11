@@ -304,6 +304,12 @@
     <ClInclude Include="include\System\API\PlatformAPIDefs.h">
       <Filter>include\System\API</Filter>
     </ClInclude>
+    <ClInclude Include="include\Graphics\Abstraction\GPUBuffer.h">
+      <Filter>include\Graphics\Abstraction</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\Abstraction\GPUBufferBase.h">
+      <Filter>include\Graphics\Abstraction</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">

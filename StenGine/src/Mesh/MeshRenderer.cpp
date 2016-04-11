@@ -38,15 +38,16 @@ m_receiveShadow(true)
 
 Mesh::~Mesh() {
 #if GRAPHICS_D3D11
-	ReleaseCOM(m_indexBufferGPU);
-	ReleaseCOM(m_stdMeshVertexBufferGPU);
-	ReleaseCOM(m_shadowMapVertexBufferGPU);
 	ReleaseCOM(m_diffuseMapSRV);
 	ReleaseCOM(m_normalMapSRV);
 	ReleaseCOM(m_bumpMapSRV);
+#endif
+
+	SafeDelete(m_shadowMapVertexBufferGPU);
+	SafeDelete(m_stdMeshVertexBufferGPU);
+	SafeDelete(m_indexBufferGPU);
 	SafeDelete(m_associatedEffect);
 	SafeDelete(m_associatedDeferredEffect);
-#endif
 }
 
 void Mesh::Prepare() {
@@ -59,7 +60,8 @@ void Mesh::Prepare() {
 	}
 }
 
-void Mesh::PrepareGPUBuffer() {
+void Mesh::PrepareGPUBuffer() 
+{
 #if PLATFORM_WIN32
 	m_associatedDeferredEffect = EffectsManager::Instance()->m_deferredGeometryPassEffect;
 	m_associatedDeferredEffect->m_associatedMeshes.push_back(this);
@@ -78,67 +80,13 @@ void Mesh::PrepareGPUBuffer() {
 		vertices[k].TexUV = m_texUVBufferCPU[i];
 	}
 
-#if GRAPHICS_D3D11
-	D3D11_BUFFER_DESC vbd;
-	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex::StdMeshVertex) * m_positionBufferCPU.size();
-	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vbd.CPUAccessFlags = 0;
-	vbd.MiscFlags = 0;
-	//vbd.StructureByteStride = 0;
-	D3D11_SUBRESOURCE_DATA vinitData;
-	vinitData.pSysMem = &vertices[0];
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&vbd, &vinitData, &m_stdMeshVertexBufferGPU));
-
-	D3D11_BUFFER_DESC ibd;
-	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = sizeof(UINT) * m_indexBufferCPU.size();
-	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	ibd.CPUAccessFlags = 0;
-	ibd.MiscFlags = 0;
-	ibd.StructureByteStride = 0;
-	D3D11_SUBRESOURCE_DATA iinitData;
-	iinitData.pSysMem = &m_indexBufferCPU[0];
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&ibd, &iinitData, &m_indexBufferGPU));
-
-	//m_associatedEffect = EffectsManager::Instance()->m_stdMeshEffect;
-	//m_associatedEffect->m_associatedMeshes.push_back(this);
-#elif (GRAPHICS_OPENGL) || defined(PLATFORM_ANDROID)
-
-	glCreateBuffers(1, &m_stdMeshVertexBufferGPU);
-	glCreateBuffers(1, &m_indexBufferGPU);
-
-	glNamedBufferStorageEXT(m_stdMeshVertexBufferGPU, (GLsizeiptr)vertices.size() * sizeof(Vertex::StdMeshVertex), (GLvoid*)&vertices.front(), 0);
-	glNamedBufferStorageEXT(m_indexBufferGPU, (GLsizeiptr)m_indexBufferCPU.size() * sizeof(UINT), (GLvoid*)&m_indexBufferCPU.front(), 0);
-
-#endif
+	m_stdMeshVertexBufferGPU = new GPUBuffer(vertices.size() * sizeof(Vertex::StdMeshVertex), BufferUsage::IMMUTABLE, (void*)&vertices.front(), BufferType::VERTEX_BUFFER);
+	m_indexBufferGPU = new GPUBuffer(m_indexBufferCPU.size() * sizeof(UINT), BufferUsage::IMMUTABLE, (void*)&m_indexBufferCPU.front(), BufferType::INDEX_BUFFER);
 }
 
-void Mesh::PrepareShadowMapBuffer() {
-#if GRAPHICS_D3D11
-	std::vector<Vertex::ShadowMapVertex> vertices(m_positionBufferCPU.size());
-	UINT k = 0;
-	for (size_t i = 0; i < m_positionBufferCPU.size(); ++i, ++k)
-	{
-		vertices[k].Pos = m_positionBufferCPU[i];
-	}
-
-	D3D11_BUFFER_DESC vbd;
-	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex::ShadowMapVertex) * m_positionBufferCPU.size();
-	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vbd.CPUAccessFlags = 0;
-	vbd.MiscFlags = 0;
-	//vbd.StructureByteStride = 0;
-	D3D11_SUBRESOURCE_DATA vinitData;
-	vinitData.pSysMem = &vertices[0];
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&vbd, &vinitData, &m_shadowMapVertexBufferGPU));
-#elif (GRAPHICS_OPENGL) || defined(PLATFORM_ANDROID)
-
-	glCreateBuffers(1, &m_shadowMapVertexBufferGPU);
-	glNamedBufferStorageEXT(m_shadowMapVertexBufferGPU, (GLsizeiptr)m_positionBufferCPU.size() * sizeof(Vertex::ShadowMapVertex), (GLvoid*)&m_positionBufferCPU.front(), 0);
-
-#endif
+void Mesh::PrepareShadowMapBuffer() 
+{
+	m_shadowMapVertexBufferGPU = new GPUBuffer(m_positionBufferCPU.size() * sizeof(Vertex::ShadowMapVertex), BufferUsage::IMMUTABLE, (void*)&m_positionBufferCPU.front(), BufferType::VERTEX_BUFFER);
 }
 
 void Mesh::GatherDrawCall() {
@@ -244,8 +192,8 @@ void Mesh::GatherDrawCall() {
 
 			cmd.inputLayout = effect->GetInputLayout();
 			cmd.framebuffer = Renderer::Instance()->GetGbuffer();		
-			cmd.vertexBuffer = (void*)m_stdMeshVertexBufferGPU;
-			cmd.indexBuffer = (void*)m_indexBufferGPU;
+			cmd.vertexBuffer = (void*)m_stdMeshVertexBufferGPU->GetBuffer();
+			cmd.indexBuffer = (void*)m_indexBufferGPU->GetBuffer();
 			cmd.vertexStride = stride;
 			cmd.vertexOffset = offset;
 			cmd.effect = effect;
@@ -321,8 +269,8 @@ void Mesh::GatherShadowDrawCall() {
 		DrawCmd cmd;
 
 		cmd.type = PrimitiveTopology::TRIANGLELIST;
-		cmd.vertexBuffer = (void*)m_shadowMapVertexBufferGPU;
-		cmd.indexBuffer = (void*)m_indexBufferGPU;
+		cmd.vertexBuffer = (void*)m_shadowMapVertexBufferGPU->GetBuffer();
+		cmd.indexBuffer = (void*)m_indexBufferGPU->GetBuffer();
 		cmd.vertexStride = stride;
 		cmd.vertexOffset = offset;
 		cmd.inputLayout = effect->GetInputLayout();

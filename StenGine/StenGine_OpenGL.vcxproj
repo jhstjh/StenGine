@@ -211,6 +211,8 @@
     <ClInclude Include="include\Graphics\Abstraction\ConstantBuffer.h" />
     <ClInclude Include="include\Graphics\Abstraction\ConstantBufferBase.h" />
     <ClInclude Include="include\Graphics\Abstraction\DrawCmd.h" />
+    <ClInclude Include="include\Graphics\Abstraction\GPUBuffer.h" />
+    <ClInclude Include="include\Graphics\Abstraction\GPUBufferBase.h" />
     <ClInclude Include="include\Graphics\Abstraction\RendererBase.h" />
     <ClInclude Include="include\Graphics\Color.h" />
     <ClInclude Include="include\Graphics\D3DIncludes.h" />

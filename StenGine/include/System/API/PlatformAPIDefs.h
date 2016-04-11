@@ -21,7 +21,7 @@
 #endif
 
 #ifdef _ANDROID_
-#defien PLATFORM_ANDROID 1
+#define PLATFORM_ANDROID 1
 #else
 #define PLATFORM_ANDROID 0
 #endif

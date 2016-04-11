@@ -1,3 +1,5 @@
+#if 0
+
 #include "Mesh/SkinnedMesh.h"
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Graphics/D3DIncludes.h"
@@ -68,10 +70,12 @@ void SkinnedMesh::PrepareGPUBuffer() {
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 	glEnableVertexAttribArray(3);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferGPU);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferGPU->GetBuffer());
 #endif
 }
 
 void SkinnedMesh::PrepareShadowMapBuffer() {
 
 }
+
+#endif

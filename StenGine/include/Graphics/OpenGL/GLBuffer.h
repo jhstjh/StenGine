@@ -4,22 +4,26 @@
 #include "glew.h"
 #include <stdint.h>
 
+#include "Graphics/Abstraction/GPUBufferBase.h"
+
 class GLBuffer
 {
 public:
-	GLBuffer(uint32_t size);
+	GLBuffer(size_t size, BufferUsage usage, void* data = nullptr, BufferType type = BufferType::GENERAL);
 	~GLBuffer();
 
-	void* lock();
-	void unlock();
+	void* map();
+	void unmap();
 
 	GLuint GetBuffer() { return m_buffer; };
 
 private:
 	GLuint m_buffer;
-	uint32_t m_size;
-	bool m_mapped;
+	size_t m_size;
 	uint32_t m_flags;
+	bool m_mapped;
 };
+
+using GPUBuffer = GLBuffer;
 
 #endif

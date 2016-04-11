@@ -81,8 +81,8 @@ public:
 		   const std::wstring& csPath);
 	virtual ~Effect();
 	virtual void SetShader();
-	virtual void UpdateConstantBuffer() = 0;
-	virtual void BindConstantBuffer() = 0;
+	virtual void UpdateConstantBuffer() {};
+	virtual void BindConstantBuffer() {};
 	virtual void BindShaderResource() {} 
 	virtual void UnBindConstantBuffer();
 	virtual void UnBindShaderResource();
@@ -125,17 +125,6 @@ public:
 #if PLATFORM_WIN32
 
 class DeferredGeometryPassEffect : public Effect {
-private:
-#if GRAPHICS_D3D11
-
-#else
-
-
-	GLBuffer m_buffer;
-	void* m_bufferBase;
-	std::vector<ConstantBuffer> m_constantBuffers;
-
-#endif
 
 public:
 	DeferredGeometryPassEffect(const std::wstring& filename);
@@ -145,10 +134,6 @@ public:
 		const std::wstring& hsPath,
 		const std::wstring& dsPath);
 	~DeferredGeometryPassEffect();
-
-	virtual void UpdateConstantBuffer();
-	virtual void BindConstantBuffer();
-	virtual void BindShaderResource();
 
 	void PrepareBuffer();
 
@@ -164,16 +149,12 @@ public:
 		XMMATRIX ShadowTransform;
 		Material Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
-	} m_perObjConstantBuffer;
+	} ;
 
 	struct PERFRAME_CONSTANT_BUFFER
 	{
 		XMFLOAT4 EyePosW;
-	} m_perFrameConstantBuffer;
-
-	virtual PEROBJ_CONSTANT_BUFFER* GetPerObjConstantBuffer() { return &m_perObjConstantBuffer; }
-	virtual PERFRAME_CONSTANT_BUFFER* GetPerFrameConstantBuffer() { return &m_perFrameConstantBuffer; }
-	//ID3D11ShaderResourceView *m_shaderResources[5];
+	} ;
 
 	ID3D11Buffer* m_perFrameCB;
 	ID3D11Buffer* m_perObjectCB;
@@ -192,19 +173,16 @@ public:
 		uint64_t ShadowMapTex;
 		uint64_t BumpMapTex;
 		uint64_t CubeMapTex;
-	} m_perObjUniformBuffer;
+	};
 
 	struct PERFRAME_CONSTANT_BUFFER
 	{
 		XMFLOAT4 EyePosW;
 		DirectionalLight DirLight;
-	} m_perFrameUniformBuffer;
+	};
 
 	GLuint m_perFrameCB;
 	GLuint m_perObjectCB;
-
-	uint32_t m_bufferOffset;
-
 #endif
 };
 
@@ -493,16 +471,8 @@ private:
 
 
 public:
-	//ID3D11Buffer* m_perFrameCB;
-	//ID3D11Buffer* m_perObjectCB;
-
 	DeferredGeometryTessPassEffect(const std::wstring& filename);
 	~DeferredGeometryTessPassEffect();
-
-	virtual void UpdateConstantBuffer();
-	virtual void BindConstantBuffer();
-	virtual void BindShaderResource();
-	void PrepareBuffer();
 };
 
 
@@ -571,15 +541,10 @@ public:
 	ShadowMapEffect(const std::wstring& filename);
 	~ShadowMapEffect();
 
-	virtual void UpdateConstantBuffer();
-	virtual void BindConstantBuffer();
-	
-	struct 
-	PEROBJ_CONSTANT_BUFFER
+	struct PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX gWorldViewProj;
-	} 
-	m_perObjConstantBuffer;
+	};
 
 #if GRAPHICS_D3D11
 	ID3D11Buffer* m_perObjectCB;

@@ -15,28 +15,16 @@
 #include "Scene/Component.h"
 #include "Graphics/Effect/Material.h"
 #include "Mesh/SubMesh.h"
+#include "Graphics/Abstraction/GPUBuffer.h"
 
 class Effect;
 
 class Mesh: public Component {
 protected:
-#if GRAPHICS_D3D11
-	ID3D11Buffer* m_indexBufferGPU;
-	ID3D11Buffer* m_stdMeshVertexBufferGPU;
-	ID3D11Buffer* m_shadowMapVertexBufferGPU;
-#else
-	GLuint m_indexBufferGPU;
-	GLuint m_stdMeshVertexBufferGPU;
-	GLuint m_shadowMapVertexBufferGPU;
+	GPUBuffer* m_indexBufferGPU;
+	GPUBuffer* m_stdMeshVertexBufferGPU;
+	GPUBuffer* m_shadowMapVertexBufferGPU;
 
-	GLuint m_positionBufferGPU;
-	GLuint m_normalBufferGPU;
-	GLuint m_texUVBufferGPU;
-	GLuint m_tangentBufferGPU;
-
-	GLuint m_vertexArrayObject;
-	GLuint m_shadowVertexArrayObject;
-#endif
 	Effect* m_associatedEffect;
 	Effect* m_associatedDeferredEffect;
 
