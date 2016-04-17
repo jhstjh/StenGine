@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include "Mesh/MeshRenderer.h"
+#include "System/SingletonClass.h"
 
 #if GRAPHICS_OPENGL
 #include "Graphics/OpenGL/GLImageLoader.h"
@@ -22,15 +23,8 @@
 namespace StenGine
 {
 
-class ResourceManager {
+class ResourceManager : public SingletonClass<ResourceManager> {
 public:
-	static ResourceManager* Instance() {
-		if (!_instance) {
-			_instance = new ResourceManager();
-		}
-		return _instance;
-	}
-
 	template <typename T>
 	T* GetResource(const char* path) {
 		std::string s(path);
@@ -244,7 +238,6 @@ public:
 	~ResourceManager();
 
 private:
-	static ResourceManager* _instance;
 	std::unordered_map<std::wstring, Mesh*> m_meshResourceMap;
 #if GRAPHICS_D3D11
 	std::unordered_map<std::wstring, ID3D11ShaderResourceView*> m_textureSRVResourceMap;

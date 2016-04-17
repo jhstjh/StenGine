@@ -12,10 +12,8 @@
 #include "Scene/LightManager.h"
 #include "Scene/CameraManager.h"
 #include "Resource/ResourceManager.h"
-#include "Scene/GameObject.h"
+#include "Scene/GameObjectManager.h"
 #include "Input/InputManager.h"
-#include "Mesh/Terrain.h"
-//#include "MathHelper.h"
 #include "Utility/Timer.h"
 #include <memory>
 
@@ -77,57 +75,10 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	std::unique_ptr<CameraManager> cameraManager = std::unique_ptr<CameraManager>(CameraManager::Instance());
 	std::unique_ptr<ResourceManager> resourceManager = std::unique_ptr<ResourceManager>(ResourceManager::Instance());
 	std::unique_ptr<InputManager> inputManager = std::unique_ptr<InputManager>(InputManager::Instance());
+	std::unique_ptr<GameObjectManager> gameObjectManager = std::unique_ptr<GameObjectManager>(GameObjectManager::Instance());
 
-	GameObject* box0 = new GameObject("box0", 0.f, 1.2f, 0.f);
-	Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
-	box0->AddComponent(box0Mesh);
-	box0->RotateAroundY(3.14159f / 5);
+	gameObjectManager->LoadScene();
 
-	GameObject* sphere = new GameObject("sphere", 0.f, 3.7f, -0.5f);
-	Mesh* sphereMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/earth.fbx");
-	sphere->AddComponent(sphereMesh);
-	
-	GameObject* plane0 = new GameObject("plane0", 4.f, 0.2f, 0.f);
-	Mesh* plane0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plane.fbx");
-	plane0->AddComponent(plane0Mesh);
-	
-	GameObject* plane1 = new GameObject("plane1", -4.f, 0.2f, 0.f);
-	Mesh* plane1Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plane.fbx");
-	plane1->AddComponent(plane1Mesh);
-	
-	GameObject* plants0 = new GameObject("plants0", -4.f, 0.2f, 0.f);
-	Mesh* plants0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plants.fbx");
-	plants0->AddComponent(plants0Mesh);
-	
-	GameObject* house0 = new GameObject("plants0", 0.f, -0.1f, 20.f);
-	Mesh* house0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/house.fbx");
-	house0->AddComponent(house0Mesh);
-	house0->RotateAroundY(3.1415926f / 2);
-
- 	GameObject* dragon = new GameObject("dragon", 3, 0.2, 0);
- 	Mesh* dragonMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/dragon.fbx");
- 	dragon->AddComponent(dragonMesh);
-#if GRAPHICS_D3D11
-	Terrain::InitInfo tii;
-	tii.HeightMapFilename = L"Terrain/terrain.raw";
-	tii.LayerMapFilenames.resize(5);
-	tii.LayerMapFilenames[0] = L"Terrain/grass.dds";
-	tii.LayerMapFilenames[1] = L"Terrain/darkdirt.dds";
-	tii.LayerMapFilenames[2] = L"Terrain/stone.dds";
-	tii.LayerMapFilenames[3] = L"Terrain/lightdirt.dds";
-	tii.LayerMapFilenames[4] = L"Terrain/snow.dds";
-	tii.BlendMapFilename = L"Terrain/blend.dds";
-	tii.HeightScale = 50.0f;
-	tii.HeightmapWidth = 2049;
-	tii.HeightmapHeight = 2049;
-	tii.CellSpacing = 0.5f;
-
-	GameObject* terrain = new GameObject("Terrain", 0, 0, -100);
-
-
-	Terrain* terrainComp = new Terrain(tii);
-	terrain->AddComponent(terrainComp);
-#endif
 	Timer::Init();
 
 	float elapsedTime = 0;
@@ -159,29 +110,19 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 				renderer->UpdateTitle(outs.str().c_str());
 				elaspedFrame = 0;
 			}
-			InputManager::Instance()->Update();
-			CameraManager::Instance()->GetActiveCamera()->Update();			
-			sphere->Update();
-			Renderer::Instance()->Draw();
+			inputManager->Update();
+			cameraManager->GetActiveCamera()->Update();			
+			gameObjectManager->Update();
+			renderer->Draw();
 			elaspedFrame++;
 		}
 	}
 
 	SafeRelease(renderer);
 
-//  	SafeDelete(box0);
-//   	SafeDelete(sphere);
-//   	SafeDelete(plane0);
-//	SafeDelete(dragon);
-
 	return (int) msg.wParam;
 }
 
-//
-//  FUNCTION: MyRegisterClass()
-//
-//  PURPOSE: Registers the window class.
-//
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
 	WNDCLASSEX wcex;
@@ -225,29 +166,11 @@ BOOL CreateWindowInstance(int32_t w, int32_t h, HINSTANCE hInstance/*, int nCmdS
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	//int wmId, wmEvent;
-	PAINTSTRUCT ps;
-	HDC hdc;
-
 	switch (message)
 	{
-	case WM_PAINT:
-		hdc = BeginPaint(hWnd, &ps);
-		
-		EndPaint(hWnd, &ps);
-		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
-	case WM_RBUTTONDOWN:
-//		CameraManager::Instance()->GetActiveCamera()->OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-		return 0;
-	case WM_RBUTTONUP:
-//		CameraManager::Instance()->GetActiveCamera()->OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-		return 0;
-	case WM_MOUSEMOVE:
-//		CameraManager::Instance()->GetActiveCamera()->OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-		return 0;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}

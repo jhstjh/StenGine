@@ -10,9 +10,6 @@ namespace StenGine
 
 class Terrain : public Component, public Drawable {
 public:
-
-	static Terrain* Instance() { return _instance; }
-
 	struct InitInfo {
 		std::wstring HeightMapFilename;
 		std::vector<std::wstring> LayerMapFilenames;
@@ -31,7 +28,6 @@ public:
 
 private:
 	static const int CellsPerPatch = 64;
-	static Terrain* _instance;
 
 	void LoadHeightmap();
 	void Smooth();

@@ -174,8 +174,6 @@ void Camera::Update() {
 #endif
 }
 
-CameraManager* CameraManager::_instance = nullptr;
-
 CameraManager::CameraManager() {
 	m_debugCamera = new Camera(4.0f, 11.f, -11.f, 0.0f, 5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.25f * 3.14159f, 1.0f, 1000.0f);
 	m_activeCamera = m_debugCamera;
@@ -184,5 +182,7 @@ CameraManager::CameraManager() {
 CameraManager::~CameraManager() {
 	SafeDelete(m_debugCamera);
 }
+
+DEFINE_SINGLETON_CLASS(CameraManager)
 
 }

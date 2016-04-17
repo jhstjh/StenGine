@@ -237,11 +237,13 @@
     <ClInclude Include="include\Scene\Component.h" />
     <ClInclude Include="include\Scene\Drawable.h" />
     <ClInclude Include="include\Scene\GameObject.h" />
+    <ClInclude Include="include\Scene\GameObjectManager.h" />
     <ClInclude Include="include\Scene\LightManager.h" />
     <ClInclude Include="include\stdafx.h" />
     <ClInclude Include="include\StenGine.h" />
     <ClInclude Include="include\System\AlignedClass.h" />
     <ClInclude Include="include\System\API\PlatformAPIDefs.h" />
+    <ClInclude Include="include\System\SingletonClass.h" />
     <ClInclude Include="include\targetver.h" />
     <ClInclude Include="include\Utility\FbxReaderSG.h" />
     <ClInclude Include="include\Utility\ObjReader.h" />
@@ -272,6 +274,7 @@
     <ClCompile Include="src\Scene\LightManager.cpp" />
     <ClCompile Include="src\stdafx.cpp" />
     <ClCompile Include="src\StenGine.cpp" />
+    <ClCompile Include="src\System\GameObjectManager.cpp" />
     <ClCompile Include="src\Utility\FbxReaderSG.cpp" />
     <ClCompile Include="src\Utility\ObjReader.cpp" />
     <ClCompile Include="src\Utility\SgmReader.cpp" />

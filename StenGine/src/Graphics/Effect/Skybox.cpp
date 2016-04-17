@@ -105,49 +105,6 @@ Skybox::~Skybox() {
 
 void Skybox::Draw() {
 	SkyboxEffect* skyboxEffect = EffectsManager::Instance()->m_skyboxEffect;
-	//	skyboxEffect->SetShader();
-	//#if GRAPHICS_D3D11
-	//	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	//	//skyboxEffect->m_shaderResources[0] = m_cubeMapSRV;
-	//	skyboxEffect->SetShaderResources(m_cubeMapSRV, 0);
-	//
-	//
-	//	XMFLOAT4 eyePos = CameraManager::Instance()->GetActiveCamera()->GetPos();
-	//	XMMATRIX T = XMMatrixTranslation(eyePos.x, eyePos.y, eyePos.z);
-	//	XMMATRIX WVP = XMMatrixMultiply(T, CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
-	//
-	//	skyboxEffect->m_perObjConstantBuffer.gWorldViewProj = XMMatrixTranspose(WVP);
-	//
-	//	skyboxEffect->UpdateConstantBuffer();
-	//	skyboxEffect->BindConstantBuffer();
-	//	skyboxEffect->BindShaderResource();
-	//	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Draw(36, 0);
-	//
-	//#else
-	//	glBindVertexArray(m_skyboxVAO);
-	//	//skyboxEffect->CubeMap = m_cubeMapTex;
-	//	XMFLOAT4 eyePos = CameraManager::Instance()->GetActiveCamera()->GetPos();
-	//	XMMATRIX T = XMMatrixTranslation(eyePos.x, eyePos.y, eyePos.z);
-	//	XMMATRIX WVP = XMMatrixMultiply(T, CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
-	//
-	//	skyboxEffect->m_perObjUniformBuffer.gWorldViewProj = WVP;
-	//	skyboxEffect->m_perObjUniformBuffer.gCubeMap = m_cubeMapTex;
-	//	skyboxEffect->UpdateConstantBuffer();
-	//
-	//	//glDrawArrays(GL_TRIANGLES, 0, 36);
-	//
-	//	glDrawElements(
-	//		GL_TRIANGLES,      // mode
-	//		36,    // count
-	//		GL_UNSIGNED_INT,   // type
-	//		(void*)0           // element array buffer offset
-	//	);
-	//
-	//#endif
-	//	skyboxEffect->UnBindShaderResource();
-	//	skyboxEffect->UnBindConstantBuffer();
-	//
-	//	skyboxEffect->UnSetShader();
 
 	ConstantBuffer cbuffer0(0, sizeof(SkyboxEffect::PEROBJ_CONSTANT_BUFFER), (void*)skyboxEffect->m_perObjectCB);
 	SkyboxEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (SkyboxEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
@@ -167,6 +124,7 @@ void Skybox::Draw() {
 #if GRAPHICS_OPENGL
 	cmd.drawType = DrawType::INDEXED;
 	cmd.inputLayout = (void*)m_skyboxVAO;
+	perObjData->gCubeMap = m_cubeMapTex;
 #endif
 	cmd.offset = 0;
 	cmd.effect = skyboxEffect;

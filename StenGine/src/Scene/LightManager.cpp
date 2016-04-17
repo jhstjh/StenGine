@@ -7,7 +7,7 @@
 namespace StenGine
 {
 
-LightManager* LightManager::_instance = nullptr;
+DEFINE_SINGLETON_CLASS(LightManager)
 
 LightManager::~LightManager() {
 	for (uint32_t i = 0; i < m_dirLights.size(); i++) {

@@ -2,14 +2,15 @@
 #define __INPUT_MANAGER__
 //#include <Xinput.h>
 #include "Graphics/D3DIncludes.h"
+#include "System/SingletonClass.h"
 #include <bitset>
 
 namespace StenGine
 {
 
-class InputManager {
+class InputManager : public SingletonClass<InputManager>
+{
 private:
-	static InputManager* _instance;
 
 	//  	struct CONTROLLER_STATE
 	//  	{
@@ -26,12 +27,6 @@ private:
 public:
 	InputManager();
 	~InputManager();
-	static InputManager* Instance() {
-		if (!_instance) {
-			_instance = new InputManager();
-		}
-		return _instance;
-	}
 
 	void Update();
 	bool GetKeyDown(char key);

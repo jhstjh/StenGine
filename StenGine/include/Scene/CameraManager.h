@@ -2,6 +2,7 @@
 #define __CAMERA_MANAGER__
 
 #include "System/API/PlatformAPIDefs.h"
+#include "System/SingletonClass.h"
 
 #if PLATFORM_WIN32
 #include <DirectXMath.h>
@@ -52,18 +53,12 @@ public:
 	void Update();
 };
 
-class CameraManager {
+class CameraManager : public SingletonClass<CameraManager> {
 private:
 	Camera* m_debugCamera;
 	Camera* m_activeCamera;
-	static CameraManager* _instance;
 
 public:
-	static CameraManager* Instance() {
-		if (!_instance)
-			_instance = new CameraManager();
-		return _instance;
-	}
 
 	CameraManager();
 	~CameraManager();

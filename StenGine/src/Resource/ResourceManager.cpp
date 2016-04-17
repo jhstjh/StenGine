@@ -3,7 +3,7 @@
 namespace StenGine
 {
 
-ResourceManager* ResourceManager::_instance = nullptr;
+DEFINE_SINGLETON_CLASS(ResourceManager)
 
 ResourceManager::~ResourceManager() {
 	for (auto it = m_meshResourceMap.begin(); it != m_meshResourceMap.end(); ++it) {

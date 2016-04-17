@@ -1011,47 +1011,10 @@ SkyboxEffect::SkyboxEffect(const std::wstring& filename)
 #endif
 }
 
-void SkyboxEffect::UpdateConstantBuffer() {
-//#if GRAPHICS_D3D11
-//	{
-//		D3D11_MAPPED_SUBRESOURCE ms;
-//		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-//		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
-//		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perObjectCB, NULL);
-//	}
-//#else
-//	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
-//	PEROBJ_UNIFORM_BUFFER* perObjectUBOPtr = (PEROBJ_UNIFORM_BUFFER*)glMapBufferRange(
-//		GL_UNIFORM_BUFFER,
-//		0,
-//		sizeof(PEROBJ_UNIFORM_BUFFER),
-//		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-//	);
-//	memcpy(perObjectUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
-//	glUnmapBuffer(GL_UNIFORM_BUFFER);
-//#endif
-	}
-
-void SkyboxEffect::BindConstantBuffer() {
-#if GRAPHICS_D3D11
-	ID3D11Buffer* cbuf[] = { m_perObjectCB };
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 1, cbuf);
-#endif
-}
-
 SkyboxEffect::~SkyboxEffect()
 {
 #if GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
-#endif
-}
-
-void SkyboxEffect::BindShaderResource() {
-#if GRAPHICS_D3D11
-	//static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 4, m_shaderResources);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 1, m_shaderResources);
-#else
-
 #endif
 }
 
@@ -1957,7 +1920,8 @@ void SimpleMeshEffect::BindConstantBuffer() {
 #endif
 
 
-EffectsManager* EffectsManager::_instance = nullptr;
+DEFINE_SINGLETON_CLASS(EffectsManager)
+
 EffectsManager::EffectsManager()
 	: m_shadowMapEffect(nullptr)
 	, m_deferredGeometryPassEffect(nullptr)

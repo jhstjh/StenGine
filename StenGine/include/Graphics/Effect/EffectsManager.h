@@ -7,6 +7,7 @@
 #include "Graphics/Abstraction/ConstantBuffer.h"
 #include "Graphics/Effect/Material.h"
 #include "Mesh/MeshRenderer.h"
+#include "System/SingletonClass.h"
 
 #if PLATFORM_WIN32
 
@@ -601,10 +602,6 @@ public:
 	SkyboxEffect(const std::wstring& filename);
 	~SkyboxEffect();
 
-	virtual void UpdateConstantBuffer();
-	virtual void BindConstantBuffer();
-	virtual void BindShaderResource();
-
 	struct
 #if GRAPHICS_D3D11
 		PEROBJ_CONSTANT_BUFFER
@@ -850,17 +847,8 @@ public:
 
 #endif
 
-class EffectsManager {
-private:
-	static EffectsManager* _instance;
-
+class EffectsManager : public SingletonClass<EffectsManager> {
 public:
-	static EffectsManager* Instance() {
-		if (!_instance) {
-			_instance = new EffectsManager();
-		}
-		return _instance;
-	}
 	EffectsManager();
 	~EffectsManager();
 

@@ -2,6 +2,7 @@
 #define __LIGHT_MANAGER__
 
 #include "System/API/PlatformAPIDefs.h"
+#include "System/SingletonClass.h"
 
 #if PLATFORM_WIN32
 #include "Graphics/D3DIncludes.h"
@@ -21,17 +22,12 @@ struct DirectionalLight {
 };
 
 
-class LightManager {
-private:
-	static LightManager* _instance;
+class LightManager : public SingletonClass<LightManager> 
+{
 public:
 	~LightManager();
 	std::vector<DirectionalLight*> m_dirLights;
-	static LightManager* Instance() {
-		if (!_instance)
-			_instance = new LightManager();
-		return _instance;
-	}
+
 #if PLATFORM_WIN32
 	class ShadowMap* m_shadowMap;
 #endif

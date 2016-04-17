@@ -313,6 +313,12 @@
     <ClInclude Include="include\Graphics\Abstraction\Viewport.h">
       <Filter>include\Graphics\Abstraction</Filter>
     </ClInclude>
+    <ClInclude Include="include\System\SingletonClass.h">
+      <Filter>include\System</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Scene\GameObjectManager.h">
+      <Filter>include\Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -394,6 +400,9 @@
       <Filter>src\Utility</Filter>
     </ClCompile>
     <ClCompile Include="src\Scene\Drawable.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\System\GameObjectManager.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
   </ItemGroup>

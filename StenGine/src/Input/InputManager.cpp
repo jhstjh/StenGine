@@ -3,7 +3,7 @@
 namespace StenGine
 {
 
-InputManager* InputManager::_instance = nullptr;
+DEFINE_SINGLETON_CLASS(InputManager)
 
 InputManager::InputManager()
 {

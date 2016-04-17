@@ -72,7 +72,10 @@ void GameObject::AddComponent(Component* c) {
 
 void GameObject::Update() {
 #if PLATFORM_WIN32
-	RotateAroundY(-Timer::GetDeltaTime() * 3.14159f);
+
+	// HACK
+	if (stricmp("sphere", m_name.c_str()) == 0)
+		RotateAroundY(-Timer::GetDeltaTime() * 3.14159f);
 #endif
 }
 

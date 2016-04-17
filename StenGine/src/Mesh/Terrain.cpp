@@ -14,8 +14,6 @@
 namespace StenGine
 {
 
-Terrain* Terrain::_instance = nullptr;
-
 Terrain::Terrain(InitInfo &info) :
 	m_quadPatchVB(0),
 	m_quadPatchIB(0),
@@ -28,7 +26,6 @@ Terrain::Terrain(InitInfo &info) :
 	m_numPatchVertCols(0),
 	m_initInfo(info)
 {
-	_instance = this;
 	m_numPatchVertRows = ((m_initInfo.HeightmapHeight - 1) / CellsPerPatch) + 1;
 	m_numPatchVertCols = ((m_initInfo.HeightmapWidth - 1) / CellsPerPatch) + 1;
 

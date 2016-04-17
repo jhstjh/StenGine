@@ -339,6 +339,15 @@
     <ClInclude Include="include\Graphics\D3D11\D3D11RenderTarget.h">
       <Filter>include\Graphics\D3D11</Filter>
     </ClInclude>
+    <ClInclude Include="include\Graphics\D3D11\D3D11Buffer.h">
+      <Filter>include\Graphics\D3D11</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Scene\GameObjectManager.h">
+      <Filter>include\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\System\SingletonClass.h">
+      <Filter>include\System</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -416,13 +425,13 @@
     <ClCompile Include="src\Graphics\D3D11\D3D11SRVBinding.cpp">
       <Filter>src\Graphics\D3D11</Filter>
     </ClCompile>
-    <ClCompile Include="include\Graphics\D3D11\D3D11Buffer.h">
-      <Filter>include\Graphics\D3D11</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\D3D11\D3D11Buffer.cpp">
       <Filter>src\Graphics\D3D11</Filter>
     </ClCompile>
     <ClCompile Include="src\Scene\Drawable.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\System\GameObjectManager.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
   </ItemGroup>

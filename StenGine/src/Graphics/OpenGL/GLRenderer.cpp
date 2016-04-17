@@ -138,7 +138,7 @@ public:
 		glDepthMask(GL_TRUE);
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 		glViewport(0, 0, m_clientWidth, m_clientHeight);
-		glGenFramebuffers(1, &m_deferredGBuffers);
+		glCreateFramebuffers(1, &m_deferredGBuffers);
 		GenerateColorTex(m_diffuseBufferTex);
 		GenerateColorTex(m_normalBufferTex);
 		GenerateColorTex(m_specularBufferTex);
