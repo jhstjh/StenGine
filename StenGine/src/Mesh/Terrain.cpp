@@ -321,7 +321,8 @@ void Terrain::GatherDrawCall() {
 	cmd.srvs.AddSRV(m_layerMapArraySRV, 6);
 	cmd.srvs.AddSRV(m_blendMapSRV, 7);
 
-
+	cmd.drawType = DrawType::INDEXED;
+	cmd.flags = CmdFlag::DRAW;
 	cmd.offset = (void*)(0);
 	cmd.type = PrimitiveTopology::CONTROL_POINT_4_PATCHLIST;
 	cmd.inputLayout = effect->GetInputLayout();
@@ -385,7 +386,8 @@ void Terrain::GatherShadowDrawCall() {
 	cmd.srvs.AddSRV(m_layerMapArraySRV, 6);
 	cmd.srvs.AddSRV(m_blendMapSRV, 7);
 
-
+	cmd.drawType = DrawType::INDEXED;
+	cmd.flags = CmdFlag::DRAW;
 	cmd.offset = (void*)(0);
 	cmd.type = PrimitiveTopology::CONTROL_POINT_4_PATCHLIST;
 	cmd.inputLayout = effect->GetInputLayout();

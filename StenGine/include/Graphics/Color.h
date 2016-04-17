@@ -7,17 +7,21 @@ namespace StenGine
 class SGColors
 {
 public:
-	static float White[4];
-	static float Black[4];
-	static float Red[4];
-	static float Green[4];
-	static float Blue[4];
-	static float Yellow[4];
-	static float Cyan[4];
-	static float Magenta[4];
-	static float Silver[4];
-	static float LightSteelBlue[4];
+	float r, g, b, a;
+
+	static SGColors White;
+	static SGColors Black;
+	static SGColors Red;
+	static SGColors Green;
+	static SGColors Blue;
+	static SGColors Yellow;
+	static SGColors Cyan;
+	static SGColors Magenta;
+	static SGColors Silver;
+	static SGColors LightSteelBlue;
 };
+
+
 
 }
 #endif // !__COLOR__

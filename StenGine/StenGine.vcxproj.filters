@@ -333,6 +333,12 @@
     <ClInclude Include="include\Scene\Drawable.h">
       <Filter>include\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="include\Graphics\Abstraction\RenderTarget.h">
+      <Filter>include\Graphics\Abstraction</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\D3D11\D3D11RenderTarget.h">
+      <Filter>include\Graphics\D3D11</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">

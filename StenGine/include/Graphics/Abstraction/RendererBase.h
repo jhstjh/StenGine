@@ -70,7 +70,7 @@ public:
 	virtual void UpdateTitle(const char*) = 0;
 	virtual void AddDeferredDrawCmd(DrawCmd &cmd) = 0;
 	virtual void AddShadowDrawCmd(DrawCmd &cmd) = 0;
-	virtual void* GetGbuffer() = 0;
+	virtual RenderTarget GetGbuffer() = 0;
 	virtual void AddDraw(DrawEventHandler handler) = 0;
 	virtual void AddShadowDraw(DrawEventHandler handler) = 0;
 

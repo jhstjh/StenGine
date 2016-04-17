@@ -12,7 +12,7 @@
 #include "Scene/CameraManager.h"
 #include "Math/MathHelper.h"
 
-#pragma warning(disable: 4267 4244)
+#pragma warning(disable: 4267 4244 4311 4302)
 
 namespace StenGine
 {
@@ -533,10 +533,17 @@ public:
 			assert(SUCCEEDED(hr));
 		}
 
+		m_GBuffer.rtvs.push_back(m_diffuseBufferRTV);
+		m_GBuffer.rtvs.push_back(m_normalBufferRTV);
+		m_GBuffer.rtvs.push_back(m_specularBufferRTV);
+		m_GBuffer.dsv = m_deferredRenderDepthStencilView;
+
 		return true;
 	}
 
 	void D3D11Renderer::Draw() override {
+
+		m_GBuffer.ClearDepth(m_d3d11DeviceContext);
 
 		ID3D11SamplerState* samplerState[] = { m_samplerState, m_shadowSamplerState, m_heightMapSamplerState };
 		m_d3d11DeviceContext->PSSetSamplers(0, 3, samplerState);
@@ -544,9 +551,21 @@ public:
 		m_d3d11DeviceContext->DSSetSamplers(0, 3, samplerState);
 		m_d3d11DeviceContext->HSSetSamplers(0, 3, samplerState);
 
+		m_d3d11DeviceContext->RSSetState(0);
+		m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
+
+		m_d3d11DeviceContext->RSSetState(m_depthRS);
 		DrawShadowMap();
+		ExecuteCmdList();
+
+		m_d3d11DeviceContext->RSSetState(0);
 		DrawGBuffer();
+
 		DrawDeferredShading();
+		m_SkyBox->Draw();
+
+		ExecuteCmdList();
+
 		DrawBlurSSAOAndCombine();
 		//DrawGodRay();
 		DrawDebug();
@@ -579,175 +598,221 @@ public:
 		return m_depthRS;
 	}
 
+	void ExecuteCmdList()
+	{
+		for (auto &cmd : m_drawList)
+		{
+			if (cmd.flags & CmdFlag::BIND_FB)
+			{
+				cmd.framebuffer.SetRenderTarget(m_d3d11DeviceContext);
+			}
+
+			if (cmd.flags & CmdFlag::CLEAR_COLOR)
+			{
+				cmd.framebuffer.ClearColor(m_d3d11DeviceContext);
+			}
+
+			if (cmd.flags & CmdFlag::CLEAR_DEPTH)
+			{
+				cmd.framebuffer.ClearDepth(m_d3d11DeviceContext);
+			}
+
+			if (cmd.flags & CmdFlag::SET_VP)
+			{
+				m_d3d11DeviceContext->RSSetViewports(1, &cmd.viewport);
+			}
+
+			if (cmd.flags & CmdFlag::DRAW)
+			{
+				cmd.effect->SetShader();
+
+				m_d3d11DeviceContext->IASetPrimitiveTopology((D3D_PRIMITIVE_TOPOLOGY)cmd.type);
+				m_d3d11DeviceContext->IASetInputLayout((ID3D11InputLayout *)cmd.inputLayout);
+
+				if (cmd.vertexBuffer)
+				{
+					ID3D11Buffer* vertexBuffer = static_cast<ID3D11Buffer*>(cmd.vertexBuffer);
+					m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &cmd.vertexStride, &cmd.vertexOffset);
+				}
+
+				for (auto &cbuffer : cmd.cbuffers)
+				{
+					cbuffer.Bind();
+				}
+
+				cmd.srvs.Bind();
+
+				if (cmd.drawType == DrawType::INDEXED)
+				{
+					if (cmd.indexBuffer)
+					{
+						ID3D11Buffer* indexBuffer = static_cast<ID3D11Buffer*>(cmd.indexBuffer);
+						m_d3d11DeviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+					}
+
+					m_d3d11DeviceContext->DrawIndexed(cmd.elementCount, (int64_t)cmd.offset, 0);
+				}
+				else if (cmd.drawType == DrawType::ARRAY)
+				{
+					m_d3d11DeviceContext->Draw(cmd.elementCount, (UINT)cmd.offset);
+				}
+
+				cmd.srvs.Unbind();
+			}
+		}
+
+		m_drawList.clear();
+	}
+
 	void DrawShadowMap() override {
 		LightManager::Instance()->m_shadowMap->UpdateShadowMatrix();
+
+		// m_d3d11DeviceContext->RSSetState(m_depthRS);       // TODO !!!!!!!!!!!!!!!!!!!!!! 
+
+		uint32_t width, height;
+		LightManager::Instance()->m_shadowMap->GetDimension(width, height);
+
+		DrawCmd shadowcmd;
+
+		shadowcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_DEPTH;
+		shadowcmd.framebuffer = LightManager::Instance()->m_shadowMap->GetRenderTarget();
+		shadowcmd.viewport = { 0, 0, (float)width, (float)height, 0, 1 };
+
+		m_drawList.push_back(std::move(shadowcmd));
 
 		for (auto &gatherShadowDrawCall : m_shadowDrawHandler)
 		{
 			gatherShadowDrawCall();
 		}
-
-		m_d3d11DeviceContext->RSSetState(m_depthRS);
-
-		// todo
-		ID3D11DepthStencilView* dsv = (ID3D11DepthStencilView*)LightManager::Instance()->m_shadowMap->GetRenderTarget();
-
-		uint32_t width, height;
-		LightManager::Instance()->m_shadowMap->GetDimension(width, height);
-
-		ID3D11RenderTargetView* renderTargets[1] = { 0 };
-		m_d3d11DeviceContext->OMSetRenderTargets(1, renderTargets, dsv);
-		m_d3d11DeviceContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-		D3D11_VIEWPORT vp;
-		vp.TopLeftX = 0;
-		vp.TopLeftY = 0;
-		vp.Height = static_cast<float>(height);
-		vp.Width = static_cast<float>(width);
-		vp.MaxDepth = 1;
-		vp.MinDepth = 0;
-
-		m_d3d11DeviceContext->RSSetViewports(1, &vp);
-
-		for (auto &cmd : m_shadowMapDrawList)
-		{
-			cmd.effect->SetShader();
-			m_d3d11DeviceContext->IASetPrimitiveTopology((D3D_PRIMITIVE_TOPOLOGY)cmd.type);
-			m_d3d11DeviceContext->IASetInputLayout((ID3D11InputLayout *)cmd.inputLayout);
-
-			ID3D11Buffer* vertexBuffer = static_cast<ID3D11Buffer*>(cmd.vertexBuffer);
-			ID3D11Buffer* indexBuffer = static_cast<ID3D11Buffer*>(cmd.indexBuffer);
-
-			m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &cmd.vertexStride, &cmd.vertexOffset);
-			m_d3d11DeviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-			for (auto &cbuffer : cmd.cbuffers)
-			{
-				cbuffer.Bind();
-			}
-
-			m_d3d11DeviceContext->DrawIndexed(cmd.elementCount, 0, 0);
-		}
-
-		m_shadowMapDrawList.clear();
 	}
 
 	void D3D11Renderer::DrawGBuffer() {
-		m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
-		ID3D11RenderTargetView* rtvs[3] = { m_diffuseBufferRTV, m_normalBufferRTV, m_specularBufferRTV };
-		m_d3d11DeviceContext->OMSetRenderTargets(3, rtvs, m_deferredRenderDepthStencilView);
-		m_d3d11DeviceContext->ClearRenderTargetView(m_diffuseBufferRTV, reinterpret_cast<const float*>(&SGColors::LightSteelBlue));
-		m_d3d11DeviceContext->ClearRenderTargetView(m_positionBufferRTV, reinterpret_cast<const float*>(&SGColors::White));
-		m_d3d11DeviceContext->ClearRenderTargetView(m_normalBufferRTV, reinterpret_cast<const float*>(&SGColors::Black));
-		m_d3d11DeviceContext->ClearRenderTargetView(m_specularBufferRTV, reinterpret_cast<const float*>(&SGColors::Black));
-		m_d3d11DeviceContext->ClearDepthStencilView(m_deferredRenderDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+// TODO
+//		m_d3d11DeviceContext->RSSetState(0);
+//
 
-		m_d3d11DeviceContext->RSSetState(0);
 
-		ID3D11SamplerState* samplerState[] = { m_samplerState, m_shadowSamplerState, m_heightMapSamplerState };
-		m_d3d11DeviceContext->PSSetSamplers(0, 3, samplerState);
-		m_d3d11DeviceContext->VSSetSamplers(0, 3, samplerState);
-		m_d3d11DeviceContext->DSSetSamplers(0, 3, samplerState);
-		m_d3d11DeviceContext->HSSetSamplers(0, 3, samplerState);
+		DrawCmd drawcmd;
+
+		drawcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH;
+		drawcmd.framebuffer.rtvs.push_back(m_diffuseBufferRTV);
+		drawcmd.framebuffer.rtvs.push_back(m_normalBufferRTV);
+		drawcmd.framebuffer.rtvs.push_back(m_specularBufferRTV);
+		drawcmd.framebuffer.clearColor.push_back(SGColors::LightSteelBlue);
+		drawcmd.framebuffer.clearColor.push_back(SGColors::Black);
+		drawcmd.framebuffer.clearColor.push_back(SGColors::Black);
+		drawcmd.framebuffer.dsv = m_deferredRenderDepthStencilView;
+		drawcmd.viewport = m_screenViewpot;
+
+		m_drawList.push_back(std::move(drawcmd));
 
 		for (auto &gatherDrawCall : m_drawHandler)
 		{
 			gatherDrawCall();
 		}
-
-		for (auto &cmd : m_deferredDrawList)
-		{
-			cmd.effect->SetShader();
-			m_d3d11DeviceContext->IASetPrimitiveTopology((D3D_PRIMITIVE_TOPOLOGY)cmd.type);
-			m_d3d11DeviceContext->IASetInputLayout((ID3D11InputLayout *)cmd.inputLayout);
-
-			ID3D11Buffer* vertexBuffer = static_cast<ID3D11Buffer*>(cmd.vertexBuffer);
-			ID3D11Buffer* indexBuffer = static_cast<ID3D11Buffer*>(cmd.indexBuffer);
-
-			m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &cmd.vertexStride, &cmd.vertexOffset);
-			m_d3d11DeviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-			for (auto &cbuffer : cmd.cbuffers)
-			{
-				cbuffer.Bind();
-			}
-
-			cmd.srvs.Bind();
-
-			m_d3d11DeviceContext->DrawIndexed(cmd.elementCount, (int64_t)cmd.offset, 0);
-
-			cmd.srvs.Unbind();
-		}
-
-		m_deferredDrawList.clear();
 	}
 
 	void D3D11Renderer::DrawDeferredShading() {
-		ID3D11ShaderResourceView* nullSRV[16] = { 0 };
-		// --------- skybox --------- //
-		m_d3d11DeviceContext->PSSetShaderResources(0, 16, nullSRV);
-		m_d3d11DeviceContext->HSSetShaderResources(0, 16, nullSRV);
-		m_d3d11DeviceContext->DSSetShaderResources(0, 16, nullSRV);
-		m_d3d11DeviceContext->OMSetRenderTargets(1, &m_deferredShadingRTV, m_depthStencilView);
-		m_d3d11DeviceContext->ClearRenderTargetView(m_deferredShadingRTV, reinterpret_cast<const float*>(&SGColors::LightSteelBlue));
-		m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		DrawCmd clearCmd;
 
-		m_SkyBox->Draw();
-
-		m_d3d11DeviceContext->RSSetState(0);
-		m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
-		m_d3d11DeviceContext->OMSetRenderTargets(0, NULL, NULL);
+		clearCmd.flags = CmdFlag::BIND_FB;
+		clearCmd.framebuffer.dsv = nullptr;
 
 #define PS_SHADING 1
 #if PS_SHADING 
 		//-------------- composite deferred render target views AND SSAO-------------------//
-
+#if 0
 		m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
 		ID3D11RenderTargetView* crtvs[2] = { m_deferredShadingRTV, m_SSAORTV };
 		m_d3d11DeviceContext->OMSetRenderTargets(2, crtvs, m_depthStencilView);
 		m_d3d11DeviceContext->ClearRenderTargetView(m_SSAORTV, reinterpret_cast<const float*>(&SGColors::LightSteelBlue));
 		m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
+		
 		m_d3d11DeviceContext->IASetInputLayout(NULL);
-
+		
 		DeferredShadingPassEffect* deferredShadingEffect = EffectsManager::Instance()->m_deferredShadingPassEffect;
 		deferredShadingEffect->SetShader();
-
+		
 		DirectionalLight viewDirLight;
 		memcpy(&viewDirLight, LightManager::Instance()->m_dirLights[0], sizeof(DirectionalLight));
-
+		
 		XMMATRIX ViewInvTranspose = MatrixHelper::InverseTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
 		XMStoreFloat3(&viewDirLight.direction, XMVector3Transform(XMLoadFloat3(&viewDirLight.direction), ViewInvTranspose));
 		deferredShadingEffect->m_perFrameConstantBuffer.gDirLight = viewDirLight;
-
+		
 		XMFLOAT4 camPos = CameraManager::Instance()->GetActiveCamera()->GetPos();
 		XMStoreFloat4(&camPos, XMVector3Transform(XMLoadFloat4(&camPos), CameraManager::Instance()->GetActiveCamera()->GetViewMatrix()));
 		deferredShadingEffect->m_perFrameConstantBuffer.gEyePosV = camPos;
-
+		
 		XMMATRIX projMat = CameraManager::Instance()->GetActiveCamera()->GetProjMatrix();
 		XMVECTOR det = XMMatrixDeterminant(projMat);
 		deferredShadingEffect->m_perFrameConstantBuffer.gProj = XMMatrixTranspose(projMat);
-
+		
 		deferredShadingEffect->m_perFrameConstantBuffer.gProjInv = XMMatrixTranspose(XMMatrixInverse(&det, projMat));
-
+		
 		deferredShadingEffect->SetShaderResources(m_diffuseBufferSRV, 0);
 		deferredShadingEffect->SetShaderResources(m_normalBufferSRV, 1);
 		deferredShadingEffect->SetShaderResources(m_specularBufferSRV, 2);
 		deferredShadingEffect->SetShaderResources(m_deferredRenderShaderResourceView, 3);
 		deferredShadingEffect->SetShaderResources(m_randVecTexSRV, 4);
-
+		
 		m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_samplerState);
-
+		
 		deferredShadingEffect->UpdateConstantBuffer();
 		deferredShadingEffect->BindConstantBuffer();
 		deferredShadingEffect->BindShaderResource();
 		m_d3d11DeviceContext->Draw(6, 0);
 		deferredShadingEffect->UnBindShaderResource();
 		deferredShadingEffect->UnBindConstantBuffer();
-
+		
 		deferredShadingEffect->UnSetShader();
+#endif
+
+		DrawCmd cmd;
+		DeferredShadingPassEffect* effect = EffectsManager::Instance()->m_deferredShadingPassEffect;
+
+		ConstantBuffer cbuffer0(0, sizeof(DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB);
+		DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER* perFrameData = (DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 
 
+		DirectionalLight viewDirLight;
+		memcpy(&viewDirLight, LightManager::Instance()->m_dirLights[0], sizeof(DirectionalLight));
+
+		XMMATRIX ViewInvTranspose = MatrixHelper::InverseTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
+		XMStoreFloat3(&viewDirLight.direction, XMVector3Transform(XMLoadFloat3(&viewDirLight.direction), ViewInvTranspose));
+		perFrameData->gDirLight = viewDirLight;
+
+		XMFLOAT4 camPos = CameraManager::Instance()->GetActiveCamera()->GetPos();
+		XMStoreFloat4(&camPos, XMVector3Transform(XMLoadFloat4(&camPos), CameraManager::Instance()->GetActiveCamera()->GetViewMatrix()));
+		perFrameData->gEyePosV = camPos;
+
+		XMMATRIX projMat = CameraManager::Instance()->GetActiveCamera()->GetProjMatrix();
+		XMVECTOR det = XMMatrixDeterminant(projMat);
+		perFrameData->gProj = XMMatrixTranspose(projMat);
+
+		perFrameData->gProjInv = XMMatrixTranspose(XMMatrixInverse(&det, projMat));
+
+		cmd.srvs.AddSRV(m_diffuseBufferSRV, 0);
+		cmd.srvs.AddSRV(m_normalBufferSRV, 1);
+		cmd.srvs.AddSRV(m_specularBufferSRV, 2);
+		cmd.srvs.AddSRV(m_deferredRenderShaderResourceView, 3);
+		cmd.srvs.AddSRV(m_randVecTexSRV, 4);
+
+		cmd.flags = CmdFlag::DRAW | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH | CmdFlag::BIND_FB;
+		cmd.drawType = DrawType::ARRAY;
+		cmd.inputLayout = 0;
+		cmd.vertexBuffer = 0; // don't bind if 0
+		cmd.type = PrimitiveTopology::TRIANGLELIST;
+		cmd.framebuffer.rtvs.push_back(m_deferredShadingRTV);
+		cmd.framebuffer.rtvs.push_back(m_SSAORTV);
+		cmd.framebuffer.clearColor.resize(2, SGColors::LightSteelBlue);
+		cmd.framebuffer.dsv = m_depthStencilView;
+		cmd.offset = (void*)(0);
+		cmd.effect = effect;
+		cmd.elementCount = 6;
+		cmd.cbuffers.push_back(std::move(cbuffer0));
+
+		m_drawList.push_back(std::move(cmd));
 #else
 		// -------compute shader deferred shading -------//
 
@@ -902,6 +967,8 @@ public:
 
 		debugFX->UnBindConstantBuffer();
 		debugFX->UnSetShader();
+
+		m_d3d11DeviceContext->OMSetDepthStencilState(0, 0); // turn off z write
 	}
 
 	ID3D11ShaderResourceView* D3D11Renderer::doCSBlur(ID3D11ShaderResourceView* blurImgSRV, int uavSlotIdx) {
@@ -955,17 +1022,17 @@ public:
 
 	void AddDeferredDrawCmd(DrawCmd &cmd)
 	{
-		m_deferredDrawList.push_back(std::move(cmd));
+		m_drawList.push_back(std::move(cmd));
 	}
 
 	void AddShadowDrawCmd(DrawCmd &cmd) override
 	{
-		m_shadowMapDrawList.push_back(std::move(cmd));
+		m_drawList.push_back(std::move(cmd));
 	}
 
-	void* GetGbuffer() override
+	RenderTarget GetGbuffer() override
 	{
-		return nullptr;
+		return m_GBuffer;
 	}
 
 	void AddDraw(DrawEventHandler handler)
@@ -1040,11 +1107,15 @@ private:
 
 	ID3D11RasterizerState* m_depthRS;
 
-	std::vector<DrawCmd> m_deferredDrawList;
-	std::vector<DrawCmd> m_shadowMapDrawList;
+	//std::vector<DrawCmd> m_deferredDrawList;
+	//std::vector<DrawCmd> m_shadowMapDrawList;
+
+	std::vector<DrawCmd> m_drawList;
 
 	std::vector<DrawEventHandler> m_drawHandler;
 	std::vector<DrawEventHandler> m_shadowDrawHandler;
+
+	RenderTarget m_GBuffer;
 };
 
 Renderer* Renderer::_instance = nullptr;

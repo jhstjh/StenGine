@@ -2,6 +2,7 @@
 #define __SHADOW_MAP__
 
 #include "Graphics/D3DIncludes.h"
+#include "Graphics/Abstraction/RenderTarget.h"
 
 #if GRAPHICS_OPENGL
 #include "glew.h"
@@ -26,6 +27,8 @@ private:
 	XMFLOAT4X4 m_lightProj;
 	XMFLOAT4X4 m_shadowTransform;
 
+	RenderTarget m_shadowTarget;
+
 public:
 	ShadowMap(UINT width, UINT height);
 	~ShadowMap();
@@ -40,7 +43,7 @@ public:
 	XMMATRIX GetViewProjMatrix();
 	XMMATRIX GetShadowMapTransform();
 
-	void* GetRenderTarget();
+	RenderTarget GetRenderTarget();
 	void GetDimension(uint32_t &width, uint32_t &height) { width = m_width, height = m_height; }
 };
 

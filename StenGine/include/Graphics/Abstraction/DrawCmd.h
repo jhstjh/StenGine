@@ -14,6 +14,7 @@
 #include "Graphics/Effect/EffectsManager.h"
 #include "Graphics/Abstraction/ConstantBuffer.h"
 #include "Graphics/Abstraction/Viewport.h"
+#include "Graphics/Abstraction/RenderTarget.h"
 
 namespace StenGine
 {
@@ -53,7 +54,7 @@ struct DrawCmd {
 	uint32_t			flags;
 	DrawType			drawType;
 	PrimitiveTopology	type;
-	void*				framebuffer;
+	RenderTarget		framebuffer;
 	void*				inputLayout;
 
 	int64_t				elementCount;

@@ -468,14 +468,14 @@ public:
 //--------------------------------------------------------------------//
 
 class DeferredShadingPassEffect : public Effect {
-private:
+public:
 #if GRAPHICS_D3D11
 	ID3D11Buffer* m_perFrameCB;
 #else
-	GLuint m_perFrameUBO;
+	GLuint m_perFrameCB;
 #endif
 
-public:
+
 	DeferredShadingPassEffect(const std::wstring& filename);
 	~DeferredShadingPassEffect();
 
@@ -496,7 +496,7 @@ public:
 #endif
 
 #if GRAPHICS_OPENGL
-	PERFRAME_UNIFORM_BUFFER
+	PERFRAME_CONSTANT_BUFFER
 	{
 		DirectionalLight gDirLight;
 		XMFLOAT4 gEyePosV;
@@ -591,11 +591,10 @@ public:
 
 class SkyboxEffect : public Effect {
 public:
-private:
 #if GRAPHICS_D3D11
 	ID3D11Buffer* m_perObjectCB;
 #else
-	GLuint m_perObjectUBO;
+	GLuint m_perObjectCB;
 #endif
 
 public:
@@ -611,17 +610,15 @@ public:
 		PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX gWorldViewProj;
-	}
-	m_perObjConstantBuffer;
+	};
 #endif
 
 #if GRAPHICS_OPENGL
-	PEROBJ_UNIFORM_BUFFER
+	PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX gWorldViewProj;
 		uint64_t gCubeMap;
-	}
-	m_perObjUniformBuffer;
+	};
 #endif
 	//ID3D11ShaderResourceView *m_shaderResources[1];
 };

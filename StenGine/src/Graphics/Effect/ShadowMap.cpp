@@ -52,9 +52,13 @@ ShadowMap::ShadowMap(UINT width, UINT height)
 	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateShaderResourceView(depthMap, &srvDesc, &m_depthSRV));
 
 	ReleaseCOM(depthMap);
+
+	m_shadowTarget.rtvs.push_back(nullptr);
+	m_shadowTarget.dsv = m_depthDSV;
+
 #else
-	glGenFramebuffers(1, &m_shadowBuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_shadowBuffer);
+	glCreateFramebuffers(1, &m_shadowTarget);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_shadowTarget);
 
 	glGenTextures(1, &m_depthTex);
 	glActiveTexture(GL_TEXTURE0);
@@ -115,13 +119,9 @@ XMMATRIX ShadowMap::GetShadowMapTransform() {
 	return XMLoadFloat4x4(&m_shadowTransform);
 }
 
-void* ShadowMap::GetRenderTarget()
+RenderTarget ShadowMap::GetRenderTarget()
 {
-#if GRAPHICS_OPENGL
-	return (void*)m_shadowBuffer;
-#else
-	return (void*)m_depthDSV;
-#endif
+	return m_shadowTarget;
 }
 
 void ShadowMap::UpdateShadowMatrix() {

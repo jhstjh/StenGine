@@ -802,15 +802,9 @@ DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filenam
 		cbDesc.MiscFlags = 0;
 		cbDesc.StructureByteStride = 0;
 
-		// Fill in the subresource data.
-		D3D11_SUBRESOURCE_DATA InitData;
-		InitData.pSysMem = &m_perFrameConstantBuffer;
-		InitData.SysMemPitch = 0;
-		InitData.SysMemSlicePitch = 0;
-
 		HRESULT hr;
 		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
 			&m_perFrameCB);
 
 		assert(SUCCEEDED(hr));
@@ -823,9 +817,8 @@ DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filenam
 	ReleaseCOM(m_dsBlob);
 	ReleaseCOM(m_csBlob);
 #else
-	glGenBuffers(1, &m_perFrameUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_perFrameUBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PERFRAME_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
+	glCreateBuffers(1, &m_perFrameCB);
+	glNamedBufferStorage(m_perFrameCB, sizeof(PERFRAME_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
 #endif
 }
 
@@ -844,16 +837,6 @@ void DeferredShadingPassEffect::UpdateConstantBuffer() {
 		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
 		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perFrameCB, NULL);
 	}
-#else
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perFrameUBO);
-	PERFRAME_UNIFORM_BUFFER* perFrameUBOPtr = (PERFRAME_UNIFORM_BUFFER*)glMapBufferRange(
-		GL_UNIFORM_BUFFER,
-		0,
-		sizeof(PERFRAME_UNIFORM_BUFFER),
-		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-		);
-	memcpy(perFrameUBOPtr, &m_perFrameUniformBuffer, sizeof(PERFRAME_UNIFORM_BUFFER));
-	glUnmapBuffer(GL_UNIFORM_BUFFER);
 #endif
 }
 
@@ -1008,14 +991,9 @@ SkyboxEffect::SkyboxEffect(const std::wstring& filename)
 		cbDesc.MiscFlags = 0;
 		cbDesc.StructureByteStride = 0;
 
-		D3D11_SUBRESOURCE_DATA InitData;
-		InitData.pSysMem = &m_perObjConstantBuffer;
-		InitData.SysMemPitch = 0;
-		InitData.SysMemSlicePitch = 0;
-
 		HRESULT hr;
 		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
 			&m_perObjectCB);
 
 		assert(SUCCEEDED(hr));
@@ -1028,32 +1006,30 @@ SkyboxEffect::SkyboxEffect(const std::wstring& filename)
 	ReleaseCOM(m_dsBlob);
 	ReleaseCOM(m_csBlob);
 #else
-	glGenBuffers(1, &m_perObjectUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectUBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
-
+	glCreateBuffers(1, &m_perObjectCB);
+	glNamedBufferStorage(m_perObjectCB, sizeof(PEROBJ_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
 #endif
 }
 
 void SkyboxEffect::UpdateConstantBuffer() {
-#if GRAPHICS_D3D11
-	{
-		D3D11_MAPPED_SUBRESOURCE ms;
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perObjectCB, NULL);
-	}
-#else
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
-	PEROBJ_UNIFORM_BUFFER* perObjectUBOPtr = (PEROBJ_UNIFORM_BUFFER*)glMapBufferRange(
-		GL_UNIFORM_BUFFER,
-		0,
-		sizeof(PEROBJ_UNIFORM_BUFFER),
-		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-	);
-	memcpy(perObjectUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
-	glUnmapBuffer(GL_UNIFORM_BUFFER);
-#endif
+//#if GRAPHICS_D3D11
+//	{
+//		D3D11_MAPPED_SUBRESOURCE ms;
+//		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+//		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
+//		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perObjectCB, NULL);
+//	}
+//#else
+//	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
+//	PEROBJ_UNIFORM_BUFFER* perObjectUBOPtr = (PEROBJ_UNIFORM_BUFFER*)glMapBufferRange(
+//		GL_UNIFORM_BUFFER,
+//		0,
+//		sizeof(PEROBJ_UNIFORM_BUFFER),
+//		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+//	);
+//	memcpy(perObjectUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
+//	glUnmapBuffer(GL_UNIFORM_BUFFER);
+//#endif
 	}
 
 void SkyboxEffect::BindConstantBuffer() {

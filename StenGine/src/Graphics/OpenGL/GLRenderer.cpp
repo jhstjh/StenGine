@@ -324,16 +324,11 @@ public:
 			{
 				cmd.effect->SetShader();
 
-				//if (m_currentVao != (uint64_t)cmd.inputLayout)
-				//{
-				//	m_currentVao = (uint64_t)cmd.inputLayout;
 				glBindVertexArray((GLuint)cmd.inputLayout);
-				//}
 
-				//TODO check current vbo
-				glBindVertexBuffer(0, (GLuint)cmd.vertexBuffer, cmd.vertexOffset, cmd.vertexStride);
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (GLuint)cmd.indexBuffer);
-
+				if (cmd.vertexBuffer)
+					glBindVertexBuffer(0, (GLuint)cmd.vertexBuffer, cmd.vertexOffset, cmd.vertexStride);
+				
 				for (auto &cbuffer : cmd.cbuffers)
 				{
 					cbuffer.Bind();
@@ -344,13 +339,22 @@ public:
 					glPatchParameteri(GL_PATCH_VERTICES, 3);
 				}
 
-				glDrawElements(
-					(GLenum)cmd.type,
-					cmd.elementCount,
-					GL_UNSIGNED_INT,
-					cmd.offset
-				);
+				if (cmd.drawType == DrawType::INDEXED)
+				{
+					if (cmd.indexBuffer)
+						glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (GLuint)cmd.indexBuffer);
 
+					glDrawElements(
+						(GLenum)cmd.type,
+						cmd.elementCount,
+						GL_UNSIGNED_INT,
+						cmd.offset
+					);
+				}
+				else if (cmd.drawType == DrawType::ARRAY)
+				{
+					glDrawArrays((GLenum)cmd.type, (GLint)cmd.offset, cmd.elementCount);
+				}
 			}
 		}
 
@@ -360,14 +364,14 @@ public:
 	void Draw() override {
 		DrawShadowMap();
 		DrawGBuffer();
-
+		DrawDeferredShading();
+		m_SkyBox->Draw();
 		// TODO put every graphics call into cmdlist
 		ExecuteCmdList();
-
-		DrawDeferredShading();
+		
 		//DrawBlurSSAOAndCombine();
 		//DrawGodRay();
-		//DrawDebug();
+		DrawDebug();
 
 		SwapBuffers(m_deviceContext);
 	}
@@ -404,8 +408,8 @@ public:
 		SetWindowTextA(m_hMainWnd, str);
 	}
 
-	void* GetGbuffer() override {
-		return (void*)m_deferredGBuffers;
+	RenderTarget GetGbuffer() override {
+		return m_deferredGBuffers;
 	}
 
 	void DrawShadowMap() override
@@ -418,7 +422,7 @@ public:
 		DrawCmd shadowcmd;
 
 		shadowcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH;
-		shadowcmd.framebuffer = (void*)LightManager::Instance()->m_shadowMap->GetRenderTarget();
+		shadowcmd.framebuffer = (GLuint)LightManager::Instance()->m_shadowMap->GetRenderTarget();
 		shadowcmd.viewport = { 0, 0, (float)width, (float)height, 0, 1 };
 
 		m_drawList.push_back(std::move(shadowcmd));
@@ -429,12 +433,12 @@ public:
 		}
 	}
 
-	void DrawGBuffer() override {
-
+	void DrawGBuffer() override 
+	{
 		DrawCmd drawcmd;
 
 		drawcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH;
-		drawcmd.framebuffer = (void*)m_deferredGBuffers;
+		drawcmd.framebuffer = (GLuint)m_deferredGBuffers;
 		drawcmd.viewport = { 0.f, 0.f, (float)m_clientWidth, (float)m_clientHeight, 0.f, 1.f };
 
 		m_drawList.push_back(std::move(drawcmd));
@@ -446,36 +450,40 @@ public:
 	}
 
 	void DrawDeferredShading() override {
-		DeferredShadingPassEffect* deferredShadingFX = EffectsManager::Instance()->m_deferredShadingPassEffect;
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		DrawCmd cmd;
+		DeferredShadingPassEffect* effect = EffectsManager::Instance()->m_deferredShadingPassEffect;
 
-		deferredShadingFX->SetShader();
-		glBindVertexArray(m_screenQuadVAO);
+		ConstantBuffer cbuffer0(0, sizeof(DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB);
+		DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER* perFrameData = (DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 
-		deferredShadingFX->m_perFrameUniformBuffer.NormalGMap = m_normalBufferTexHandle;
-		deferredShadingFX->m_perFrameUniformBuffer.DiffuseGMap = m_diffuseBufferTexHandle;//LightManager::Instance()->m_shadowMap->GetDepthTex();//
-		deferredShadingFX->m_perFrameUniformBuffer.SpecularGMap = m_specularBufferTexHandle;
-		deferredShadingFX->m_perFrameUniformBuffer.DepthGMap = m_depthBufferTexHandle;
+		perFrameData->NormalGMap = m_normalBufferTexHandle;
+		perFrameData->DiffuseGMap = m_diffuseBufferTexHandle;//LightManager::Instance()->m_shadowMap->GetDepthTex();//
+		perFrameData->SpecularGMap = m_specularBufferTexHandle;
+		perFrameData->DepthGMap = m_depthBufferTexHandle;
 
 		XMMATRIX &viewMat = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
 		XMMATRIX viewInvTranspose = MatrixHelper::InverseTranspose(viewMat);
 
-		deferredShadingFX->m_perFrameUniformBuffer.gDirLight = *LightManager::Instance()->m_dirLights[0];
-		XMStoreFloat3(&deferredShadingFX->m_perFrameUniformBuffer.gDirLight.direction, XMVector3Transform(XMLoadFloat3(&deferredShadingFX->m_perFrameUniformBuffer.gDirLight.direction), viewInvTranspose));
+		perFrameData->gDirLight = *LightManager::Instance()->m_dirLights[0];
+		XMStoreFloat3(&perFrameData->gDirLight.direction, XMVector3Transform(XMLoadFloat3(&perFrameData->gDirLight.direction), viewInvTranspose));
 
 		XMMATRIX &projMat = CameraManager::Instance()->GetActiveCamera()->GetProjMatrix();
 		XMVECTOR det = XMMatrixDeterminant(projMat);
-		deferredShadingFX->m_perFrameUniformBuffer.gProj = projMat;
-		deferredShadingFX->m_perFrameUniformBuffer.gProjInv = XMMatrixInverse(&det, projMat);
-		deferredShadingFX->UpdateConstantBuffer();
+		perFrameData->gProj = projMat;
+		perFrameData->gProjInv = XMMatrixInverse(&det, projMat);
 
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		cmd.flags = CmdFlag::DRAW | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH | CmdFlag::BIND_FB;
+		cmd.drawType = DrawType::ARRAY;
+		cmd.inputLayout = (void*)m_screenQuadVAO;
+		cmd.vertexBuffer = 0; // don't bind if 0
+		cmd.type = PrimitiveTopology::TRIANGLELIST;
+		cmd.framebuffer = 0;
+		cmd.offset = (void*)(0);
+		cmd.effect = effect;
+		cmd.elementCount = 6;
+		cmd.cbuffers.push_back(std::move(cbuffer0));
 
-		m_SkyBox->Draw();
-
-		deferredShadingFX->UnSetShader();
-		deferredShadingFX->UnBindShaderResource();
+		m_drawList.push_back(std::move(cmd));
 	}
 
 	void DrawBlurSSAOAndCombine() override {
