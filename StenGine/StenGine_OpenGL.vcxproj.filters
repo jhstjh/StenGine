@@ -310,6 +310,9 @@
     <ClInclude Include="include\Graphics\Abstraction\GPUBufferBase.h">
       <Filter>include\Graphics\Abstraction</Filter>
     </ClInclude>
+    <ClInclude Include="include\Scene\Drawable.h">
+      <Filter>include\Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -389,6 +392,9 @@
     </ClCompile>
     <ClCompile Include="src\Utility\FbxReaderSG.cpp">
       <Filter>src\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\Drawable.cpp">
+      <Filter>src\Scene</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

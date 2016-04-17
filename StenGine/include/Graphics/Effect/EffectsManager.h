@@ -191,7 +191,7 @@ public:
 
 
 class DeferredGeometryTerrainPassEffect : public Effect {
-private:
+public:
 #if GRAPHICS_D3D11
 	ID3D11Buffer* m_perFrameCB;
 	ID3D11Buffer* m_perObjectCB;
@@ -205,7 +205,7 @@ private:
 	GLint CubeMapPosition;
 #endif
 
-public:
+
 	DeferredGeometryTerrainPassEffect(const std::wstring& filename);
 	DeferredGeometryTerrainPassEffect(const std::wstring& vsPath,
 		const std::wstring& psPath,
@@ -213,10 +213,6 @@ public:
 		const std::wstring& hsPath,
 		const std::wstring& dsPath);
 	~DeferredGeometryTerrainPassEffect();
-
-	virtual void UpdateConstantBuffer();
-	virtual void BindConstantBuffer();
-	virtual void BindShaderResource();
 
 #if GRAPHICS_D3D11
 	struct PEROBJ_CONSTANT_BUFFER
@@ -231,7 +227,7 @@ public:
 		XMMATRIX View;
 		Material Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
-	} m_perObjConstantBuffer;
+	};
 
 	struct PERFRAME_CONSTANT_BUFFER
 	{
@@ -258,11 +254,8 @@ public:
 
 		XMFLOAT2 pad2;
 		XMFLOAT4 gWorldFrustumPlanes[6];
-	} m_perFrameConstantBuffer;
+	};
 
-	virtual PEROBJ_CONSTANT_BUFFER* GetPerObjConstantBuffer() { return &m_perObjConstantBuffer; }
-	virtual PERFRAME_CONSTANT_BUFFER* GetPerFrameConstantBuffer() { return &m_perFrameConstantBuffer; }
-	//ID3D11ShaderResourceView *m_shaderResources[5];
 #else
 	struct PEROBJ_UNIFORM_BUFFER
 	{
@@ -292,7 +285,7 @@ public:
 
 
 class TerrainShadowMapEffect : public Effect {
-private:
+public:
 #if GRAPHICS_D3D11
 	ID3D11Buffer* m_perFrameCB;
 	ID3D11Buffer* m_perObjectCB;
@@ -306,7 +299,6 @@ private:
 	GLint CubeMapPosition;
 #endif
 
-public:
 	TerrainShadowMapEffect(const std::wstring& filename);
 	TerrainShadowMapEffect(const std::wstring& vsPath,
 		const std::wstring& psPath,
@@ -315,9 +307,6 @@ public:
 		const std::wstring& dsPath);
 	~TerrainShadowMapEffect();
 
-	virtual void UpdateConstantBuffer();
-	virtual void BindConstantBuffer();
-	virtual void BindShaderResource();
 #if GRAPHICS_D3D11
 	struct PEROBJ_CONSTANT_BUFFER
 	{
@@ -331,7 +320,7 @@ public:
 		XMMATRIX View;
 		Material Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
-	} m_perObjConstantBuffer;
+	};
 
 	struct PERFRAME_CONSTANT_BUFFER
 	{
@@ -358,11 +347,8 @@ public:
 
 		XMFLOAT2 pad2;
 		XMFLOAT4 gWorldFrustumPlanes[6];
-	} m_perFrameConstantBuffer;
+	};
 
-	virtual PEROBJ_CONSTANT_BUFFER* GetPerObjConstantBuffer() { return &m_perObjConstantBuffer; }
-	virtual PERFRAME_CONSTANT_BUFFER* GetPerFrameConstantBuffer() { return &m_perFrameConstantBuffer; }
-	//ID3D11ShaderResourceView *m_shaderResources[5];
 #else
 	struct PEROBJ_UNIFORM_BUFFER
 	{

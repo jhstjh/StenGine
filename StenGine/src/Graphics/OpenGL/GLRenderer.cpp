@@ -337,7 +337,12 @@ public:
 
 	void DrawShadowMap() override
 	{
-		LightManager::Instance()->m_shadowMap->GatherShadowDrawCall();
+		LightManager::Instance()->m_shadowMap->UpdateShadowMatrix();
+
+		for (auto &gatherShadowDrawCall : m_shadowDrawHandler)
+		{
+			gatherShadowDrawCall();
+		}
 
 		// todo
 		uint64_t framebuffer = (uint64_t)LightManager::Instance()->m_shadowMap->GetRenderTarget();
@@ -388,10 +393,9 @@ public:
 		DeferredGeometryPassEffect* effect = EffectsManager::Instance()->m_deferredGeometryPassEffect;
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// TODO: should separate perobj and perframe's updateconstantbuffer
-
-		for (uint32_t iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
-			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->GatherDrawCall();
+		for (auto &gatherDrawCall : m_drawHandler)
+		{
+			gatherDrawCall();
 		}
 
 		for (auto &cmd : m_deferredDrawList)
@@ -589,6 +593,16 @@ public:
 		m_shadowMapDrawList.push_back(std::move(cmd));
 	}
 
+	void AddDraw(DrawEventHandler handler)
+	{
+		m_drawHandler.push_back(handler);
+	}
+
+	void AddShadowDraw(DrawEventHandler handler)
+	{
+		m_shadowDrawHandler.push_back(handler);
+	}
+
 private:
 	int m_clientWidth;
 	int m_clientHeight;
@@ -621,6 +635,9 @@ private:
 	uint64_t m_currentVao;
 	Effect* m_currentEffect;
 	uint64_t m_currentFbo;
+
+	std::vector<DrawEventHandler> m_drawHandler;
+	std::vector<DrawEventHandler> m_shadowDrawHandler;
 
 	void InitScreenQuad()
 	{

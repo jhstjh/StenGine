@@ -33,7 +33,8 @@ public:
 	GLuint GetDepthTex() { return m_depthTex; }
 	uint64_t GetDepthTexHandle() { return m_depthTexHandle; }
 #endif
-	void GatherShadowDrawCall();
+	void UpdateShadowMatrix();
+	XMMATRIX GetViewMatrix();
 	XMMATRIX GetViewProjMatrix();
 	XMMATRIX GetShadowMapTransform();
 

@@ -101,6 +101,10 @@ ShadowMap::~ShadowMap() {
 #endif
 }
 
+XMMATRIX ShadowMap::GetViewMatrix() {
+	return XMLoadFloat4x4(&m_lightView);
+}
+
 XMMATRIX ShadowMap::GetViewProjMatrix() {
 	return XMLoadFloat4x4(&m_lightView) * XMLoadFloat4x4(&m_lightProj);
 }
@@ -118,7 +122,7 @@ void* ShadowMap::GetRenderTarget()
 #endif
 }
 
-void ShadowMap::GatherShadowDrawCall() {
+void ShadowMap::UpdateShadowMatrix() {
 	// only build shadow map for first directional light for now
 
 	XMVECTOR lightDir = XMLoadFloat3(&(LightManager::Instance()->m_dirLights[0]->direction));
@@ -160,24 +164,4 @@ void ShadowMap::GatherShadowDrawCall() {
 	XMStoreFloat4x4(&m_lightView, V);
 	XMStoreFloat4x4(&m_lightProj, P);
 	XMStoreFloat4x4(&m_shadowTransform, S);
-
-#if GRAPHICS_D3D11
-#else
-#endif
-	EffectsManager::Instance()->m_shadowMapEffect->SetShader();
-	
-	for (uint32_t iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
-		if (EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->m_castShadow)
-			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->GatherShadowDrawCall();
-	}
-
-	EffectsManager::Instance()->m_shadowMapEffect->UnSetShader();
-
-	//Terrain::Instance()->DrawOnShadowMap();
-
-#if GRAPHICS_D3D11
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->RSSetState(0);
-#else
-#endif
-
 }

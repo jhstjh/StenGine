@@ -1336,13 +1336,8 @@ DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::
 		cbDesc.MiscFlags = 0;
 		cbDesc.StructureByteStride = 0;
 
-		D3D11_SUBRESOURCE_DATA InitData;
-		InitData.pSysMem = &m_perObjConstantBuffer;
-		InitData.SysMemPitch = 0;
-		InitData.SysMemSlicePitch = 0;
-
 		// Create the buffer.
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData, &m_perObjectCB));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr, &m_perObjectCB));
 	}
 
 	{
@@ -1355,14 +1350,8 @@ DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::
 		cbDesc.MiscFlags = 0;
 		cbDesc.StructureByteStride = 0;
 
-		// Fill in the subresource data.
-		D3D11_SUBRESOURCE_DATA InitData;
-		InitData.pSysMem = &m_perFrameConstantBuffer;
-		InitData.SysMemPitch = 0;
-		InitData.SysMemSlicePitch = 0;
-
 		// Create the buffer.
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData, &m_perFrameCB));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr, &m_perFrameCB));
 	}
 
 	ReleaseCOM(m_vsBlob);
@@ -1377,38 +1366,6 @@ DeferredGeometryTerrainPassEffect::~DeferredGeometryTerrainPassEffect()
 {
 	ReleaseCOM(m_inputLayout);
 }
-
-void DeferredGeometryTerrainPassEffect::UpdateConstantBuffer() {
-	{
-		D3D11_MAPPED_SUBRESOURCE ms;
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perObjectCB, NULL);
-	}
-
-	{
-		D3D11_MAPPED_SUBRESOURCE ms;
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perFrameCB, NULL);
-	}
-}
-
-void DeferredGeometryTerrainPassEffect::BindConstantBuffer() {
-	ID3D11Buffer* cbuf[] = { m_perObjectCB, m_perFrameCB };
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 2, cbuf);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 2, cbuf);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetConstantBuffers(0, 2, cbuf);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetConstantBuffers(0, 2, cbuf);
-}
-
-void DeferredGeometryTerrainPassEffect::BindShaderResource() {
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 8, m_shaderResources);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 8, m_shaderResources);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShaderResources(0, 8, m_shaderResources);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShaderResources(0, 8, m_shaderResources);
-}
-
 
 //----------------------------------------------------------//
 
@@ -1445,13 +1402,8 @@ TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
 		cbDesc.MiscFlags = 0;
 		cbDesc.StructureByteStride = 0;
 
-		D3D11_SUBRESOURCE_DATA InitData;
-		InitData.pSysMem = &m_perObjConstantBuffer;
-		InitData.SysMemPitch = 0;
-		InitData.SysMemSlicePitch = 0;
-
 		// Create the buffer.
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData, &m_perObjectCB));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr, &m_perObjectCB));
 	}
 
 	{
@@ -1464,14 +1416,8 @@ TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
 		cbDesc.MiscFlags = 0;
 		cbDesc.StructureByteStride = 0;
 
-		// Fill in the subresource data.
-		D3D11_SUBRESOURCE_DATA InitData;
-		InitData.pSysMem = &m_perFrameConstantBuffer;
-		InitData.SysMemPitch = 0;
-		InitData.SysMemSlicePitch = 0;
-
 		// Create the buffer.
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData, &m_perFrameCB));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr, &m_perFrameCB));
 	}
 
 	ReleaseCOM(m_vsBlob);
@@ -1486,38 +1432,6 @@ TerrainShadowMapEffect::~TerrainShadowMapEffect()
 {
 	ReleaseCOM(m_inputLayout);
 }
-
-void TerrainShadowMapEffect::UpdateConstantBuffer() {
-	{
-		D3D11_MAPPED_SUBRESOURCE ms;
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perObjectCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-		memcpy(ms.pData, &m_perObjConstantBuffer, sizeof(PEROBJ_CONSTANT_BUFFER));
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perObjectCB, NULL);
-	}
-
-	{
-		D3D11_MAPPED_SUBRESOURCE ms;
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perFrameCB, NULL);
-	}
-}
-
-void TerrainShadowMapEffect::BindConstantBuffer() {
-	ID3D11Buffer* cbuf[] = { m_perObjectCB, m_perFrameCB };
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 2, cbuf);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 2, cbuf);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetConstantBuffers(0, 2, cbuf);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetConstantBuffers(0, 2, cbuf);
-}
-
-void TerrainShadowMapEffect::BindShaderResource() {
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 8, m_shaderResources);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 8, m_shaderResources);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShaderResources(0, 8, m_shaderResources);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShaderResources(0, 8, m_shaderResources);
-}
-
 
 //----------------------------------------------------------//
 

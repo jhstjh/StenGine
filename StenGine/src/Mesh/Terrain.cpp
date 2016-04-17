@@ -46,7 +46,8 @@ m_initInfo(info)
 }
 
 Terrain::~Terrain() {
-
+	SafeDelete(m_quadPatchIB);
+	SafeDelete(m_quadPatchVB);
 }
 
 void Terrain::CalcPatchBoundsY(UINT i, UINT j)
@@ -250,22 +251,11 @@ void Terrain::BuildQuadPatchVB() {
 		}
 	}
 
-	D3D11_BUFFER_DESC vbd;
-	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex::TerrainVertex) * patchVertices.size();
-	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vbd.CPUAccessFlags = 0;
-	vbd.MiscFlags = 0;
-	vbd.StructureByteStride = 0;
-
-	D3D11_SUBRESOURCE_DATA vinitData;
-	vinitData.pSysMem = &patchVertices[0];
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&vbd, &vinitData, &m_quadPatchVB));
-
+	m_quadPatchVB = new GPUBuffer(patchVertices.size() * sizeof(Vertex::TerrainVertex), BufferUsage::IMMUTABLE, (void*)&patchVertices.front(), BufferType::VERTEX_BUFFER);
 }
 
 void Terrain::BuildQuadPatchIB() {
-	std::vector<USHORT> indices(m_numPatchQuadFaces * 4);
+	std::vector<UINT> indices(m_numPatchQuadFaces * 4);
 
 	int k = 0;
 	for (UINT i = 0; i < m_numPatchVertRows - 1; ++i) {
@@ -279,125 +269,134 @@ void Terrain::BuildQuadPatchIB() {
 			k += 4;
 		}
 	}
-
-	D3D11_BUFFER_DESC ibd;
-	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = sizeof(USHORT) * indices.size();
-	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	ibd.CPUAccessFlags = 0;
-	ibd.MiscFlags = 0;
-	ibd.StructureByteStride = 0;
-
-	D3D11_SUBRESOURCE_DATA initData;
-	initData.pSysMem = &indices[0];
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&ibd, &initData, &m_quadPatchIB));
+	m_quadPatchIB = new GPUBuffer(indices.size() * sizeof(UINT), BufferUsage::IMMUTABLE, (void*)&indices.front(), BufferType::INDEX_BUFFER);
 }
 
-void Terrain::Draw() {
+void Terrain::GatherDrawCall() {
 	UINT stride = sizeof(Vertex::TerrainVertex);
 	UINT offset = 0;
 
-	DeferredGeometryTerrainPassEffect* deferredGeoTerrainEffect = EffectsManager::Instance()->m_deferredGeometryTerrainPassEffect;
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
+	DeferredGeometryTerrainPassEffect* effect = EffectsManager::Instance()->m_deferredGeometryTerrainPassEffect;
 
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetInputLayout((ID3D11InputLayout *)deferredGeoTerrainEffect->GetInputLayout());
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetVertexBuffers(0, 1, &m_quadPatchVB, &stride, &offset);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetIndexBuffer(m_quadPatchIB, DXGI_FORMAT_R16_UINT, 0);
-	
-	deferredGeoTerrainEffect->SetShader();
+	ConstantBuffer cbuffer0(1, sizeof(DeferredGeometryTerrainPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB);
+	ConstantBuffer cbuffer1(0, sizeof(DeferredGeometryTerrainPassEffect::PEROBJ_CONSTANT_BUFFER), (void*)effect->m_perObjectCB);
 
-	deferredGeoTerrainEffect->m_perFrameConstantBuffer.gEyePosW = CameraManager::Instance()->GetActiveCamera()->GetPos();
-	deferredGeoTerrainEffect->m_perFrameConstantBuffer.gMaxDist = 500.00;
-	deferredGeoTerrainEffect->m_perFrameConstantBuffer.gMinDist = 20;
-	deferredGeoTerrainEffect->m_perFrameConstantBuffer.gMaxTess = 6.f;
-	deferredGeoTerrainEffect->m_perFrameConstantBuffer.gMinTess = 0.f;
-	deferredGeoTerrainEffect->m_perFrameConstantBuffer.gTexelCellSpaceU = 1.0f / m_initInfo.HeightmapWidth;
-	deferredGeoTerrainEffect->m_perFrameConstantBuffer.gTexelCellSpaceV = 1.0f / m_initInfo.HeightmapHeight;
-	deferredGeoTerrainEffect->m_perFrameConstantBuffer.gTexScale = XMFLOAT2(50.f, 50.f);
-	deferredGeoTerrainEffect->m_perFrameConstantBuffer.gWorldCellSpace = m_initInfo.CellSpacing;
-	deferredGeoTerrainEffect->m_perFrameConstantBuffer.gWorldFrustumPlanes /********************/;
-	
-	deferredGeoTerrainEffect->m_perObjConstantBuffer.View = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
-	deferredGeoTerrainEffect->m_perObjConstantBuffer.ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
-	deferredGeoTerrainEffect->m_perObjConstantBuffer.World = XMMatrixTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()));
-	deferredGeoTerrainEffect->m_perObjConstantBuffer.WorldInvTranspose = XMMatrixTranspose(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform())));
+	DeferredGeometryTerrainPassEffect::PERFRAME_CONSTANT_BUFFER* perframeData = (DeferredGeometryTerrainPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+	DeferredGeometryTerrainPassEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (DeferredGeometryTerrainPassEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
+
+	DrawCmd cmd;
+
+	perframeData->gEyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
+
+	perframeData->gMaxDist = 500.00;
+	perframeData->gMinDist = 20;
+	perframeData->gMaxTess = 6.f;
+	perframeData->gMinTess = 0.f;
+	perframeData->gTexelCellSpaceU = 1.0f / m_initInfo.HeightmapWidth;
+	perframeData->gTexelCellSpaceV = 1.0f / m_initInfo.HeightmapHeight;
+	perframeData->gTexScale = XMFLOAT2(50.f, 50.f);
+	perframeData->gWorldCellSpace = m_initInfo.CellSpacing;
+	perframeData->gWorldFrustumPlanes /********************/;
+
+	perObjData->View = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
+	perObjData->ViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+	perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()));
+	perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform())));
 
 	XMMATRIX worldView = XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
-	deferredGeoTerrainEffect->m_perObjConstantBuffer.WorldView = XMMatrixTranspose(worldView);
+	perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
 
 	XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
-	deferredGeoTerrainEffect->m_perObjConstantBuffer.WorldViewInvTranspose = XMMatrixTranspose(worldViewInvTranspose);
+	perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
-	deferredGeoTerrainEffect->m_perObjConstantBuffer.ShadowTransform = XMMatrixTranspose(LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
-	deferredGeoTerrainEffect->m_perObjConstantBuffer.WorldViewProj = XMMatrixTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+	perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
+	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
-	deferredGeoTerrainEffect->UpdateConstantBuffer();
-	deferredGeoTerrainEffect->BindConstantBuffer();
 
-	deferredGeoTerrainEffect->SetShaderResources(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-	deferredGeoTerrainEffect->SetShaderResources(m_heightMapSRV, 5);
-	deferredGeoTerrainEffect->SetShaderResources(m_layerMapArraySRV, 6);
-	deferredGeoTerrainEffect->SetShaderResources(m_blendMapSRV, 7);
-	deferredGeoTerrainEffect->BindShaderResource();
+	cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
+	cmd.srvs.AddSRV(m_heightMapSRV, 5);
+	cmd.srvs.AddSRV(m_layerMapArraySRV, 6);
+	cmd.srvs.AddSRV(m_blendMapSRV, 7);
 
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DrawIndexed(m_numPatchQuadFaces * 4, 0, 0);
 
-	deferredGeoTerrainEffect->UnBindConstantBuffer();
-	deferredGeoTerrainEffect->UnBindShaderResource();
-	deferredGeoTerrainEffect->UnSetShader();
+	cmd.offset = (void*)(0);
+	cmd.type = PrimitiveTopology::CONTROL_POINT_4_PATCHLIST;
+	cmd.inputLayout = effect->GetInputLayout();
+	cmd.framebuffer = Renderer::Instance()->GetGbuffer();
+	cmd.vertexBuffer = (void*)m_quadPatchVB->GetBuffer();
+	cmd.indexBuffer = (void*)m_quadPatchIB->GetBuffer();
+	cmd.vertexStride = stride;
+	cmd.vertexOffset = offset;
+	cmd.effect = effect;
+	cmd.elementCount = m_numPatchQuadFaces * 4;
+	cmd.cbuffers.push_back(std::move(cbuffer0));
+	cmd.cbuffers.push_back(std::move(cbuffer1));
+
+	Renderer::Instance()->AddDeferredDrawCmd(cmd);
 }
 
-void Terrain::DrawOnShadowMap() {
+void Terrain::GatherShadowDrawCall() {
+
 	UINT stride = sizeof(Vertex::TerrainVertex);
 	UINT offset = 0;
 
-	TerrainShadowMapEffect* terrainShadowMapEffect = EffectsManager::Instance()->m_terrainShadowMapEffect;
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST);
+	TerrainShadowMapEffect* effect = EffectsManager::Instance()->m_terrainShadowMapEffect;
 
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetInputLayout((ID3D11InputLayout *)terrainShadowMapEffect->GetInputLayout());
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetVertexBuffers(0, 1, &m_quadPatchVB, &stride, &offset);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetIndexBuffer(m_quadPatchIB, DXGI_FORMAT_R16_UINT, 0);
+	ConstantBuffer cbuffer0(1, sizeof(TerrainShadowMapEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB);
+	ConstantBuffer cbuffer1(0, sizeof(TerrainShadowMapEffect::PEROBJ_CONSTANT_BUFFER), (void*)effect->m_perObjectCB);
 
-	terrainShadowMapEffect->SetShader();
+	TerrainShadowMapEffect::PERFRAME_CONSTANT_BUFFER* perframeData = (TerrainShadowMapEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+	TerrainShadowMapEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (TerrainShadowMapEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
 
-	terrainShadowMapEffect->m_perFrameConstantBuffer.gEyePosW = CameraManager::Instance()->GetActiveCamera()->GetPos();
-	terrainShadowMapEffect->m_perFrameConstantBuffer.gMaxDist = 500.00;
-	terrainShadowMapEffect->m_perFrameConstantBuffer.gMinDist = 20;
-	terrainShadowMapEffect->m_perFrameConstantBuffer.gMaxTess = 6.f;
-	terrainShadowMapEffect->m_perFrameConstantBuffer.gMinTess = 0.f;
-	terrainShadowMapEffect->m_perFrameConstantBuffer.gTexelCellSpaceU = 1.0f / m_initInfo.HeightmapWidth;
-	terrainShadowMapEffect->m_perFrameConstantBuffer.gTexelCellSpaceV = 1.0f / m_initInfo.HeightmapHeight;
-	terrainShadowMapEffect->m_perFrameConstantBuffer.gTexScale = XMFLOAT2(50.f, 50.f);
-	terrainShadowMapEffect->m_perFrameConstantBuffer.gWorldCellSpace = m_initInfo.CellSpacing;
-	terrainShadowMapEffect->m_perFrameConstantBuffer.gWorldFrustumPlanes /********************/;
+	DrawCmd cmd;
 
-	terrainShadowMapEffect->m_perObjConstantBuffer.View = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
-	terrainShadowMapEffect->m_perObjConstantBuffer.ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
-	terrainShadowMapEffect->m_perObjConstantBuffer.World = XMMatrixTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()));
-	terrainShadowMapEffect->m_perObjConstantBuffer.WorldInvTranspose = XMMatrixTranspose(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform())));
+	perframeData->gEyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
 
-	XMMATRIX worldView = XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
-	terrainShadowMapEffect->m_perObjConstantBuffer.WorldView = XMMatrixTranspose(worldView);
+	perframeData->gMaxDist = 500.00;
+	perframeData->gMinDist = 20;
+	perframeData->gMaxTess = 6.f;
+	perframeData->gMinTess = 0.f;
+	perframeData->gTexelCellSpaceU = 1.0f / m_initInfo.HeightmapWidth;
+	perframeData->gTexelCellSpaceV = 1.0f / m_initInfo.HeightmapHeight;
+	perframeData->gTexScale = XMFLOAT2(50.f, 50.f);
+	perframeData->gWorldCellSpace = m_initInfo.CellSpacing;
+	perframeData->gWorldFrustumPlanes /********************/;
+
+	perObjData->View = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetViewMatrix());
+	perObjData->ViewProj = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
+	perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()));
+	perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform())));
+
+	XMMATRIX worldView = XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewMatrix();
+	perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
 
 	XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
-	terrainShadowMapEffect->m_perObjConstantBuffer.WorldViewInvTranspose = XMMatrixTranspose(worldViewInvTranspose);
+	perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
-	//terrainShadowMapEffect->m_perObjConstantBuffer.ShadowTransform = XMMatrixTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
-	terrainShadowMapEffect->m_perObjConstantBuffer.WorldViewProj = XMMatrixTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+	//perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
+	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
 
-	terrainShadowMapEffect->UpdateConstantBuffer();
-	terrainShadowMapEffect->BindConstantBuffer();
 
-	terrainShadowMapEffect->SetShaderResources(m_heightMapSRV, 5);
-	terrainShadowMapEffect->SetShaderResources(m_layerMapArraySRV, 6);
-	terrainShadowMapEffect->SetShaderResources(m_blendMapSRV, 7);
-	terrainShadowMapEffect->BindShaderResource();
+	cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
+	cmd.srvs.AddSRV(m_heightMapSRV, 5);
+	cmd.srvs.AddSRV(m_layerMapArraySRV, 6);
+	cmd.srvs.AddSRV(m_blendMapSRV, 7);
 
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DrawIndexed(m_numPatchQuadFaces * 4, 0, 0);
 
-	terrainShadowMapEffect->UnBindConstantBuffer();
-	terrainShadowMapEffect->UnBindShaderResource();
-	terrainShadowMapEffect->UnSetShader();
+	cmd.offset = (void*)(0);
+	cmd.type = PrimitiveTopology::CONTROL_POINT_4_PATCHLIST;
+	cmd.inputLayout = effect->GetInputLayout();
+	cmd.framebuffer = Renderer::Instance()->GetGbuffer();
+	cmd.vertexBuffer = (void*)m_quadPatchVB->GetBuffer();
+	cmd.indexBuffer = (void*)m_quadPatchIB->GetBuffer();
+	cmd.vertexStride = stride;
+	cmd.vertexOffset = offset;
+	cmd.effect = effect;
+	cmd.elementCount = m_numPatchQuadFaces * 4;
+	cmd.cbuffers.push_back(std::move(cbuffer0));
+	cmd.cbuffers.push_back(std::move(cbuffer1));
+
+	Renderer::Instance()->AddShadowDrawCmd(cmd);
 }
 
 #endif

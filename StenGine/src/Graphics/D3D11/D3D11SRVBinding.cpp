@@ -16,10 +16,10 @@ void D3D11SRVBinding::AddSRV(ID3D11ShaderResourceView * srv, uint32_t index)
 void D3D11SRVBinding::Bind()
 {
 	// TODO only set shader in interest
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 5, &m_srvs[0]); // todo 0, 5
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 5, &m_srvs[0]);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShaderResources(0, 5, &m_srvs[0]); // todo 0, 5
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShaderResources(0, 5, &m_srvs[0]);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 16, &m_srvs[0]); // todo 0, 5
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 16, &m_srvs[0]);
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShaderResources(0, 16, &m_srvs[0]); // todo 0, 5
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShaderResources(0, 16, &m_srvs[0]);
 }
 
 void D3D11SRVBinding::Unbind()

@@ -581,9 +581,61 @@ public:
 		return m_depthRS;
 	}
 
+	void DrawShadowMap() override {
+		LightManager::Instance()->m_shadowMap->UpdateShadowMatrix();
+
+		for (auto &gatherShadowDrawCall : m_shadowDrawHandler)
+		{
+			gatherShadowDrawCall();
+		}
+
+		m_d3d11DeviceContext->RSSetState(m_depthRS);
+
+		// todo
+		ID3D11DepthStencilView* dsv = (ID3D11DepthStencilView*)LightManager::Instance()->m_shadowMap->GetRenderTarget();
+
+		uint32_t width, height;
+		LightManager::Instance()->m_shadowMap->GetDimension(width, height);
+
+		ID3D11RenderTargetView* renderTargets[1] = { 0 };
+		m_d3d11DeviceContext->OMSetRenderTargets(1, renderTargets, dsv);
+		m_d3d11DeviceContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+		D3D11_VIEWPORT vp;
+		vp.TopLeftX = 0;
+		vp.TopLeftY = 0;
+		vp.Height = static_cast<float>(height);
+		vp.Width = static_cast<float>(width);
+		vp.MaxDepth = 1;
+		vp.MinDepth = 0;
+
+		m_d3d11DeviceContext->RSSetViewports(1, &vp);
+
+		for (auto &cmd : m_shadowMapDrawList)
+		{
+			cmd.effect->SetShader();
+			m_d3d11DeviceContext->IASetPrimitiveTopology((D3D_PRIMITIVE_TOPOLOGY)cmd.type);
+			m_d3d11DeviceContext->IASetInputLayout((ID3D11InputLayout *)cmd.inputLayout);
+
+			ID3D11Buffer* vertexBuffer = static_cast<ID3D11Buffer*>(cmd.vertexBuffer);
+			ID3D11Buffer* indexBuffer = static_cast<ID3D11Buffer*>(cmd.indexBuffer);
+
+			m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &cmd.vertexStride, &cmd.vertexOffset);
+			m_d3d11DeviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+			for (auto &cbuffer : cmd.cbuffers)
+			{
+				cbuffer.Bind();
+			}
+
+			m_d3d11DeviceContext->DrawIndexed(cmd.elementCount, 0, 0);
+		}
+
+		m_shadowMapDrawList.clear();
+	}
+
 	void D3D11Renderer::DrawGBuffer() {
 		m_d3d11DeviceContext->RSSetViewports(1, &m_screenViewpot);
-		m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		ID3D11RenderTargetView* rtvs[3] = { m_diffuseBufferRTV, m_normalBufferRTV, m_specularBufferRTV };
 		m_d3d11DeviceContext->OMSetRenderTargets(3, rtvs, m_deferredRenderDepthStencilView);
 		m_d3d11DeviceContext->ClearRenderTargetView(m_diffuseBufferRTV, reinterpret_cast<const float*>(&SGColors::LightSteelBlue));
@@ -593,9 +645,6 @@ public:
 		m_d3d11DeviceContext->ClearDepthStencilView(m_deferredRenderDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		m_d3d11DeviceContext->RSSetState(0);
-		m_d3d11DeviceContext->IASetInputLayout((ID3D11InputLayout *)EffectsManager::Instance()->m_deferredGeometryPassEffect->GetInputLayout());
-
-		XMFLOAT4 pos = CameraManager::Instance()->GetActiveCamera()->GetPos();
 
 		ID3D11SamplerState* samplerState[] = { m_samplerState, m_shadowSamplerState, m_heightMapSamplerState };
 		m_d3d11DeviceContext->PSSetSamplers(0, 3, samplerState);
@@ -603,20 +652,17 @@ public:
 		m_d3d11DeviceContext->DSSetSamplers(0, 3, samplerState);
 		m_d3d11DeviceContext->HSSetSamplers(0, 3, samplerState);
 
-		for (uint32_t iMesh = 0; iMesh < EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes.size(); iMesh++) {
-			EffectsManager::Instance()->m_deferredGeometryPassEffect->m_associatedMeshes[iMesh]->GatherDrawCall();
+		for (auto &gatherDrawCall : m_drawHandler)
+		{
+			gatherDrawCall();
 		}
 
 		for (auto &cmd : m_deferredDrawList)
 		{
 			cmd.effect->SetShader();
 			m_d3d11DeviceContext->IASetPrimitiveTopology((D3D_PRIMITIVE_TOPOLOGY)cmd.type);
+			m_d3d11DeviceContext->IASetInputLayout((ID3D11InputLayout *)cmd.inputLayout);
 
-			//if (m_currentVao != (uint64_t)cmd.m_vertexArrayObject)
-			//{
-			//	m_currentVao = (uint64_t)cmd.m_vertexArrayObject;
-			//	glBindVertexArray((uint64_t)cmd.m_vertexArrayObject);
-			//}
 			ID3D11Buffer* vertexBuffer = static_cast<ID3D11Buffer*>(cmd.vertexBuffer);
 			ID3D11Buffer* indexBuffer = static_cast<ID3D11Buffer*>(cmd.indexBuffer);
 
@@ -636,8 +682,6 @@ public:
 		}
 
 		m_deferredDrawList.clear();
-
-		Terrain::Instance()->Draw();
 	}
 
 	void D3D11Renderer::DrawDeferredShading() {
@@ -911,65 +955,6 @@ public:
 		SetWindowTextA(m_hMainWnd, str);
 	}
 
-	void DrawShadowMap() override {
-		LightManager::Instance()->m_shadowMap->GatherShadowDrawCall();
-
-		//dc->RSSetViewports(1, &m_viewPort);
-	
-
-		m_d3d11DeviceContext->RSSetState(static_cast<ID3D11RasterizerState*>(Renderer::Instance()->GetDepthRS()));
-		m_d3d11DeviceContext->IASetInputLayout((ID3D11InputLayout *)EffectsManager::Instance()->m_shadowMapEffect->GetInputLayout());
-		m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		// todo
-		ID3D11DepthStencilView* dsv = (ID3D11DepthStencilView*)LightManager::Instance()->m_shadowMap->GetRenderTarget();
-
-		uint32_t width, height;
-		LightManager::Instance()->m_shadowMap->GetDimension(width, height);
-
-		ID3D11RenderTargetView* renderTargets[1] = { 0 };
-		m_d3d11DeviceContext->OMSetRenderTargets(1, renderTargets, dsv);
-		m_d3d11DeviceContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-		//glViewport(0, 0, width, height);
-
-		D3D11_VIEWPORT vp;
-		vp.TopLeftX = 0;
-		vp.TopLeftY = 0;
-		vp.Height = static_cast<float>(height);
-		vp.Width = static_cast<float>(width);
-		vp.MaxDepth = 1;
-		vp.MinDepth = 0;
-
-		m_d3d11DeviceContext->RSSetViewports(1, &vp);
-
-		for (auto &cmd : m_shadowMapDrawList)
-		{
-			cmd.effect->SetShader();
-
-			//if (m_currentVao != (uint64_t)cmd.m_vertexArrayObject)
-			//{
-			//	m_currentVao = (uint64_t)cmd.m_vertexArrayObject;
-			//	glBindVertexArray((uint64_t)cmd.m_vertexArrayObject);
-			//}
-
-			ID3D11Buffer* vertexBuffer = static_cast<ID3D11Buffer*>(cmd.vertexBuffer);
-			ID3D11Buffer* indexBuffer = static_cast<ID3D11Buffer*>(cmd.indexBuffer);
-
-			m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &cmd.vertexStride, &cmd.vertexOffset);
-			m_d3d11DeviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-			for (auto &cbuffer : cmd.cbuffers)
-			{
-				cbuffer.Bind();
-			}
-
-			m_d3d11DeviceContext->DrawIndexed(cmd.elementCount, 0, 0);
-		}
-
-		m_shadowMapDrawList.clear();
-	}
-
 	void AddDeferredDrawCmd(DrawCmd &cmd)
 	{
 		m_deferredDrawList.push_back(std::move(cmd));
@@ -983,6 +968,16 @@ public:
 	void* GetGbuffer() override
 	{
 		return nullptr;
+	}
+
+	void AddDraw(DrawEventHandler handler)
+	{
+		m_drawHandler.push_back(handler);
+	}
+
+	void AddShadowDraw(DrawEventHandler handler)
+	{
+		m_shadowDrawHandler.push_back(handler);
 	}
 
 private:
@@ -1049,6 +1044,9 @@ private:
 
 	std::vector<DrawCmd> m_deferredDrawList;
 	std::vector<DrawCmd> m_shadowMapDrawList;
+
+	std::vector<DrawEventHandler> m_drawHandler;
+	std::vector<DrawEventHandler> m_shadowDrawHandler;
 };
 
 Renderer* Renderer::_instance = nullptr;

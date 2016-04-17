@@ -235,6 +235,7 @@
     <ClInclude Include="include\Resource\ResourceManager.h" />
     <ClInclude Include="include\Scene\CameraManager.h" />
     <ClInclude Include="include\Scene\Component.h" />
+    <ClInclude Include="include\Scene\Drawable.h" />
     <ClInclude Include="include\Scene\GameObject.h" />
     <ClInclude Include="include\Scene\LightManager.h" />
     <ClInclude Include="include\stdafx.h" />
@@ -266,6 +267,7 @@
     <ClCompile Include="src\Resource\ResourceManager.cpp" />
     <ClCompile Include="src\Scene\CameraManager.cpp" />
     <ClCompile Include="src\Scene\Component.cpp" />
+    <ClCompile Include="src\Scene\Drawable.cpp" />
     <ClCompile Include="src\Scene\GameObject.cpp" />
     <ClCompile Include="src\Scene\LightManager.cpp" />
     <ClCompile Include="src\stdafx.cpp" />

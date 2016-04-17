@@ -41,6 +41,7 @@ namespace Vertex {
 }
 
 using CreateWindowCallback = std::function<BOOL(int32_t, int32_t, HINSTANCE, /*int32_t,*/ HWND&)>;
+using DrawEventHandler = std::function<void()>;
 
 class Renderer {
 public:
@@ -67,6 +68,8 @@ public:
 	virtual void AddDeferredDrawCmd(DrawCmd &cmd) = 0;
 	virtual void AddShadowDrawCmd(DrawCmd &cmd) = 0;
 	virtual void* GetGbuffer() = 0;
+	virtual void AddDraw(DrawEventHandler handler) = 0;
+	virtual void AddShadowDraw(DrawEventHandler handler) = 0;
 
 protected:
 	static Renderer* _instance;

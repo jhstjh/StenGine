@@ -102,10 +102,9 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	house0->AddComponent(house0Mesh);
 	house0->RotateAroundY(3.1415926f / 2);
 
-
-// 	GameObject* dragon = new GameObject(-3, -1, 0);
-// 	Mesh* dragonMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/dragon.fbx");
-// 	dragon->AddComponent(dragonMesh);
+ 	GameObject* dragon = new GameObject("dragon", 3, 0.2, 0);
+ 	Mesh* dragonMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/dragon.fbx");
+ 	dragon->AddComponent(dragonMesh);
 #if GRAPHICS_D3D11
 	Terrain::InitInfo tii;
 	tii.HeightMapFilename = L"Terrain/terrain.raw";

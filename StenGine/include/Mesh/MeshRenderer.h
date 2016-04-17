@@ -1,8 +1,10 @@
 #ifndef __MESH_RENDERER__
 #define __MESH_RENDERER__
 
-#include "System/API/PlatformAPIDefs.h"
 #include <vector>
+
+#include "System/API/PlatformAPIDefs.h"
+#include "Scene/Drawable.h"
 
 #if (PLATFORM_WIN32) || (SG_TOOL)
 #include "Graphics/D3DIncludes.h"
@@ -19,7 +21,7 @@
 
 class Effect;
 
-class Mesh: public Component {
+class Mesh: public Component, public Drawable {
 protected:
 	GPUBuffer* m_indexBufferGPU;
 	GPUBuffer* m_stdMeshVertexBufferGPU;
@@ -57,8 +59,8 @@ public:
 	bool m_receiveShadow;
 	Mesh(int type);
 	~Mesh();
-	virtual void GatherDrawCall();
-	virtual void GatherShadowDrawCall();
+	virtual void GatherDrawCall() override;
+	virtual void GatherShadowDrawCall() override;
 	void Prepare();
 };
 

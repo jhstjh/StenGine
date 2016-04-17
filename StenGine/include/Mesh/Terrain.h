@@ -2,8 +2,10 @@
 #include "Graphics/D3DIncludes.h"
 #include "Graphics/Effect/Material.h"
 #include "Scene/Component.h"
+#include "Scene/Drawable.h"
+#include "Graphics/Abstraction/GPUBuffer.h"
 
-class Terrain : public Component {
+class Terrain : public Component, public Drawable {
 public:
 
 	static Terrain* Instance() { return _instance; }
@@ -21,8 +23,8 @@ public:
 	Terrain(struct Terrain::InitInfo &info);
 	~Terrain();
 
-	void Draw();
-	void DrawOnShadowMap();
+	virtual void GatherDrawCall() override;
+	virtual void GatherShadowDrawCall() override;
 
 private:
 	static const int CellsPerPatch = 64;
@@ -46,8 +48,8 @@ private:
 
 	InitInfo m_initInfo;
 
-	ID3D11Buffer* m_quadPatchVB;
-	ID3D11Buffer* m_quadPatchIB;
+	GPUBuffer* m_quadPatchVB;
+	GPUBuffer* m_quadPatchIB;
 
 	ID3D11ShaderResourceView* m_layerMapArraySRV;
 	ID3D11ShaderResourceView* m_blendMapSRV;
