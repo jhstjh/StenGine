@@ -19,11 +19,11 @@ Skybox::Skybox(std::wstring &cubeMapPath) {
 	std::string s(cubeMapPath.begin(), cubeMapPath.end());
 	GLuint cubemap = CreateGLTextureFromFile(s.c_str());
 	assert(cubemap != 0);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(cubemap, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTextureParameteri(cubemap, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTextureParameteri(cubemap, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(cubemap, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(cubemap, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	m_cubeMapTex = glGetTextureHandleARB(cubemap);
 	glMakeTextureHandleResidentARB(m_cubeMapTex);
@@ -78,20 +78,20 @@ Skybox::Skybox(std::wstring &cubeMapPath) {
 
 	GLuint skyboxVertexVBO;
 	GLuint skyboxIndexVBO;
-	glGenBuffers(1, &skyboxVertexVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, skyboxVertexVBO);
-	glBufferData(GL_ARRAY_BUFFER, skyboxVertexBuffer.size() * sizeof(XMFLOAT3), &skyboxVertexBuffer[0], GL_STATIC_DRAW);
+	glCreateBuffers(1, &skyboxVertexVBO);
+	glNamedBufferStorage(skyboxVertexVBO, skyboxVertexBuffer.size() * sizeof(XMFLOAT3), &skyboxVertexBuffer[0], 0);
 
-	glGenBuffers(1, &skyboxIndexVBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, skyboxIndexVBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, skyboxIndexBuffer.size() * sizeof(UINT), &skyboxIndexBuffer[0], GL_STATIC_DRAW);
+	glCreateBuffers(1, &skyboxIndexVBO);
+	glNamedBufferStorage(skyboxIndexVBO, skyboxIndexBuffer.size() * sizeof(UINT), &skyboxIndexBuffer[0], 0);
 
-	glGenVertexArrays(1, &m_skyboxVAO);
-	glBindVertexArray(m_skyboxVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, skyboxVertexVBO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, skyboxIndexVBO);
+	glCreateVertexArrays(1, &m_skyboxVAO);
+
+	glEnableVertexArrayAttrib(m_skyboxVAO, 0);
+	glVertexArrayAttribFormat(m_skyboxVAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
+	glVertexArrayVertexBuffer(m_skyboxVAO, 0, skyboxVertexVBO, 0, sizeof(XMFLOAT3));
+	glVertexArrayAttribBinding(m_skyboxVAO, 0, 0);
+	glVertexArrayElementBuffer(m_skyboxVAO, skyboxIndexVBO);
+
 #endif
 }
 

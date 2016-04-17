@@ -121,6 +121,6 @@ void main() {
 	//ps_color = vec4(r * diffuseFactor, 1);
 	ps_color = vec4(final, 1.0);
 
-
+	gl_FragDepth = z; // weite GBUFFER depth to current depth buffer
 
 }

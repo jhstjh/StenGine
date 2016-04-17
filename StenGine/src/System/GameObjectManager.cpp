@@ -4,7 +4,7 @@
 #include "Resource/ResourceManager.h"
 #include "Mesh/Terrain.h"
 
-#define MIN_SCENE 0
+#define MIN_SCENE 1
 
 namespace StenGine
 {

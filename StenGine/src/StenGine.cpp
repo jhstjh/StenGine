@@ -106,7 +106,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 				outs.precision(6);
 				outs << "StenGine    "
 					<< "FPS: " << FPS << "    ";
-				//SetWindowText(hMainWnd, outs.str().c_str());
 				renderer->UpdateTitle(outs.str().c_str());
 				elaspedFrame = 0;
 			}

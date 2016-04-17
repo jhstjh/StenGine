@@ -144,16 +144,15 @@ public:
 		GenerateColorTex(m_specularBufferTex);
 		GenerateDepthTex(m_depthBufferTex);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, m_deferredGBuffers);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthBufferTex, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_normalBufferTex, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_diffuseBufferTex, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_specularBufferTex, 0);
+		glNamedFramebufferTexture(m_deferredGBuffers, GL_DEPTH_ATTACHMENT, m_depthBufferTex, 0);
+		glNamedFramebufferTexture(m_deferredGBuffers, GL_COLOR_ATTACHMENT0, m_normalBufferTex, 0);
+		glNamedFramebufferTexture(m_deferredGBuffers, GL_COLOR_ATTACHMENT1, m_diffuseBufferTex, 0);
+		glNamedFramebufferTexture(m_deferredGBuffers, GL_COLOR_ATTACHMENT2, m_specularBufferTex, 0);
 
 		GLenum draw_bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-		glDrawBuffers(3, draw_bufs);
+		glNamedFramebufferDrawBuffers(m_deferredGBuffers, 3, draw_bufs);
 
-		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		GLenum status = glCheckNamedFramebufferStatus(m_deferredGBuffers, GL_FRAMEBUFFER);
 		if (GL_FRAMEBUFFER_COMPLETE != status) {
 			assert(false);
 			return false;
@@ -534,12 +533,6 @@ public:
 
 	void DrawDebug() override {
 		glDepthMask(GL_FALSE);
-		// copy depth into default depth buffer
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_deferredGBuffers);
-		glBlitFramebuffer(0, 0, m_clientWidth, m_clientHeight,
-			0, 0, m_clientWidth, m_clientHeight,
-			GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		DebugLineEffect* debugLineFX = EffectsManager::Instance()->m_debugLineEffect;
@@ -563,44 +556,23 @@ public:
 	}
 
 	void GenerateColorTex(GLuint &bufferTex) {
-		glGenTextures(1, &bufferTex);
-		glBindTexture(GL_TEXTURE_2D, bufferTex);
-		glTexImage2D(
-			GL_TEXTURE_2D,
-			0,
-			GL_RGBA16F,
-			m_clientWidth,
-			m_clientHeight,
-			0,
-			GL_RGBA,
-			GL_UNSIGNED_BYTE,
-			nullptr
-		);
+		glCreateTextures(GL_TEXTURE_2D, 1, &bufferTex);
+		glTextureStorage2D(bufferTex, 1, GL_RGBA16F, m_clientWidth, m_clientHeight);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTextureParameteri(bufferTex, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTextureParameteri(bufferTex, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTextureParameteri(bufferTex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTextureParameteri(bufferTex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	}
 
 	void GenerateDepthTex(GLuint &bufferTex) {
-		glGenTextures(1, &bufferTex);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, bufferTex);
-		glTexImage2D(
-			GL_TEXTURE_2D,
-			0,
-			GL_DEPTH_COMPONENT,
-			m_clientWidth,
-			m_clientHeight,
-			0,
-			GL_DEPTH_COMPONENT,
-			GL_UNSIGNED_BYTE, NULL
-		);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glCreateTextures(GL_TEXTURE_2D, 1, &bufferTex);
+		glTextureStorage2D(bufferTex, 1, GL_DEPTH_COMPONENT32, m_clientWidth, m_clientHeight);
+
+		glTextureParameteri(bufferTex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTextureParameteri(bufferTex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTextureParameteri(bufferTex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(bufferTex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 
 	void AddDeferredDrawCmd(DrawCmd &cmd)
@@ -684,22 +656,24 @@ private:
 		GLuint screenQuadVertexVBO;
 		GLuint screenQuadUVVBO;
 		glCreateBuffers(1, &screenQuadVertexVBO);
-
-		glBindBuffer(GL_ARRAY_BUFFER, screenQuadVertexVBO);
-		glBufferData(GL_ARRAY_BUFFER, quadVertexBuffer.size() * sizeof(XMFLOAT4), &quadVertexBuffer[0], GL_STATIC_DRAW);
+		glNamedBufferStorage(screenQuadVertexVBO, quadVertexBuffer.size() * sizeof(XMFLOAT4), &quadVertexBuffer[0], 0);
 
 		glCreateBuffers(1, &screenQuadUVVBO);
-		glBindBuffer(GL_ARRAY_BUFFER, screenQuadUVVBO);
-		glBufferData(GL_ARRAY_BUFFER, quadUvVertexBuffer.size() * sizeof(XMFLOAT2), &quadUvVertexBuffer[0], GL_STATIC_DRAW);
+		glNamedBufferStorage(screenQuadUVVBO, quadUvVertexBuffer.size() * sizeof(XMFLOAT2), &quadUvVertexBuffer[0], 0);
 
-		glGenVertexArrays(1, &m_screenQuadVAO);
-		glBindVertexArray(m_screenQuadVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, screenQuadVertexVBO);
-		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, NULL);
-		glBindBuffer(GL_ARRAY_BUFFER, screenQuadUVVBO);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
+		glCreateVertexArrays(1, &m_screenQuadVAO);
+
+		glEnableVertexArrayAttrib(m_screenQuadVAO, 0);
+		glEnableVertexArrayAttrib(m_screenQuadVAO, 1);
+
+		glVertexArrayVertexBuffer(m_screenQuadVAO, 0, screenQuadVertexVBO, 0, sizeof(XMFLOAT4));
+		glVertexArrayVertexBuffer(m_screenQuadVAO, 1, screenQuadUVVBO, 0, sizeof(XMFLOAT2));
+
+		glVertexArrayAttribFormat(m_screenQuadVAO, 0, 4, GL_FLOAT, GL_FALSE, 0);
+		glVertexArrayAttribFormat(m_screenQuadVAO, 1, 2, GL_FLOAT, GL_FALSE, 0);
+
+		glVertexArrayAttribBinding(m_screenQuadVAO, 0, 0);
+		glVertexArrayAttribBinding(m_screenQuadVAO, 1, 1);
 	}
 
 	void InitDebugCoord()
@@ -733,14 +707,14 @@ private:
 
 		GLuint debugDrawVertexVBO;
 		glCreateBuffers(1, &debugDrawVertexVBO);
-		glBindBuffer(GL_ARRAY_BUFFER, debugDrawVertexVBO);
-		glBufferData(GL_ARRAY_BUFFER, coordVertexBuffer.size() * sizeof(XMFLOAT3), &coordVertexBuffer[0], GL_STATIC_DRAW);
+		glNamedBufferStorage(debugDrawVertexVBO, coordVertexBuffer.size() * sizeof(XMFLOAT3), &coordVertexBuffer[0], 0);
 
-		glGenVertexArrays(1, &m_debugCoordVAO);
-		glBindVertexArray(m_debugCoordVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, debugDrawVertexVBO);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-		glEnableVertexAttribArray(0);
+		glCreateVertexArrays(1, &m_debugCoordVAO);
+
+		glEnableVertexArrayAttrib(m_debugCoordVAO, 0);
+		glVertexArrayAttribFormat(m_debugCoordVAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
+		glVertexArrayVertexBuffer(m_debugCoordVAO, 0, debugDrawVertexVBO, 0, sizeof(XMFLOAT3));
+		glVertexArrayAttribBinding(m_debugCoordVAO, 0, 0);
 	}
 };
 
