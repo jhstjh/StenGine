@@ -291,9 +291,79 @@ public:
 		return true;
 	}
 
+	void ExecuteCmdList()
+	{
+		for (auto &cmd : m_drawList)
+		{
+			if (cmd.flags & CmdFlag::BIND_FB)
+			{
+				glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)cmd.framebuffer);
+			}
+
+			if (cmd.flags & CmdFlag::CLEAR_COLOR)
+			{
+				glClear(GL_COLOR_BUFFER_BIT);
+			}
+
+			if (cmd.flags & CmdFlag::CLEAR_DEPTH)
+			{
+				glClear(GL_DEPTH_BUFFER_BIT);
+			}
+
+			if (cmd.flags & CmdFlag::SET_VP)
+			{
+				glViewport(
+					(GLint)cmd.viewport.TopLeftX, 
+					(GLint)cmd.viewport.TopLeftY, 
+					(GLsizei)cmd.viewport.Width,
+					(GLsizei)cmd.viewport.Height
+				);
+			}
+
+			if (cmd.flags & CmdFlag::DRAW)
+			{
+				cmd.effect->SetShader();
+
+				//if (m_currentVao != (uint64_t)cmd.inputLayout)
+				//{
+				//	m_currentVao = (uint64_t)cmd.inputLayout;
+				glBindVertexArray((GLuint)cmd.inputLayout);
+				//}
+
+				//TODO check current vbo
+				glBindVertexBuffer(0, (GLuint)cmd.vertexBuffer, cmd.vertexOffset, cmd.vertexStride);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (GLuint)cmd.indexBuffer);
+
+				for (auto &cbuffer : cmd.cbuffers)
+				{
+					cbuffer.Bind();
+				}
+
+				if (cmd.type == PrimitiveTopology::CONTROL_POINT_3_PATCHLIST)
+				{
+					glPatchParameteri(GL_PATCH_VERTICES, 3);
+				}
+
+				glDrawElements(
+					(GLenum)cmd.type,
+					cmd.elementCount,
+					GL_UNSIGNED_INT,
+					cmd.offset
+				);
+
+			}
+		}
+
+		m_drawList.clear();
+	}
+
 	void Draw() override {
 		DrawShadowMap();
 		DrawGBuffer();
+
+		// TODO put every graphics call into cmdlist
+		ExecuteCmdList();
+
 		DrawDeferredShading();
 		//DrawBlurSSAOAndCombine();
 		//DrawGodRay();
@@ -342,98 +412,37 @@ public:
 	{
 		LightManager::Instance()->m_shadowMap->UpdateShadowMatrix();
 
+		uint32_t width, height;
+		LightManager::Instance()->m_shadowMap->GetDimension(width, height);
+
+		DrawCmd shadowcmd;
+
+		shadowcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH;
+		shadowcmd.framebuffer = (void*)LightManager::Instance()->m_shadowMap->GetRenderTarget();
+		shadowcmd.viewport = { 0, 0, (float)width, (float)height, 0, 1 };
+
+		m_drawList.push_back(std::move(shadowcmd));
+
 		for (auto &gatherShadowDrawCall : m_shadowDrawHandler)
 		{
 			gatherShadowDrawCall();
 		}
-
-		// todo
-		uint64_t framebuffer = (uint64_t)LightManager::Instance()->m_shadowMap->GetRenderTarget();
-
-		uint32_t width, height;
-		LightManager::Instance()->m_shadowMap->GetDimension(width, height);
-
-		EffectsManager::Instance()->m_shadowMapEffect->SetShader();
-
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glViewport(0, 0, width, height);
-
-		for (auto &cmd : m_shadowMapDrawList)
-		{
-			//cmd.m_effect->SetShader();
-
-			//if (m_currentVao != (uint64_t)cmd.inputLayout)
-			//{
-			//	m_currentVao = (uint64_t)cmd.inputLayout;
-			glBindVertexArray((uint64_t)cmd.inputLayout);
-			//}
-
-			glBindVertexBuffer(0, (uint64_t)cmd.vertexBuffer, cmd.vertexOffset, cmd.vertexStride);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (uint64_t)cmd.indexBuffer);
-
-			for (auto &cbuffer : cmd.cbuffers)
-			{
-				cbuffer.Bind();
-			}
-
-			glDrawElements(
-				(GLenum)cmd.type,
-				cmd.elementCount,
-				GL_UNSIGNED_INT,
-				cmd.offset
-			);
-		}
-
-		m_shadowMapDrawList.clear();
 	}
 
 	void DrawGBuffer() override {
-		glViewport(0, 0, m_clientWidth, m_clientHeight);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, m_deferredGBuffers);
-		EffectsManager::Instance()->m_deferredGeometryPassEffect->SetShader();
-		DeferredGeometryPassEffect* effect = EffectsManager::Instance()->m_deferredGeometryPassEffect;
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		DrawCmd drawcmd;
+
+		drawcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH;
+		drawcmd.framebuffer = (void*)m_deferredGBuffers;
+		drawcmd.viewport = { 0.f, 0.f, (float)m_clientWidth, (float)m_clientHeight, 0.f, 1.f };
+
+		m_drawList.push_back(std::move(drawcmd));
 
 		for (auto &gatherDrawCall : m_drawHandler)
 		{
 			gatherDrawCall();
 		}
-
-		for (auto &cmd : m_deferredDrawList)
-		{
-			cmd.effect->SetShader();
-
-			//if (m_currentVao != (uint64_t)cmd.inputLayout)
-			//{
-			//	m_currentVao = (uint64_t)cmd.inputLayout;
-			glBindVertexArray((GLuint)cmd.inputLayout);
-			//}
-
-			//TODO check current vbo
-			glBindVertexBuffer(0, (GLuint)cmd.vertexBuffer, cmd.vertexOffset, cmd.vertexStride);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (GLuint)cmd.indexBuffer);
-
-			for (auto &cbuffer : cmd.cbuffers)
-			{
-				cbuffer.Bind();
-			}
-
-			if (cmd.type == PrimitiveTopology::CONTROL_POINT_3_PATCHLIST)
-			{
-				glPatchParameteri(GL_PATCH_VERTICES, 3);
-			}
-
-			glDrawElements(
-				(GLenum)cmd.type,
-				cmd.elementCount,
-				GL_UNSIGNED_INT,
-				cmd.offset
-			);
-		}
-
-		m_deferredDrawList.clear();
 	}
 
 	void DrawDeferredShading() override {
@@ -588,12 +597,14 @@ public:
 
 	void AddDeferredDrawCmd(DrawCmd &cmd)
 	{
-		m_deferredDrawList.push_back(std::move(cmd));
+		//m_deferredDrawList.push_back(std::move(cmd));
+		m_drawList.push_back(std::move(cmd));
 	}
 
 	void AddShadowDrawCmd(DrawCmd &cmd)
 	{
-		m_shadowMapDrawList.push_back(std::move(cmd));
+		//m_shadowMapDrawList.push_back(std::move(cmd));
+		m_drawList.push_back(std::move(cmd));
 	}
 
 	void AddDraw(DrawEventHandler handler)
@@ -632,8 +643,7 @@ private:
 	GLuint m_debugCoordVAO;
 	GLuint m_screenQuadVAO;
 
-	std::vector<DrawCmd> m_shadowMapDrawList;
-	std::vector<DrawCmd> m_deferredDrawList;
+	std::vector<DrawCmd> m_drawList;
 
 	uint64_t m_currentVao;
 	Effect* m_currentEffect;

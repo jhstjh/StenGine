@@ -13,6 +13,7 @@
 
 #include "Graphics/Effect/EffectsManager.h"
 #include "Graphics/Abstraction/ConstantBuffer.h"
+#include "Graphics/Abstraction/Viewport.h"
 
 namespace StenGine
 {
@@ -33,21 +34,40 @@ enum class PrimitiveTopology : uint32_t
 #endif
 };
 
+enum class DrawType
+{
+	INDEXED,
+	ARRAY,
+};
+
+struct CmdFlag
+{
+static const uint32_t	DRAW		 = 0x01;
+static const uint32_t	CLEAR_COLOR  = 0x02;
+static const uint32_t	CLEAR_DEPTH  = 0x04;
+static const uint32_t	BIND_FB		 = 0x08; // bind framebuffer
+static const uint32_t	SET_VP		 = 0x10; // set viewport
+};
+
 struct DrawCmd {
-	PrimitiveTopology type;
-	void* framebuffer;
-	void* inputLayout;
+	uint32_t			flags;
+	DrawType			drawType;
+	PrimitiveTopology	type;
+	void*				framebuffer;
+	void*				inputLayout;
 
-	int64_t elementCount;
-	void*	offset;
+	int64_t				elementCount;
+	void*				offset;
 
-	class Effect* effect;
+	class Effect*		effect;
 
-	void* indexBuffer;
-	void* vertexBuffer;
+	void*				indexBuffer;
+	void*				vertexBuffer;
 
-	uint32_t vertexStride;
-	uint32_t vertexOffset;
+	uint32_t			vertexStride;
+	uint32_t			vertexOffset;
+
+	Viewport			viewport;
 
 	std::vector<ConstantBuffer> cbuffers;
 

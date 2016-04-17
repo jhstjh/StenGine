@@ -214,6 +214,7 @@
     <ClInclude Include="include\Graphics\Abstraction\GPUBuffer.h" />
     <ClInclude Include="include\Graphics\Abstraction\GPUBufferBase.h" />
     <ClInclude Include="include\Graphics\Abstraction\RendererBase.h" />
+    <ClInclude Include="include\Graphics\Abstraction\Viewport.h" />
     <ClInclude Include="include\Graphics\Color.h" />
     <ClInclude Include="include\Graphics\D3DIncludes.h" />
     <ClInclude Include="include\Graphics\Effect\EffectsManager.h" />

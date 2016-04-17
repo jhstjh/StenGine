@@ -310,6 +310,9 @@
     <ClInclude Include="include\Scene\Drawable.h">
       <Filter>include\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="include\Graphics\Abstraction\Viewport.h">
+      <Filter>include\Graphics\Abstraction</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">

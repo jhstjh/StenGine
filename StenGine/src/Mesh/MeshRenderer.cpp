@@ -193,6 +193,8 @@ void Mesh::GatherDrawCall() {
 
 			perObjData->DiffX_NormY_ShadZ = resourceMask;
 
+			cmd.flags = CmdFlag::DRAW;
+			cmd.drawType = DrawType::INDEXED;
 			cmd.inputLayout = effect->GetInputLayout();
 			cmd.framebuffer = Renderer::Instance()->GetGbuffer();
 			cmd.vertexBuffer = (void*)m_stdMeshVertexBufferGPU->GetBuffer();
@@ -261,6 +263,7 @@ void Mesh::GatherShadowDrawCall() {
 	ShadowMapEffect* effect = EffectsManager::Instance()->m_shadowMapEffect;
 	UINT stride = sizeof(Vertex::ShadowMapVertex);
 	UINT offset = 0;
+
 	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
 
 		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
@@ -271,6 +274,8 @@ void Mesh::GatherShadowDrawCall() {
 
 		DrawCmd cmd;
 
+		cmd.flags = CmdFlag::DRAW;
+		cmd.drawType = DrawType::INDEXED;
 		cmd.type = PrimitiveTopology::TRIANGLELIST;
 		cmd.vertexBuffer = (void*)m_shadowMapVertexBufferGPU->GetBuffer();
 		cmd.indexBuffer = (void*)m_indexBufferGPU->GetBuffer();
