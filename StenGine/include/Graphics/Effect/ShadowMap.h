@@ -6,6 +6,8 @@
 #if GRAPHICS_OPENGL
 #include "glew.h"
 #endif
+namespace StenGine
+{
 
 class ShadowMap {
 private:
@@ -42,4 +44,5 @@ public:
 	void GetDimension(uint32_t &width, uint32_t &height) { width = m_width, height = m_height; }
 };
 
+}
 #endif // !__SHADOW_MAP__

@@ -1,6 +1,9 @@
 #include "Graphics/D3D11/D3D11Buffer.h"
 #include "Graphics/Abstraction/RendererBase.h"
 
+namespace StenGine
+{
+
 D3D11Buffer::D3D11Buffer(size_t size, BufferUsage usage, void* data, BufferType type)
 	: m_size(size)
 	, m_mapped(false)
@@ -48,5 +51,7 @@ void D3D11Buffer::unmap()
 {
 	m_mapped = false;
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_buffer, NULL);
+
+}
 
 }

@@ -10,6 +10,8 @@ using namespace DirectX;
 #elif  GRAPHICS_OPENGL
 #define TRASNPOSE_API_CHOOSER(M) (M) 
 #endif
+namespace StenGine
+{
 
 class MatrixHelper {
 public:
@@ -53,5 +55,5 @@ public:
 	}
 };
 
-
+}
 #endif // !__MATH_HELPER__

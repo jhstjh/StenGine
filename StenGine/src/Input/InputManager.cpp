@@ -1,9 +1,11 @@
 #include "Input/InputManager.h"
 
+namespace StenGine
+{
 
 InputManager* InputManager::_instance = nullptr;
 
-InputManager::InputManager() 
+InputManager::InputManager()
 {
 
 }
@@ -19,7 +21,7 @@ void InputManager::Update() {
 }
 
 bool InputManager::GetKeyDown(char key) {
-	if (m_keyState[(int)key]  && !m_lastKeyState[(int)key]) {
+	if (m_keyState[(int)key] && !m_lastKeyState[(int)key]) {
 		return true;
 	}
 	return false;
@@ -37,4 +39,6 @@ bool InputManager::GetKeyHold(char key) {
 		return true;
 	}
 	return false;
+}
+
 }

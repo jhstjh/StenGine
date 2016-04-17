@@ -19,9 +19,12 @@
 #include "Mesh/SubMesh.h"
 #include "Graphics/Abstraction/GPUBuffer.h"
 
+namespace StenGine
+{
+
 class Effect;
 
-class Mesh: public Component, public Drawable {
+class Mesh : public Component, public Drawable {
 protected:
 	GPUBuffer* m_indexBufferGPU;
 	GPUBuffer* m_stdMeshVertexBufferGPU;
@@ -64,4 +67,5 @@ public:
 	void Prepare();
 };
 
+}
 #endif // !__MESH_RENDERER__

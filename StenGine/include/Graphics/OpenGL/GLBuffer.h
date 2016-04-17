@@ -6,6 +6,9 @@
 
 #include "Graphics/Abstraction/GPUBufferBase.h"
 
+namespace StenGine
+{
+
 class GLBuffer
 {
 public:
@@ -26,4 +29,5 @@ private:
 
 using GPUBuffer = GLBuffer;
 
+}
 #endif

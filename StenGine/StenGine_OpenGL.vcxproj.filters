@@ -235,9 +235,6 @@
     <ClInclude Include="include\Graphics\OpenGL\GLImageLoader.h">
       <Filter>include\Graphics\OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="include\Graphics\OpenGL\GLTextureBinding.h">
-      <Filter>include\Graphics\OpenGL</Filter>
-    </ClInclude>
     <ClInclude Include="include\Graphics\OpenGL\GLBuffer.h">
       <Filter>include\Graphics\OpenGL</Filter>
     </ClInclude>

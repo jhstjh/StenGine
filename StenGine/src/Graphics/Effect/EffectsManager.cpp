@@ -21,6 +21,9 @@
 
 #pragma warning( disable : 4996 )
 
+namespace StenGine
+{
+
 #if PLATFORM_WIN32
 
 Effect::Effect(const std::wstring& filename)
@@ -1047,11 +1050,11 @@ void SkyboxEffect::UpdateConstantBuffer() {
 		0,
 		sizeof(PEROBJ_UNIFORM_BUFFER),
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-		);
+	);
 	memcpy(perObjectUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
 	glUnmapBuffer(GL_UNIFORM_BUFFER);
 #endif
-}
+	}
 
 void SkyboxEffect::BindConstantBuffer() {
 #if GRAPHICS_D3D11
@@ -1153,11 +1156,11 @@ void DebugLineEffect::UpdateConstantBuffer() {
 		0,
 		sizeof(PEROBJ_UNIFORM_BUFFER),
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-		);
+	);
 	memcpy(perObjectUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
 	glUnmapBuffer(GL_UNIFORM_BUFFER);
 #endif
-}
+	}
 
 void DebugLineEffect::BindConstantBuffer() {
 #if GRAPHICS_D3D11
@@ -1305,11 +1308,11 @@ void VBlurEffect::BindShaderResource(int idx) {
 
 DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::wstring& filename)
 	: Effect(
-	filename + L"_vs" + EXT,
-	filename + L"_ps" + EXT,
-	L"",
-	filename + L"_hs" + EXT,
-	filename + L"_ds" + EXT)
+		filename + L"_vs" + EXT,
+		filename + L"_ps" + EXT,
+		L"",
+		filename + L"_hs" + EXT,
+		filename + L"_ds" + EXT)
 {
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
@@ -1371,11 +1374,11 @@ DeferredGeometryTerrainPassEffect::~DeferredGeometryTerrainPassEffect()
 
 TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
 	: Effect(
-	filename + L"_vs" + EXT,
-	L"",
-	L"",
-	filename + L"_hs" + EXT,
-	filename + L"_ds" + EXT)
+		filename + L"_vs" + EXT,
+		L"",
+		L"",
+		filename + L"_hs" + EXT,
+		filename + L"_ds" + EXT)
 {
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
@@ -1580,7 +1583,7 @@ HBlurEffect::HBlurEffect(const std::wstring& filename)
 		srvDesc.Texture2D.MostDetailedMip = 0;
 		srvDesc.Texture2D.MipLevels = 1;
 
-		
+
 		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateShaderResourceView(blurredTex, &srvDesc, &m_outputShaderResources[i]));
 
 		D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
@@ -1588,7 +1591,7 @@ HBlurEffect::HBlurEffect(const std::wstring& filename)
 		uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
 		uavDesc.Texture2D.MipSlice = 0;
 
-		
+
 		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateUnorderedAccessView(blurredTex, &uavDesc, &m_unorderedAccessViews[i]));
 
 
@@ -1632,12 +1635,12 @@ HBlurEffect::~HBlurEffect()
 }
 
 void HBlurEffect::UpdateConstantBuffer() {
-		{
-			D3D11_MAPPED_SUBRESOURCE ms;
-			static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_settingCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-			memcpy(ms.pData, &m_settingConstantBuffer, sizeof(SETTING_CONSTANT_BUFFER));
-			static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_settingCB, NULL);
-		}
+	{
+		D3D11_MAPPED_SUBRESOURCE ms;
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_settingCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		memcpy(ms.pData, &m_settingConstantBuffer, sizeof(SETTING_CONSTANT_BUFFER));
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_settingCB, NULL);
+	}
 }
 
 void HBlurEffect::BindConstantBuffer() {
@@ -1708,12 +1711,12 @@ BlurEffect::~BlurEffect()
 }
 
 void BlurEffect::UpdateConstantBuffer() {
-		{
-			D3D11_MAPPED_SUBRESOURCE ms;
-			static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_settingCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-			memcpy(ms.pData, &m_settingConstantBuffer, sizeof(SETTING_CONSTANT_BUFFER));
-			static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_settingCB, NULL);
-		}
+	{
+		D3D11_MAPPED_SUBRESOURCE ms;
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_settingCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
+		memcpy(ms.pData, &m_settingConstantBuffer, sizeof(SETTING_CONSTANT_BUFFER));
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_settingCB, NULL);
+	}
 }
 
 void BlurEffect::BindConstantBuffer() {
@@ -1743,8 +1746,8 @@ bool Effect::ReadShaderFile(std::wstring filename, char* shaderContent, int maxL
 	shaderContent[0] = '\0'; /* reset string */
 	if (!file) {
 		assert(false);
-// 		OutputDebugStringA("ERROR: opening file for reading: %s\n", lFilename);
-// 		return false;
+		// 		OutputDebugStringA("ERROR: opening file for reading: %s\n", lFilename);
+		// 		return false;
 	}
 	strcpy(line, ""); /* remember to clean up before using for first time! */
 	while (!feof(file)) {
@@ -1752,18 +1755,18 @@ bool Effect::ReadShaderFile(std::wstring filename, char* shaderContent, int maxL
 			current_len += strlen(line); /* +1 for \n at end */
 			if (current_len >= maxLength) {
 				assert(false);
-// 				OutputDebugStringA(
-// 					"ERROR: shader length is longer than string buffer length %i\n",
-// 					maxLength
-// 					);
+				// 				OutputDebugStringA(
+				// 					"ERROR: shader length is longer than string buffer length %i\n",
+				// 					maxLength
+				// 					);
 			}
 			strcat(shaderContent, line);
 		}
 	}
 	if (EOF == fclose(file)) { /* probably unnecesssary validation */
 		assert(false);
-// 		OutputDebugStringA("ERROR: closing file from reading %s\n", lFilename);
-// 		return false;
+		// 		OutputDebugStringA("ERROR: closing file from reading %s\n", lFilename);
+		// 		return false;
 	}
 	return true;
 }
@@ -1799,13 +1802,13 @@ Effect::Effect(const std::string vsPath, std::string psPath) {
 	// Attach fragment shader to program
 	glAttachShader(m_shaderProgram, m_pixelShader);
 
-// 	// Bind attribute locations
-// 	// this needs to be done prior to linking
-// 	glBindAttribLocation(program, ATTRIB_VERTEX, "myVertex");
-// 	glBindAttribLocation(program, ATTRIB_NORMAL, "myNormal");
-// 	glBindAttribLocation(program, ATTRIB_UV, "myUV");
+	// 	// Bind attribute locations
+	// 	// this needs to be done prior to linking
+	// 	glBindAttribLocation(program, ATTRIB_VERTEX, "myVertex");
+	// 	glBindAttribLocation(program, ATTRIB_NORMAL, "myNormal");
+	// 	glBindAttribLocation(program, ATTRIB_UV, "myUV");
 
-	// Link program
+		// Link program
 	if (!ndk_helper::shader::LinkProgram(m_shaderProgram))
 	{
 		LOGI("Failed to link program: %d", m_shaderProgram);
@@ -1843,7 +1846,7 @@ Effect::Effect(const std::string vsPath, std::string psPath) {
 	if (m_pixelShader)
 		glDeleteShader(m_pixelShader);
 
-//	params->program_ = program;
+	//	params->program_ = program;
 	return;
 }
 
@@ -1873,7 +1876,7 @@ void DebugLineEffect::UpdateConstantBuffer() {
 		0,
 		sizeof(PEROBJ_UNIFORM_BUFFER),
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-		);
+	);
 	memcpy(perObjectUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
 	glUnmapBuffer(GL_UNIFORM_BUFFER);
 }
@@ -1936,7 +1939,7 @@ void SimpleMeshEffect::UpdateConstantBuffer() {
 		0,
 		sizeof(PEROBJ_UNIFORM_BUFFER),
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-		);
+	);
 	memcpy(perObjUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
 	glUnmapBuffer(GL_UNIFORM_BUFFER);
 
@@ -1946,7 +1949,7 @@ void SimpleMeshEffect::UpdateConstantBuffer() {
 		0,
 		sizeof(PERFRAME_UNIFORM_BUFFER),
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-		);
+	);
 	memcpy(perFrameUBOPtr, &m_perFrameUniformBuffer, sizeof(PERFRAME_UNIFORM_BUFFER));
 	glUnmapBuffer(GL_UNIFORM_BUFFER);
 }
@@ -1979,7 +1982,7 @@ void SimpleMeshEffect::BindConstantBuffer() {
 
 
 EffectsManager* EffectsManager::_instance = nullptr;
-EffectsManager::EffectsManager() 
+EffectsManager::EffectsManager()
 	: m_shadowMapEffect(nullptr)
 	, m_deferredGeometryPassEffect(nullptr)
 	, m_deferredShadingPassEffect(nullptr)
@@ -2029,4 +2032,6 @@ EffectsManager::~EffectsManager() {
 	SafeDelete(m_blurEffect);
 	SafeDelete(m_vblurEffect);
 #endif
+}
+
 }

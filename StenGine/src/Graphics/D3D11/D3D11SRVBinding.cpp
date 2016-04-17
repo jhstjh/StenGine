@@ -3,6 +3,9 @@
 
 #pragma warning(disable:4267)
 
+namespace StenGine
+{
+
 D3D11SRVBinding::D3D11SRVBinding()
 {
 	m_srvs.fill(nullptr);
@@ -30,4 +33,6 @@ void D3D11SRVBinding::Unbind()
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 16, nullSRV);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShaderResources(0, 16, nullSRV);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShaderResources(0, 16, nullSRV);
+}
+
 }

@@ -3,6 +3,9 @@
 #include "Graphics/D3DIncludes.h"
 #include <array>
 
+namespace StenGine
+{
+
 class D3D11SRVBinding
 {
 public:
@@ -14,3 +17,5 @@ public:
 private:
 	std::array<ID3D11ShaderResourceView*, 16> m_srvs;
 };
+
+}

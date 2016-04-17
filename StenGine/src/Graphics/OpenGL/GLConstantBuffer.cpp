@@ -5,6 +5,9 @@
 
 #pragma warning(disable: 4311  4302)
 
+namespace StenGine
+{
+
 GLConstantBuffer::GLConstantBuffer(uint32_t index, uint32_t size, void* bufferName)
 {
 	m_index = index;
@@ -60,7 +63,9 @@ void GLConstantBuffer::ImplBind()
 		0,
 		m_size,
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-		);
+	);
 	memcpy(ubo, m_data, m_size);
 	glUnmapBuffer(GL_UNIFORM_BUFFER);
+}
+
 }

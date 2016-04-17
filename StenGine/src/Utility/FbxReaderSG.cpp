@@ -10,6 +10,9 @@
 
 #pragma warning(disable:4244) // conversion from 'fbxsdk_2015_1::FbxDouble' to 'float', possible loss of data
 
+namespace StenGine
+{
+
 void ReadFbxMesh(FbxNode* node, Mesh* mesh);
 void ReadFbxMaterial(FbxNode* node, Mesh* mesh);
 
@@ -76,7 +79,7 @@ void ReadFbxMesh(FbxNode* node, Mesh* mesh) {
 		}
 		int triangleCount = fbxMesh->GetPolygonCount();
 		int counter = 0;
-		for (int i = 0; i < triangleCount; i++){
+		for (int i = 0; i < triangleCount; i++) {
 			mesh->m_subMeshes[polyMatIndex[i]].m_indexBufferCPU.push_back(counter * 3);
 			mesh->m_subMeshes[polyMatIndex[i]].m_indexBufferCPU.push_back(counter * 3 + 1);
 			mesh->m_subMeshes[polyMatIndex[i]].m_indexBufferCPU.push_back(counter * 3 + 2);
@@ -84,16 +87,16 @@ void ReadFbxMesh(FbxNode* node, Mesh* mesh) {
 			counter++;
 		}
 		for (uint32_t i = 0; i < mesh->m_subMeshes.size(); i++) {
-			mesh->m_indexBufferCPU.insert(mesh->m_indexBufferCPU.end(), 
-										  mesh->m_subMeshes[i].m_indexBufferCPU.begin(), 
-										  mesh->m_subMeshes[i].m_indexBufferCPU.end());
+			mesh->m_indexBufferCPU.insert(mesh->m_indexBufferCPU.end(),
+				mesh->m_subMeshes[i].m_indexBufferCPU.begin(),
+				mesh->m_subMeshes[i].m_indexBufferCPU.end());
 		}
 	}
 	else if (matMapping == FbxLayerElement::eAllSame) {
 		mesh->m_subMeshes.resize(1);
 		int triangleCount = fbxMesh->GetPolygonCount();
 		int counter = 0;
-		for (int i = 0; i < triangleCount; i++){
+		for (int i = 0; i < triangleCount; i++) {
 			//fout << counter * 3 + 2 << " " << counter * 3 + 1 << " " << counter * 3 << std::endl;
 			mesh->m_subMeshes[0].m_indexBufferCPU.push_back(counter * 3);
 			mesh->m_subMeshes[0].m_indexBufferCPU.push_back(counter * 3 + 1);
@@ -111,7 +114,7 @@ void ReadFbxMesh(FbxNode* node, Mesh* mesh) {
 	{
 		int PolygonSize = fbxMesh->GetPolygonSize(i);
 		int vertexIndex = 0;
-		for (int j = 0; j < PolygonSize; j++){
+		for (int j = 0; j < PolygonSize; j++) {
 			int ControlPointIndex = fbxMesh->GetPolygonVertex(i, j);
 			mesh->m_positionBufferCPU.push_back(XMFLOAT3((float)ControlPoints[ControlPointIndex][0], (float)ControlPoints[ControlPointIndex][1], (float)ControlPoints[ControlPointIndex][2]));
 			numVerts++;
@@ -119,23 +122,23 @@ void ReadFbxMesh(FbxNode* node, Mesh* mesh) {
 			int k = 0;
 			bool flag = false;
 
-			while (k < fbxMesh->GetElementUVCount() && !flag){
+			while (k < fbxMesh->GetElementUVCount() && !flag) {
 				FbxGeometryElementUV* UV = fbxMesh->GetElementUV(k);
-				if (UV->GetMappingMode() == FbxGeometryElement::eByControlPoint){
-					if (UV->GetReferenceMode() == FbxGeometryElement::eDirect){
+				if (UV->GetMappingMode() == FbxGeometryElement::eByControlPoint) {
+					if (UV->GetReferenceMode() == FbxGeometryElement::eDirect) {
 						flag = true;
 						mesh->m_texUVBufferCPU.push_back(XMFLOAT2(-UV->GetDirectArray().GetAt(ControlPointIndex).mData[0],
 							-UV->GetDirectArray().GetAt(ControlPointIndex).mData[1]));
 					}
-					else if (UV->GetReferenceMode() == FbxGeometryElement::eIndexToDirect){
+					else if (UV->GetReferenceMode() == FbxGeometryElement::eIndexToDirect) {
 						flag = true;
 						int id = UV->GetIndexArray().GetAt(ControlPointIndex);
 						mesh->m_texUVBufferCPU.push_back(XMFLOAT2(-UV->GetDirectArray().GetAt(id).mData[0],
 							-UV->GetDirectArray().GetAt(id).mData[1]));
 					}
 				}
-				else if (UV->GetMappingMode() == FbxGeometryElement::eByPolygonVertex){
-					if (UV->GetReferenceMode() == FbxGeometryElement::eDirect || UV->GetReferenceMode() == FbxGeometryElement::eIndexToDirect){
+				else if (UV->GetMappingMode() == FbxGeometryElement::eByPolygonVertex) {
+					if (UV->GetReferenceMode() == FbxGeometryElement::eDirect || UV->GetReferenceMode() == FbxGeometryElement::eIndexToDirect) {
 						flag = true;
 						int TextureUVIndex = fbxMesh->GetTextureUVIndex(i, j);
 						mesh->m_texUVBufferCPU.push_back(XMFLOAT2(-UV->GetDirectArray().GetAt(TextureUVIndex).mData[0],
@@ -145,48 +148,48 @@ void ReadFbxMesh(FbxNode* node, Mesh* mesh) {
 				k++;
 			}
 
-			for (k = 0; k < fbxMesh->GetElementNormalCount(); k++){
+			for (k = 0; k < fbxMesh->GetElementNormalCount(); k++) {
 				FbxGeometryElementNormal* Normal = fbxMesh->GetElementNormal(k);
 				if (Normal->GetMappingMode() == FbxGeometryElement::eByPolygonVertex) {
-					if (Normal->GetReferenceMode() == FbxGeometryElement::eDirect){
+					if (Normal->GetReferenceMode() == FbxGeometryElement::eDirect) {
 						mesh->m_normalBufferCPU.push_back(XMFLOAT3(Normal->GetDirectArray().GetAt(vertexIndex)[0], Normal->GetDirectArray().GetAt(vertexIndex)[1], -Normal->GetDirectArray().GetAt(vertexIndex)[2]));
 					}
-					else if (Normal->GetReferenceMode() == FbxGeometryElement::eIndexToDirect){
+					else if (Normal->GetReferenceMode() == FbxGeometryElement::eIndexToDirect) {
 						int id = Normal->GetIndexArray().GetAt(vertexIndex);
 						mesh->m_normalBufferCPU.push_back(XMFLOAT3(Normal->GetDirectArray().GetAt(id)[0], Normal->GetDirectArray().GetAt(id)[1], -Normal->GetDirectArray().GetAt(id)[2]));
 					}
 				}
 				else if (Normal->GetMappingMode() == FbxGeometryElement::eByControlPoint) {
-					if (Normal->GetReferenceMode() == FbxGeometryElement::eDirect){
+					if (Normal->GetReferenceMode() == FbxGeometryElement::eDirect) {
 						mesh->m_normalBufferCPU.push_back(XMFLOAT3(Normal->GetDirectArray().GetAt(ControlPointIndex).mData[0],
 							Normal->GetDirectArray().GetAt(ControlPointIndex).mData[1],
 							Normal->GetDirectArray().GetAt(ControlPointIndex).mData[2]));
 					}
-					else if (Normal->GetReferenceMode() == FbxGeometryElement::eIndexToDirect){
+					else if (Normal->GetReferenceMode() == FbxGeometryElement::eIndexToDirect) {
 						int id = Normal->GetIndexArray().GetAt(ControlPointIndex);
 						mesh->m_normalBufferCPU.push_back(XMFLOAT3(Normal->GetDirectArray().GetAt(id)[0], Normal->GetDirectArray().GetAt(id)[1], -Normal->GetDirectArray().GetAt(id)[2]));
 					}
 				}
 			}
 
-			for (k = 0; k < fbxMesh->GetElementTangentCount(); k++){
+			for (k = 0; k < fbxMesh->GetElementTangentCount(); k++) {
 				FbxGeometryElementTangent* Tangent = fbxMesh->GetElementTangent(k);
 				if (Tangent->GetMappingMode() == FbxGeometryElement::eByPolygonVertex) {
-					if (Tangent->GetReferenceMode() == FbxGeometryElement::eDirect){
+					if (Tangent->GetReferenceMode() == FbxGeometryElement::eDirect) {
 						mesh->m_tangentBufferCPU.push_back(XMFLOAT3(Tangent->GetDirectArray().GetAt(vertexIndex)[0], Tangent->GetDirectArray().GetAt(vertexIndex)[1], -Tangent->GetDirectArray().GetAt(vertexIndex)[2]));
 					}
-					else if (Tangent->GetReferenceMode() == FbxGeometryElement::eIndexToDirect){
+					else if (Tangent->GetReferenceMode() == FbxGeometryElement::eIndexToDirect) {
 						int id = Tangent->GetIndexArray().GetAt(vertexIndex);
 						mesh->m_tangentBufferCPU.push_back(XMFLOAT3(Tangent->GetDirectArray().GetAt(id)[0], Tangent->GetDirectArray().GetAt(id)[1], -Tangent->GetDirectArray().GetAt(id)[2]));
 					}
 				}
 				else if (Tangent->GetMappingMode() == FbxGeometryElement::eByControlPoint) {
-					if (Tangent->GetReferenceMode() == FbxGeometryElement::eDirect){
+					if (Tangent->GetReferenceMode() == FbxGeometryElement::eDirect) {
 						mesh->m_tangentBufferCPU.push_back(XMFLOAT3(Tangent->GetDirectArray().GetAt(ControlPointIndex).mData[0],
 							Tangent->GetDirectArray().GetAt(ControlPointIndex).mData[1],
 							Tangent->GetDirectArray().GetAt(ControlPointIndex).mData[2]));
 					}
-					else if (Tangent->GetReferenceMode() == FbxGeometryElement::eIndexToDirect){
+					else if (Tangent->GetReferenceMode() == FbxGeometryElement::eIndexToDirect) {
 						int id = Tangent->GetIndexArray().GetAt(ControlPointIndex);
 						mesh->m_tangentBufferCPU.push_back(XMFLOAT3(Tangent->GetDirectArray().GetAt(id)[0], Tangent->GetDirectArray().GetAt(id)[1], -Tangent->GetDirectArray().GetAt(id)[2]));
 					}
@@ -220,21 +223,21 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 		}
 		else {
 		*/
-			int texCount = diffProp.GetSrcObjectCount<FbxTexture>();
-			for (int iTex = 0; iTex < texCount; iTex++) {
-				FbxFileTexture* tex = FbxCast<FbxFileTexture>(diffProp.GetSrcObject<FbxTexture>(iTex));
-				puts(tex->GetFileName());
-				//if (matCount == 1)
-				//	mesh->m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
-				//else
+		int texCount = diffProp.GetSrcObjectCount<FbxTexture>();
+		for (int iTex = 0; iTex < texCount; iTex++) {
+			FbxFileTexture* tex = FbxCast<FbxFileTexture>(diffProp.GetSrcObject<FbxTexture>(iTex));
+			puts(tex->GetFileName());
+			//if (matCount == 1)
+			//	mesh->m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
+			//else
 #if PLATFORM_WIN32
 #if GRAPHICS_D3D11
-					mesh->m_subMeshes[i].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
+			mesh->m_subMeshes[i].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 #else
-					mesh->m_subMeshes[i].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(tex->GetFileName()));
+			mesh->m_subMeshes[i].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(tex->GetFileName()));
 #endif
 #endif
-			}
+		}
 		//}
 
 		FbxProperty normalProp = sMat->FindProperty(FbxSurfaceMaterial::sNormalMap);
@@ -246,9 +249,9 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 			//else
 #if PLATFORM_WIN32
 #if GRAPHICS_D3D11
-				mesh->m_subMeshes[i].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
+			mesh->m_subMeshes[i].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 #else
-				mesh->m_subMeshes[i].m_normalMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(tex->GetFileName()));
+			mesh->m_subMeshes[i].m_normalMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(tex->GetFileName()));
 #endif
 #endif
 		}
@@ -262,12 +265,14 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 			//else
 #if PLATFORM_WIN32
 #if GRAPHICS_D3D11
-				mesh->m_subMeshes[i].m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
-				int a = 100;
+			mesh->m_subMeshes[i].m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
+			int a = 100;
 #else
-				mesh->m_subMeshes[i].m_bumpMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(tex->GetFileName()));
+			mesh->m_subMeshes[i].m_bumpMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(tex->GetFileName()));
 #endif
 #endif
 		}
 	}
+}
+
 }

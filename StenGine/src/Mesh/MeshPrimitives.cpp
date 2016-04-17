@@ -1,6 +1,9 @@
 #include "Mesh/MeshRenderer.h"
 #include "Resource/ResourceManager.h"
 
+namespace StenGine
+{
+
 void Mesh::CreateBoxPrimitive() {
 	m_positionBufferCPU.resize(24);
 	m_positionBufferCPU = {
@@ -225,4 +228,6 @@ void Mesh::CreatePlanePrimitive() {
 #else
 	// gl
 #endif
+}
+
 }

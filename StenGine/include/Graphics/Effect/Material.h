@@ -7,6 +7,9 @@
 #include "Graphics/D3DIncludes.h"
 #endif
 
+namespace StenGine
+{
+
 class Material {
 public:
 	XMFLOAT4 ambient;
@@ -16,4 +19,5 @@ public:
 	XMFLOAT4 roughness_metalic_c_doublesided; // cook-torrence-param
 };
 
+}
 #endif

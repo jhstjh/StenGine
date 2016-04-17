@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include "Graphics/Abstraction/GPUBufferBase.h"
 
+namespace StenGine
+{
+
 class D3D11Buffer
 {
 public:
@@ -23,3 +26,5 @@ private:
 };
 
 using GPUBuffer = D3D11Buffer;
+
+}

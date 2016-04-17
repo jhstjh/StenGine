@@ -5,6 +5,9 @@
 #include "Scene/Drawable.h"
 #include "Graphics/Abstraction/GPUBuffer.h"
 
+namespace StenGine
+{
+
 class Terrain : public Component, public Drawable {
 public:
 
@@ -54,7 +57,7 @@ private:
 	ID3D11ShaderResourceView* m_layerMapArraySRV;
 	ID3D11ShaderResourceView* m_blendMapSRV;
 	ID3D11ShaderResourceView* m_heightMapSRV;
-	
+
 	UINT m_numPatchVertices;
 	UINT m_numPatchQuadFaces;
 
@@ -66,3 +69,5 @@ private:
 	std::vector<XMFLOAT2> m_patchBoundsY;
 	std::vector<float> m_heightMap;
 };
+
+}

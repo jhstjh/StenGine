@@ -1,5 +1,8 @@
 #include "Resource/ResourceManager.h"
 
+namespace StenGine
+{
+
 ResourceManager* ResourceManager::_instance = nullptr;
 
 ResourceManager::~ResourceManager() {
@@ -12,5 +15,7 @@ ResourceManager::~ResourceManager() {
 		it->second = 0;
 #endif
 	}
+
+}
 
 }

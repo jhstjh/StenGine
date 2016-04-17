@@ -4,6 +4,9 @@
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Graphics/D3DIncludes.h"
 
+namespace StenGine
+{
+
 SkinnedMesh::SkinnedMesh() 
 	: Mesh(2) // TODO: just a temporary solution
 {
@@ -78,4 +81,5 @@ void SkinnedMesh::PrepareShadowMapBuffer() {
 
 }
 
+}
 #endif

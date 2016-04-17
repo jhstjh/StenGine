@@ -1,5 +1,8 @@
 #pragma once
 
+namespace StenGine
+{
+
 enum class BufferUsage
 {
 	IMMUTABLE,
@@ -12,3 +15,5 @@ enum class BufferType
 	VERTEX_BUFFER,
 	INDEX_BUFFER
 };
+
+}

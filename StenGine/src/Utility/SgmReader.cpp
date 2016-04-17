@@ -5,6 +5,9 @@
 #include <sstream>
 #include <string>
 
+namespace StenGine
+{
+
 void ReadSgmMesh(std::vector<uint8_t> &data, Mesh* mesh) {
 
 }
@@ -73,4 +76,5 @@ bool SgmReader::Read(const std::string& filename, Mesh* mesh) {
 	}
 }
 
+}
 #endif

@@ -15,6 +15,9 @@
 
 #endif
 
+namespace StenGine
+{
+
 class SubMesh : public Component {
 public:
 	SubMesh();
@@ -38,5 +41,5 @@ public:
 	Material m_material;
 };
 
-
+}
 #endif

@@ -4,6 +4,9 @@
 #include "GameObject.h"
 #include <vector>
 
+namespace StenGine
+{
+
 class GameObject;
 
 class Component {
@@ -13,4 +16,5 @@ public:
 	virtual ~Component();
 };
 
+}
 #endif

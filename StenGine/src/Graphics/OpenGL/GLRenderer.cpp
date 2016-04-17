@@ -23,6 +23,9 @@ using namespace std;
 #pragma warning(disable: 4244) // conversion from 'int64_t' to 'GLsizei', possible loss of data
 #pragma warning(disable: 4312 4311 4302) // 'type cast': conversion from 'GLuint' to 'void *' of greater size
 
+namespace StenGine
+{
+
 void APIENTRY GLErrorCallback(GLenum source​, GLenum type​, GLuint id​, GLenum severity​, GLsizei length​, const GLchar* message​, const void* userParam​)
 {
 	return;
@@ -74,7 +77,7 @@ Renderer* Renderer::_instance = nullptr;
 class GLRenderer : public Renderer
 {
 public:
-	GLRenderer(HINSTANCE hInstance, HWND hMainWnd) 
+	GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		: m_hInst(hInstance)
 		, m_hMainWnd(hMainWnd)
 		, m_currentVao(0)
@@ -83,7 +86,7 @@ public:
 	{
 		_instance = this;
 	}
-	
+
 	void Release() override {
 		_instance = nullptr;
 		delete this;
@@ -92,7 +95,7 @@ public:
 	bool Init(int32_t width, int32_t height, CreateWindowCallback createWindow) override {
 		m_clientWidth = width;
 		m_clientHeight = height;
-		
+
 		if (!createWindow(0, 0, m_hInst, m_hMainWnd))
 		{
 			return false;
@@ -155,7 +158,7 @@ public:
 			assert(false);
 			return false;
 		}
-		
+
 		m_diffuseBufferTexHandle = glGetTextureHandleARB(m_diffuseBufferTex);
 		m_normalBufferTexHandle = glGetTextureHandleARB(m_normalBufferTex);
 		m_specularBufferTexHandle = glGetTextureHandleARB(m_specularBufferTex);
@@ -300,15 +303,15 @@ public:
 	}
 
 	float GetAspectRatio() override {
-		return static_cast<float>(m_clientWidth) / static_cast<float>(m_clientHeight); 
+		return static_cast<float>(m_clientWidth) / static_cast<float>(m_clientHeight);
 	}
 
 	int GetScreenWidth() override {
-		return m_clientWidth; 
+		return m_clientWidth;
 	}
 
 	int GetScreenHeight() override {
-		return m_clientHeight; 
+		return m_clientHeight;
 	}
 
 	virtual Skybox* GetSkyBox() override {
@@ -346,7 +349,7 @@ public:
 
 		// todo
 		uint64_t framebuffer = (uint64_t)LightManager::Instance()->m_shadowMap->GetRenderTarget();
-		
+
 		uint32_t width, height;
 		LightManager::Instance()->m_shadowMap->GetDimension(width, height);
 
@@ -363,7 +366,7 @@ public:
 			//if (m_currentVao != (uint64_t)cmd.inputLayout)
 			//{
 			//	m_currentVao = (uint64_t)cmd.inputLayout;
-				glBindVertexArray((uint64_t)cmd.inputLayout);
+			glBindVertexArray((uint64_t)cmd.inputLayout);
 			//}
 
 			glBindVertexBuffer(0, (uint64_t)cmd.vertexBuffer, cmd.vertexOffset, cmd.vertexStride);
@@ -405,7 +408,7 @@ public:
 			//if (m_currentVao != (uint64_t)cmd.inputLayout)
 			//{
 			//	m_currentVao = (uint64_t)cmd.inputLayout;
-				glBindVertexArray((GLuint)cmd.inputLayout);
+			glBindVertexArray((GLuint)cmd.inputLayout);
 			//}
 
 			//TODO check current vbo
@@ -534,7 +537,7 @@ public:
 		glDepthMask(GL_TRUE);
 	}
 
-	GLRenderer::~GLRenderer() 
+	GLRenderer::~GLRenderer()
 	{
 		glMakeTextureHandleNonResidentARB(m_diffuseBufferTexHandle);
 		glMakeTextureHandleNonResidentARB(m_normalBufferTexHandle);
@@ -555,7 +558,7 @@ public:
 			GL_RGBA,
 			GL_UNSIGNED_BYTE,
 			nullptr
-			);
+		);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -576,7 +579,7 @@ public:
 			0,
 			GL_DEPTH_COMPONENT,
 			GL_UNSIGNED_BYTE, NULL
-			);
+		);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -663,7 +666,7 @@ private:
 		GLuint screenQuadVertexVBO;
 		GLuint screenQuadUVVBO;
 		glCreateBuffers(1, &screenQuadVertexVBO);
-		
+
 		glBindBuffer(GL_ARRAY_BUFFER, screenQuadVertexVBO);
 		glBufferData(GL_ARRAY_BUFFER, quadVertexBuffer.size() * sizeof(XMFLOAT4), &quadVertexBuffer[0], GL_STATIC_DRAW);
 
@@ -728,6 +731,8 @@ Renderer* Renderer::Create(HINSTANCE hInstance, HWND hMainWnd)
 	GLRenderer* renderer = new GLRenderer(hInstance, hMainWnd);
 	_instance = static_cast<Renderer*>(renderer);
 	return _instance;
+}
+
 }
 
 #endif

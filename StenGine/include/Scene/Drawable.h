@@ -1,5 +1,8 @@
 #pragma once
 
+namespace StenGine
+{
+
 class Drawable
 {
 public:
@@ -8,3 +11,5 @@ public:
 	virtual void GatherDrawCall() = 0;
 	virtual void GatherShadowDrawCall() = 0;
 };
+
+}

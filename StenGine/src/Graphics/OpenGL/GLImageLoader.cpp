@@ -3,6 +3,9 @@
 #include "Graphics/OpenGL/GLImageLoader.h"
 #include "gli/gli.hpp"
 
+namespace StenGine
+{
+
 GLuint CreateGLTextureFromFile(const char* filename)
 {
 	gli::texture Texture = gli::load(filename);
@@ -120,4 +123,6 @@ GLuint CreateGLTextureFromFile(const char* filename)
 				}
 			}
 	return TextureName;
+}
+
 }

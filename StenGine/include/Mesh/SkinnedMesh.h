@@ -4,6 +4,9 @@
 #include "Mesh/MeshRenderer.h"
 #include "Mesh/Skeleton.h"
 
+namespace StenGine
+{
+
 class SkinnedMesh : public Mesh {
 public:
 	SkinnedMesh();
@@ -19,3 +22,5 @@ private:
 	std::vector<XMFLOAT4> m_jointWeightsBufferCPU;
 	std::vector<XMUINT4> m_jointIndicesBufferCPU;
 };
+
+}

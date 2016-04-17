@@ -17,17 +17,20 @@
 #pragma warning(disable: 4312) // 'type cast': conversion from 'GLuint' to 'void *' of greater size
 #pragma warning(disable: 4267) // conversion from 'size_t' to 'UINT', possible loss of data
 
-Mesh::Mesh(int type = 0):
+namespace StenGine
+{
+
+Mesh::Mesh(int type = 0) :
 #if GRAPHICS_D3D11
-m_indexBufferCPU(0),
-m_stdMeshVertexBufferGPU(0),
-m_shadowMapVertexBufferGPU(0),
-m_diffuseMapSRV(0),
-m_normalMapSRV(0),
-m_bumpMapSRV(0),
+	m_indexBufferCPU(0),
+	m_stdMeshVertexBufferGPU(0),
+	m_shadowMapVertexBufferGPU(0),
+	m_diffuseMapSRV(0),
+	m_normalMapSRV(0),
+	m_bumpMapSRV(0),
 #endif
-m_castShadow(true),
-m_receiveShadow(true)
+	m_castShadow(true),
+	m_receiveShadow(true)
 {
 	//ObjReader::Read(L"Model/ball.obj", this);
 	if (type == 0)
@@ -60,14 +63,14 @@ void Mesh::Prepare() {
 	}
 }
 
-void Mesh::PrepareGPUBuffer() 
+void Mesh::PrepareGPUBuffer()
 {
 #if PLATFORM_WIN32
 	m_associatedDeferredEffect = EffectsManager::Instance()->m_deferredGeometryPassEffect;
 	m_associatedDeferredEffect->m_associatedMeshes.push_back(this);
 #elif  PLATFORM_ANDROID
- 	m_associatedEffect = EffectsManager::Instance()->m_simpleMeshEffect;
- 	m_associatedEffect->m_associatedMeshes.push_back(this);
+	m_associatedEffect = EffectsManager::Instance()->m_simpleMeshEffect;
+	m_associatedEffect->m_associatedMeshes.push_back(this);
 #endif
 
 	std::vector<Vertex::StdMeshVertex> vertices(m_positionBufferCPU.size());
@@ -84,7 +87,7 @@ void Mesh::PrepareGPUBuffer()
 	m_indexBufferGPU = new GPUBuffer(m_indexBufferCPU.size() * sizeof(UINT), BufferUsage::IMMUTABLE, (void*)&m_indexBufferCPU.front(), BufferType::INDEX_BUFFER);
 }
 
-void Mesh::PrepareShadowMapBuffer() 
+void Mesh::PrepareShadowMapBuffer()
 {
 	m_shadowMapVertexBufferGPU = new GPUBuffer(m_positionBufferCPU.size() * sizeof(Vertex::ShadowMapVertex), BufferUsage::IMMUTABLE, (void*)&m_positionBufferCPU.front(), BufferType::VERTEX_BUFFER);
 }
@@ -100,9 +103,9 @@ void Mesh::GatherDrawCall() {
 	if (m_subMeshes[0].m_bumpMapSRV)
 #endif
 #if GRAPHICS_OPENGL
-	if (m_subMeshes[0].m_bumpMapTex)
+		if (m_subMeshes[0].m_bumpMapTex)
 #endif
-		effect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect;
+			effect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect;
 
 
 	XMFLOAT4 resourceMask(0, 0, 0, 0);
@@ -151,12 +154,12 @@ void Mesh::GatherDrawCall() {
 				resourceMask.y = 1;
 				cmd.srvs.AddSRV(m_subMeshes[iSubMesh].m_normalMapSRV, 1);
 			}
-			
+
 			if (m_subMeshes[iSubMesh].m_bumpMapSRV) {
 				cmd.type = PrimitiveTopology::CONTROL_POINT_3_PATCHLIST;
 				cmd.srvs.AddSRV(m_subMeshes[iSubMesh].m_bumpMapSRV, 2);
 			}
-			else 
+			else
 			{
 				cmd.type = PrimitiveTopology::TRIANGLELIST;
 			}
@@ -181,7 +184,7 @@ void Mesh::GatherDrawCall() {
 			perObjData->DiffuseMap = m_subMeshes[iSubMesh].m_diffuseMapTex;
 			perObjData->NormalMap = m_subMeshes[iSubMesh].m_normalMapTex;
 			perObjData->ShadowMapTex = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
-			perObjData->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;			
+			perObjData->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;
 			perObjData->BumpMapTex = m_subMeshes[iSubMesh].m_bumpMapTex;
 
 			cmd.offset = (void*)(startIndex * sizeof(unsigned int));
@@ -191,7 +194,7 @@ void Mesh::GatherDrawCall() {
 			perObjData->DiffX_NormY_ShadZ = resourceMask;
 
 			cmd.inputLayout = effect->GetInputLayout();
-			cmd.framebuffer = Renderer::Instance()->GetGbuffer();		
+			cmd.framebuffer = Renderer::Instance()->GetGbuffer();
 			cmd.vertexBuffer = (void*)m_stdMeshVertexBufferGPU->GetBuffer();
 			cmd.indexBuffer = (void*)m_indexBufferGPU->GetBuffer();
 			cmd.vertexStride = stride;
@@ -202,14 +205,14 @@ void Mesh::GatherDrawCall() {
 			cmd.cbuffers.push_back(std::move(cbuffer1));
 
 			Renderer::Instance()->AddDeferredDrawCmd(cmd);
-			
+
 			startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
 		}
 	}
 
 #elif  PLATFORM_ANDROID
 	DeferredGeometryPassEffect* effect = dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect);
-	
+
 	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
 
 		effect->m_perObjUniformBuffer.WorldViewProj = (ndk_helper::Mat4)CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * *m_parents[iP]->GetWorldTransform();
@@ -222,10 +225,10 @@ void Mesh::GatherDrawCall() {
 
 			XMFLOAT4 resourceMask(0, 0, 0, 0);
 
-// 			if (m_subMeshes[iSubMesh].m_diffuseMapTex > 0)
-// 				resourceMask.x = 1;
-// 			if (m_subMeshes[iSubMesh].m_normalMapTex > 0)
-// 				resourceMask.y = 1;
+			// 			if (m_subMeshes[iSubMesh].m_diffuseMapTex > 0)
+			// 				resourceMask.x = 1;
+			// 			if (m_subMeshes[iSubMesh].m_normalMapTex > 0)
+			// 				resourceMask.y = 1;
 
 			effect->m_perObjUniformBuffer.DiffX_NormY_ShadZ = resourceMask;
 
@@ -234,9 +237,9 @@ void Mesh::GatherDrawCall() {
 			effect->UpdateConstantBuffer();
 			effect->BindConstantBuffer();
 
-// 			effect->DiffuseMap = m_subMeshes[iSubMesh].m_diffuseMapTex;
-// 			effect->NormalMap = m_subMeshes[iSubMesh].m_normalMapTex;
-// 			effect->BindShaderResource();
+			// 			effect->DiffuseMap = m_subMeshes[iSubMesh].m_diffuseMapTex;
+			// 			effect->NormalMap = m_subMeshes[iSubMesh].m_normalMapTex;
+			// 			effect->BindShaderResource();
 
 			glDrawElements(
 				GL_TRIANGLES,      // mode
@@ -244,12 +247,12 @@ void Mesh::GatherDrawCall() {
 																  //m_indexBufferCPU.size(),
 				GL_UNSIGNED_INT,   // type
 				(void*)(startIndex * sizeof(unsigned int))           // element array buffer offset
-				);
-//			effect->UnBindShaderResource();
+			);
+			//			effect->UnBindShaderResource();
 			startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
 			//break;
 		}
-//		effect->UnBindConstantBuffer();
+		//		effect->UnBindConstantBuffer();
 	}
 #endif
 }
@@ -274,7 +277,7 @@ void Mesh::GatherShadowDrawCall() {
 		cmd.vertexStride = stride;
 		cmd.vertexOffset = offset;
 		cmd.inputLayout = effect->GetInputLayout();
-		cmd.framebuffer = LightManager::Instance()->m_shadowMap->GetRenderTarget();	
+		cmd.framebuffer = LightManager::Instance()->m_shadowMap->GetRenderTarget();
 		cmd.offset = (void*)(0);
 		cmd.effect = effect;
 		cmd.elementCount = (int64_t)m_indexBufferCPU.size();
@@ -282,4 +285,6 @@ void Mesh::GatherShadowDrawCall() {
 
 		Renderer::Instance()->AddShadowDrawCmd(cmd);
 	}
+}
+
 }

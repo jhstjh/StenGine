@@ -13,6 +13,9 @@ using namespace DirectX;
 
 #include "System/AlignedClass.h"
 
+namespace StenGine
+{
+
 class Camera : public AlignedClass<16> {
 	XMFLOAT4 m_pos;
 	XMFLOAT4X4 m_view;
@@ -69,7 +72,6 @@ public:
 
 };
 
-
-
+}
 
 #endif // !__CAMERA_MANAGER__

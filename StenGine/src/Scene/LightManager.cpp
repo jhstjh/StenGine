@@ -4,6 +4,9 @@
 #include "Graphics/Effect/ShadowMap.h"
 #endif
 
+namespace StenGine
+{
+
 LightManager* LightManager::_instance = nullptr;
 
 LightManager::~LightManager() {
@@ -12,3 +15,4 @@ LightManager::~LightManager() {
 	}
 }
 
+}

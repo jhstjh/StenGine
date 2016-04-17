@@ -4,18 +4,21 @@
 #include "Graphics/D3DIncludes.h"
 #include <bitset>
 
+namespace StenGine
+{
+
 class InputManager {
 private:
 	static InputManager* _instance;
 
-//  	struct CONTROLLER_STATE
-//  	{
-//  		XINPUT_STATE lastState;
-//  		XINPUT_STATE state;
-//  		DWORD dwResult;
-//  		bool bLockVibration;
-//  		XINPUT_VIBRATION vibration;
-//  	} m_controller;
+	//  	struct CONTROLLER_STATE
+	//  	{
+	//  		XINPUT_STATE lastState;
+	//  		XINPUT_STATE state;
+	//  		DWORD dwResult;
+	//  		bool bLockVibration;
+	//  		XINPUT_VIBRATION vibration;
+	//  	} m_controller;
 
 	std::bitset<256> m_keyState;
 	std::bitset<256> m_lastKeyState;
@@ -36,4 +39,5 @@ public:
 	bool GetKeyHold(char key);
 };
 
+}
 #endif // !__XINPUT_MANAGER__

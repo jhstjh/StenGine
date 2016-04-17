@@ -223,7 +223,6 @@
     <ClInclude Include="include\Graphics\OpenGL\GLBuffer.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLConstantBuffer.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLImageLoader.h" />
-    <ClInclude Include="include\Graphics\OpenGL\GLTextureBinding.h" />
     <ClInclude Include="include\Input\InputManager.h" />
     <ClInclude Include="include\Math\MathHelper.h" />
     <ClInclude Include="include\Mesh\MeshRenderer.h" />

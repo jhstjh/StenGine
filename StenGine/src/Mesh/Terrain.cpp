@@ -11,19 +11,22 @@
 #include "Resource/ResourceManager.h"
 #include "Math/MathHelper.h"
 
+namespace StenGine
+{
+
 Terrain* Terrain::_instance = nullptr;
 
 Terrain::Terrain(InitInfo &info) :
-m_quadPatchVB(0),
-m_quadPatchIB(0),
-m_layerMapArraySRV(0),
-m_blendMapSRV(0),
-m_heightMapSRV(0),
-m_numPatchVertices(0),
-m_numPatchQuadFaces(0),
-m_numPatchVertRows(0),
-m_numPatchVertCols(0),
-m_initInfo(info)
+	m_quadPatchVB(0),
+	m_quadPatchIB(0),
+	m_layerMapArraySRV(0),
+	m_blendMapSRV(0),
+	m_heightMapSRV(0),
+	m_numPatchVertices(0),
+	m_numPatchQuadFaces(0),
+	m_numPatchVertRows(0),
+	m_numPatchVertCols(0),
+	m_initInfo(info)
 {
 	_instance = this;
 	m_numPatchVertRows = ((m_initInfo.HeightmapHeight - 1) / CellsPerPatch) + 1;
@@ -98,7 +101,7 @@ void Terrain::LoadHeightmap() {
 	std::ifstream inFile;
 	inFile.open(m_initInfo.HeightMapFilename.c_str(), std::ios_base::binary);
 
-	if (inFile)	{
+	if (inFile) {
 		// Read the RAW bytes.
 		inFile.read((char*)&in[0], (std::streamsize)in.size());
 
@@ -260,11 +263,11 @@ void Terrain::BuildQuadPatchIB() {
 	int k = 0;
 	for (UINT i = 0; i < m_numPatchVertRows - 1; ++i) {
 		for (UINT j = 0; j < m_numPatchVertCols - 1; ++j) {
-			indices[k]		= i * m_numPatchVertCols + j;
-			indices[k + 1]	= i * m_numPatchVertCols + j + 1;
+			indices[k] = i * m_numPatchVertCols + j;
+			indices[k + 1] = i * m_numPatchVertCols + j + 1;
 
-			indices[k + 2]	= (i + 1) * m_numPatchVertCols + j;
-			indices[k + 3]	= (i + 1) * m_numPatchVertCols + j + 1;
+			indices[k + 2] = (i + 1) * m_numPatchVertCols + j;
+			indices[k + 3] = (i + 1) * m_numPatchVertCols + j + 1;
 
 			k += 4;
 		}
@@ -399,4 +402,5 @@ void Terrain::GatherShadowDrawCall() {
 	Renderer::Instance()->AddShadowDrawCmd(cmd);
 }
 
+}
 #endif

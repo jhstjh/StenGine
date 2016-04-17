@@ -19,6 +19,9 @@
 #endif
 /*class Mesh;*/
 
+namespace StenGine
+{
+
 class ResourceManager {
 public:
 	static ResourceManager* Instance() {
@@ -34,7 +37,7 @@ public:
 		std::wstring ws(s.begin(), s.end());
 		return GetResource<T>(ws);
 	}
-	
+
 	template <typename T>
 	T* GetResource(std::string path) {
 		std::wstring _path(path.begin(), path.end());
@@ -56,7 +59,7 @@ public:
 			}
 		}
 	}
-	
+
 	template <typename T>
 	T* GetResource(std::wstring path) {
 		if (std::is_same<T, Mesh>::value) {
@@ -81,7 +84,7 @@ public:
 					assert(result);
 					newMesh->Prepare();
 					m_meshResourceMap[path] = newMesh;
-					
+
 					return (T*)newMesh;
 #elif (PLATFORM_ANDROID)
 					Mesh* newMesh = new Mesh(2);
@@ -101,7 +104,7 @@ public:
 				return (T*)got->second;
 			}
 		}
-//#if PLATFORM_WIN32
+		//#if PLATFORM_WIN32
 #if GRAPHICS_D3D11
 		else if (std::is_same<T, ID3D11ShaderResourceView>::value) {
 			auto got = m_textureSRVResourceMap.find(path);
@@ -133,7 +136,7 @@ public:
 			}
 		}
 #endif
-//#endif
+		//#endif
 		return nullptr;
 	}
 
@@ -250,5 +253,5 @@ private:
 #endif
 };
 
-
+}
 #endif // !__RESOURCE_MANAGER__

@@ -14,7 +14,8 @@
 
 #pragma warning(disable: 4267 4244)
 
-#define FORWARD 0
+namespace StenGine
+{
 
 class D3D11Renderer : public Renderer
 {
@@ -272,7 +273,6 @@ public:
 		}
 
 		//-----------------setup MRT---------------------
-#if !FORWARD
 		D3D11_TEXTURE2D_DESC gNormalBufferDesc;
 		gNormalBufferDesc.Width = m_clientWidth;
 		gNormalBufferDesc.Height = m_clientHeight;
@@ -399,8 +399,6 @@ public:
 		HR(m_d3d11Device->CreateShaderResourceView(depthTex, &dsrvDesc, &m_deferredRenderShaderResourceView));
 
 		ReleaseCOM(depthTex);
-
-#endif
 
 		D3D11_RASTERIZER_DESC wireframeDesc;
 		ZeroMemory(&wireframeDesc, sizeof(D3D11_RASTERIZER_DESC));
@@ -1058,4 +1056,5 @@ Renderer* Renderer::Create(HINSTANCE hInstance, HWND hMainWnd)
 	return _instance;
 }
 
+}
 #endif

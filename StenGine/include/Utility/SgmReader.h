@@ -1,10 +1,15 @@
 #pragma once
 
 #include <string>
-#include "MeshRenderer.h"
+#include "Mesh/MeshRenderer.h"
+
+namespace StenGine
+{
 
 class SgmReader {
 public:
 	//static bool Read(const std::wstring& filename, Mesh* mesh);
 	static bool Read(const std::string& filename, Mesh* mesh);
 };
+
+}

@@ -4,7 +4,11 @@
 #include "glew.h"
 #include <stdint.h>
 
+namespace StenGine
+{
+
 GLuint CreateGLTextureFromFile(const char* filename);
 
+}
 
 #endif

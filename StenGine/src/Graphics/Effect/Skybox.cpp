@@ -7,6 +7,9 @@
 #include "Graphics/OpenGL/GLImageLoader.h"
 #endif
 
+namespace StenGine
+{
+
 Skybox::Skybox(std::wstring &cubeMapPath) {
 #if GRAPHICS_D3D11
 	CreateDDSTextureFromFile(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice()),
@@ -106,7 +109,7 @@ void Skybox::Draw() {
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	//skyboxEffect->m_shaderResources[0] = m_cubeMapSRV;
 	skyboxEffect->SetShaderResources(m_cubeMapSRV, 0);
-	
+
 
 	XMFLOAT4 eyePos = CameraManager::Instance()->GetActiveCamera()->GetPos();
 	XMMATRIX T = XMMatrixTranslation(eyePos.x, eyePos.y, eyePos.z);
@@ -144,5 +147,7 @@ void Skybox::Draw() {
 	skyboxEffect->UnBindConstantBuffer();
 
 	skyboxEffect->UnSetShader();
+
+}
 
 }

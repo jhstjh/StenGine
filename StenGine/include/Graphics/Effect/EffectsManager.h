@@ -29,6 +29,9 @@ using namespace ndk_helper;
 
 #pragma warning(disable: 4312)
 
+namespace StenGine
+{
+
 class Mesh;
 
 class Effect : public AlignedClass<16> {
@@ -74,23 +77,23 @@ protected:
 public:
 	Effect(const std::wstring& filename);
 	Effect(const std::wstring& vsPath,
-		   const std::wstring& psPath,
-		   const std::wstring& gsPath,
-		   const std::wstring& hsPath,
-		   const std::wstring& dsPath,
-		   const std::wstring& csPath);
+		const std::wstring& psPath,
+		const std::wstring& gsPath,
+		const std::wstring& hsPath,
+		const std::wstring& dsPath,
+		const std::wstring& csPath);
 	virtual ~Effect();
 	virtual void SetShader();
 	virtual void UpdateConstantBuffer() {};
 	virtual void BindConstantBuffer() {};
-	virtual void BindShaderResource() {} 
+	virtual void BindShaderResource() {}
 	virtual void UnBindConstantBuffer();
 	virtual void UnBindShaderResource();
 	virtual void UnSetShader();
 
-	void* GetInputLayout() 
-	{ 
-		return (void*)m_inputLayout; 
+	void* GetInputLayout()
+	{
+		return (void*)m_inputLayout;
 	}
 #if GRAPHICS_D3D11
 	virtual void UnbindUnorderedAccessViews();
@@ -118,7 +121,7 @@ public:
 	//virtual void UnBindShaderResource();
 	//virtual void UnSetShader();
 #endif
-	
+
 	std::vector<Mesh*> m_associatedMeshes;
 };
 
@@ -149,12 +152,12 @@ public:
 		XMMATRIX ShadowTransform;
 		Material Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
-	} ;
+	};
 
 	struct PERFRAME_CONSTANT_BUFFER
 	{
 		XMFLOAT4 EyePosW;
-	} ;
+	};
 
 	ID3D11Buffer* m_perFrameCB;
 	ID3D11Buffer* m_perObjectCB;
@@ -480,15 +483,15 @@ public:
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
 
-	struct 
+	struct
 #if GRAPHICS_D3D11		
-	PERFRAME_CONSTANT_BUFFER
+		PERFRAME_CONSTANT_BUFFER
 	{
 		DirectionalLight gDirLight;
 		XMFLOAT4 gEyePosV;
 		XMMATRIX gProjInv;
 		XMMATRIX gProj;
-	} 
+	}
 	m_perFrameConstantBuffer;
 #endif
 
@@ -603,12 +606,12 @@ public:
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
 
-	struct 
+	struct
 #if GRAPHICS_D3D11
-	PEROBJ_CONSTANT_BUFFER
+		PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX gWorldViewProj;
-	} 
+	}
 	m_perObjConstantBuffer;
 #endif
 
@@ -760,15 +763,15 @@ public:
 	virtual void BindConstantBuffer();
 	virtual void BindShaderResource();
 
-	struct 
+	struct
 #if GRAPHICS_D3D11
-	PEROBJ_CONSTANT_BUFFER
+		PEROBJ_CONSTANT_BUFFER
 #else
-	PEROBJ_UNIFORM_BUFFER
+		PEROBJ_UNIFORM_BUFFER
 #endif
 	{
 		XMMATRIX ViewProj;
-	} 
+	}
 #if GRAPHICS_D3D11
 	m_perObjConstantBuffer;
 #else
@@ -855,11 +858,11 @@ private:
 	static EffectsManager* _instance;
 
 public:
-	static EffectsManager* Instance() { 
-		if (!_instance) { 
-			_instance = new EffectsManager(); 
-		} 
-		return _instance; 
+	static EffectsManager* Instance() {
+		if (!_instance) {
+			_instance = new EffectsManager();
+		}
+		return _instance;
 	}
 	EffectsManager();
 	~EffectsManager();
@@ -868,7 +871,7 @@ public:
 	//StdMeshEffect* m_stdMeshEffect;
 	ShadowMapEffect* m_shadowMapEffect;
 	TerrainShadowMapEffect* m_terrainShadowMapEffect;
-	DeferredGeometryPassEffect* m_deferredGeometryPassEffect; 
+	DeferredGeometryPassEffect* m_deferredGeometryPassEffect;
 	DeferredGeometrySkinnedPassEffect* m_deferredGeometrySkinnedPassEffect;
 	DeferredGeometryTerrainPassEffect* m_deferredGeometryTerrainPassEffect;
 	DeferredGeometryTessPassEffect* m_deferredGeometryTessPassEffect;
@@ -886,4 +889,5 @@ public:
 #endif // !PLATFORM_ANDROID
 };
 
+}
 #endif

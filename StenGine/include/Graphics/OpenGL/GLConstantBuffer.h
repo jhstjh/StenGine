@@ -3,9 +3,12 @@
 #include "Graphics/Abstraction/ConstantBufferBase.h"
 #include <stdint.h>
 
+namespace StenGine
+{
+
 class GLConstantBuffer : public ConstantBufferBase<GLConstantBuffer>
 {
-friend class ConstantBufferBase<GLConstantBuffer>;
+	friend class ConstantBufferBase<GLConstantBuffer>;
 
 public:
 	GLConstantBuffer(uint32_t index, uint32_t size, void* bufferName);
@@ -26,3 +29,5 @@ private:
 };
 
 using ConstantBuffer = GLConstantBuffer;
+
+}

@@ -4,9 +4,12 @@
 #include "Graphics/Abstraction/RendererBase.h"
 #endif
 
-SubMesh::SubMesh() : m_indexBufferGPU(0), 
+namespace StenGine
+{
+
+SubMesh::SubMesh() : m_indexBufferGPU(0),
 #if GRAPHICS_D3D11
-m_bumpMapSRV(0), m_diffuseMapSRV(0), m_normalMapSRV(0) 
+m_bumpMapSRV(0), m_diffuseMapSRV(0), m_normalMapSRV(0)
 #else
 m_bumpMapTex(0), m_diffuseMapTex(0), m_normalMapTex(0)
 #endif
@@ -25,4 +28,6 @@ void SubMesh::PrepareGPUBuffer() {
 	iinitData.pSysMem = &m_indexBufferCPU[0];
 	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&ibd, &iinitData, &m_indexBufferGPU));
 #endif
+}
+
 }

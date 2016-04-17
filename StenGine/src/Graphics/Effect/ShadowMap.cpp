@@ -7,6 +7,8 @@
 
 #pragma warning(disable: 4312) // 'type cast': conversion from 'GLuint' to 'void *' of greater size
 
+namespace StenGine
+{
 
 ShadowMap::ShadowMap(UINT width, UINT height)
 	:m_width(width), m_height(height)
@@ -164,4 +166,6 @@ void ShadowMap::UpdateShadowMatrix() {
 	XMStoreFloat4x4(&m_lightView, V);
 	XMStoreFloat4x4(&m_lightProj, P);
 	XMStoreFloat4x4(&m_shadowTransform, S);
+}
+
 }

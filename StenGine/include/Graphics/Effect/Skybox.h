@@ -6,13 +6,15 @@
 #if GRAPHICS_OPENGL
 #include "glew.h"
 #endif
+namespace StenGine
+{
 
 class Skybox {
 public:
 	Skybox(std::wstring &cubeMapPath);
 	~Skybox();
 
-	void Draw(); 
+	void Draw();
 #if GRAPHICS_D3D11
 	ID3D11ShaderResourceView* m_cubeMapSRV;
 #else
@@ -22,4 +24,5 @@ public:
 
 };
 
+}
 #endif

@@ -23,6 +23,8 @@
 
 #define MAX_LOADSTRING 100
 
+using namespace StenGine;
+
 // Global Variables:
 HINSTANCE hInst;								// current instance
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text

@@ -1,5 +1,8 @@
 #pragma once
 
+namespace StenGine
+{
+
 template <class Impl>
 class ConstantBufferBase
 {
@@ -20,3 +23,5 @@ private:
 
 
 };
+
+}

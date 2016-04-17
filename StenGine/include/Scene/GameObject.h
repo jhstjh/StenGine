@@ -10,11 +10,14 @@
 #endif
 #include "Scene/Component.h"
 
+namespace StenGine
+{
+
 class Component;
 
 class GameObject {
 protected:
-	
+
 	std::vector<Component*> m_components;
 	std::string m_name;
 
@@ -33,5 +36,5 @@ public:
 	virtual void Update();
 };
 
-
+}
 #endif // !__GAMEOBJECT__

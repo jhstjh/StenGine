@@ -4,6 +4,9 @@
 #include "Graphics/D3DIncludes.h"
 #include <windows.h>
 
+namespace StenGine
+{
+
 class Timer {
 private:
 	static float m_gameStartTime;
@@ -22,5 +25,5 @@ public:
 	static void Update();
 };
 
-
+}
 #endif

@@ -3,6 +3,9 @@
 
 using namespace DirectX;
 
+namespace StenGine
+{
+
 class Joint {
 	XMMATRIX m_parentJointSpaceTransform;
 	int m_index;
@@ -23,3 +26,5 @@ private:
 	std::vector<Joint> m_joints;
 	std::vector<XMMATRIX> m_matrixPalette;
 };
+
+}

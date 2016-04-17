@@ -1,5 +1,8 @@
 #include "Utility/Timer.h"
 
+namespace StenGine
+{
+
 float Timer::m_gameStartTime = 0;
 float Timer::m_lastUpdateTime = 0;
 float Timer::m_deltaTime = 0;
@@ -13,7 +16,7 @@ void Timer::Init() {
 }
 
 float Timer::GetTime() {
-	QueryPerformanceCounter(&m_counter); 
+	QueryPerformanceCounter(&m_counter);
 	return (float)(m_counter.QuadPart) / (float)m_frequency.QuadPart;
 }
 
@@ -27,5 +30,7 @@ void Timer::Update() {
 	m_lastUpdateTime = time;
 }
 
-Timer::~Timer(){
+Timer::~Timer() {
+}
+
 }

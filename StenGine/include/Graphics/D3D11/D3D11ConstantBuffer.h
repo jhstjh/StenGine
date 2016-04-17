@@ -3,9 +3,12 @@
 #include "Graphics/Abstraction/ConstantBufferBase.h"
 #include "Graphics/D3DIncludes.h"
 
+namespace StenGine
+{
+
 class D3D11ConstantBuffer : public ConstantBufferBase<D3D11ConstantBuffer>
 {
-friend class ConstantBufferBase<D3D11ConstantBuffer>;
+	friend class ConstantBufferBase<D3D11ConstantBuffer>;
 
 public:
 	D3D11ConstantBuffer(uint32_t index, uint32_t size, void* bufferName);
@@ -26,4 +29,6 @@ private:
 	ID3D11Buffer* m_bufferName;
 };
 
-using ConstantBuffer = D3D11ConstantBuffer; 
+using ConstantBuffer = D3D11ConstantBuffer;
+
+}

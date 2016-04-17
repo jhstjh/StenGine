@@ -1,5 +1,8 @@
 #include "Graphics/OpenGL/GLBuffer.h"
 
+namespace StenGine
+{
+
 GLBuffer::GLBuffer(size_t size, BufferUsage usage, void* data, BufferType type)
 	: m_size(size)
 	, m_mapped(false)
@@ -15,7 +18,7 @@ GLBuffer::GLBuffer(size_t size, BufferUsage usage, void* data, BufferType type)
 	default:
 		m_flags = 0;
 		break;
-	}	
+	}
 
 	glCreateBuffers(1, &m_buffer);
 	glNamedBufferStorageEXT(m_buffer, size, data, m_flags);
@@ -36,4 +39,6 @@ void GLBuffer::unmap()
 {
 	m_mapped = false;
 	glUnmapNamedBufferEXT(m_buffer);
+}
+
 }

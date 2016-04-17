@@ -9,6 +9,9 @@
 #include "AndroidType.h"
 #endif
 
+namespace StenGine
+{
+
 struct DirectionalLight {
 	//DirectionalLight() { ZeroMemory(this, sizeof(this)); }
 
@@ -34,6 +37,6 @@ public:
 #endif
 };
 
-
+}
 
 #endif // !__LIGHT_MANAGER__

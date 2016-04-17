@@ -12,6 +12,9 @@ using namespace DirectX;
 
 #define MOVE_SPEED 10
 
+namespace StenGine
+{
+
 Camera::Camera(float px, float py, float pz,
 	float tx, float ty, float tz,
 	float ux, float uy, float uz,
@@ -180,4 +183,6 @@ CameraManager::CameraManager() {
 
 CameraManager::~CameraManager() {
 	SafeDelete(m_debugCamera);
+}
+
 }

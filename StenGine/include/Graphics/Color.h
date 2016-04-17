@@ -1,6 +1,9 @@
 #ifndef __COLOR__
 #define __COLOR__
 
+namespace StenGine
+{
+
 class SGColors
 {
 public:
@@ -16,7 +19,7 @@ public:
 	static float LightSteelBlue[4];
 };
 
-
+}
 #endif // !__COLOR__
 
 

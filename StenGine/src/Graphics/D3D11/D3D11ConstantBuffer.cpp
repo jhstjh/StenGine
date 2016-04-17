@@ -4,6 +4,9 @@
 #include <malloc.h>
 #include <string.h>
 
+namespace StenGine
+{
+
 D3D11ConstantBuffer::D3D11ConstantBuffer(uint32_t index, uint32_t size, void* buffer)
 	: m_bufferName((ID3D11Buffer*)buffer)
 	, m_index(index)
@@ -62,4 +65,6 @@ void D3D11ConstantBuffer::ImplBind()
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(m_index, 1, &m_bufferName);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetConstantBuffers(m_index, 1, &m_bufferName);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetConstantBuffers(m_index, 1, &m_bufferName);
+}
+
 }
