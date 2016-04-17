@@ -554,13 +554,8 @@ public:
 		m_d3d11DeviceContext->RSSetState(0);
 		m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
 
-		m_d3d11DeviceContext->RSSetState(m_depthRS);
 		DrawShadowMap();
-		ExecuteCmdList();
-
-		m_d3d11DeviceContext->RSSetState(0);
 		DrawGBuffer();
-
 		DrawDeferredShading();
 		m_SkyBox->Draw();
 
@@ -622,6 +617,11 @@ public:
 				m_d3d11DeviceContext->RSSetViewports(1, &cmd.viewport);
 			}
 
+			if (cmd.flags & CmdFlag::SET_RSSTATE)
+			{
+				m_d3d11DeviceContext->RSSetState(cmd.rsState);
+			}
+
 			if (cmd.flags & CmdFlag::DRAW)
 			{
 				cmd.effect->SetShader();
@@ -674,9 +674,10 @@ public:
 
 		DrawCmd shadowcmd;
 
-		shadowcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_DEPTH;
+		shadowcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_DEPTH | CmdFlag::SET_RSSTATE;
 		shadowcmd.framebuffer = LightManager::Instance()->m_shadowMap->GetRenderTarget();
 		shadowcmd.viewport = { 0, 0, (float)width, (float)height, 0, 1 };
+		shadowcmd.rsState = m_depthRS;
 
 		m_drawList.push_back(std::move(shadowcmd));
 
@@ -694,7 +695,7 @@ public:
 
 		DrawCmd drawcmd;
 
-		drawcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH;
+		drawcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH | CmdFlag::SET_RSSTATE;
 		drawcmd.framebuffer.rtvs.push_back(m_diffuseBufferRTV);
 		drawcmd.framebuffer.rtvs.push_back(m_normalBufferRTV);
 		drawcmd.framebuffer.rtvs.push_back(m_specularBufferRTV);
@@ -703,6 +704,7 @@ public:
 		drawcmd.framebuffer.clearColor.push_back(SGColors::Black);
 		drawcmd.framebuffer.dsv = m_deferredRenderDepthStencilView;
 		drawcmd.viewport = m_screenViewpot;
+		drawcmd.rsState = 0;
 
 		m_drawList.push_back(std::move(drawcmd));
 

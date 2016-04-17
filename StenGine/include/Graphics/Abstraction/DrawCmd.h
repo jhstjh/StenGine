@@ -48,6 +48,7 @@ static const uint32_t	CLEAR_COLOR  = 0x02;
 static const uint32_t	CLEAR_DEPTH  = 0x04;
 static const uint32_t	BIND_FB		 = 0x08; // bind framebuffer
 static const uint32_t	SET_VP		 = 0x10; // set viewport
+static const uint32_t   SET_RSSTATE  = 0x20; // set rasterizer state
 };
 
 struct DrawCmd {
@@ -74,6 +75,7 @@ struct DrawCmd {
 
 #if GRAPHICS_D3D11
 	D3D11SRVBinding srvs;
+	ID3D11RasterizerState* rsState;
 #endif
 };
 
