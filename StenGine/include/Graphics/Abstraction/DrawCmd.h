@@ -37,6 +37,7 @@ enum class PrimitiveTopology : uint32_t
 
 enum class DrawType
 {
+	NONE,
 	INDEXED,
 	ARRAY,
 };
@@ -52,22 +53,22 @@ static const uint32_t   SET_RSSTATE  = 0x20; // set rasterizer state
 };
 
 struct DrawCmd {
-	uint32_t			flags;
-	DrawType			drawType;
-	PrimitiveTopology	type;
+	uint32_t			flags			= 0;
+	DrawType			drawType		= DrawType::NONE;
+	PrimitiveTopology	type			= PrimitiveTopology::TRIANGLELIST;
 	RenderTarget		framebuffer;
-	void*				inputLayout;
+	void*				inputLayout		= nullptr;
 
-	int64_t				elementCount;
-	void*				offset;
+	int64_t				elementCount	= 0;
+	void*				offset			= 0;
 
-	class Effect*		effect;
+	class Effect*		effect			= nullptr;
 
-	void*				indexBuffer;
-	void*				vertexBuffer;
+	void*				indexBuffer		= nullptr;
+	void*				vertexBuffer	= nullptr;
 
-	uint32_t			vertexStride;
-	uint32_t			vertexOffset;
+	uint32_t			vertexStride	= 0;
+	uint32_t			vertexOffset	= 0;
 
 	Viewport			viewport;
 
@@ -75,7 +76,7 @@ struct DrawCmd {
 
 #if GRAPHICS_D3D11
 	D3D11SRVBinding srvs;
-	ID3D11RasterizerState* rsState;
+	ID3D11RasterizerState* rsState		= nullptr;
 #endif
 };
 

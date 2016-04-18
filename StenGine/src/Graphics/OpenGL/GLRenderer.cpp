@@ -28,7 +28,8 @@ namespace StenGine
 
 void APIENTRY GLErrorCallback(GLenum source​, GLenum type​, GLuint id​, GLenum severity​, GLsizei length​, const GLchar* message​, const void* userParam​)
 {
-	return;
+	if (GL_DEBUG_TYPE_OTHER == type​)
+		return;
 
 	cout << "---------------------opengl-callback-start------------" << endl;
 	cout << "message: " << message​ << endl;

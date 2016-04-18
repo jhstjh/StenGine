@@ -58,40 +58,22 @@ ShadowMap::ShadowMap(UINT width, UINT height)
 
 #else
 	glCreateFramebuffers(1, &m_shadowTarget);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_shadowTarget);
 
-	glGenTextures(1, &m_depthTex);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_depthTex);
+	glCreateTextures(GL_TEXTURE_2D, 1, &m_depthTex);
+	glTextureStorage2D(m_depthTex, 1, GL_DEPTH_COMPONENT32, width, height);
 
-	glTexImage2D(
-		GL_TEXTURE_2D,
-		0,
-		GL_DEPTH_COMPONENT,
-		m_width,
-		m_height,
-		0,
-		GL_DEPTH_COMPONENT,
-		GL_UNSIGNED_BYTE,
-		NULL
-	);
+	glTextureParameteri(m_depthTex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTextureParameteri(m_depthTex, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTextureParameteri(m_depthTex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(m_depthTex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	// clamp to edge. clamp to border may reduce artifacts outside light frustum
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	// attach depth texture to framebuffer
-	glFramebufferTexture2D(
-		GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTex, 0);
+	glNamedFramebufferTexture(
+		m_shadowTarget, GL_DEPTH_ATTACHMENT, m_depthTex, 0);
 
 	// tell framebuffer not to use any colour drawing outputs
 	GLenum draw_bufs[] = { GL_NONE };
-	glDrawBuffers(1, draw_bufs);
-
-	// bind default framebuffer again
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glNamedFramebufferDrawBuffers(m_shadowTarget, 1, draw_bufs);
 
 	m_depthTexHandle = glGetTextureHandleARB(m_depthTex);
 	glMakeTextureHandleResidentARB(m_depthTexHandle);
