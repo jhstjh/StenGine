@@ -187,6 +187,10 @@
     <None Include="FX\DebugLine_vs.glsl" />
     <None Include="FX\DeferredGeometryPass_ps.glsl" />
     <None Include="FX\DeferredGeometryPass_vs.glsl" />
+    <None Include="FX\DeferredGeometryTerrainPass_ds.glsl" />
+    <None Include="FX\DeferredGeometryTerrainPass_hs.glsl" />
+    <None Include="FX\DeferredGeometryTerrainPass_ps.glsl" />
+    <None Include="FX\DeferredGeometryTerrainPass_vs.glsl" />
     <None Include="FX\DeferredGeometryTessPass_ps.glsl" />
     <None Include="FX\DeferredGeometryTessPass_hs.glsl" />
     <None Include="FX\DeferredGeometryTessPass_ds.glsl" />

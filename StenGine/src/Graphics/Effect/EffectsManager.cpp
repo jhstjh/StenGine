@@ -274,7 +274,7 @@ Effect::Effect(const std::wstring& vsPath,
 		glDeleteProgram(m_shaderProgram);
 
 		OutputDebugStringA(&infoLog[0]);
-		assert(false);
+		assert(GL_TRUE != params);
 		return;
 	}
 
@@ -429,11 +429,6 @@ ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
 		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		cbDesc.MiscFlags = 0;
 		cbDesc.StructureByteStride = 0;
-
-		//D3D11_SUBRESOURCE_DATA InitData;
-		//InitData.pSysMem = &m_perObjConstantBuffer;
-		//InitData.SysMemPitch = 0;
-		//InitData.SysMemSlicePitch = 0;
 
 		HRESULT hr;
 		// Create the buffer.
@@ -1136,6 +1131,76 @@ DeferredGeometryTessPassEffect::~DeferredGeometryTessPassEffect()
 
 //----------------------------------------------------------//
 
+DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::wstring& filename)
+	: Effect(
+		filename + L"_vs" + EXT,
+		filename + L"_ps" + EXT,
+		L"",
+		filename + L"_hs" + EXT,
+		filename + L"_ds" + EXT)
+{
+
+#if GRAPHICS_D3D11
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	HRESULT hr = (static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
+		m_vsBlob->GetBufferSize(), &m_inputLayout));
+
+	m_shaderResources = new ID3D11ShaderResourceView*[8];
+
+	for (int i = 0; i < 8; i++) {
+		m_shaderResources[i] = 0;
+	}
+
+	{
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		// Create the buffer.
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr, &m_perObjectCB));
+	}
+
+	{
+		// Fill in a buffer description.
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		// Create the buffer.
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr, &m_perFrameCB));
+	}
+
+	ReleaseCOM(m_vsBlob);
+	ReleaseCOM(m_psBlob);
+	ReleaseCOM(m_gsBlob);
+	ReleaseCOM(m_hsBlob);
+	ReleaseCOM(m_dsBlob);
+	ReleaseCOM(m_csBlob);
+
+#endif
+}
+
+DeferredGeometryTerrainPassEffect::~DeferredGeometryTerrainPassEffect()
+{
+#if GRAPHICS_D3D11
+	ReleaseCOM(m_inputLayout);
+#endif
+}
+
 #if GRAPHICS_D3D11
 //----------------------------------------------------------//
 
@@ -1243,70 +1308,6 @@ void VBlurEffect::BindConstantBuffer() {
 void VBlurEffect::BindShaderResource(int idx) {
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetShaderResources(0, 1, m_shaderResources);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetUnorderedAccessViews(0, 1, &m_unorderedAccessViews[idx], 0);
-}
-
-DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::wstring& filename)
-	: Effect(
-		filename + L"_vs" + EXT,
-		filename + L"_ps" + EXT,
-		L"",
-		filename + L"_hs" + EXT,
-		filename + L"_ds" + EXT)
-{
-	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-
-	HRESULT hr = (static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
-		m_vsBlob->GetBufferSize(), &m_inputLayout));
-
-	m_shaderResources = new ID3D11ShaderResourceView*[8];
-
-	for (int i = 0; i < 8; i++) {
-		m_shaderResources[i] = 0;
-	}
-
-	{
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		// Create the buffer.
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr, &m_perObjectCB));
-	}
-
-	{
-		// Fill in a buffer description.
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		// Create the buffer.
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr, &m_perFrameCB));
-	}
-
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-}
-
-DeferredGeometryTerrainPassEffect::~DeferredGeometryTerrainPassEffect()
-{
-	ReleaseCOM(m_inputLayout);
 }
 
 //----------------------------------------------------------//
@@ -1848,10 +1849,10 @@ EffectsManager::EffectsManager()
 	m_skyboxEffect = new SkyboxEffect(L"FX/Skybox");
 	m_debugLineEffect = new DebugLineEffect(L"FX/DebugLine");
 	m_godrayEffect = new GodRayEffect(L"FX/GodRay");
-
+	m_deferredGeometryTerrainPassEffect = new DeferredGeometryTerrainPassEffect(L"FX/DeferredGeometryTerrainPass");
 #if GRAPHICS_D3D11
 	m_terrainShadowMapEffect = new TerrainShadowMapEffect(L"FX/DeferredGeometryTerrainPass");
-	m_deferredGeometryTerrainPassEffect = new DeferredGeometryTerrainPassEffect(L"FX/DeferredGeometryTerrainPass");
+
 	m_deferredShadingCSEffect = new DeferredShadingCS(L"FX/DeferredShading");
 
 	m_blurEffect = new BlurEffect(L"FX/Blur");

@@ -27,14 +27,14 @@ in TcsOut {
 	vec4 ShadowPosH;
 } tesIn[];
 
-out TcsOut {
+out TesOut {
 	vec3 pPosW;
 	vec3 pNormalV;
 	vec3 pNormalW;
 	vec3 pTangV;
 	vec2 pTexUV;
 	vec4 pShadowTransform;
-} tcsOut;
+} tesOut;
 
 layout(std140) uniform ubPerObj {
 	mat4 gWorldViewProj;
@@ -55,16 +55,16 @@ layout(std140) uniform ubPerObj {
 void main()
 {
 	// Interpolate patch attributes to generated vertices.
-	tcsOut.pPosW = gl_TessCoord.x*tesIn[0].PosW + gl_TessCoord.y*tesIn[1].PosW + gl_TessCoord.z*tesIn[2].PosW;
-	tcsOut.pNormalV = gl_TessCoord.x*tesIn[0].NormalV + gl_TessCoord.y*tesIn[1].NormalV + gl_TessCoord.z*tesIn[2].NormalV;
-	tcsOut.pNormalW = gl_TessCoord.x*tesIn[0].NormalW + gl_TessCoord.y*tesIn[1].NormalW + gl_TessCoord.z*tesIn[2].NormalW;
-	tcsOut.pTangV = gl_TessCoord.x*tesIn[0].TangentV + gl_TessCoord.y*tesIn[1].TangentV + gl_TessCoord.z*tesIn[2].TangentV;
-	tcsOut.pTexUV = gl_TessCoord.x*tesIn[0].TexUV + gl_TessCoord.y*tesIn[1].TexUV + gl_TessCoord.z*tesIn[2].TexUV;
-	tcsOut.pShadowTransform = gl_TessCoord.x*tesIn[0].ShadowPosH + gl_TessCoord.y*tesIn[1].ShadowPosH + gl_TessCoord.z*tesIn[2].ShadowPosH;
+	tesOut.pPosW = gl_TessCoord.x*tesIn[0].PosW + gl_TessCoord.y*tesIn[1].PosW + gl_TessCoord.z*tesIn[2].PosW;
+	tesOut.pNormalV = gl_TessCoord.x*tesIn[0].NormalV + gl_TessCoord.y*tesIn[1].NormalV + gl_TessCoord.z*tesIn[2].NormalV;
+	tesOut.pNormalW = gl_TessCoord.x*tesIn[0].NormalW + gl_TessCoord.y*tesIn[1].NormalW + gl_TessCoord.z*tesIn[2].NormalW;
+	tesOut.pTangV = gl_TessCoord.x*tesIn[0].TangentV + gl_TessCoord.y*tesIn[1].TangentV + gl_TessCoord.z*tesIn[2].TangentV;
+	tesOut.pTexUV = gl_TessCoord.x*tesIn[0].TexUV + gl_TessCoord.y*tesIn[1].TexUV + gl_TessCoord.z*tesIn[2].TexUV;
+	tesOut.pShadowTransform = gl_TessCoord.x*tesIn[0].ShadowPosH + gl_TessCoord.y*tesIn[1].ShadowPosH + gl_TessCoord.z*tesIn[2].ShadowPosH;
 
 	// Interpolating normal can unnormalize it, so normalize it.
-	tcsOut.pNormalV = normalize(tcsOut.pNormalV);
-	tcsOut.pNormalW = normalize(tcsOut.pNormalW);
+	tesOut.pNormalV = normalize(tesOut.pNormalV);
+	tesOut.pNormalW = normalize(tesOut.pNormalW);
 
 	//
 	// Displacement mapping.
@@ -73,16 +73,16 @@ void main()
 	// Choose the mipmap level based on distance to the eye; specifically, choose
 	// the next miplevel every MipInterval units, and clamp the miplevel in [0,6].
 	//const float MipInterval = 20.0f;
-	//float mipLevel = clamp((distance(tcsOut.PosW, gEyePosW) - MipInterval) / MipInterval, 0.0f, 6.0f);
+	//float mipLevel = clamp((distance(tesOut.PosW, gEyePosW) - MipInterval) / MipInterval, 0.0f, 6.0f);
 
 	// Sample height map (stored in alpha channel).
-	//float h = gBumpMap.SampleLevel(gDiffuseMapSampler, tcsOut.TexUV, 0).x;
-	float h = textureLod(gBumpMap, tcsOut.pTexUV, 0).x;
+	//float h = gBumpMap.SampleLevel(gDiffuseMapSampler, tesOut.TexUV, 0).x;
+	float h = textureLod(gBumpMap, tesOut.pTexUV, 0).x;
 
 	// Offset vertex along normal.
-	tcsOut.pPosW += (/*gHeightScale*/ 0.2 *(h - 1.0))*tcsOut.pNormalW;
+	tesOut.pPosW += (/*gHeightScale*/ 0.2 *(h - 1.0))*tesOut.pNormalW;
 
 	// Project to homogeneous clip space.
-	//tcsOut.PosH = mul(float4(tcsOut.PosW, 1.0f), gViewProj);
-	gl_Position = gViewProj * vec4(tcsOut.pPosW, 1.0f);
+	//tesOut.PosH = mul(float4(tesOut.PosW, 1.0f), gViewProj);
+	gl_Position = gViewProj * vec4(tesOut.pPosW, 1.0f);
 }

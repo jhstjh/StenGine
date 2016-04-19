@@ -14,7 +14,7 @@ struct DirectionalLight {
 	float pad;
 };
 
-in TcsOut {
+in TesOut {
 	vec3 pPosW;
 	vec3 pNormalV;
 	vec3 pNormalW;
