@@ -20,17 +20,19 @@
 namespace StenGine
 {
 
-Mesh::Mesh(int type = 0) :
+Mesh::Mesh(int type = 0) 
+	: m_indexBufferCPU(0)
+	, m_castShadow(true)
+	, m_receiveShadow(true)
+	, m_associatedEffect(nullptr)
+	, m_associatedDeferredEffect(nullptr)
 #if GRAPHICS_D3D11
-	m_indexBufferCPU(0),
-	m_stdMeshVertexBufferGPU(0),
-	m_shadowMapVertexBufferGPU(0),
-	m_diffuseMapSRV(0),
-	m_normalMapSRV(0),
-	m_bumpMapSRV(0),
+	, m_stdMeshVertexBufferGPU(nullptr)
+	, m_shadowMapVertexBufferGPU(nullptr)
+	, m_diffuseMapSRV(nullptr)
+	, m_normalMapSRV(nullptr)
+	, m_bumpMapSRV(nullptr)
 #endif
-	m_castShadow(true),
-	m_receiveShadow(true)
 {
 	//ObjReader::Read(L"Model/ball.obj", this);
 	if (type == 0)
@@ -49,8 +51,6 @@ Mesh::~Mesh() {
 	SafeDelete(m_shadowMapVertexBufferGPU);
 	SafeDelete(m_stdMeshVertexBufferGPU);
 	SafeDelete(m_indexBufferGPU);
-	SafeDelete(m_associatedEffect);
-	SafeDelete(m_associatedDeferredEffect);
 }
 
 void Mesh::Prepare() {

@@ -50,9 +50,17 @@ private:
 	GPUBuffer* m_quadPatchVB;
 	GPUBuffer* m_quadPatchIB;
 
+#if GRAPHICS_D3D11
 	ID3D11ShaderResourceView* m_layerMapArraySRV;
 	ID3D11ShaderResourceView* m_blendMapSRV;
 	ID3D11ShaderResourceView* m_heightMapSRV;
+#endif
+
+#if GRAPHICS_OPENGL
+	uint64_t m_layerMapArrayTex;
+	uint64_t m_blendMapTex;
+	uint64_t m_heightMapTex;
+#endif
 
 	UINT m_numPatchVertices;
 	UINT m_numPatchQuadFaces;

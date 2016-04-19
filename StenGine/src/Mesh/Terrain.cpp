@@ -1,5 +1,3 @@
-#if GRAPHICS_D3D11
-
 #include <fstream>
 
 #include "Mesh/Terrain.h"
@@ -11,15 +9,21 @@
 #include "Resource/ResourceManager.h"
 #include "Math/MathHelper.h"
 
+#if GRAPHICS_OPENGL
+#include "Graphics/OpenGL/GLImageLoader.h"
+#endif
+
 namespace StenGine
 {
 
 Terrain::Terrain(InitInfo &info) :
 	m_quadPatchVB(0),
 	m_quadPatchIB(0),
+#if GRAPHICS_D3D11
 	m_layerMapArraySRV(0),
 	m_blendMapSRV(0),
 	m_heightMapSRV(0),
+#endif
 	m_numPatchVertices(0),
 	m_numPatchQuadFaces(0),
 	m_numPatchVertRows(0),
@@ -41,8 +45,18 @@ Terrain::Terrain(InitInfo &info) :
 	BuildQuadPatchIB();
 	BuildHeightMapSRV();
 
+#if GRAPHICS_D3D11
 	m_blendMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(m_initInfo.BlendMapFilename);
 	m_layerMapArraySRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(m_initInfo.LayerMapFilenames);
+#endif
+
+#if GRAPHICS_OPENGL
+	m_blendMapTex = *ResourceManager::Instance()->GetResource<uint64_t>(m_initInfo.BlendMapFilename);
+	
+	// TODO tex2D array
+	//m_layerMapArrayTex = ResourceManager::Instance()->GetResource<uint64_t>(m_initInfo.LayerMapFilenames);
+#endif
+
 }
 
 Terrain::~Terrain() {
@@ -173,6 +187,11 @@ float Terrain::Average(int i, int j)
 }
 
 void Terrain::BuildHeightMapSRV() {
+
+	std::vector<HALF> hmap(m_heightMap.size());
+	std::transform(m_heightMap.begin(), m_heightMap.end(), hmap.begin(), XMConvertFloatToHalf);
+
+#if GRAPHICS_D3D11
 	D3D11_TEXTURE2D_DESC texDesc;
 	texDesc.Width = m_initInfo.HeightmapWidth;
 	texDesc.Height = m_initInfo.HeightmapHeight;
@@ -185,9 +204,6 @@ void Terrain::BuildHeightMapSRV() {
 	texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	texDesc.CPUAccessFlags = 0;
 	texDesc.MiscFlags = 0;
-
-	std::vector<HALF> hmap(m_heightMap.size());
-	std::transform(m_heightMap.begin(), m_heightMap.end(), hmap.begin(), XMConvertFloatToHalf);
 
 	D3D11_SUBRESOURCE_DATA data;
 	data.pSysMem = &hmap[0];
@@ -206,6 +222,25 @@ void Terrain::BuildHeightMapSRV() {
 
 	// SRV saves reference.
 	ReleaseCOM(hmapTex);
+#endif
+
+#if GRAPHICS_OPENGL
+	GLuint hmapTex;
+	glCreateTextures(GL_TEXTURE_2D, 1, &hmapTex);
+	glTextureStorage2D(hmapTex, 1, GL_R32F, m_initInfo.HeightmapWidth, m_initInfo.HeightmapHeight);
+
+	GLuint pbo;
+	glCreateBuffers(1, &pbo);
+	glNamedBufferData(pbo, sizeof(m_heightMap[0]) * m_heightMap.size(), nullptr, GL_STREAM_DRAW);
+
+	void* pboData = glMapNamedBuffer(pbo, GL_WRITE_ONLY);
+	memcpy(pboData, &m_heightMap[0], sizeof(m_heightMap[0]) * m_heightMap.size());
+	glUnmapNamedBuffer(pbo);
+
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
+	glTextureSubImage2D(hmapTex, 0, 0, 0, m_initInfo.HeightmapWidth, m_initInfo.HeightmapHeight, GL_RED, GL_FLOAT, 0);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+#endif
 }
 
 float Terrain::GetWidth() const {
@@ -273,6 +308,8 @@ void Terrain::BuildQuadPatchIB() {
 }
 
 void Terrain::GatherDrawCall() {
+
+#if GRAPHICS_D3D11
 	UINT stride = sizeof(Vertex::TerrainVertex);
 	UINT offset = 0;
 
@@ -334,10 +371,11 @@ void Terrain::GatherDrawCall() {
 	cmd.cbuffers.push_back(std::move(cbuffer1));
 
 	Renderer::Instance()->AddDeferredDrawCmd(cmd);
+#endif
 }
 
 void Terrain::GatherShadowDrawCall() {
-
+#if GRAPHICS_D3D11
 	UINT stride = sizeof(Vertex::TerrainVertex);
 	UINT offset = 0;
 
@@ -399,7 +437,7 @@ void Terrain::GatherShadowDrawCall() {
 	cmd.cbuffers.push_back(std::move(cbuffer1));
 
 	Renderer::Instance()->AddShadowDrawCmd(cmd);
+#endif
 }
 
 }
-#endif

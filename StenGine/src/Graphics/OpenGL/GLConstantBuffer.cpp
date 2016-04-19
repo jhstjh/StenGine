@@ -57,15 +57,15 @@ void *GLConstantBuffer::ImplGetBuffer()
 
 void GLConstantBuffer::ImplBind()
 {
-	glBindBufferBase(GL_UNIFORM_BUFFER, m_index, m_bufferName);
-	void* ubo = glMapBufferRange(
-		GL_UNIFORM_BUFFER,
+	glBindBufferRange(GL_UNIFORM_BUFFER, m_index, m_bufferName, 0, m_size);
+	void* ubo = glMapNamedBufferRange(
+		m_bufferName,
 		0,
 		m_size,
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
 	);
 	memcpy(ubo, m_data, m_size);
-	glUnmapBuffer(GL_UNIFORM_BUFFER);
+	glUnmapNamedBuffer(m_bufferName);
 }
 
 }

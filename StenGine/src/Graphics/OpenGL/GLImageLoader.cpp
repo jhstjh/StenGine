@@ -55,6 +55,18 @@ GLuint CreateGLTextureFromFile(const char* filename)
 		break;
 	}
 
+	GLuint pbo;
+	glCreateBuffers(1, &pbo);
+	glNamedBufferData(pbo, Texture.size(), nullptr, GL_STREAM_DRAW);
+	void* pboData = glMapNamedBuffer(pbo, GL_WRITE_ONLY);
+
+	memcpy(pboData, Texture.data(), Texture.size());
+
+	glUnmapNamedBuffer(pbo);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
+
+	uint32_t pboSize = 0;
+
 	for (std::size_t Layer = 0; Layer < Texture.layers(); ++Layer)
 		for (std::size_t Face = 0; Face < Texture.faces(); ++Face)
 			for (std::size_t Level = 0; Level < Texture.levels(); ++Level)
@@ -72,12 +84,12 @@ GLuint CreateGLTextureFromFile(const char* filename)
 						glCompressedTextureSubImage1D(
 							TextureName, static_cast<GLint>(Level), 0, Extent.x,
 							Format.Internal, static_cast<GLsizei>(Texture.size(Level)),
-							Texture.data(Layer, Face, Level));
+							(void*)pboSize);
 					else
 						glTextureSubImage1D(
 							TextureName, static_cast<GLint>(Level), 0, Extent.x,
 							Format.External, Format.Type,
-							Texture.data(Layer, Face, Level));
+							(void*)pboSize);
 					break;
 				case gli::TARGET_1D_ARRAY:
 				case gli::TARGET_2D:
@@ -89,7 +101,7 @@ GLuint CreateGLTextureFromFile(const char* filename)
 							Extent.x,
 							Texture.target() == gli::TARGET_1D_ARRAY ? LayerGL : Extent.y,
 							Format.Internal, static_cast<GLsizei>(Texture.size(Level)),
-							Texture.data(Layer, Face, Level));
+							(void*)pboSize);
 					else
 						glTextureSubImage2D(
 							TextureName, static_cast<GLint>(Level),
@@ -97,7 +109,7 @@ GLuint CreateGLTextureFromFile(const char* filename)
 							Extent.x,
 							Texture.target() == gli::TARGET_1D_ARRAY ? LayerGL : Extent.y,
 							Format.External, Format.Type,
-							Texture.data(Layer, Face, Level));
+							(void*)pboSize);
 					break;
 				case gli::TARGET_2D_ARRAY:
 				case gli::TARGET_3D:
@@ -110,7 +122,7 @@ GLuint CreateGLTextureFromFile(const char* filename)
 							Extent.x, Extent.y,
 							(Texture.target() == gli::TARGET_3D || Texture.target() == gli::TARGET_CUBE) ? Extent.z : LayerGL,
 							Format.Internal, static_cast<GLsizei>(Texture.size(Level)),
-							Texture.data(Layer, Face, Level));
+							(void*)pboSize);
 					else
 						glTextureSubImage3D(
 							TextureName, static_cast<GLint>(Level),
@@ -118,11 +130,15 @@ GLuint CreateGLTextureFromFile(const char* filename)
 							Extent.x, Extent.y,
 							(Texture.target() == gli::TARGET_3D || Texture.target() == gli::TARGET_CUBE) ? Extent.z : LayerGL,
 							Format.External, Format.Type,
-							Texture.data(Layer, Face, Level));
+							(void*)pboSize);
 					break;
 				default: assert(0); break;
 				}
+
+				pboSize += Texture.size(Level);
 			}
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+	glDeleteBuffers(1, &pbo);
 	return TextureName;
 }
 

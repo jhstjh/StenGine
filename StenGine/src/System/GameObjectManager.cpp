@@ -59,7 +59,7 @@ void GameObjectManager::LoadScene()
 	dragon->AddComponent(dragonMesh);
 	m_gameObjects.push_back(dragon);
 
-#if GRAPHICS_D3D11
+
 	Terrain::InitInfo tii;
 	tii.HeightMapFilename = L"Terrain/terrain.raw";
 	tii.LayerMapFilenames.resize(5);
@@ -80,8 +80,6 @@ void GameObjectManager::LoadScene()
 	terrain->AddComponent(terrainComp);
 
 	m_gameObjects.push_back(terrain);
-#endif
-
 #endif
 }
 
