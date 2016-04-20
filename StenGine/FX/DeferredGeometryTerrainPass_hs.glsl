@@ -6,7 +6,7 @@
 
 layout(vertices = 4) out;
 
-out TerrainVertexOut{
+in TerrainVertexOut{
 	vec3 PosW;
 	vec2 TexUV;
 	vec2 BoundsY;

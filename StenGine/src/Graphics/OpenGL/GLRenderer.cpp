@@ -334,9 +334,14 @@ public:
 					cbuffer.Bind();
 				}
 
-				if (cmd.type == PrimitiveTopology::CONTROL_POINT_3_PATCHLIST)
+				//if (cmd.type == PrimitiveTopology::CONTROL_POINT_3_PATCHLIST)
+				//{
+				//	glPatchParameteri(GL_PATCH_VERTICES, 3);
+				//}
+				//else 
+				if (cmd.type == PrimitiveTopology::CONTROL_POINT_4_PATCHLIST)
 				{
-					glPatchParameteri(GL_PATCH_VERTICES, 3);
+					glPatchParameteri(GL_PATCH_VERTICES, 4);
 				}
 
 				if (cmd.drawType == DrawType::INDEXED)

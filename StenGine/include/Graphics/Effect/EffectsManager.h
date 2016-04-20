@@ -200,15 +200,9 @@ public:
 	ID3D11Buffer* m_perFrameCB;
 	ID3D11Buffer* m_perObjectCB;
 #else
-	GLuint m_perFrameUBO;
-	GLuint m_perObjectUBO;
-
-	GLint DiffuseMapPosition;
-	GLint NormalMapPosition;
-	GLint ShadowMapPosition;
-	GLint CubeMapPosition;
+	GLuint m_perFrameCB;
+	GLuint m_perObjectCB;
 #endif
-
 
 	DeferredGeometryTerrainPassEffect(const std::wstring& filename);
 	DeferredGeometryTerrainPassEffect(const std::wstring& vsPath,
@@ -218,7 +212,6 @@ public:
 		const std::wstring& dsPath);
 	~DeferredGeometryTerrainPassEffect();
 
-#if GRAPHICS_D3D11
 	struct PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX WorldViewProj;
@@ -231,6 +224,14 @@ public:
 		XMMATRIX View;
 		Material Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
+
+#if GRAPHICS_OPENGL
+		uint64_t gShadowMap;
+		uint64_t gCubeMap;
+		uint64_t gHeightMap;
+		uint64_t gLayerMapArray;
+		uint64_t gBlendMap;
+#endif
 	};
 
 	struct PERFRAME_CONSTANT_BUFFER
@@ -259,30 +260,6 @@ public:
 		XMFLOAT2 pad2;
 		XMFLOAT4 gWorldFrustumPlanes[6];
 	};
-
-#else
-	struct PEROBJ_UNIFORM_BUFFER
-	{
-		XMMATRIX WorldViewProj;
-		XMMATRIX World;
-		XMMATRIX WorldView;
-		XMMATRIX ShadowTransform;
-		Material Mat;
-		XMFLOAT4 DiffX_NormY_ShadZ;
-	} m_perObjUniformBuffer;
-
-	struct PERFRAME_UNIFORM_BUFFER
-	{
-		XMFLOAT4 EyePosW;
-		DirectionalLight DirLight;
-	} m_perFrameUniformBuffer;
-
-	GLint DiffuseMap;
-	GLint NormalMap;
-	GLint ShadowMapTex;
-	GLint CubeMapTex;
-
-#endif
 };
 
 //--------------------------------------------------------------------//

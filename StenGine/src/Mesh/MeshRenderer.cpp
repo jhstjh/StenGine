@@ -93,7 +93,6 @@ void Mesh::PrepareShadowMapBuffer()
 }
 
 void Mesh::GatherDrawCall() {
-#if PLATFORM_WIN32
 	DeferredGeometryPassEffect* effect = (dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect));
 
 	UINT stride = sizeof(Vertex::StdMeshVertex);
@@ -211,52 +210,6 @@ void Mesh::GatherDrawCall() {
 			startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
 		}
 	}
-
-#elif  PLATFORM_ANDROID
-	DeferredGeometryPassEffect* effect = dynamic_cast<DeferredGeometryPassEffect*>(m_associatedDeferredEffect);
-
-	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
-
-		effect->m_perObjUniformBuffer.WorldViewProj = (ndk_helper::Mat4)CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * *m_parents[iP]->GetWorldTransform();
-		effect->m_perObjUniformBuffer.World = *m_parents[iP]->GetWorldTransform();
-		effect->m_perObjUniformBuffer.WorldView = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix() * *m_parents[iP]->GetWorldTransform();
-		//effect->m_perObjUniformBuffer.ShadowTransform = LightManager::Instance()->m_shadowMap->GetShadowMapTransform() * *m_parents[iP]->GetWorldTransform();
-
-		int startIndex = 0;
-		for (int iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
-
-			XMFLOAT4 resourceMask(0, 0, 0, 0);
-
-			// 			if (m_subMeshes[iSubMesh].m_diffuseMapTex > 0)
-			// 				resourceMask.x = 1;
-			// 			if (m_subMeshes[iSubMesh].m_normalMapTex > 0)
-			// 				resourceMask.y = 1;
-
-			effect->m_perObjUniformBuffer.DiffX_NormY_ShadZ = resourceMask;
-
-			// TODO: this is a bad practice here
-			// should separate this material related cbuffer from transform
-			effect->UpdateConstantBuffer();
-			effect->BindConstantBuffer();
-
-			// 			effect->DiffuseMap = m_subMeshes[iSubMesh].m_diffuseMapTex;
-			// 			effect->NormalMap = m_subMeshes[iSubMesh].m_normalMapTex;
-			// 			effect->BindShaderResource();
-
-			glDrawElements(
-				GL_TRIANGLES,      // mode
-				m_subMeshes[iSubMesh].m_indexBufferCPU.size(),    // count
-																  //m_indexBufferCPU.size(),
-				GL_UNSIGNED_INT,   // type
-				(void*)(startIndex * sizeof(unsigned int))           // element array buffer offset
-			);
-			//			effect->UnBindShaderResource();
-			startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
-			//break;
-		}
-		//		effect->UnBindConstantBuffer();
-	}
-#endif
 }
 
 void Mesh::GatherShadowDrawCall() {

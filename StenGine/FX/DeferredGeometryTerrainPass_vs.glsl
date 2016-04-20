@@ -22,11 +22,14 @@ struct DirectionalLight {
 
 layout(std140) uniform ubPerObj {
 	mat4 gWorldViewProj;
-	mat4 gWorld;
+	mat4 gWorldViewInvTranspose;
+	mat4 gWorldInvTranspose;
 	mat4 gWorldView;
+	mat4 gWorld;
 	mat4 gViewProj;
 	mat4 gShadowTransform;
 	mat4 gView;
+
 	Material gMat;
 	vec4 DiffX_NormY_ShadZ;
 	
@@ -45,7 +48,7 @@ out TerrainVertexOut{
 
 void main() {
 	vOut.PosW = PosL;
-	vOut.PosW.y = textureLod(gHeightMap, TexUV, 0).r;
+	//vOut.PosW.y = textureLod(gHeightMap, TexUV, 0).r;
 
 	vOut.PosW = (gWorld * vec4(vOut.PosW, 1.0f)).xyz;
 

@@ -240,6 +240,11 @@ void Terrain::BuildHeightMapSRV() {
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
 	glTextureSubImage2D(hmapTex, 0, 0, 0, m_initInfo.HeightmapWidth, m_initInfo.HeightmapHeight, GL_RED, GL_FLOAT, 0);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+	glDeleteBuffers(1, &pbo);
+
+	m_heightMapTex = glGetTextureHandleARB(hmapTex);
+	glMakeTextureHandleResidentARB(m_heightMapTex); // TODO make it non resident
 #endif
 }
 
@@ -307,9 +312,8 @@ void Terrain::BuildQuadPatchIB() {
 	m_quadPatchIB = new GPUBuffer(indices.size() * sizeof(UINT), BufferUsage::IMMUTABLE, (void*)&indices.front(), BufferType::INDEX_BUFFER);
 }
 
-void Terrain::GatherDrawCall() {
-
-#if GRAPHICS_D3D11
+void Terrain::GatherDrawCall() 
+{
 	UINT stride = sizeof(Vertex::TerrainVertex);
 	UINT offset = 0;
 
@@ -349,11 +353,19 @@ void Terrain::GatherDrawCall() {
 	perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
 	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
-
+#if GRAPHICS_D3D11
 	cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
 	cmd.srvs.AddSRV(m_heightMapSRV, 5);
 	cmd.srvs.AddSRV(m_layerMapArraySRV, 6);
 	cmd.srvs.AddSRV(m_blendMapSRV, 7);
+#endif
+
+#if GRAPHICS_OPENGL
+	perObjData->gShadowMap = LightManager::Instance()->m_shadowMap->GetDepthTex();
+	perObjData->gHeightMap = m_heightMapTex;
+	perObjData->gLayerMapArray = m_layerMapArrayTex;
+	perObjData->gBlendMap = m_blendMapTex;
+#endif
 
 	cmd.drawType = DrawType::INDEXED;
 	cmd.flags = CmdFlag::DRAW;
@@ -371,7 +383,6 @@ void Terrain::GatherDrawCall() {
 	cmd.cbuffers.push_back(std::move(cbuffer1));
 
 	Renderer::Instance()->AddDeferredDrawCmd(cmd);
-#endif
 }
 
 void Terrain::GatherShadowDrawCall() {

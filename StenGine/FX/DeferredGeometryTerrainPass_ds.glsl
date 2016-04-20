@@ -4,7 +4,7 @@
 #extension GL_ARB_bindless_texture : require
 #extension GL_EXT_texture_array : enable
 
-layout(quads, fractional_even_spacing, cw) in;
+layout(quads, fractional_even_spacing, ccw) in;
 
 struct Material {
 	vec4 ambient;
@@ -34,11 +34,14 @@ out TesOut {
 
 layout(std140) uniform ubPerObj {
 	mat4 gWorldViewProj;
-	mat4 gWorld;
+	mat4 gWorldViewInvTranspose;
+	mat4 gWorldInvTranspose;
 	mat4 gWorldView;
+	mat4 gWorld;
 	mat4 gViewProj;
 	mat4 gShadowTransform;
 	mat4 gView;
+
 	Material gMat;
 	vec4 DiffX_NormY_ShadZ;
 	

@@ -450,7 +450,6 @@ ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
 	glVertexArrayAttribFormat(m_inputLayout, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Pos));
 	glVertexArrayAttribBinding(m_inputLayout, 0, 0);
 
-
 	glCreateBuffers(1, &m_perObjectCB);
 	glNamedBufferStorage(m_perObjectCB, sizeof(PEROBJ_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
 #endif
@@ -1192,12 +1191,48 @@ DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::
 	ReleaseCOM(m_csBlob);
 
 #endif
+
+#if GRAPHICS_OPENGL
+
+	glCreateVertexArrays(1, &m_inputLayout);
+
+	glEnableVertexArrayAttrib(m_inputLayout, 0);
+	glEnableVertexArrayAttrib(m_inputLayout, 1);
+	glEnableVertexArrayAttrib(m_inputLayout, 2);
+
+	glVertexArrayAttribFormat(m_inputLayout, 0, 3, GL_FLOAT, GL_FALSE, 0);
+	glVertexArrayAttribFormat(m_inputLayout, 1, 2, GL_FLOAT, GL_FALSE, 12);
+	glVertexArrayAttribFormat(m_inputLayout, 2, 2, GL_FLOAT, GL_FALSE, 20);
+
+	glVertexArrayAttribBinding(m_inputLayout, 0, 0);
+	glVertexArrayAttribBinding(m_inputLayout, 1, 0);
+	glVertexArrayAttribBinding(m_inputLayout, 2, 0);
+
+
+
+	glCreateBuffers(1, &m_perObjectCB);
+	glNamedBufferStorage(m_perObjectCB, sizeof(PEROBJ_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
+
+	glCreateBuffers(1, &m_perFrameCB);
+	glNamedBufferStorage(m_perFrameCB, sizeof(PERFRAME_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
+
+	GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
+	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
+	
+	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
+	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
+#endif
 }
 
 DeferredGeometryTerrainPassEffect::~DeferredGeometryTerrainPassEffect()
 {
 #if GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
+#endif
+
+#if GRAPHICS_OPENGL
+	glDeleteBuffers(1, &m_perObjectCB);
+	glDeleteBuffers(1, &m_perFrameCB);
 #endif
 }
 
