@@ -78,13 +78,6 @@ layout(std140) uniform ubPerFrame{
 };
 
 void main() {
-	vec4 shadowPosH = pIn.ShadowPosH / pIn.ShadowPosH.w;
-	float depth = shadowPosH.z;
-	float shadowLit = 0;
-
-	shadowLit += texture2D(gShadowMap,
-		shadowPosH.xy).r;
-
 	vec2 leftTex = pIn.TexUV + vec2(-gTexelCellSpaceU, 0.0f);
 	vec2 rightTex = pIn.TexUV + vec2(gTexelCellSpaceU, 0.0f);
 	vec2 bottomTex = pIn.TexUV + vec2(0.0f, gTexelCellSpaceV);
@@ -119,6 +112,15 @@ void main() {
 	texColor = mix(texColor, c4, t.a);
 
 	ps_diff = texColor;
-	ps_diff.w = clamp(shadowLit, 0.f, 1.f);
+	ps_diff.w = 1.0;
 	ps_spec = vec4(0, 0, 0, 0);
+
+	vec4 shadowTrans = pIn.ShadowPosH;
+
+	shadowTrans.xyz /= shadowTrans.w;
+	float epsilon = 0.003;
+	float shadow = texture2D(gShadowMap, shadowTrans.xy).r;
+	if (shadow + epsilon < shadowTrans.z) {
+		ps_diff.w = 0.0;
+	}
 }

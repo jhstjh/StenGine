@@ -48,7 +48,7 @@ out TerrainVertexOut{
 
 void main() {
 	vOut.PosW = PosL;
-	//vOut.PosW.y = textureLod(gHeightMap, TexUV, 0).r;
+	vOut.PosW.y = textureLod(gHeightMap, TexUV, 0).r;
 
 	vOut.PosW = (gWorld * vec4(vOut.PosW, 1.0f)).xyz;
 

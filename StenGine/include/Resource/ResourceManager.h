@@ -136,7 +136,6 @@ public:
 
 	template <typename T>
 	T* GetResource(std::vector<std::wstring> &filenames) {
-#if PLATFORM_WIN32
 #if GRAPHICS_D3D11
 		if (std::is_same<T, ID3D11ShaderResourceView>::value) {
 			//
@@ -211,7 +210,7 @@ public:
 			return textureArraySRV;
 		}
 #else
-		if (std::is_same<T, GLuint>::value) {
+		if (std::is_same<T, uint64_t>::value) {
 			auto got = m_textureResourceMap.find(path);
 			if (got == m_textureResourceMap.end()) {
 				std::string s(path.begin(), path.end());
@@ -231,7 +230,6 @@ public:
 				return (T*)&(got->second);
 			}
 		}
-#endif
 #endif
 	}
 

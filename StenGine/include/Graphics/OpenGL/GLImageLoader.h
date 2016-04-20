@@ -3,11 +3,15 @@
 
 #include "glew.h"
 #include <stdint.h>
+#include <string>
+#include <vector>
 
 namespace StenGine
 {
 
 GLuint CreateGLTextureFromFile(const char* filename);
+
+GLuint CreateGLTextureArrayFromFile(std::vector<std::wstring> &filenames);
 
 }
 

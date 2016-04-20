@@ -54,7 +54,9 @@ Terrain::Terrain(InitInfo &info) :
 	m_blendMapTex = *ResourceManager::Instance()->GetResource<uint64_t>(m_initInfo.BlendMapFilename);
 	
 	// TODO tex2D array
-	//m_layerMapArrayTex = ResourceManager::Instance()->GetResource<uint64_t>(m_initInfo.LayerMapFilenames);
+	GLuint layerTex = CreateGLTextureArrayFromFile(m_initInfo.LayerMapFilenames);
+	m_layerMapArrayTex = glGetTextureHandleARB(layerTex);
+	glMakeTextureHandleResidentARB(m_layerMapArrayTex);
 #endif
 
 }
