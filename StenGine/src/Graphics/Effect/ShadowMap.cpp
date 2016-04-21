@@ -64,8 +64,10 @@ ShadowMap::ShadowMap(UINT width, UINT height)
 
 	glTextureParameteri(m_depthTex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTextureParameteri(m_depthTex, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTextureParameteri(m_depthTex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTextureParameteri(m_depthTex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTextureParameteri(m_depthTex, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTextureParameteri(m_depthTex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	float white[] = { 1.0, 1.0, 1.0, 1.0 };
+	glTextureParameterfv(m_depthTex, GL_TEXTURE_BORDER_COLOR, white);
 
 	// attach depth texture to framebuffer
 	glNamedFramebufferTexture(

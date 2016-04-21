@@ -211,10 +211,17 @@ public:
 		}
 #else
 		if (std::is_same<T, uint64_t>::value) {
-			auto got = m_textureResourceMap.find(path);
+			std::wstring paths;
+
+			for (auto &filename : filenames)
+			{
+				paths += filename;
+			}
+
+			auto got = m_textureResourceMap.find(paths);
 			if (got == m_textureResourceMap.end()) {
-				std::string s(path.begin(), path.end());
-				GLuint tex = CreateGLTextureFromFile(s.c_str());
+				
+				GLuint tex = CreateGLTextureArrayFromFiles(filenames);
 				assert(tex != 0);
 
 				glTextureParameteri(tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -223,8 +230,8 @@ public:
 				uint64_t texHandle = glGetTextureHandleARB(tex);
 				glMakeTextureHandleResidentARB(texHandle);
 
-				m_textureResourceMap[path] = texHandle;
-				return (T*)&m_textureResourceMap[path];
+				m_textureResourceMap[paths] = texHandle;
+				return (T*)&m_textureResourceMap[paths];
 			}
 			else {
 				return (T*)&(got->second);

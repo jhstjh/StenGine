@@ -104,7 +104,7 @@ Skybox::~Skybox() {
 }
 
 void Skybox::Draw() {
-	SkyboxEffect* skyboxEffect = EffectsManager::Instance()->m_skyboxEffect;
+	SkyboxEffect* skyboxEffect = EffectsManager::Instance()->m_skyboxEffect.get();
 
 	ConstantBuffer cbuffer0(0, sizeof(SkyboxEffect::PEROBJ_CONSTANT_BUFFER), (void*)skyboxEffect->m_perObjectCB);
 	SkyboxEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (SkyboxEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();

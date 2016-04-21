@@ -118,9 +118,13 @@ void main() {
 	vec4 shadowTrans = pIn.ShadowPosH;
 
 	shadowTrans.xyz /= shadowTrans.w;
-	float epsilon = 0.003;
-	float shadow = texture2D(gShadowMap, shadowTrans.xy).r;
-	if (shadow + epsilon < shadowTrans.z) {
-		ps_diff.w = 0.0;
+
+	if (!(shadowTrans.x < 0 || shadowTrans.x > 1 || shadowTrans.y < 0 || shadowTrans.y > 1))
+	{
+		float epsilon = 0.003;
+		float shadow = texture2D(gShadowMap, shadowTrans.xy).r;
+		if (shadow + epsilon < shadowTrans.z) {
+			ps_diff.w = 0.0;
+		}
 	}
 }

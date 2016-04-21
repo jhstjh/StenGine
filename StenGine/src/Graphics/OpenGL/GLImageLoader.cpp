@@ -25,6 +25,8 @@ GLuint CreateGLTextureFromFile(const char* filename)
 	glTextureParameteri(TextureName, GL_TEXTURE_SWIZZLE_G, Format.Swizzles[1]);
 	glTextureParameteri(TextureName, GL_TEXTURE_SWIZZLE_B, Format.Swizzles[2]);
 	glTextureParameteri(TextureName, GL_TEXTURE_SWIZZLE_A, Format.Swizzles[3]);
+	glTextureParameteri(TextureName, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTextureParameteri(TextureName, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
 	glm::tvec3<GLsizei> const Extent(Texture.extent());
 	GLsizei const FaceTotal = static_cast<GLsizei>(Texture.layers() * Texture.faces());
@@ -142,7 +144,7 @@ GLuint CreateGLTextureFromFile(const char* filename)
 	return TextureName;
 }
 
-GLuint CreateGLTextureArrayFromFile(std::vector<std::wstring>& filenames)
+GLuint CreateGLTextureArrayFromFiles(std::vector<std::wstring>& filenames)
 {
 	std::vector<gli::texture> Textures;
 	uint32_t totalSize = 0;
@@ -162,8 +164,13 @@ GLuint CreateGLTextureArrayFromFile(std::vector<std::wstring>& filenames)
 
 	GLuint texArray = 0;
 	glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &texArray);
-	glTextureStorage3D(texArray, 1/*static_cast<GLint>(Textures[0].levels())*/, Format.Internal, Extent.x, Extent.y, Textures.size());
-
+	glTextureStorage3D(texArray, static_cast<GLint>(Textures[0].levels()), Format.Internal, Extent.x, Extent.y, Textures.size());
+	glTextureParameteri(texArray, GL_TEXTURE_SWIZZLE_R, Format.Swizzles[0]);
+	glTextureParameteri(texArray, GL_TEXTURE_SWIZZLE_G, Format.Swizzles[1]);
+	glTextureParameteri(texArray, GL_TEXTURE_SWIZZLE_B, Format.Swizzles[2]);
+	glTextureParameteri(texArray, GL_TEXTURE_SWIZZLE_A, Format.Swizzles[3]);
+	glTextureParameteri(texArray, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTextureParameteri(texArray, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	GLuint pbo;
 	glCreateBuffers(1, &pbo);
 	glNamedBufferData(pbo, totalSize, nullptr, GL_STREAM_DRAW);
@@ -212,7 +219,7 @@ GLuint CreateGLTextureArrayFromFile(std::vector<std::wstring>& filenames)
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	glDeleteBuffers(1, &pbo);
 
-	glGenerateMipmap(texArray);
+	glGenerateTextureMipmap(texArray);
 	return texArray;
 }
 

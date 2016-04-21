@@ -66,7 +66,7 @@ void Mesh::Prepare() {
 void Mesh::PrepareGPUBuffer()
 {
 #if PLATFORM_WIN32
-	m_associatedDeferredEffect = EffectsManager::Instance()->m_deferredGeometryPassEffect;
+	m_associatedDeferredEffect = EffectsManager::Instance()->m_deferredGeometryPassEffect.get();
 	m_associatedDeferredEffect->m_associatedMeshes.push_back(this);
 #elif  PLATFORM_ANDROID
 	m_associatedEffect = EffectsManager::Instance()->m_simpleMeshEffect;
@@ -104,7 +104,7 @@ void Mesh::GatherDrawCall() {
 #if GRAPHICS_OPENGL
 		if (m_subMeshes[0].m_bumpMapTex)
 #endif
-			effect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect;
+			effect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect.get();
 
 
 	XMFLOAT4 resourceMask(0, 0, 0, 0);
@@ -213,7 +213,7 @@ void Mesh::GatherDrawCall() {
 }
 
 void Mesh::GatherShadowDrawCall() {
-	ShadowMapEffect* effect = EffectsManager::Instance()->m_shadowMapEffect;
+	ShadowMapEffect* effect = EffectsManager::Instance()->m_shadowMapEffect.get();
 	UINT stride = sizeof(Vertex::ShadowMapVertex);
 	UINT offset = 0;
 

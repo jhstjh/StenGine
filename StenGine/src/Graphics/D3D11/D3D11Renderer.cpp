@@ -771,7 +771,7 @@ public:
 #endif
 
 		DrawCmd cmd;
-		DeferredShadingPassEffect* effect = EffectsManager::Instance()->m_deferredShadingPassEffect;
+		DeferredShadingPassEffect* effect = EffectsManager::Instance()->m_deferredShadingPassEffect.get();
 
 		ConstantBuffer cbuffer0(0, sizeof(DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB);
 		DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER* perFrameData = (DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
@@ -876,7 +876,7 @@ public:
 #endif
 
 		// ------ Screen Quad -------//
-		BlurEffect* blurEffect = EffectsManager::Instance()->m_blurEffect;
+		BlurEffect* blurEffect = EffectsManager::Instance()->m_blurEffect.get();
 		blurEffect->SetShader();
 
 		m_d3d11DeviceContext->PSSetSamplers(0, 1, samplerState);
@@ -912,7 +912,7 @@ public:
 		m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_borderSamplerState);
 		//m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::Black));
 		//m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-		GodRayEffect* godRayFX = EffectsManager::Instance()->m_godrayEffect;
+		GodRayEffect* godRayFX = EffectsManager::Instance()->m_godrayEffect.get();
 		m_d3d11DeviceContext->IASetInputLayout(NULL);
 
 		XMFLOAT3 lightDir = LightManager::Instance()->m_dirLights[0]->direction;
@@ -952,7 +952,7 @@ public:
 		UINT stride = sizeof(Vertex::DebugLine);
 		UINT offset = 0;
 
-		DebugLineEffect* debugFX = EffectsManager::Instance()->m_debugLineEffect;
+		DebugLineEffect* debugFX = EffectsManager::Instance()->m_debugLineEffect.get();
 		debugFX->SetShader();
 		m_d3d11DeviceContext->IASetInputLayout((ID3D11InputLayout *)debugFX->GetInputLayout());
 		m_d3d11DeviceContext->IASetIndexBuffer(m_gridCoordIndexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
@@ -975,7 +975,7 @@ public:
 
 	ID3D11ShaderResourceView* D3D11Renderer::doCSBlur(ID3D11ShaderResourceView* blurImgSRV, int uavSlotIdx) {
 		// vblur
-		VBlurEffect* vBlurEffect = EffectsManager::Instance()->m_vblurEffect;
+		VBlurEffect* vBlurEffect = EffectsManager::Instance()->m_vblurEffect.get();
 		vBlurEffect->SetShader();
 		vBlurEffect->UpdateConstantBuffer();
 		vBlurEffect->BindConstantBuffer();
@@ -992,7 +992,7 @@ public:
 		vBlurEffect->UnSetShader();
 
 		//hblur
-		HBlurEffect* hBlurEffect = EffectsManager::Instance()->m_hblurEffect;
+		HBlurEffect* hBlurEffect = EffectsManager::Instance()->m_hblurEffect.get();
 		hBlurEffect->SetShader();
 		hBlurEffect->UpdateConstantBuffer();
 		hBlurEffect->BindConstantBuffer();

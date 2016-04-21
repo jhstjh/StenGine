@@ -247,10 +247,10 @@ Effect::Effect(const std::wstring& vsPath,
 	}
 
 	m_shaderProgram = glCreateProgram();
-	if (vsPath.length()) glAttachShader(m_shaderProgram, m_pixelShader);
+	if (vsPath.length()) glAttachShader(m_shaderProgram, m_vertexShader);
 	if (hsPath.length()) glAttachShader(m_shaderProgram, m_hullShader);
 	if (dsPath.length()) glAttachShader(m_shaderProgram, m_domainShader);
-	if (psPath.length()) glAttachShader(m_shaderProgram, m_vertexShader);
+	if (psPath.length()) glAttachShader(m_shaderProgram, m_pixelShader);
 	glLinkProgram(m_shaderProgram);
 
 	/* check for shader linking errors - very important! */
@@ -1236,6 +1236,113 @@ DeferredGeometryTerrainPassEffect::~DeferredGeometryTerrainPassEffect()
 #endif
 }
 
+
+TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
+	: Effect(
+		filename + L"_vs" + EXT,
+		L"",
+		L"",
+		filename + L"_hs" + EXT,
+		filename + L"_ds" + EXT)
+{
+#if GRAPHICS_D3D11
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	HRESULT hr = (static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
+		m_vsBlob->GetBufferSize(), &m_inputLayout));
+
+	m_shaderResources = new ID3D11ShaderResourceView*[8];
+
+	for (int i = 0; i < 8; i++) {
+		m_shaderResources[i] = 0;
+	}
+
+	{
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		// Create the buffer.
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr, &m_perObjectCB));
+	}
+
+	{
+		// Fill in a buffer description.
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		// Create the buffer.
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr, &m_perFrameCB));
+	}
+
+	ReleaseCOM(m_vsBlob);
+	ReleaseCOM(m_psBlob);
+	ReleaseCOM(m_gsBlob);
+	ReleaseCOM(m_hsBlob);
+	ReleaseCOM(m_dsBlob);
+	ReleaseCOM(m_csBlob);
+#endif
+
+#if GRAPHICS_OPENGL
+
+	glCreateVertexArrays(1, &m_inputLayout);
+
+	glEnableVertexArrayAttrib(m_inputLayout, 0);
+	glEnableVertexArrayAttrib(m_inputLayout, 1);
+	glEnableVertexArrayAttrib(m_inputLayout, 2);
+
+	glVertexArrayAttribFormat(m_inputLayout, 0, 3, GL_FLOAT, GL_FALSE, 0);
+	glVertexArrayAttribFormat(m_inputLayout, 1, 2, GL_FLOAT, GL_FALSE, 12);
+	glVertexArrayAttribFormat(m_inputLayout, 2, 2, GL_FLOAT, GL_FALSE, 20);
+
+	glVertexArrayAttribBinding(m_inputLayout, 0, 0);
+	glVertexArrayAttribBinding(m_inputLayout, 1, 0);
+	glVertexArrayAttribBinding(m_inputLayout, 2, 0);
+
+
+
+	glCreateBuffers(1, &m_perObjectCB);
+	glNamedBufferStorage(m_perObjectCB, sizeof(PEROBJ_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
+
+	glCreateBuffers(1, &m_perFrameCB);
+	glNamedBufferStorage(m_perFrameCB, sizeof(PERFRAME_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
+
+	GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
+	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
+
+	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
+	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
+#endif
+}
+
+TerrainShadowMapEffect::~TerrainShadowMapEffect()
+{
+#if GRAPHICS_D3D11
+	ReleaseCOM(m_inputLayout);
+#endif
+
+#if GRAPHICS_OPENGL
+	glDeleteBuffers(1, &m_perObjectCB);
+	glDeleteBuffers(1, &m_perFrameCB);
+#endif
+}
+
+//----------------------------------------------------------//
+
 #if GRAPHICS_D3D11
 //----------------------------------------------------------//
 
@@ -1347,71 +1454,6 @@ void VBlurEffect::BindShaderResource(int idx) {
 
 //----------------------------------------------------------//
 
-TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
-	: Effect(
-		filename + L"_vs" + EXT,
-		L"",
-		L"",
-		filename + L"_hs" + EXT,
-		filename + L"_ds" + EXT)
-{
-	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-
-	HRESULT hr = (static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
-		m_vsBlob->GetBufferSize(), &m_inputLayout));
-
-	m_shaderResources = new ID3D11ShaderResourceView*[8];
-
-	for (int i = 0; i < 8; i++) {
-		m_shaderResources[i] = 0;
-	}
-
-	{
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		// Create the buffer.
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr, &m_perObjectCB));
-	}
-
-	{
-		// Fill in a buffer description.
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		// Create the buffer.
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr, &m_perFrameCB));
-	}
-
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-}
-
-TerrainShadowMapEffect::~TerrainShadowMapEffect()
-{
-	ReleaseCOM(m_inputLayout);
-}
-
-//----------------------------------------------------------//
 
 DeferredShadingCS::DeferredShadingCS(const std::wstring& filename)
 	: Effect(L"", L"", L"", L"", L"", filename + L"_cs" + EXT)
@@ -1868,31 +1910,39 @@ DEFINE_SINGLETON_CLASS(EffectsManager)
 
 EffectsManager::EffectsManager()
 	: m_shadowMapEffect(nullptr)
+	, m_terrainShadowMapEffect(nullptr)
 	, m_deferredGeometryPassEffect(nullptr)
+	, m_deferredGeometrySkinnedPassEffect(nullptr)
+	, m_deferredGeometryTerrainPassEffect(nullptr)
+	, m_deferredGeometryTessPassEffect(nullptr)
 	, m_deferredShadingPassEffect(nullptr)
+	, m_deferredShadingCSEffect(nullptr)
 	, m_godrayEffect(nullptr)
 	, m_skyboxEffect(nullptr)
 	, m_blurEffect(nullptr)
 	, m_vblurEffect(nullptr)
+	, m_hblurEffect(nullptr)
+	, m_debugLineEffect(nullptr)
 {
 
 #if PLATFORM_WIN32
-	m_shadowMapEffect = new ShadowMapEffect(L"FX/ShadowMap");
-	m_deferredGeometryPassEffect = new DeferredGeometryPassEffect(L"FX/DeferredGeometryPass");
-	m_deferredShadingPassEffect = new DeferredShadingPassEffect(L"FX/DeferredShadingPass");
-	m_deferredGeometryTessPassEffect = new DeferredGeometryTessPassEffect(L"FX/DeferredGeometryTessPass");
-	m_skyboxEffect = new SkyboxEffect(L"FX/Skybox");
-	m_debugLineEffect = new DebugLineEffect(L"FX/DebugLine");
-	m_godrayEffect = new GodRayEffect(L"FX/GodRay");
-	m_deferredGeometryTerrainPassEffect = new DeferredGeometryTerrainPassEffect(L"FX/DeferredGeometryTerrainPass");
+	m_shadowMapEffect = std::unique_ptr<ShadowMapEffect>(new ShadowMapEffect(L"FX/ShadowMap"));
+	m_deferredGeometryPassEffect = std::unique_ptr<DeferredGeometryPassEffect>(new DeferredGeometryPassEffect(L"FX/DeferredGeometryPass"));
+	m_deferredShadingPassEffect = std::unique_ptr<DeferredShadingPassEffect>(new DeferredShadingPassEffect(L"FX/DeferredShadingPass"));
+	m_deferredGeometryTessPassEffect = std::unique_ptr<DeferredGeometryTessPassEffect>(new DeferredGeometryTessPassEffect(L"FX/DeferredGeometryTessPass"));
+	m_skyboxEffect = std::unique_ptr<SkyboxEffect>(new SkyboxEffect(L"FX/Skybox"));
+	m_debugLineEffect = std::unique_ptr<DebugLineEffect>(new DebugLineEffect(L"FX/DebugLine"));
+	m_godrayEffect = std::unique_ptr<GodRayEffect>(new GodRayEffect(L"FX/GodRay"));
+	m_deferredGeometryTerrainPassEffect = std::unique_ptr<DeferredGeometryTerrainPassEffect>(new DeferredGeometryTerrainPassEffect(L"FX/DeferredGeometryTerrainPass"));
+	m_terrainShadowMapEffect = std::unique_ptr<TerrainShadowMapEffect>(new TerrainShadowMapEffect(L"FX/DeferredGeometryTerrainPass"));
+
 #if GRAPHICS_D3D11
-	m_terrainShadowMapEffect = new TerrainShadowMapEffect(L"FX/DeferredGeometryTerrainPass");
 
-	m_deferredShadingCSEffect = new DeferredShadingCS(L"FX/DeferredShading");
+	m_deferredShadingCSEffect = std::unique_ptr<DeferredShadingCS>(new DeferredShadingCS(L"FX/DeferredShading"));
 
-	m_blurEffect = new BlurEffect(L"FX/Blur");
-	m_vblurEffect = new VBlurEffect(L"FX/VBlur");
-	m_hblurEffect = new HBlurEffect(L"FX/HBlur");
+	m_blurEffect = std::unique_ptr<BlurEffect>(new BlurEffect(L"FX/Blur"));
+	m_vblurEffect = std::unique_ptr<VBlurEffect>(new VBlurEffect(L"FX/VBlur"));
+	m_hblurEffect = std::unique_ptr<HBlurEffect>(new HBlurEffect(L"FX/HBlur"));
 #endif
 
 #else
@@ -1902,10 +1952,7 @@ EffectsManager::EffectsManager()
 }
 
 EffectsManager::~EffectsManager() {
-	//for (int i = 0; i < m_effects.size(); i++) {
-	//	delete m_effects[i];
-	//}
-	//SafeDelete(m_stdMeshEffect);
+
 #ifndef PLATFORM_ANDROID
 	SafeDelete(m_shadowMapEffect);
 	SafeDelete(m_deferredGeometryPassEffect);

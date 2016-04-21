@@ -334,14 +334,15 @@ public:
 					cbuffer.Bind();
 				}
 
-				//if (cmd.type == PrimitiveTopology::CONTROL_POINT_3_PATCHLIST)
-				//{
-				//	glPatchParameteri(GL_PATCH_VERTICES, 3);
-				//}
-				//else 
+				if (cmd.type == PrimitiveTopology::CONTROL_POINT_3_PATCHLIST)
+				{
+					glPatchParameteri(GL_PATCH_VERTICES, 3);
+				}
+				else
 				if (cmd.type == PrimitiveTopology::CONTROL_POINT_4_PATCHLIST)
 				{
 					glPatchParameteri(GL_PATCH_VERTICES, 4);
+					cmd.type = PrimitiveTopology::CONTROL_POINT_3_PATCHLIST; // TODO
 				}
 
 				if (cmd.drawType == DrawType::INDEXED)
@@ -456,7 +457,7 @@ public:
 
 	void DrawDeferredShading() override {
 		DrawCmd cmd;
-		DeferredShadingPassEffect* effect = EffectsManager::Instance()->m_deferredShadingPassEffect;
+		DeferredShadingPassEffect* effect = EffectsManager::Instance()->m_deferredShadingPassEffect.get();
 
 		ConstantBuffer cbuffer0(0, sizeof(DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB);
 		DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER* perFrameData = (DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
@@ -502,7 +503,7 @@ public:
 		glDisable(GL_DEPTH_TEST);
 		glBindVertexArray(m_screenQuadVAO);
 
-		GodRayEffect* godRayFX = EffectsManager::Instance()->m_godrayEffect;
+		GodRayEffect* godRayFX = EffectsManager::Instance()->m_godrayEffect.get();
 
 		XMFLOAT3 lightDir = LightManager::Instance()->m_dirLights[0]->direction;
 		XMVECTOR lightPos = -400 * XMLoadFloat3(&lightDir);
@@ -541,7 +542,7 @@ public:
 		glDepthMask(GL_FALSE);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		DebugLineEffect* debugLineFX = EffectsManager::Instance()->m_debugLineEffect;
+		DebugLineEffect* debugLineFX = EffectsManager::Instance()->m_debugLineEffect.get();
 		debugLineFX->SetShader();
 		glBindVertexArray(m_debugCoordVAO);
 		debugLineFX->m_perObjUniformBuffer.ViewProj = CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();

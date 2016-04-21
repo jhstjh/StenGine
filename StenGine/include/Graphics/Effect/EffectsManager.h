@@ -8,6 +8,9 @@
 #include "Graphics/Effect/Material.h"
 #include "Mesh/MeshRenderer.h"
 #include "System/SingletonClass.h"
+#include "System/AlignedClass.h"
+
+#include <memory>
 
 #if PLATFORM_WIN32
 
@@ -26,7 +29,7 @@
 using namespace ndk_helper;
 #endif
 
-#include "System/AlignedClass.h"
+
 
 #pragma warning(disable: 4312)
 
@@ -271,13 +274,8 @@ public:
 	ID3D11Buffer* m_perFrameCB;
 	ID3D11Buffer* m_perObjectCB;
 #else
-	GLuint m_perFrameUBO;
-	GLuint m_perObjectUBO;
-
-	GLint DiffuseMapPosition;
-	GLint NormalMapPosition;
-	GLint ShadowMapPosition;
-	GLint CubeMapPosition;
+	GLuint m_perFrameCB;
+	GLuint m_perObjectCB;
 #endif
 
 	TerrainShadowMapEffect(const std::wstring& filename);
@@ -288,7 +286,6 @@ public:
 		const std::wstring& dsPath);
 	~TerrainShadowMapEffect();
 
-#if GRAPHICS_D3D11
 	struct PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX WorldViewProj;
@@ -301,6 +298,14 @@ public:
 		XMMATRIX View;
 		Material Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
+
+#if GRAPHICS_OPENGL
+		uint64_t gShadowMap;
+		uint64_t gCubeMap;
+		uint64_t gHeightMap;
+		uint64_t gLayerMapArray;
+		uint64_t gBlendMap;
+#endif
 	};
 
 	struct PERFRAME_CONSTANT_BUFFER
@@ -329,30 +334,6 @@ public:
 		XMFLOAT2 pad2;
 		XMFLOAT4 gWorldFrustumPlanes[6];
 	};
-
-#else
-	struct PEROBJ_UNIFORM_BUFFER
-	{
-		XMMATRIX WorldViewProj;
-		XMMATRIX World;
-		XMMATRIX WorldView;
-		XMMATRIX ShadowTransform;
-		Material Mat;
-		XMFLOAT4 DiffX_NormY_ShadZ;
-	} m_perObjUniformBuffer;
-
-	struct PERFRAME_UNIFORM_BUFFER
-	{
-		XMFLOAT4 EyePosW;
-		DirectionalLight DirLight;
-	} m_perFrameUniformBuffer;
-
-	GLint DiffuseMap;
-	GLint NormalMap;
-	GLint ShadowMapTex;
-	GLint CubeMapTex;
-
-#endif
 };
 
 //--------------------------------------------------------------------//
@@ -831,20 +812,20 @@ public:
 
 #if PLATFORM_WIN32
 	//StdMeshEffect* m_stdMeshEffect;
-	ShadowMapEffect* m_shadowMapEffect;
-	TerrainShadowMapEffect* m_terrainShadowMapEffect;
-	DeferredGeometryPassEffect* m_deferredGeometryPassEffect;
-	DeferredGeometrySkinnedPassEffect* m_deferredGeometrySkinnedPassEffect;
-	DeferredGeometryTerrainPassEffect* m_deferredGeometryTerrainPassEffect;
-	DeferredGeometryTessPassEffect* m_deferredGeometryTessPassEffect;
-	DeferredShadingPassEffect* m_deferredShadingPassEffect;
-	DeferredShadingCS* m_deferredShadingCSEffect;
-	GodRayEffect* m_godrayEffect;
-	SkyboxEffect* m_skyboxEffect;
-	BlurEffect* m_blurEffect;
-	VBlurEffect* m_vblurEffect;
-	HBlurEffect* m_hblurEffect;
-	DebugLineEffect* m_debugLineEffect;
+	std::unique_ptr<ShadowMapEffect> m_shadowMapEffect;
+	std::unique_ptr<TerrainShadowMapEffect> m_terrainShadowMapEffect;
+	std::unique_ptr<DeferredGeometryPassEffect> m_deferredGeometryPassEffect;
+	std::unique_ptr<DeferredGeometrySkinnedPassEffect> m_deferredGeometrySkinnedPassEffect;
+	std::unique_ptr<DeferredGeometryTerrainPassEffect> m_deferredGeometryTerrainPassEffect;
+	std::unique_ptr<DeferredGeometryTessPassEffect> m_deferredGeometryTessPassEffect;
+	std::unique_ptr<DeferredShadingPassEffect> m_deferredShadingPassEffect;
+	std::unique_ptr<DeferredShadingCS> m_deferredShadingCSEffect;
+	std::unique_ptr<GodRayEffect> m_godrayEffect;
+	std::unique_ptr<SkyboxEffect> m_skyboxEffect;
+	std::unique_ptr<BlurEffect> m_blurEffect;
+	std::unique_ptr<VBlurEffect> m_vblurEffect;
+	std::unique_ptr<HBlurEffect> m_hblurEffect;
+	std::unique_ptr<DebugLineEffect> m_debugLineEffect;
 #else
 	DebugLineEffect* m_debugLineEffect;
 	SimpleMeshEffect* m_simpleMeshEffect;

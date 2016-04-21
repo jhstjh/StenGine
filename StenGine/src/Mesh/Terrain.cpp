@@ -52,11 +52,7 @@ Terrain::Terrain(InitInfo &info) :
 
 #if GRAPHICS_OPENGL
 	m_blendMapTex = *ResourceManager::Instance()->GetResource<uint64_t>(m_initInfo.BlendMapFilename);
-	
-	// TODO tex2D array
-	GLuint layerTex = CreateGLTextureArrayFromFile(m_initInfo.LayerMapFilenames);
-	m_layerMapArrayTex = glGetTextureHandleARB(layerTex);
-	glMakeTextureHandleResidentARB(m_layerMapArrayTex);
+	m_layerMapArrayTex = *ResourceManager::Instance()->GetResource<uint64_t>(m_initInfo.LayerMapFilenames);
 #endif
 
 }
@@ -319,7 +315,7 @@ void Terrain::GatherDrawCall()
 	UINT stride = sizeof(Vertex::TerrainVertex);
 	UINT offset = 0;
 
-	DeferredGeometryTerrainPassEffect* effect = EffectsManager::Instance()->m_deferredGeometryTerrainPassEffect;
+	DeferredGeometryTerrainPassEffect* effect = EffectsManager::Instance()->m_deferredGeometryTerrainPassEffect.get();
 
 	ConstantBuffer cbuffer0(1, sizeof(DeferredGeometryTerrainPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB);
 	ConstantBuffer cbuffer1(0, sizeof(DeferredGeometryTerrainPassEffect::PEROBJ_CONSTANT_BUFFER), (void*)effect->m_perObjectCB);
@@ -363,7 +359,7 @@ void Terrain::GatherDrawCall()
 #endif
 
 #if GRAPHICS_OPENGL
-	perObjData->gShadowMap = LightManager::Instance()->m_shadowMap->GetDepthTex();
+	perObjData->gShadowMap = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
 	perObjData->gHeightMap = m_heightMapTex;
 	perObjData->gLayerMapArray = m_layerMapArrayTex;
 	perObjData->gBlendMap = m_blendMapTex;
@@ -388,11 +384,11 @@ void Terrain::GatherDrawCall()
 }
 
 void Terrain::GatherShadowDrawCall() {
-#if GRAPHICS_D3D11
+
 	UINT stride = sizeof(Vertex::TerrainVertex);
 	UINT offset = 0;
 
-	TerrainShadowMapEffect* effect = EffectsManager::Instance()->m_terrainShadowMapEffect;
+	TerrainShadowMapEffect* effect = EffectsManager::Instance()->m_terrainShadowMapEffect.get();
 
 	ConstantBuffer cbuffer0(1, sizeof(TerrainShadowMapEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB);
 	ConstantBuffer cbuffer1(0, sizeof(TerrainShadowMapEffect::PEROBJ_CONSTANT_BUFFER), (void*)effect->m_perObjectCB);
@@ -428,11 +424,19 @@ void Terrain::GatherShadowDrawCall() {
 	//perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
 	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
 
-
+#if GRAPHICS_D3D11
 	cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
 	cmd.srvs.AddSRV(m_heightMapSRV, 5);
 	cmd.srvs.AddSRV(m_layerMapArraySRV, 6);
 	cmd.srvs.AddSRV(m_blendMapSRV, 7);
+#endif
+
+#if GRAPHICS_OPENGL
+	perObjData->gShadowMap = LightManager::Instance()->m_shadowMap->GetDepthTex();
+	perObjData->gHeightMap = m_heightMapTex;
+	perObjData->gLayerMapArray = m_layerMapArrayTex;
+	perObjData->gBlendMap = m_blendMapTex;
+#endif
 
 	cmd.drawType = DrawType::INDEXED;
 	cmd.flags = CmdFlag::DRAW;
@@ -450,7 +454,7 @@ void Terrain::GatherShadowDrawCall() {
 	cmd.cbuffers.push_back(std::move(cbuffer1));
 
 	Renderer::Instance()->AddShadowDrawCmd(cmd);
-#endif
+
 }
 
 }
