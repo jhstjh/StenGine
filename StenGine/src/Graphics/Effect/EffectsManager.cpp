@@ -36,21 +36,22 @@ Effect::Effect(const std::wstring& vsPath,
 			   const std::wstring& gsPath = L"",
 			   const std::wstring& hsPath = L"",
 			   const std::wstring& dsPath = L"",
-			   const std::wstring& csPath = L""):
-			   m_vertexShader(0),
-			   m_pixelShader(0),
-			   m_geometryShader(0),
-			   m_hullShader(0),
-			   m_domainShader(0),
-			   m_computeShader(0)
+			   const std::wstring& csPath = L"")
+			   : m_vertexShader(0)
+			   , m_pixelShader(0)
+			   , m_geometryShader(0)
+			   , m_hullShader(0)
+			   , m_domainShader(0)
+			   , m_computeShader(0)
+			   , m_inputLayout(0)
 #if GRAPHICS_D3D11
-			   ,
-			   m_vsBlob(0),
-			   m_psBlob(0),
-			   m_gsBlob(0),
-			   m_hsBlob(0),
-			   m_dsBlob(0),
-			   m_csBlob(0)
+			   , m_vsBlob(nullptr)
+			   , m_psBlob(nullptr)
+			   , m_gsBlob(nullptr)
+			   , m_hsBlob(nullptr)
+			   , m_dsBlob(nullptr)
+			   , m_csBlob(nullptr)
+			   , m_shaderResources(nullptr)
 #else
 			   // gl
 #endif
