@@ -16,6 +16,7 @@
 #include "Input/InputManager.h"
 #include "Utility/Timer.h"
 #include <memory>
+#include <crtdbg.h>
 
 #pragma warning(disable:4996)
 
@@ -41,6 +42,8 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_ LPTSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
+	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
+
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 

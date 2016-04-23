@@ -4,3 +4,5 @@ ipch
 /*.opensdf
 *.cso
 *.swatch
+doc
+test

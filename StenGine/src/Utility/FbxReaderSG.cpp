@@ -1,25 +1,33 @@
 #include "Utility/FbxReaderSG.h"
 #include <fbxsdk.h>
-#if PLATFORM_WIN32
 #include "Resource/ResourceManager.h"
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Shlwapi.h"
-#elif  PLATFORM_ANDROID
-#include "AndroidType.h"
-#endif
+#include <sys/stat.h>
 
 #pragma warning(disable:4244) // conversion from 'fbxsdk_2015_1::FbxDouble' to 'float', possible loss of data
 
 namespace StenGine
 {
 
-void ReadFbxMesh(FbxNode* node, Mesh* mesh);
-void ReadFbxMaterial(FbxNode* node, Mesh* mesh);
+void ReadFbxMesh(FbxNode* node, Mesh* mesh, const std::wstring& filename);
+void ReadFbxMaterial(FbxNode* node, Mesh* mesh, const std::wstring& filename);
+bool ReadModelCache(Mesh* mesh, const std::wstring& filename);
 
 bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 
-	std::string s(filename.begin(), filename.end());
-	const char* lFilename = s.c_str();
+	std::string gFilename = std::string(filename.begin(), filename.end());
+
+
+	mesh->m_material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f);
+	mesh->m_material.diffuse = XMFLOAT4(1.0f, 0.8f, 0.7f, 1.f);
+	mesh->m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
+
+
+	if (ReadModelCache(mesh, filename))
+		return true;
+
+	const char* lFilename = gFilename.c_str();
 
 	FbxManager* lSdkManager = FbxManager::Create();
 
@@ -47,20 +55,16 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 	FbxNode* lRootNode = lScene->GetRootNode();
 
 	if (lRootNode) {
-		ReadFbxMesh(lRootNode->GetChild(0), mesh);
-		ReadFbxMaterial(lRootNode->GetChild(0), mesh);
+		ReadFbxMesh(lRootNode->GetChild(0), mesh, filename);
+		ReadFbxMaterial(lRootNode->GetChild(0), mesh, filename);
 	}
 	// Destroy the SDK manager and all the other objects it was handling.
 	lSdkManager->Destroy();
 
-	mesh->m_material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f);
-	mesh->m_material.diffuse = XMFLOAT4(1.0f, 0.8f, 0.7f, 1.f);
-	mesh->m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
-
 	return true;
 }
 
-void ReadFbxMesh(FbxNode* node, Mesh* mesh) {
+void ReadFbxMesh(FbxNode* node, Mesh* mesh, const std::wstring& filename) {
 	FbxMesh* fbxMesh = node->GetMesh();
 
 	//int layerCount = fbxMesh->getpol
@@ -199,11 +203,75 @@ void ReadFbxMesh(FbxNode* node, Mesh* mesh) {
 			vertexIndex++;
 		}
 	}
+
+	std::fstream fs;
+	fs.open(filename + L".sgm", std::fstream::out | std::fstream::binary);
+
+	// dump position buffer
+	fs << mesh->m_positionBufferCPU.size() << std::endl;
+	fs << mesh->m_positionBufferCPU.size() * sizeof(XMFLOAT3) << std::endl;
+	fs.write((const char*)mesh->m_positionBufferCPU.data(), mesh->m_positionBufferCPU.size() * sizeof(XMFLOAT3));
+	fs << std::endl;
+	//for (int i = 0; i < mesh->m_positionBufferCPU.size(); i++) {
+	//	fs << mesh->m_positionBufferCPU[i].x << " "
+	//		<< mesh->m_positionBufferCPU[i].y << " "
+	//		<< mesh->m_positionBufferCPU[i].z << std::endl;
+	//}
+
+	// dump normal buffer
+	fs << mesh->m_normalBufferCPU.size() << std::endl;
+	fs << mesh->m_normalBufferCPU.size() * sizeof(XMFLOAT3) << std::endl;
+	fs.write((const char*)mesh->m_normalBufferCPU.data(), mesh->m_normalBufferCPU.size() * sizeof(XMFLOAT3));
+	fs << std::endl;
+	//for (int i = 0; i < mesh->m_normalBufferCPU.size(); i++) {
+	//	fs << mesh->m_normalBufferCPU[i].x << " "
+	//		<< mesh->m_normalBufferCPU[i].y << " "
+	//		<< mesh->m_normalBufferCPU[i].z << std::endl;
+	//}
+
+	// dump tangent buffer
+	fs << mesh->m_tangentBufferCPU.size() << std::endl;
+	fs << mesh->m_tangentBufferCPU.size() * sizeof(XMFLOAT3) << std::endl;
+	fs.write((const char*)mesh->m_tangentBufferCPU.data(), mesh->m_tangentBufferCPU.size() * sizeof(XMFLOAT3));
+	fs << std::endl;
+	//for (int i = 0; i < mesh->m_tangentBufferCPU.size(); i++) {
+	//	fs << mesh->m_tangentBufferCPU[i].x << " "
+	//		<< mesh->m_tangentBufferCPU[i].y << " "
+	//		<< mesh->m_tangentBufferCPU[i].z << std::endl;
+	//}
+
+	// dump uv buffer
+	fs << mesh->m_texUVBufferCPU.size() << std::endl;
+	fs << mesh->m_texUVBufferCPU.size() * sizeof(XMFLOAT2) << std::endl;
+	fs.write((const char*)mesh->m_texUVBufferCPU.data(), mesh->m_texUVBufferCPU.size() * sizeof(XMFLOAT2));
+	fs << std::endl;
+	//for (int i = 0; i < mesh->m_texUVBufferCPU.size(); i++) {
+	//	fs << mesh->m_texUVBufferCPU[i].x << " "
+	//		<< mesh->m_texUVBufferCPU[i].y << std::endl;
+	//}
+
+	// dump index buffer for each submesh
+	fs << mesh->m_subMeshes.size() << std::endl;
+	for (int i = 0; i < mesh->m_subMeshes.size(); i++) {
+		fs << mesh->m_subMeshes[i].m_indexBufferCPU.size() << std::endl;
+		for (int j = 0; j < mesh->m_subMeshes[i].m_indexBufferCPU.size(); j++) {
+			fs << mesh->m_subMeshes[i].m_indexBufferCPU[j] << " ";
+		}
+		fs << std::endl;
+	}
+	fs << std::endl;
+
+	fs.close();
 }
 
-void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
+void ReadFbxMaterial(FbxNode* node, Mesh* mesh, const std::wstring& filename) {
 	//FbxMesh* fbxMesh = node->GetMesh();
 	int matCount = node->GetMaterialCount();
+
+	std::fstream fs;
+	fs.open(filename + L".sgm", std::fstream::app | std::fstream::binary);
+
+	fs << matCount;
 
 	for (int i = 0; i < matCount; i++) {
 		FbxSurfaceMaterial* sMat = node->GetMaterial(i);
@@ -223,56 +291,211 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh) {
 		}
 		else {
 		*/
+		bool has = false;
 		int texCount = diffProp.GetSrcObjectCount<FbxTexture>();
 		for (int iTex = 0; iTex < texCount; iTex++) {
 			FbxFileTexture* tex = FbxCast<FbxFileTexture>(diffProp.GetSrcObject<FbxTexture>(iTex));
 			puts(tex->GetFileName());
-			//if (matCount == 1)
-			//	mesh->m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
-			//else
-#if PLATFORM_WIN32
 #if GRAPHICS_D3D11
 			mesh->m_subMeshes[i].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 #else
 			mesh->m_subMeshes[i].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(tex->GetFileName()));
 #endif
-#endif
+			has = true;
+			fs << std::endl << 1;
+			fs << std::endl << tex->GetFileName();
 		}
 		//}
 
+		if (!has)
+			fs << std::endl << 0;
+
+		has = false;
 		FbxProperty normalProp = sMat->FindProperty(FbxSurfaceMaterial::sNormalMap);
 		int normalTexCount = normalProp.GetSrcObjectCount<FbxTexture>();
 		for (int iTex = 0; iTex < normalTexCount; iTex++) {
 			FbxFileTexture* tex = FbxCast<FbxFileTexture>(normalProp.GetSrcObject<FbxTexture>(iTex));
-			//if (matCount == 1)
-			//	mesh->m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
-			//else
-#if PLATFORM_WIN32
 #if GRAPHICS_D3D11
 			mesh->m_subMeshes[i].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
 #else
 			mesh->m_subMeshes[i].m_normalMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(tex->GetFileName()));
 #endif
-#endif
+			has = true;
+			fs << std::endl << 1;
+			fs << std::endl << tex->GetFileName();
 		}
 
+		if (!has)
+			fs << std::endl << 0;
+
+		has = false;
 		FbxProperty displacementProp = sMat->FindProperty(FbxSurfaceMaterial::sDisplacementColor);
 		int displacementTexCount = displacementProp.GetSrcObjectCount<FbxTexture>();
 		for (int iTex = 0; iTex < displacementTexCount; iTex++) {
 			FbxFileTexture* tex = FbxCast<FbxFileTexture>(displacementProp.GetSrcObject<FbxTexture>(iTex));
-			//if (matCount == 1)
-			//	mesh->m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
-			//else
-#if PLATFORM_WIN32
 #if GRAPHICS_D3D11
 			mesh->m_subMeshes[i].m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(tex->GetFileName());
-			int a = 100;
 #else
 			mesh->m_subMeshes[i].m_bumpMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(tex->GetFileName()));
 #endif
-#endif
+			has = true;
+			fs << std::endl << 1;
+			fs << std::endl << tex->GetFileName();
+		}
+		if (!has)
+			fs << std::endl << 0;
+	}
+
+	fs.close();
+}
+
+bool ReadModelCache(Mesh* mesh, const std::wstring& filename)
+{
+	std::string f(filename.begin(), filename.end());
+
+	struct stat buf;
+	if (stat((f + ".sgm").c_str(), &buf) != 0)
+		return false;
+
+	printf("Reading model cache for: %s\r\n", f.c_str());
+
+	std::fstream fs;
+	fs.open(filename + L".sgm", std::fstream::in | std::fstream::binary);
+
+	int posBufferSize;
+	int memsize;
+	fs >> posBufferSize;
+	fs >> memsize;
+	mesh->m_positionBufferCPU.resize(posBufferSize);
+	fs.get();
+	fs.read((char* )&mesh->m_positionBufferCPU[0], memsize);
+	//for (int i = 0; i < posBufferSize; i++) {
+	//	float x, y, z;
+	//	fs >> x >> y >> z;
+	//
+	//	mesh->m_positionBufferCPU[i] = XMFLOAT3(x, y, z);
+	//}
+	fs.get();
+
+	int normalBufferSize;
+	fs >> normalBufferSize;
+	fs >> memsize;
+	mesh->m_normalBufferCPU.resize(normalBufferSize);
+	fs.get();
+	fs.read((char*)&mesh->m_normalBufferCPU[0], memsize);
+	//for (int i = 0; i < normalBufferSize; i++) {
+	//	float x, y, z;
+	//	fs >> x >> y >> z;
+	//
+	//	mesh->m_normalBufferCPU[i] = XMFLOAT3(x, y, z);
+	//}
+	fs.get();
+
+	int tangentBufferSize;
+	fs >> tangentBufferSize;
+	fs >> memsize;
+	mesh->m_tangentBufferCPU.resize(tangentBufferSize);
+	fs.get();
+	fs.read((char*)&mesh->m_tangentBufferCPU[0], memsize);
+	//for (int i = 0; i < tangentBufferSize; i++) {
+	//	float x, y, z;
+	//	fs >> x >> y >> z;
+	//
+	//	mesh->m_tangentBufferCPU[i] = XMFLOAT3(x, y, z);
+	//}
+	fs.get();
+
+	int texUVBufferSize;
+	fs >> texUVBufferSize;
+	fs >> memsize;
+	mesh->m_texUVBufferCPU.resize(texUVBufferSize);
+	fs.get();
+	fs.read((char*)&mesh->m_texUVBufferCPU[0], memsize);
+	//for (int i = 0; i < texUVBufferSize; i++) {
+	//	float x, y;
+	//	fs >> x >> y;
+	//
+	//	mesh->m_texUVBufferCPU[i] = XMFLOAT2(x, y);
+	//}
+	fs.get();
+
+	int subMeshCount;
+	fs >> subMeshCount;
+	mesh->m_subMeshes.resize(subMeshCount);
+	for (int i = 0; i < subMeshCount; i++) {
+		int indexBufferSize;
+		fs >> indexBufferSize;
+		mesh->m_subMeshes[i].m_indexBufferCPU.resize(indexBufferSize);
+		for (int j = 0; j < indexBufferSize; j++) {
+			fs >> mesh->m_subMeshes[i].m_indexBufferCPU[j];
 		}
 	}
+
+	for (int i = 0; i < subMeshCount; i++) {
+		mesh->m_indexBufferCPU.insert(mesh->m_indexBufferCPU.end(), mesh->m_subMeshes[i].m_indexBufferCPU.begin(), mesh->m_subMeshes[i].m_indexBufferCPU.end());
+	}
+
+	int32_t matCount;
+	fs >> matCount;
+
+	if (fs.eof())
+		return true;
+
+	for (int32_t i = 0; i < matCount; i++)
+	{
+		int32_t exist;
+		fs >> exist;
+
+		if (exist == 1)
+		{
+			char diffTexName[256];
+			fs.get(); // lineending
+			fs.getline(diffTexName, 256);
+			
+#if GRAPHICS_D3D11
+			mesh->m_subMeshes[i].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(diffTexName);
+#else
+			mesh->m_subMeshes[i].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(diffTexName));
+#endif
+			if (fs.eof())
+				break;
+		}
+
+		fs >> exist;
+		if (exist == 1)
+		{
+			char normalTexName[256];
+			fs.get(); // lineending
+			fs.getline(normalTexName, 256);
+			
+#if GRAPHICS_D3D11
+			mesh->m_subMeshes[i].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(normalTexName);
+#else
+			mesh->m_subMeshes[i].m_normalMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(normalTexName));
+#endif
+			if (fs.eof())
+				break;
+		}
+
+		fs >> exist;
+		if (exist == 1)
+		{
+			char bumpTexName[256];
+			fs.get(); // lineending
+			fs.getline(bumpTexName, 256);
+			
+#if GRAPHICS_D3D11
+			mesh->m_subMeshes[i].m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(bumpTexName);
+#else
+			mesh->m_subMeshes[i].m_bumpMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(bumpTexName));
+#endif
+			if (fs.eof())
+				break;
+		}
+
+	}
+
+	return true;
 }
 
 }

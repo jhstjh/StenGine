@@ -27,12 +27,13 @@ void GameObjectManager::LoadScene()
 	box0->RotateAroundY(3.14159f / 5);
 	m_gameObjects.push_back(box0);
 
+
 	GameObject* sphere = new GameObject("sphere", 0.f, 3.7f, -0.5f);
 	Mesh* sphereMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/earth.fbx");
 	sphere->AddComponent(sphereMesh);
 	m_gameObjects.push_back(sphere);
-
 #if !MIN_SCENE
+
 	GameObject* plane0 = new GameObject("plane0", 4.f, 0.2f, 0.f);
 	Mesh* plane0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plane.fbx");
 	plane0->AddComponent(plane0Mesh);
@@ -59,28 +60,28 @@ void GameObjectManager::LoadScene()
 	dragon->AddComponent(dragonMesh);
 	m_gameObjects.push_back(dragon);
 
+
+//	Terrain::InitInfo tii;
+//	tii.HeightMapFilename = L"Terrain/terrain.raw";
+//	tii.LayerMapFilenames.resize(5);
+//	tii.LayerMapFilenames[0] = L"Terrain/grass.dds";
+//	tii.LayerMapFilenames[1] = L"Terrain/darkdirt.dds";
+//	tii.LayerMapFilenames[2] = L"Terrain/stone.dds";
+//	tii.LayerMapFilenames[3] = L"Terrain/lightdirt.dds";
+//	tii.LayerMapFilenames[4] = L"Terrain/snow.dds";
+//	tii.BlendMapFilename = L"Terrain/blend.dds";
+//	tii.HeightScale = 50.0f;
+//	tii.HeightmapWidth = 2049;
+//	tii.HeightmapHeight = 2049;
+//	tii.CellSpacing = 0.5f;
+//
+//	GameObject* terrain = new GameObject("Terrain", 0, 0, -100);
+//
+//	Terrain* terrainComp = new Terrain(tii);
+//	terrain->AddComponent(terrainComp);
+//
+//	m_gameObjects.push_back(terrain);
 #endif
-	Terrain::InitInfo tii;
-	tii.HeightMapFilename = L"Terrain/terrain.raw";
-	tii.LayerMapFilenames.resize(5);
-	tii.LayerMapFilenames[0] = L"Terrain/grass.dds";
-	tii.LayerMapFilenames[1] = L"Terrain/darkdirt.dds";
-	tii.LayerMapFilenames[2] = L"Terrain/stone.dds";
-	tii.LayerMapFilenames[3] = L"Terrain/lightdirt.dds";
-	tii.LayerMapFilenames[4] = L"Terrain/snow.dds";
-	tii.BlendMapFilename = L"Terrain/blend.dds";
-	tii.HeightScale = 50.0f;
-	tii.HeightmapWidth = 2049;
-	tii.HeightmapHeight = 2049;
-	tii.CellSpacing = 0.5f;
-
-	GameObject* terrain = new GameObject("Terrain", 0, 0, -100);
-
-	Terrain* terrainComp = new Terrain(tii);
-	terrain->AddComponent(terrainComp);
-
-	m_gameObjects.push_back(terrain);
-
 }
 
 void GameObjectManager::Update()
