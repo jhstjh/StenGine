@@ -31,7 +31,6 @@ void APIENTRY GLErrorCallback(GLenum source​, GLenum type​, GLuint id​, GL
 	if (GL_DEBUG_TYPE_OTHER == type​)
 		return;
 
-	cout << "---------------------opengl-callback-start------------" << endl;
 	cout << "message: " << message​ << endl;
 	cout << "type: ";
 	switch (type​) {
@@ -69,8 +68,7 @@ void APIENTRY GLErrorCallback(GLenum source​, GLenum type​, GLuint id​, GL
 		cout << "HIGH";
 		break;
 	}
-	cout << endl;
-	cout << "---------------------opengl-callback-end--------------" << endl;
+	cout << endl << endl;
 }
 
 Renderer* Renderer::_instance = nullptr;
@@ -126,8 +124,10 @@ public:
 
 		wglSwapIntervalEXT(0);
 
+#if !BUILD_RELEASE
 		glDebugMessageCallback(GLErrorCallback, nullptr);
 		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
+#endif
 
 		glClearColor(0.2f, 0.2f, 0.2f, 0.f);
 		glClearDepth(1.0f);
@@ -175,9 +175,9 @@ public:
 		dLight->castShadow = 1;
 
 		LightManager::Instance()->m_dirLights.push_back(dLight);
-		LightManager::Instance()->m_shadowMap = new ShadowMap(1024, 1024);
+		LightManager::Instance()->m_shadowMap = new ShadowMap(2048, 2048);
 
-		m_SkyBox = new Skybox(std::wstring(L"Model/sunsetcube1024.dds"));
+		m_SkyBox = std::unique_ptr<Skybox>(new Skybox(std::wstring(L"Model/sunsetcube1024.dds")));
 
 		InitScreenQuad();
 
@@ -272,7 +272,6 @@ public:
 			return false;
 		}
 
-		// Set the 4.5 version of OpenGL
 		int attributeList[] = {
 			WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
 			WGL_CONTEXT_MINOR_VERSION_ARB, 5,
@@ -395,7 +394,7 @@ public:
 	}
 
 	virtual Skybox* GetSkyBox() override {
-		return m_SkyBox;
+		return m_SkyBox.get();
 	}
 
 	virtual void* GetDevice() override {
@@ -608,7 +607,7 @@ private:
 	int m_clientWidth;
 	int m_clientHeight;
 	bool m_enable4xMsaa;
-	Skybox* m_SkyBox;
+	std::unique_ptr<Skybox> m_SkyBox;
 
 	HINSTANCE	m_hInst;
 	HWND		m_hMainWnd;

@@ -53,16 +53,18 @@ layout(std140) uniform ubPerFrame{
 void main() {
 	vec3 normal = normalize(pIn.pNormalV);
 
-	vec3 normalMapNormal = texture(gNormalMap, pIn.pTexUV).xyz;
-	normalMapNormal = 2.0f * normalMapNormal - 1.0;
+	if (DiffX_NormY_ShadZ.y > 0) {
+		vec3 normalMapNormal = texture(gNormalMap, pIn.pTexUV).xyz;
+		normalMapNormal = 2.0f * normalMapNormal - 1.0;
 
-	vec3 N = normalize(normal);
-	vec3 T = normalize(pIn.pTangV - dot(pIn.pTangV, N)*N);
-	vec3 B = cross(N, T);
+		vec3 N = normalize(normal);
+		vec3 T = normalize(pIn.pTangV - dot(pIn.pTangV, N)*N);
+		vec3 B = cross(N, T);
 
-	mat3 TBN = mat3(T, B, N);
+		mat3 TBN = mat3(T, B, N);
 
-	normal = normalize(TBN * normalMapNormal);//normalize(pin.NormalV).xy;
+		normal = normalize(TBN * normalMapNormal);//normalize(pin.NormalV).xy;
+	}
 
 	ps_norm = (vec4(normal, 1.0) + 1) / 2.0f;
 	ps_norm.w = 1.0f;
@@ -70,10 +72,7 @@ void main() {
 	vec3 eyeRay = normalize(pIn.pPosW - gEyePosW.xyz);
 	vec3 refRay = reflect(eyeRay, pIn.pNormalW);
 
-	if (DiffX_NormY_ShadZ.x > 0.5)
-		ps_diff = texture(gDiffuseMap, pIn.pTexUV) * gMat.diffuse;
-	else
-		ps_diff = textureLod(gCubeMap, refRay, 7);
+	ps_diff = ((1 - DiffX_NormY_ShadZ.x) * textureLod(gCubeMap, refRay, 3) + DiffX_NormY_ShadZ.x * texture(gDiffuseMap, pIn.pTexUV)) * gMat.diffuse;
 
 	ps_spec = gMat.specular;
 	ps_spec.w /= 255.0f;
@@ -84,18 +83,10 @@ void main() {
 
 	shadowTrans.xyz /= shadowTrans.w;
 
-	//ps_diff = vec4(texture2D(gShadowMap, shadowTrans.xy).r, texture2D(gShadowMap, shadowTrans.xy).r, texture2D(gShadowMap, shadowTrans.xy).r, 1);
-	//ps_diff = vec4(shadowTrans.z, shadowTrans.z, shadowTrans.z, 1);
-	//return;
-
 	float epsilon = 0.003;
 	float shadow = texture2D(gShadowMap, shadowTrans.xy).r;
-	if (shadow + epsilon < shadowTrans.z) {
+	shadow += epsilon;
+	if (shadow  < shadowTrans.z) {
 		ps_diff.w = 0.0;
 	}
-
-	//vec3 viewRay = normalize(pPosW - gEyePosW.xyz);
-	//vec3 refRay = reflect(viewRay, pNormalW);
-	//ps_spec = texture(gCubeMap, refRay);
-
 }

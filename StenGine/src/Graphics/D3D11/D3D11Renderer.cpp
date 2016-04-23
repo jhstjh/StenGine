@@ -35,8 +35,6 @@ public:
 		m_depthStencilView(nullptr)
 	{
 		ZeroMemory(&m_screenViewpot, sizeof(D3D11_VIEWPORT));
-		m_clientWidth = 1280;
-		m_clientHeight = 720;
 	}
 
 	~D3D11Renderer() {
@@ -51,7 +49,6 @@ public:
 
 		ReleaseCOM(m_d3d11DeviceContext);
 		ReleaseCOM(m_d3d11Device);
-		SafeDelete(m_SkyBox);
 	}
 
 	void Release() override {
@@ -65,6 +62,9 @@ public:
 		{
 			return false;
 		}
+
+		m_clientWidth = width;
+		m_clientHeight = height;
 
 		SetWindowText(m_hMainWnd, L"StenGine");
 		ShowWindow(m_hMainWnd, SW_SHOW);
@@ -430,7 +430,7 @@ public:
 		LightManager::Instance()->m_dirLights.push_back(dLight);
 		LightManager::Instance()->m_shadowMap = new ShadowMap(2048, 2048);
 
-		m_SkyBox = new Skybox(std::wstring(L"Model/sunsetcube1024.dds"));
+		m_SkyBox = std::unique_ptr<Skybox>(new Skybox(std::wstring(L"Model/sunsetcube1024.dds")));
 
 		m_d3d11DeviceContext->RSSetState(m_wireFrameRS);
 
@@ -586,7 +586,7 @@ public:
 	}
 
 	Skybox* GetSkyBox() override {
-		return m_SkyBox;
+		return m_SkyBox.get();
 	}
 
 	void* GetDepthRS() override {
@@ -1050,7 +1050,7 @@ public:
 private:
 	int m_clientWidth;
 	int m_clientHeight;
-	Skybox* m_SkyBox;
+	std::unique_ptr<Skybox> m_SkyBox;
 
 	HINSTANCE	m_hInst;
 	HWND		m_hMainWnd;

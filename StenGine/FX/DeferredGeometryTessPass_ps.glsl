@@ -70,14 +70,7 @@ void main() {
 	vec3 eyeRay = normalize(pIn.pPosW - gEyePosW.xyz);
 	vec3 refRay = reflect(eyeRay, pIn.pNormalW);
 
-	if (DiffX_NormY_ShadZ.x > 0.5)
-		ps_diff = texture(gDiffuseMap, pIn.pTexUV) * gMat.diffuse;
-	else
-		ps_diff = textureLod(gCubeMap, refRay, 7);
-
-	ps_spec = gMat.specular;
-	ps_spec.w /= 255.0f;
-
+	ps_diff = ((1 - DiffX_NormY_ShadZ.x) * textureLod(gCubeMap, refRay, 3) + DiffX_NormY_ShadZ.x * texture(gDiffuseMap, pIn.pTexUV)) * gMat.diffuse;
 
 	ps_diff.w = 1.0; // 1: lit, 0: shadow
 	vec4 shadowTrans = pIn.pShadowTransform;
