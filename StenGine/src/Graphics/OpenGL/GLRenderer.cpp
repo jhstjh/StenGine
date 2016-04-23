@@ -16,8 +16,9 @@
 #include "Graphics/Effect/Skybox.h"
 #include <vector>
 #include <memory>
-
 #include <iostream>
+#include <unordered_map>
+
 using namespace std;
 
 #pragma warning(disable: 4244) // conversion from 'int64_t' to 'GLsizei', possible loss of data
@@ -180,8 +181,13 @@ public:
 		m_SkyBox = std::unique_ptr<Skybox>(new Skybox(std::wstring(L"Model/sunsetcube1024.dds")));
 
 		InitScreenQuad();
-
 		InitDebugCoord();
+
+		m_drawTopologyMap[PrimitiveTopology::POINTLIST] = GL_POINTS;
+		m_drawTopologyMap[PrimitiveTopology::LINELIST] = GL_LINES;
+		m_drawTopologyMap[PrimitiveTopology::TRIANGLELIST] = GL_TRIANGLES;
+		m_drawTopologyMap[PrimitiveTopology::CONTROL_POINT_3_PATCHLIST] = GL_PATCHES;
+		m_drawTopologyMap[PrimitiveTopology::CONTROL_POINT_4_PATCHLIST] = GL_PATCHES;
 
 		return true;
 	}
@@ -337,11 +343,9 @@ public:
 				{
 					glPatchParameteri(GL_PATCH_VERTICES, 3);
 				}
-				else
-				if (cmd.type == PrimitiveTopology::CONTROL_POINT_4_PATCHLIST)
+				else if (cmd.type == PrimitiveTopology::CONTROL_POINT_4_PATCHLIST)
 				{
 					glPatchParameteri(GL_PATCH_VERTICES, 4);
-					cmd.type = PrimitiveTopology::CONTROL_POINT_3_PATCHLIST; // TODO
 				}
 
 				if (cmd.drawType == DrawType::INDEXED)
@@ -350,7 +354,7 @@ public:
 						glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (GLuint)cmd.indexBuffer);
 
 					glDrawElements(
-						(GLenum)cmd.type,
+						m_drawTopologyMap[cmd.type],
 						cmd.elementCount,
 						GL_UNSIGNED_INT,
 						cmd.offset
@@ -358,7 +362,7 @@ public:
 				}
 				else if (cmd.drawType == DrawType::ARRAY)
 				{
-					glDrawArrays((GLenum)cmd.type, (GLint)cmd.offset, cmd.elementCount);
+					glDrawArrays(m_drawTopologyMap[cmd.type], (GLint)cmd.offset, cmd.elementCount);
 				}
 			}
 		}
@@ -637,6 +641,8 @@ private:
 
 	std::vector<DrawEventHandler> m_drawHandler;
 	std::vector<DrawEventHandler> m_shadowDrawHandler;
+
+	std::unordered_map<PrimitiveTopology, GLenum> m_drawTopologyMap;
 
 	void InitScreenQuad()
 	{

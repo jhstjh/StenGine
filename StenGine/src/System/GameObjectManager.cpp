@@ -4,7 +4,7 @@
 #include "Resource/ResourceManager.h"
 #include "Mesh/Terrain.h"
 
-#define MIN_SCENE 0
+#define MIN_SCENE 1
 
 namespace StenGine
 {
@@ -32,7 +32,7 @@ void GameObjectManager::LoadScene()
 	Mesh* sphereMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/earth.fbx");
 	sphere->AddComponent(sphereMesh);
 	m_gameObjects.push_back(sphere);
-#if !MIN_SCENE
+#if !MIN_SCENE || BUILD_RELEASE
 
 	GameObject* plane0 = new GameObject("plane0", 4.f, 0.2f, 0.f);
 	Mesh* plane0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plane.fbx");

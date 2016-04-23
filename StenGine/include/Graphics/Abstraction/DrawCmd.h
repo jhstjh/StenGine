@@ -9,6 +9,7 @@
 
 #if GRAPHICS_D3D11
 #include "Graphics/D3D11/D3D11SRVBinding.h"
+#include "Graphics/D3D11/D3D11UAVBinding.h"
 #endif
 
 #include "Graphics/Effect/EffectsManager.h"
@@ -21,19 +22,11 @@ namespace StenGine
 
 enum class PrimitiveTopology : uint32_t
 {
-#if GRAPHICS_D3D11
-	POINTLIST = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST,
-	LINELIST = D3D11_PRIMITIVE_TOPOLOGY_LINELIST,
-	TRIANGLELIST = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
-	CONTROL_POINT_3_PATCHLIST = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST,
-	CONTROL_POINT_4_PATCHLIST = D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST,
-#elif  GRAPHICS_OPENGL
-	POINTLIST = GL_POINTS,
-	LINELIST = GL_LINES,
-	TRIANGLELIST = GL_TRIANGLES,
-	CONTROL_POINT_3_PATCHLIST = GL_PATCHES,
-	CONTROL_POINT_4_PATCHLIST = GL_PATCHES + 1, // TODO
-#endif
+	POINTLIST,
+	LINELIST,
+	TRIANGLELIST,
+	CONTROL_POINT_3_PATCHLIST,
+	CONTROL_POINT_4_PATCHLIST,
 };
 
 enum class DrawType
@@ -51,6 +44,7 @@ static const uint32_t	CLEAR_DEPTH  = 0x04;
 static const uint32_t	BIND_FB		 = 0x08; // bind framebuffer
 static const uint32_t	SET_VP		 = 0x10; // set viewport
 static const uint32_t   SET_RSSTATE  = 0x20; // set rasterizer state
+static const uint32_t   COMPUTE      = 0x40; 
 };
 
 struct DrawCmd {
@@ -73,10 +67,15 @@ struct DrawCmd {
 
 	Viewport			viewport;
 
+	uint32_t			threadGroupX    = 0;
+	uint32_t			threadGroupY    = 0;
+	uint32_t			threadGroupZ    = 0;
+
 	std::vector<ConstantBuffer> cbuffers;
 
 #if GRAPHICS_D3D11
 	D3D11SRVBinding srvs;
+	D3D11UAVBinding uavs;
 	ID3D11RasterizerState* rsState		= nullptr;
 #endif
 };

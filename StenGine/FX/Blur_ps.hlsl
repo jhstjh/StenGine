@@ -44,6 +44,8 @@ float4 main(VSOut input) : SV_Target
 	float4 bloomColor = gBloomMap.Sample(gSamplerStateLinear, input.Tex);
 
 	return originalColor * gSSAOMap.Sample(gSamplerStateLinear, input.Tex);
+
+
 	return (1 - (1 -originalColor)*(1 - bloomColor)) * gSSAOMap.Sample(gSamplerStateLinear, input.Tex);
 
 	// The center value always contributes to the sum.
@@ -94,26 +96,3 @@ float4 main(VSOut input) : SV_Target
 	if (texOffset.x > 0) return saturate(color) * gScreenMap.Sample(gSamplerStateLinear, input.Tex);
 	else return color;
 }
-
-// 
-// technique11 HBlurTech
-// {
-// 	pass p0
-// 	{
-// 		SetVertexShader(CompileShader(vs_5_0, VSmain()));
-// 		SetGeometryShader(NULL);
-// 		SetPixelShader(CompileShader(ps_5_0, PSBlurmain(float2(1.0/1280, 0.0f))));
-// 		SetBlendState(0, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
-// 	}
-// }
-// 
-// technique11 VBlurTech
-// {
-// 	pass p0
-// 	{
-// 		SetVertexShader(CompileShader(vs_5_0, VSmain()));
-// 		SetGeometryShader(NULL);
-// 		SetPixelShader(CompileShader(ps_5_0, PSBlurmain(float2(0.0f, 1.0/720))));
-// 		SetBlendState(0, float4(0.0f, 0.0f, 0.0f, 0.0f), 0xFFFFFFFF);
-// 	}
-// }

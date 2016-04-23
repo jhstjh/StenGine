@@ -617,19 +617,11 @@ public:
 	VBlurEffect(const std::wstring& filename);
 	~VBlurEffect();
 
-	virtual void UpdateConstantBuffer();
-	virtual void BindConstantBuffer();
-	virtual void BindShaderResource(int idx = 0);
-
 	struct SETTING_CONSTANT_BUFFER
 	{
 		XMFLOAT2 texOffset;
 		XMFLOAT2 pad;
-	} m_settingConstantBuffer;
-
-	/// Texture2D gScreenMap;
-	/// Texture2D gSSAOMap;
-	//ID3D11ShaderResourceView *m_shaderResources[2];
+	};
 };
 
 
@@ -644,19 +636,11 @@ public:
 	HBlurEffect(const std::wstring& filename);
 	~HBlurEffect();
 
-	virtual void UpdateConstantBuffer();
-	virtual void BindConstantBuffer();
-	virtual void BindShaderResource(int idx = 0);
-
 	struct SETTING_CONSTANT_BUFFER
 	{
 		XMFLOAT2 texOffset;
 		XMFLOAT2 pad;
-	} m_settingConstantBuffer;
-
-	/// Texture2D gScreenMap;
-	/// Texture2D gSSAOMap;
-	//ID3D11ShaderResourceView *m_shaderResources[2];
+	};
 };
 
 
