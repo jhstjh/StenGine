@@ -146,80 +146,78 @@
     <None Include="FX\StandardConstant.fx">
       <Filter>FX</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="FX\ScreenQuad_vs.hlsl">
+    <None Include="FX\Blur_ps.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredGeometryPass_vs.hlsl">
+    </None>
+    <None Include="FX\BrightnessFilter_ps.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredGeometryPass_ps.hlsl">
+    </None>
+    <None Include="FX\DebugLine_ps.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredShadingPass_ps.hlsl">
+    </None>
+    <None Include="FX\DebugLine_vs.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\ShadowMap_vs.hlsl">
+    </None>
+    <None Include="FX\DeferredGeometryPass_ps.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\Skybox_ps.hlsl">
+    </None>
+    <None Include="FX\DeferredGeometryPass_vs.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\Skybox_vs.hlsl">
+    </None>
+    <None Include="FX\DeferredGeometrySkinnedPass_vs.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\Blur_ps.hlsl">
+    </None>
+    <None Include="FX\DeferredGeometryTerrainPass_ds.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredGeometryTessPass_ds.hlsl">
+    </None>
+    <None Include="FX\DeferredGeometryTerrainPass_hs.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredGeometryTessPass_hs.hlsl">
+    </None>
+    <None Include="FX\DeferredGeometryTerrainPass_ps.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredGeometryTessPass_ps.hlsl">
+    </None>
+    <None Include="FX\DeferredGeometryTerrainPass_vs.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredGeometryTessPass_vs.hlsl">
+    </None>
+    <None Include="FX\DeferredGeometryTessPass_ds.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\VBlur_cs.hlsl">
+    </None>
+    <None Include="FX\DeferredGeometryTessPass_hs.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\HBlur_cs.hlsl">
+    </None>
+    <None Include="FX\DeferredGeometryTessPass_ps.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredShading_cs.hlsl">
+    </None>
+    <None Include="FX\DeferredGeometryTessPass_vs.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DebugLine_vs.hlsl">
+    </None>
+    <None Include="FX\DeferredShading_cs.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DebugLine_ps.hlsl">
+    </None>
+    <None Include="FX\DeferredShadingPass_ps.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\GodRay_ps.hlsl">
+    </None>
+    <None Include="FX\GodRay_ps.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredGeometrySkinnedPass_vs.hlsl">
+    </None>
+    <None Include="FX\HBlur_cs.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredGeometryTerrainPass_vs.hlsl">
+    </None>
+    <None Include="FX\ScreenQuad_vs.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredGeometryTerrainPass_hs.hlsl">
+    </None>
+    <None Include="FX\ShadowMap_vs.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredGeometryTerrainPass_ds.hlsl">
+    </None>
+    <None Include="FX\Skybox_ps.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredGeometryTerrainPass_ps.hlsl">
+    </None>
+    <None Include="FX\Skybox_vs.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\BrightnessFilter_ps.hlsl">
+    </None>
+    <None Include="FX\VBlur_cs.hlsl">
       <Filter>FX</Filter>
-    </FxCompile>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\stdafx.h">

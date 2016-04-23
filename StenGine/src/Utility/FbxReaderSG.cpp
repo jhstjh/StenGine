@@ -7,6 +7,8 @@
 
 #pragma warning(disable:4244) // conversion from 'fbxsdk_2015_1::FbxDouble' to 'float', possible loss of data
 
+#define USE_MODEL_CACHE 1
+
 namespace StenGine
 {
 
@@ -18,14 +20,14 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 
 	std::string gFilename = std::string(filename.begin(), filename.end());
 
-
 	mesh->m_material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f);
 	mesh->m_material.diffuse = XMFLOAT4(1.0f, 0.8f, 0.7f, 1.f);
 	mesh->m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
 
-
+#if USE_MODEL_CACHE
 	if (ReadModelCache(mesh, filename))
 		return true;
+#endif
 
 	const char* lFilename = gFilename.c_str();
 
@@ -204,6 +206,7 @@ void ReadFbxMesh(FbxNode* node, Mesh* mesh, const std::wstring& filename) {
 		}
 	}
 
+#if USE_MODEL_CACHE
 	std::fstream fs;
 	fs.open(filename + L".sgm", std::fstream::out | std::fstream::binary);
 
@@ -262,16 +265,19 @@ void ReadFbxMesh(FbxNode* node, Mesh* mesh, const std::wstring& filename) {
 	fs << std::endl;
 
 	fs.close();
+#endif
 }
 
 void ReadFbxMaterial(FbxNode* node, Mesh* mesh, const std::wstring& filename) {
 	//FbxMesh* fbxMesh = node->GetMesh();
 	int matCount = node->GetMaterialCount();
 
+#if USE_MODEL_CACHE
 	std::fstream fs;
 	fs.open(filename + L".sgm", std::fstream::app | std::fstream::binary);
 
 	fs << matCount;
+#endif
 
 	for (int i = 0; i < matCount; i++) {
 		FbxSurfaceMaterial* sMat = node->GetMaterial(i);
@@ -302,13 +308,16 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh, const std::wstring& filename) {
 			mesh->m_subMeshes[i].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(tex->GetFileName()));
 #endif
 			has = true;
+#if USE_MODEL_CACHE
 			fs << std::endl << 1;
 			fs << std::endl << tex->GetFileName();
+#endif
 		}
 		//}
-
+#if USE_MODEL_CACHE
 		if (!has)
 			fs << std::endl << 0;
+#endif
 
 		has = false;
 		FbxProperty normalProp = sMat->FindProperty(FbxSurfaceMaterial::sNormalMap);
@@ -321,12 +330,16 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh, const std::wstring& filename) {
 			mesh->m_subMeshes[i].m_normalMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(tex->GetFileName()));
 #endif
 			has = true;
+#if USE_MODEL_CACHE
 			fs << std::endl << 1;
 			fs << std::endl << tex->GetFileName();
+#endif
 		}
 
+#if USE_MODEL_CACHE
 		if (!has)
 			fs << std::endl << 0;
+#endif
 
 		has = false;
 		FbxProperty displacementProp = sMat->FindProperty(FbxSurfaceMaterial::sDisplacementColor);
@@ -339,14 +352,20 @@ void ReadFbxMaterial(FbxNode* node, Mesh* mesh, const std::wstring& filename) {
 			mesh->m_subMeshes[i].m_bumpMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(tex->GetFileName()));
 #endif
 			has = true;
+#if USE_MODEL_CACHE
 			fs << std::endl << 1;
 			fs << std::endl << tex->GetFileName();
+#endif
 		}
+#if USE_MODEL_CACHE
 		if (!has)
 			fs << std::endl << 0;
+#endif
 	}
 
+#if USE_MODEL_CACHE
 	fs.close();
+#endif
 }
 
 bool ReadModelCache(Mesh* mesh, const std::wstring& filename)

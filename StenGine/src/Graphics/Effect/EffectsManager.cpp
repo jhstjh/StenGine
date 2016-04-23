@@ -1,8 +1,7 @@
 ﻿#include "Graphics/Effect/EffectsManager.h"
-
-#if PLATFORM_WIN32
-
 #include "Graphics/Abstraction/RendererBase.h"
+
+#include <Windows.h>
 
 #if GRAPHICS_D3D11
 #include "D3DCompiler.h"
@@ -17,7 +16,6 @@
 #define EXT L".glsl"
 #endif
 
-#endif
 
 #pragma warning( disable : 4996 )
 
@@ -131,7 +129,7 @@ Effect::Effect(const std::wstring& vsPath,
 	int params = -1;
 
 	if (vsPath.length()) {
-		assert(ReadShaderFile(vsPath, shaderbuffer, 1024*256));
+		(ReadShaderFile(vsPath, shaderbuffer, 1024*256));
 		m_vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		p = (const GLchar*)shaderbuffer;
 		glShaderSource(m_vertexShader, 1, &p, NULL);
@@ -160,7 +158,7 @@ Effect::Effect(const std::wstring& vsPath,
 	}
 
 	if (hsPath.length()) {
-		assert(ReadShaderFile(hsPath, shaderbuffer, 1024 * 256));
+		(ReadShaderFile(hsPath, shaderbuffer, 1024 * 256));
 		m_hullShader = glCreateShader(GL_TESS_CONTROL_SHADER);
 		p = (const GLchar*)shaderbuffer;
 		glShaderSource(m_hullShader, 1, &p, NULL);
@@ -189,7 +187,7 @@ Effect::Effect(const std::wstring& vsPath,
 	}
 
 	if (dsPath.length()) {
-		assert(ReadShaderFile(dsPath, shaderbuffer, 1024 * 256));
+		(ReadShaderFile(dsPath, shaderbuffer, 1024 * 256));
 		m_domainShader = glCreateShader(GL_TESS_EVALUATION_SHADER);
 		p = (const GLchar*)shaderbuffer;
 		glShaderSource(m_domainShader, 1, &p, NULL);
@@ -218,7 +216,7 @@ Effect::Effect(const std::wstring& vsPath,
 	}
 
 	if (psPath.length()) {
-		assert(ReadShaderFile(psPath, shaderbuffer, 1024 * 256));
+		(ReadShaderFile(psPath, shaderbuffer, 1024 * 256));
 		m_pixelShader = glCreateShader(GL_FRAGMENT_SHADER);
 		p = (const GLchar*)shaderbuffer;
 		glShaderSource(m_pixelShader, 1, &p, NULL);
@@ -1757,35 +1755,21 @@ void BlurEffect::BindShaderResource() {
 bool Effect::ReadShaderFile(std::wstring filename, char* shaderContent, int maxLength) {
 	std::string s(filename.begin(), filename.end());
 	const char* lFilename = s.c_str();
-	FILE* file = fopen(lFilename, "r");
-	size_t current_len = 0;
-	char line[2048];
-
-	shaderContent[0] = '\0'; /* reset string */
-	if (!file) {
-		assert(false);
-		// 		OutputDebugStringA("ERROR: opening file for reading: %s\n", lFilename);
-		// 		return false;
-	}
-	strcpy(line, ""); /* remember to clean up before using for first time! */
-	while (!feof(file)) {
-		if (NULL != fgets(line, 2048, file)) {
-			current_len += strlen(line); /* +1 for \n at end */
-			if (current_len >= maxLength) {
-				assert(false);
-				// 				OutputDebugStringA(
-				// 					"ERROR: shader length is longer than string buffer length %i\n",
-				// 					maxLength
-				// 					);
-			}
-			strcat(shaderContent, line);
-		}
-	}
-	if (EOF == fclose(file)) { /* probably unnecesssary validation */
-		assert(false);
-		// 		OutputDebugStringA("ERROR: closing file from reading %s\n", lFilename);
-		// 		return false;
-	}
+	
+	HANDLE hfile;
+	LARGE_INTEGER file_size;
+	hfile = CreateFile((LPCWSTR)(filename.c_str()), GENERIC_READ, 0, NULL,
+		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	
+	GetFileSizeEx(hfile, &file_size);
+	
+	DWORD read;
+	ReadFile(hfile, shaderContent, maxLength, &read, NULL);
+	
+	shaderContent[read] = 0;
+	
+	CloseHandle(hfile);
+	
 	return true;
 }
 
@@ -1926,7 +1910,6 @@ EffectsManager::EffectsManager()
 	, m_debugLineEffect(nullptr)
 {
 
-#if PLATFORM_WIN32
 	m_shadowMapEffect = std::unique_ptr<ShadowMapEffect>(new ShadowMapEffect(L"FX/ShadowMap"));
 	m_deferredGeometryPassEffect = std::unique_ptr<DeferredGeometryPassEffect>(new DeferredGeometryPassEffect(L"FX/DeferredGeometryPass"));
 	m_deferredShadingPassEffect = std::unique_ptr<DeferredShadingPassEffect>(new DeferredShadingPassEffect(L"FX/DeferredShadingPass"));
@@ -1938,7 +1921,6 @@ EffectsManager::EffectsManager()
 	m_terrainShadowMapEffect = std::unique_ptr<TerrainShadowMapEffect>(new TerrainShadowMapEffect(L"FX/DeferredGeometryTerrainPass"));
 
 #if GRAPHICS_D3D11
-
 	m_deferredShadingCSEffect = std::unique_ptr<DeferredShadingCS>(new DeferredShadingCS(L"FX/DeferredShading"));
 
 	m_blurEffect = std::unique_ptr<BlurEffect>(new BlurEffect(L"FX/Blur"));
@@ -1946,24 +1928,11 @@ EffectsManager::EffectsManager()
 	m_hblurEffect = std::unique_ptr<HBlurEffect>(new HBlurEffect(L"FX/HBlur"));
 #endif
 
-#else
-	m_debugLineEffect = new DebugLineEffect("Shaders/DebugLine");
-	m_simpleMeshEffect = new SimpleMeshEffect("Shaders/SimpleMesh");
-#endif
 }
 
-EffectsManager::~EffectsManager() {
+EffectsManager::~EffectsManager()
+{
 
-#ifndef PLATFORM_ANDROID
-	SafeDelete(m_shadowMapEffect);
-	SafeDelete(m_deferredGeometryPassEffect);
-	SafeDelete(m_deferredShadingPassEffect);
-	//SafeDelete(m_screenQuadEffect);
-	SafeDelete(m_godrayEffect);
-	SafeDelete(m_skyboxEffect);
-	SafeDelete(m_blurEffect);
-	SafeDelete(m_vblurEffect);
-#endif
 }
 
 }
