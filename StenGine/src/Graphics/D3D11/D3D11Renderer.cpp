@@ -996,41 +996,6 @@ public:
 
 	void D3D11Renderer::doCSBlur(ID3D11ShaderResourceView* blurImgSRV, int uavSlotIdx) {
 		// vblur
-#if 0
-		VBlurEffect* vBlurEffect = EffectsManager::Instance()->m_vblurEffect.get();
-		vBlurEffect->SetShader();
-		vBlurEffect->UpdateConstantBuffer();
-		vBlurEffect->BindConstantBuffer();
-		vBlurEffect->SetShaderResources(blurImgSRV, 0);
-
-		vBlurEffect->BindShaderResource(uavSlotIdx);
-
-		UINT numGroupsX = (UINT)ceilf(m_clientWidth / 256.0f);
-		m_d3d11DeviceContext->Dispatch(numGroupsX, m_clientHeight, 1);
-
-		vBlurEffect->UnBindConstantBuffer();
-		vBlurEffect->UnbindUnorderedAccessViews();
-		vBlurEffect->UnBindShaderResource();
-		vBlurEffect->UnSetShader();
-
-		//hblur
-		HBlurEffect* hBlurEffect = EffectsManager::Instance()->m_hblurEffect.get();
-		hBlurEffect->SetShader();
-		hBlurEffect->UpdateConstantBuffer();
-		hBlurEffect->BindConstantBuffer();
-		hBlurEffect->SetShaderResources(vBlurEffect->GetOutputShaderResource(uavSlotIdx), 0);
-		hBlurEffect->BindShaderResource(uavSlotIdx);
-
-		UINT numGroupsY = (UINT)ceilf(m_clientHeight / 256.0f);
-		m_d3d11DeviceContext->Dispatch(m_clientWidth, numGroupsY, 1);
-
-		hBlurEffect->UnBindConstantBuffer();
-		hBlurEffect->UnbindUnorderedAccessViews();
-		hBlurEffect->UnBindShaderResource();
-		hBlurEffect->UnSetShader();
-
-		return hBlurEffect->GetOutputShaderResource(uavSlotIdx);
-#endif
 		DrawCmd cmdV;
 
 		VBlurEffect* vBlurEffect = EffectsManager::Instance()->m_vblurEffect.get();
@@ -1046,6 +1011,7 @@ public:
 
 		AddDeferredDrawCmd(std::move(cmdV));
 
+		// hblur
 		DrawCmd cmdH;
 
 		HBlurEffect* hBlurEffect = EffectsManager::Instance()->m_hblurEffect.get();

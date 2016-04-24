@@ -14,6 +14,7 @@
 #include "Scene/LightManager.h"
 #include "Graphics/Effect/ShadowMap.h"
 #include "Graphics/Effect/Skybox.h"
+#include "Graphics/OpenGL/GLImageLoader.h"
 #include <vector>
 #include <memory>
 #include <iostream>
@@ -140,6 +141,9 @@ public:
 		glDepthMask(GL_TRUE);
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 		glViewport(0, 0, m_clientWidth, m_clientHeight);
+
+		
+		/***************GBUFFER FB*********************/
 		glCreateFramebuffers(1, &m_deferredGBuffers);
 		GenerateColorTex(m_diffuseBufferTex);
 		GenerateColorTex(m_normalBufferTex);
@@ -169,6 +173,43 @@ public:
 		glMakeTextureHandleResidentARB(m_normalBufferTexHandle);
 		glMakeTextureHandleResidentARB(m_specularBufferTexHandle);
 		glMakeTextureHandleResidentARB(m_depthBufferTexHandle);
+
+		/****************deferred shading + ssao fb**********************/
+		glCreateFramebuffers(1, &m_deferredShadingRT);
+
+		GenerateColorTex(m_deferredShadingTex);
+		GenerateColorTex(m_ssaoTex);
+		GenerateDepthTex(m_deferredShadingDepthTex);
+
+		glNamedFramebufferTexture(m_deferredShadingRT, GL_DEPTH_ATTACHMENT, m_deferredShadingDepthTex, 0);
+		glNamedFramebufferTexture(m_deferredShadingRT, GL_COLOR_ATTACHMENT0, m_deferredShadingTex, 0);
+		glNamedFramebufferTexture(m_deferredShadingRT, GL_COLOR_ATTACHMENT1, m_ssaoTex, 0);
+
+		GLenum shading_bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+		glNamedFramebufferDrawBuffers(m_deferredShadingRT, 2, shading_bufs);
+
+		status = glCheckNamedFramebufferStatus(m_deferredShadingRT, GL_FRAMEBUFFER);
+		if (GL_FRAMEBUFFER_COMPLETE != status) {
+			assert(false);
+			return false;
+		}
+
+		m_deferredShadingTexHandle = glGetTextureHandleARB(m_deferredShadingTex);
+		m_ssaoTexHandle = glGetTextureHandleARB(m_ssaoTex);
+		m_deferredShadingDepthTexHandle = glGetTextureHandleARB(m_deferredShadingDepthTex);
+
+		glMakeTextureHandleResidentARB(m_deferredShadingTexHandle);
+		glMakeTextureHandleResidentARB(m_ssaoTexHandle);
+		glMakeTextureHandleResidentARB(m_deferredShadingDepthTexHandle);
+
+		/******************************************************************/
+
+		GLuint randVecTex = CreateGLTextureFromFile("Model/RandNorm.dds");
+		glTextureParameteri(randVecTex, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+		glTextureParameteri(randVecTex, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
+		m_randVecTexHandle = glGetTextureHandleARB(randVecTex);
+		glMakeTextureHandleResidentARB(m_randVecTexHandle);
 
 		DirectionalLight* dLight = new DirectionalLight();
 		dLight->intensity = XMFLOAT4(1, 1, 1, 1);
@@ -469,6 +510,7 @@ public:
 		perFrameData->DiffuseGMap = m_diffuseBufferTexHandle;//LightManager::Instance()->m_shadowMap->GetDepthTex();//
 		perFrameData->SpecularGMap = m_specularBufferTexHandle;
 		perFrameData->DepthGMap = m_depthBufferTexHandle;
+		perFrameData->RandVectMap = m_randVecTexHandle;
 
 		XMMATRIX &viewMat = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
 		XMMATRIX viewInvTranspose = MatrixHelper::InverseTranspose(viewMat);
@@ -486,7 +528,7 @@ public:
 		cmd.inputLayout = (void*)m_screenQuadVAO;
 		cmd.vertexBuffer = 0; // don't bind if 0
 		cmd.type = PrimitiveTopology::TRIANGLELIST;
-		cmd.framebuffer = 0;
+		cmd.framebuffer = m_deferredShadingRT;
 		cmd.offset = (void*)(0);
 		cmd.effect = effect;
 		cmd.elementCount = 6;
@@ -625,10 +667,22 @@ private:
 	GLuint m_specularBufferTex;
 	GLuint m_depthBufferTex;
 
+	GLuint m_deferredShadingRT;;
+
+	GLuint m_ssaoTex;
+	GLuint m_deferredShadingTex;
+	GLuint m_deferredShadingDepthTex;
+
+	uint64_t m_randVecTexHandle;
+
 	uint64_t m_diffuseBufferTexHandle;
 	uint64_t m_normalBufferTexHandle;
 	uint64_t m_specularBufferTexHandle;
 	uint64_t m_depthBufferTexHandle;
+
+	uint64_t m_ssaoTexHandle;
+	uint64_t m_deferredShadingTexHandle;
+	uint64_t m_deferredShadingDepthTexHandle;
 
 	GLuint m_debugCoordVAO;
 	GLuint m_screenQuadVAO;

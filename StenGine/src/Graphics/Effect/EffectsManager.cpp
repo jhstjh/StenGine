@@ -822,35 +822,6 @@ DeferredShadingPassEffect::~DeferredShadingPassEffect()
 #endif
 }
 
-void DeferredShadingPassEffect::UpdateConstantBuffer() {
-#if GRAPHICS_D3D11
-	{
-		D3D11_MAPPED_SUBRESOURCE ms;
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perFrameCB, NULL);
-	}
-#endif
-}
-
-void DeferredShadingPassEffect::BindConstantBuffer() {
-#if GRAPHICS_D3D11
-	ID3D11Buffer* cbuf[] = { m_perFrameCB };
-	//static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 1, cbuf);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 1, cbuf);
-#endif
-}
-
-void DeferredShadingPassEffect::BindShaderResource() {
-#if GRAPHICS_D3D11
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 5, m_shaderResources);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 5, m_shaderResources);
-#else
-
-#endif
-}
-
-
 //----------------------------------------------------------//
 
 

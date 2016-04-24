@@ -88,6 +88,7 @@ ShadowMap::~ShadowMap() {
 	ReleaseCOM(m_depthDSV);
 #else
 	glMakeTextureHandleNonResidentARB(m_depthTexHandle);
+	glDeleteTextures(1, &m_depthTex);
 #endif
 }
 

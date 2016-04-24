@@ -434,13 +434,8 @@ public:
 	GLuint m_perFrameCB;
 #endif
 
-
 	DeferredShadingPassEffect(const std::wstring& filename);
 	~DeferredShadingPassEffect();
-
-	virtual void UpdateConstantBuffer();
-	virtual void BindConstantBuffer();
-	virtual void BindShaderResource();
 
 	struct
 #if GRAPHICS_D3D11		
@@ -450,8 +445,7 @@ public:
 		XMFLOAT4 gEyePosV;
 		XMMATRIX gProjInv;
 		XMMATRIX gProj;
-	}
-	m_perFrameConstantBuffer;
+	};
 #endif
 
 #if GRAPHICS_OPENGL
@@ -465,16 +459,9 @@ public:
 		uint64_t DiffuseGMap;
 		uint64_t SpecularGMap;
 		uint64_t DepthGMap;
-	}
-	m_perFrameUniformBuffer;
+		uint64_t RandVectMap;
+	};
 #endif
-
-	/// Texture Ordering:
-	/// Texture2D gDiffuseGB;
-	/// Texture2D gNormalGB;
-	/// Texture2D gSpecularGB;
-	/// Texture2D gDepthGB;
-	//ID3D11ShaderResourceView *m_shaderResources[4];
 };
 
 

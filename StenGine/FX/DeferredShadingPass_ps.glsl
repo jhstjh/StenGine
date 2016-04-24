@@ -15,7 +15,33 @@ struct DirectionalLight {
 
 in vec2 pTexUV;
 
-out vec4 ps_color;
+layout(location = 0) out vec4 ps_color;
+layout(location = 1) out vec4 ps_ssao;
+
+uniform float  gOcclusionRadius = 0.16f;
+uniform float  gOcclusionFadeStart = 0.2f;
+uniform float  gOcclusionFadeEnd = 8.0f;
+uniform float  gSurfaceEpsilon = 0.005f;
+
+uniform vec4 OffsetVect[] = {
+	{ +1.0f, +1.0f, +1.0f, 0.0f },
+	{ -1.0f, -1.0f, -1.0f, 0.0f },
+	{ -1.0f, +1.0f, +1.0f, 0.0f },
+	{ +1.0f, -1.0f, -1.0f, 0.0f },
+	{ +1.0f, +1.0f, -1.0f, 0.0f },
+	{ -1.0f, -1.0f, +1.0f, 0.0f },
+	{ -1.0f, +1.0f, -1.0f, 0.0f },
+	{ +1.0f, -1.0f, +1.0f, 0.0f },
+	{ -1.0f, 0.0f, 0.0f, 0.0f },
+	{ +1.0f, 0.0f, 0.0f, 0.0f },
+	{ 0.0f, -1.0f, 0.0f, 0.0f },
+	{ 0.0f, +1.0f, 0.0f, 0.0f },
+	{ 0.0f, 0.0f, -1.0f, 0.0f },
+	{ 0.0f, 0.0f, +1.0f, 0.0f },
+};
+
+uniform int gBlurRadius = 10;
+
 
 layout(std140) uniform ubPerFrame {
 	DirectionalLight gDirLight;
@@ -26,7 +52,42 @@ layout(std140) uniform ubPerFrame {
 	sampler2D gDiffuseGMap;
 	sampler2D gSpecularGMap;
 	sampler2D gDepthGMap;
+	sampler2D gRandVectMap;
 };
+
+float OcclusionFunction(float distZ)
+{
+	//
+	// If depth(q) is "behind" depth(p), then q cannot occlude p.  Moreover, if 
+	// depth(q) and depth(p) are sufficiently close, then we also assume q cannot
+	// occlude p because q needs to be in front of p by Epsilon to occlude p.
+	//
+	// We use the following function to determine the occlusion.  
+	// 
+	//
+	//						 1.0     -------------\
+					//               |           |  \
+					//               |           |    \
+					//               |           |      \ 
+					//               |           |        \
+					//               |           |          \
+					//               |           |            \
+					//  ------|------|-----------|-------------|---------|--> zv
+					//        0     Eps          z0            z1        
+	//
+
+	float occlusion = 0.0f;
+	if (distZ > gSurfaceEpsilon)
+	{
+		float fadeLength = gOcclusionFadeEnd - gOcclusionFadeStart;
+
+		// Linearly decrease occlusion from 1 to 0 as distZ goes 
+		// from gOcclusionFadeStart to gOcclusionFadeEnd.	
+		occlusion = clamp((gOcclusionFadeEnd - distZ) / fadeLength, 0, 1);
+	}
+
+	return occlusion;
+}
 
 void main() {
 
@@ -123,4 +184,38 @@ void main() {
 
 	gl_FragDepth = z; // weite GBUFFER depth to current depth buffer
 
+
+	/*******************SSAO**********************/
+
+	vec3 randVect = normalize(textureLod(gRandVectMap, 16 * pTexUV, 0)).xyz;
+
+	float occlusionSum = 0.0f;
+	vec4 occlusionColor = vec4(0, 0, 0, 0);
+	for (int i = 0; i < 14; ++i)
+	{
+		vec3 offset = reflect(normalize(OffsetVect[i].xyz), randVect);
+
+		float flip = 1;//sign(dot(offset, normal));
+
+		vec3 qV = vPositionVS.xyz + flip * gOcclusionRadius * offset;
+
+		vec4 projQ = gProj * vec4(qV, 1.0f);
+		projQ /= projQ.w;
+
+		float rz = textureLod(gDepthGMap, vec2(0.5 * projQ.x + 0.5, (0.5 + 0.5 * projQ.y)), 0).r;
+		vec4 rProjectedPos = vec4(projQ.x, projQ.y, rz, 1.0f);
+		vec4 rPositionVS = gProjInv * rProjectedPos;
+		rPositionVS /= rPositionVS.w;
+
+		vec3 diff = rPositionVS.xyz - vPositionVS.xyz;
+		const vec3 v = normalize(diff);
+		const float d = length(diff)*0.05;
+		float occlusion = max(0.0, dot(normalV, v) - gSurfaceEpsilon) * (1.0 / (1.0 + d)) * 0.8;
+		occlusionSum += occlusion;
+	}
+
+	occlusionSum /= 14.0f;
+
+	float access = 1.0f - occlusionSum;
+	ps_ssao = vec4(clamp(pow(access, 4.0f), 0.0f, 1.0f));
 }
