@@ -9,13 +9,13 @@
 
 #if GRAPHICS_D3D11
 #include "Graphics/D3D11/D3D11SRVBinding.h"
-#include "Graphics/D3D11/D3D11UAVBinding.h"
 #endif
 
 #include "Graphics/Effect/EffectsManager.h"
 #include "Graphics/Abstraction/ConstantBuffer.h"
 #include "Graphics/Abstraction/Viewport.h"
 #include "Graphics/Abstraction/RenderTarget.h"
+#include "Graphics/Abstraction/UAVBinding.h"
 
 namespace StenGine
 {
@@ -72,12 +72,17 @@ struct DrawCmd {
 	uint32_t			threadGroupZ    = 0;
 
 	std::vector<ConstantBuffer> cbuffers;
+	UAVBinding			uavs;
 
 #if GRAPHICS_D3D11
 	D3D11SRVBinding srvs;
-	D3D11UAVBinding uavs;
 	ID3D11RasterizerState* rsState		= nullptr;
 #endif
+
+#if GRAPHICS_OPENGL
+	
+#endif
+
 };
 
 }

@@ -18,4 +18,6 @@ private:
 	std::array<ID3D11UnorderedAccessView*, 16> m_UAVs;
 };
 
+using UAVBinding = D3D11UAVBinding;
+
 }

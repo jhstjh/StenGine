@@ -346,6 +346,10 @@
     <ClInclude Include="include\System\SingletonClass.h">
       <Filter>include\System</Filter>
     </ClInclude>
+    <ClInclude Include="include\Graphics\D3D11\D3D11UAVBinding.h" />
+    <ClInclude Include="include\Graphics\Abstraction\UAVBinding.h">
+      <Filter>include\Graphics\Abstraction</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -432,5 +436,6 @@
     <ClCompile Include="src\System\GameObjectManager.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\D3D11UAVBinding.cpp" />
   </ItemGroup>
 </Project>

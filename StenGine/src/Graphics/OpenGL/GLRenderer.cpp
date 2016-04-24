@@ -25,6 +25,10 @@ using namespace std;
 #pragma warning(disable: 4244) // conversion from 'int64_t' to 'GLsizei', possible loss of data
 #pragma warning(disable: 4312 4311 4302) // 'type cast': conversion from 'GLuint' to 'void *' of greater size
 
+// somehow this are not in glew???
+PFNGLDISPATCHCOMPUTEPROC glDispatchCompute​;
+PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
+
 namespace StenGine
 {
 
@@ -124,6 +128,20 @@ public:
 			return false;
 		}
 
+		glDispatchCompute​ = (PFNGLDISPATCHCOMPUTEPROC)wglGetProcAddress("glDispatchCompute");
+		if (!glDispatchCompute​)
+		{
+			assert(false);
+			return false;
+		}
+
+		glBindImageTexture = (PFNGLBINDIMAGETEXTUREPROC)wglGetProcAddress("glBindImageTexture");
+		if (!glBindImageTexture)
+		{
+			assert(false);
+			return false;
+		}
+
 		wglSwapIntervalEXT(0);
 
 #if !BUILD_RELEASE
@@ -204,6 +222,13 @@ public:
 
 		/******************************************************************/
 
+		for (uint32_t i = 0; i < 4; ++i)
+		{
+			GenerateColorTex(m_computeOutput[i]);
+			m_computeOutputHandle[i] = glGetTextureHandleARB(m_computeOutput[i]);
+			glMakeTextureHandleResidentARB(m_computeOutputHandle[i]);
+		}
+		
 		GLuint randVecTex = CreateGLTextureFromFile("Model/RandNorm.dds");
 		glTextureParameteri(randVecTex, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 		glTextureParameteri(randVecTex, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
@@ -366,44 +391,52 @@ public:
 				);
 			}
 
-			if (cmd.flags & CmdFlag::DRAW)
+			if (cmd.flags & CmdFlag::DRAW || cmd.flags & CmdFlag::COMPUTE)
 			{
 				cmd.effect->SetShader();
 
-				glBindVertexArray((GLuint)cmd.inputLayout);
-
-				if (cmd.vertexBuffer)
-					glBindVertexBuffer(0, (GLuint)cmd.vertexBuffer, cmd.vertexOffset, cmd.vertexStride);
-				
 				for (auto &cbuffer : cmd.cbuffers)
 				{
 					cbuffer.Bind();
 				}
 
-				if (cmd.type == PrimitiveTopology::CONTROL_POINT_3_PATCHLIST)
+				if (cmd.flags & CmdFlag::DRAW)
 				{
-					glPatchParameteri(GL_PATCH_VERTICES, 3);
-				}
-				else if (cmd.type == PrimitiveTopology::CONTROL_POINT_4_PATCHLIST)
-				{
-					glPatchParameteri(GL_PATCH_VERTICES, 4);
-				}
+					glBindVertexArray((GLuint)cmd.inputLayout);
 
-				if (cmd.drawType == DrawType::INDEXED)
-				{
-					if (cmd.indexBuffer)
-						glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (GLuint)cmd.indexBuffer);
+					if (cmd.vertexBuffer)
+						glBindVertexBuffer(0, (GLuint)cmd.vertexBuffer, cmd.vertexOffset, cmd.vertexStride);
 
-					glDrawElements(
-						m_drawTopologyMap[cmd.type],
-						cmd.elementCount,
-						GL_UNSIGNED_INT,
-						cmd.offset
-					);
+					if (cmd.type == PrimitiveTopology::CONTROL_POINT_3_PATCHLIST)
+					{
+						glPatchParameteri(GL_PATCH_VERTICES, 3);
+					}
+					else if (cmd.type == PrimitiveTopology::CONTROL_POINT_4_PATCHLIST)
+					{
+						glPatchParameteri(GL_PATCH_VERTICES, 4);
+					}
+
+					if (cmd.drawType == DrawType::INDEXED)
+					{
+						if (cmd.indexBuffer)
+							glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (GLuint)cmd.indexBuffer);
+
+						glDrawElements(
+							m_drawTopologyMap[cmd.type],
+							cmd.elementCount,
+							GL_UNSIGNED_INT,
+							cmd.offset
+						);
+					}
+					else if (cmd.drawType == DrawType::ARRAY)
+					{
+						glDrawArrays(m_drawTopologyMap[cmd.type], (GLint)cmd.offset, cmd.elementCount);
+					}
 				}
-				else if (cmd.drawType == DrawType::ARRAY)
+				else if (cmd.flags & CmdFlag::COMPUTE)
 				{
-					glDrawArrays(m_drawTopologyMap[cmd.type], (GLint)cmd.offset, cmd.elementCount);
+					cmd.uavs.Bind();
+					glDispatchCompute​(cmd.threadGroupX, cmd.threadGroupY, cmd.threadGroupZ);
 				}
 			}
 		}
@@ -416,10 +449,10 @@ public:
 		DrawGBuffer();
 		DrawDeferredShading();
 		m_SkyBox->Draw();
+		DrawBlurSSAOAndCombine();
 		// TODO put every graphics call into cmdlist
 		ExecuteCmdList();
-		
-		//DrawBlurSSAOAndCombine();
+	
 		//DrawGodRay();
 		DrawDebug();
 
@@ -538,7 +571,69 @@ public:
 	}
 
 	void DrawBlurSSAOAndCombine() override {
+		doCSBlur(m_ssaoTex, 0);
 
+		// ------ Screen Quad -------//
+		BlurEffect* blurEffect = EffectsManager::Instance()->m_blurEffect.get();
+
+		DrawCmd cmd;
+
+		// TODO
+		//m_d3d11DeviceContext->PSSetSamplers(0, 1, samplerState);
+
+		cmd.flags = CmdFlag::DRAW | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH | CmdFlag::BIND_FB;
+		cmd.drawType = DrawType::ARRAY;
+		cmd.inputLayout = (void*)m_screenQuadVAO;
+		cmd.vertexBuffer = 0; // don't bind if 0
+		cmd.type = PrimitiveTopology::TRIANGLELIST;
+		cmd.framebuffer = 0;
+		cmd.offset = (void*)(0);
+		cmd.effect = blurEffect;
+		cmd.elementCount = 6;
+
+		ConstantBuffer cbuffer0(0, sizeof(BlurEffect::SETTING_CONSTANT_BUFFER), (void*)blurEffect->m_settingCB);
+		BlurEffect::SETTING_CONSTANT_BUFFER* settingData = (BlurEffect::SETTING_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+
+		settingData->ScreenMap = m_deferredShadingTexHandle;
+		settingData->SSAOMap = m_computeOutputHandle[1];
+		//settingData->BloomMap = NOT_USED;
+		cmd.cbuffers.push_back(std::move(cbuffer0));
+
+		AddDeferredDrawCmd(std::move(cmd));
+	}
+
+	void doCSBlur(GLuint blurImgSRV, int uavSlotIdx) {
+		// vblur
+		DrawCmd cmdV;
+
+		VBlurEffect* vBlurEffect = EffectsManager::Instance()->m_vblurEffect.get();
+		UINT numGroupsX = (UINT)ceilf(m_clientWidth / 256.0f);
+
+		cmdV.effect = vBlurEffect;
+		cmdV.flags = CmdFlag::COMPUTE;
+		cmdV.threadGroupX = numGroupsX;
+		cmdV.threadGroupY = m_clientHeight;
+		cmdV.threadGroupZ = 1;
+		cmdV.uavs.AddUAV(blurImgSRV, 0);
+		cmdV.uavs.AddUAV(m_computeOutput[uavSlotIdx], 1);
+
+		AddDeferredDrawCmd(std::move(cmdV));
+
+		// hblur
+		DrawCmd cmdH;
+		
+		HBlurEffect* hBlurEffect = EffectsManager::Instance()->m_hblurEffect.get();
+		UINT numGroupsY = (UINT)ceilf(m_clientHeight / 256.0f);
+		
+		cmdH.effect = hBlurEffect;
+		cmdH.flags = CmdFlag::COMPUTE;
+		cmdH.threadGroupX = m_clientWidth;
+		cmdH.threadGroupY = numGroupsY;
+		cmdH.threadGroupZ = 1;
+		cmdH.uavs.AddUAV(m_computeOutput[uavSlotIdx], 0);
+		cmdH.uavs.AddUAV(m_computeOutput[uavSlotIdx + 1], 1);
+		
+		AddDeferredDrawCmd(std::move(cmdH));
 	}
 
 	void DrawGodRay() override {
@@ -672,6 +767,9 @@ private:
 	GLuint m_ssaoTex;
 	GLuint m_deferredShadingTex;
 	GLuint m_deferredShadingDepthTex;
+
+	GLuint m_computeOutput[4];
+	uint64_t m_computeOutputHandle[4];
 
 	uint64_t m_randVecTexHandle;
 

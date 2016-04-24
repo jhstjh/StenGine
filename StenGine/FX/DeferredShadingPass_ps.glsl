@@ -18,12 +18,12 @@ in vec2 pTexUV;
 layout(location = 0) out vec4 ps_color;
 layout(location = 1) out vec4 ps_ssao;
 
-uniform float  gOcclusionRadius = 0.16f;
-uniform float  gOcclusionFadeStart = 0.2f;
-uniform float  gOcclusionFadeEnd = 8.0f;
-uniform float  gSurfaceEpsilon = 0.005f;
+const float  gOcclusionRadius = 0.16f;
+const float  gOcclusionFadeStart = 0.2f;
+const float  gOcclusionFadeEnd = 8.0f;
+const float  gSurfaceEpsilon = 0.005f;
 
-uniform vec4 OffsetVect[] = {
+const vec4 OffsetVect[] = {
 	{ +1.0f, +1.0f, +1.0f, 0.0f },
 	{ -1.0f, -1.0f, -1.0f, 0.0f },
 	{ -1.0f, +1.0f, +1.0f, 0.0f },
@@ -40,7 +40,7 @@ uniform vec4 OffsetVect[] = {
 	{ 0.0f, 0.0f, +1.0f, 0.0f },
 };
 
-uniform int gBlurRadius = 10;
+const int gBlurRadius = 10;
 
 
 layout(std140) uniform ubPerFrame {
@@ -187,7 +187,7 @@ void main() {
 
 	/*******************SSAO**********************/
 
-	vec3 randVect = normalize(textureLod(gRandVectMap, 16 * pTexUV, 0)).xyz;
+	vec3 randVect = normalize(textureLod(gRandVectMap, 16 * pTexUV, 0).xyz * 2 - vec3(1));
 
 	float occlusionSum = 0.0f;
 	vec4 occlusionColor = vec4(0, 0, 0, 0);

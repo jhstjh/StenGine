@@ -742,7 +742,7 @@ public:
 		}
 	}
 
-	void D3D11Renderer::DrawGBuffer() {
+	void DrawGBuffer() {
 // TODO
 //		m_d3d11DeviceContext->RSSetState(0);
 //
@@ -769,7 +769,7 @@ public:
 		}
 	}
 
-	void D3D11Renderer::DrawDeferredShading() {
+	void DrawDeferredShading() {
 		DrawCmd clearCmd;
 
 		clearCmd.flags = CmdFlag::BIND_FB;
@@ -869,7 +869,7 @@ public:
 #endif
 	}
 
-	void D3D11Renderer::DrawBlurSSAOAndCombine() {
+	void DrawBlurSSAOAndCombine() {
 		ID3D11ShaderResourceView* nullSRV[16] = { 0 };
 		ID3D11SamplerState* samplerState[] = { m_samplerState, m_shadowSamplerState };
 		// -------compute shader blur ----------//
@@ -926,7 +926,7 @@ public:
 		AddDeferredDrawCmd(std::move(cmd));
 	}
 
-	void D3D11Renderer::DrawGodRay() {
+	void DrawGodRay() {
 		//--------------------Post processing----------------------//
 		m_d3d11DeviceContext->OMSetBlendState(m_additiveAlphaAddBS, NULL, 0xFFFFFFFF);
 		m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, nullptr);
@@ -964,7 +964,7 @@ public:
 		m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
 	}
 
-	void D3D11Renderer::DrawDebug() {
+	void DrawDebug() {
 		// draw debug line
 		m_d3d11DeviceContext->OMSetDepthStencilState(m_noZWriteDSState, 1); // turn off z write
 		m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
@@ -994,7 +994,7 @@ public:
 		m_d3d11DeviceContext->OMSetDepthStencilState(0, 0); // turn off z write
 	}
 
-	void D3D11Renderer::doCSBlur(ID3D11ShaderResourceView* blurImgSRV, int uavSlotIdx) {
+	void doCSBlur(ID3D11ShaderResourceView* blurImgSRV, int uavSlotIdx) {
 		// vblur
 		DrawCmd cmdV;
 

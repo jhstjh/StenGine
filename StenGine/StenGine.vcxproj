@@ -305,6 +305,7 @@
     <ClInclude Include="include\Graphics\Abstraction\GPUBufferBase.h" />
     <ClInclude Include="include\Graphics\Abstraction\RendererBase.h" />
     <ClInclude Include="include\Graphics\Abstraction\RenderTarget.h" />
+    <ClInclude Include="include\Graphics\Abstraction\UAVBinding.h" />
     <ClInclude Include="include\Graphics\Color.h" />
     <ClInclude Include="include\Graphics\D3D11\D3D11ConstantBuffer.h" />
     <ClInclude Include="include\Graphics\D3D11\D3D11RenderTarget.h" />

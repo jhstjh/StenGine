@@ -570,26 +570,30 @@ public:
 
 
 class BlurEffect : public Effect {
-private:
+public:
+#if GRAPHICS_D3D11
 	ID3D11Buffer* m_settingCB;
+#endif
+
+#if GRAPHICS_OPENGL
+	GLuint m_settingCB;
+#endif
 
 public:
 	BlurEffect(const std::wstring& filename);
 	~BlurEffect();
 
-	virtual void UpdateConstantBuffer();
-	virtual void BindConstantBuffer();
-	virtual void BindShaderResource();
-
 	struct SETTING_CONSTANT_BUFFER
 	{
 		XMFLOAT2 texOffset;
 		XMFLOAT2 pad;
-	} m_settingConstantBuffer;
+#if GRAPHICS_OPENGL
+		uint64_t ScreenMap;
+		uint64_t SSAOMap;
+		uint64_t BloomMap;
+#endif
+	} ;
 
-	/// Texture2D gScreenMap;
-	/// Texture2D gSSAOMap;
-	//ID3D11ShaderResourceView *m_shaderResources[2];
 };
 
 

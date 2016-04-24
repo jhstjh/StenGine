@@ -245,11 +245,42 @@ Effect::Effect(const std::wstring& vsPath,
 		}
 	}
 
+	if (csPath.length()) {
+		(ReadShaderFile(csPath, shaderbuffer, 1024 * 256));
+		m_computeShader = glCreateShader(GL_COMPUTE_SHADER);
+		p = (const GLchar*)shaderbuffer;
+		glShaderSource(m_computeShader, 1, &p, NULL);
+		glCompileShader(m_computeShader);
+
+		/* check for shader compile errors - very important! */
+
+		glGetShaderiv(m_computeShader, GL_COMPILE_STATUS, &params);
+		if (GL_TRUE != params) {
+			//assert(false);
+			// 			fprintf(stderr, "ERROR: GL shader index %i did not compile\n", m_vertexShader);
+			// 			_print_shader_info_log(vs);
+
+			GLint maxLength = 0;
+			glGetShaderiv(m_computeShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+			//The maxLength includes the NULL character
+			std::vector<GLchar> infoLog(maxLength);
+			glGetShaderInfoLog(m_computeShader, maxLength, &maxLength, &infoLog[0]);
+			//We don't need the shader anymore.
+			glDeleteShader(m_computeShader);
+
+			OutputDebugStringA(&infoLog[0]);
+			assert(false);
+			return;
+		}
+	}
+
 	m_shaderProgram = glCreateProgram();
 	if (vsPath.length()) glAttachShader(m_shaderProgram, m_vertexShader);
 	if (hsPath.length()) glAttachShader(m_shaderProgram, m_hullShader);
 	if (dsPath.length()) glAttachShader(m_shaderProgram, m_domainShader);
 	if (psPath.length()) glAttachShader(m_shaderProgram, m_pixelShader);
+	if (csPath.length()) glAttachShader(m_shaderProgram, m_computeShader);
 	glLinkProgram(m_shaderProgram);
 
 	/* check for shader linking errors - very important! */
@@ -1313,14 +1344,10 @@ TerrainShadowMapEffect::~TerrainShadowMapEffect()
 
 //----------------------------------------------------------//
 
-#if GRAPHICS_D3D11
-//----------------------------------------------------------//
-
-
 VBlurEffect::VBlurEffect(const std::wstring& filename)
 	: Effect(L"", L"", L"", L"", L"", filename + L"_cs" + EXT)
 {
-	m_shaderResources = new ID3D11ShaderResourceView*[1];
+#if GRAPHICS_D3D11
 	{
 		// Fill in a buffer description.
 		D3D11_BUFFER_DESC cbDesc;
@@ -1345,13 +1372,117 @@ VBlurEffect::VBlurEffect(const std::wstring& filename)
 	ReleaseCOM(m_hsBlob);
 	ReleaseCOM(m_dsBlob);
 	ReleaseCOM(m_csBlob);
+#endif
 }
 
 VBlurEffect::~VBlurEffect()
 {
+#if GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
+#endif
 }
 
+//----------------------------------------------------------//
+
+
+
+HBlurEffect::HBlurEffect(const std::wstring& filename)
+	: Effect(L"", L"", L"", L"", L"", filename + L"_cs" + EXT)
+{
+#if GRAPHICS_D3D11
+	{
+		// Fill in a buffer description.
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(SETTING_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		HRESULT hr;
+		// Create the buffer.
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
+			&m_settingCB);
+
+		assert(SUCCEEDED(hr));
+	}
+
+	ReleaseCOM(m_vsBlob);
+	ReleaseCOM(m_psBlob);
+	ReleaseCOM(m_gsBlob);
+	ReleaseCOM(m_hsBlob);
+	ReleaseCOM(m_dsBlob);
+	ReleaseCOM(m_csBlob);
+#endif
+}
+
+HBlurEffect::~HBlurEffect()
+{
+#if GRAPHICS_D3D11
+	ReleaseCOM(m_inputLayout);
+#endif
+}
+
+//-------------------------------------------//
+
+
+
+BlurEffect::BlurEffect(const std::wstring& filename)
+	: Effect(std::wstring(L"FX/ScreenQuad_vs") + EXT, filename + L"_ps" + EXT)
+{
+#if GRAPHICS_D3D11
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+		m_vsBlob->GetBufferSize(), &m_inputLayout));
+
+	{
+		// Fill in a buffer description.
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(SETTING_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		cbDesc.StructureByteStride = 0;
+
+		HRESULT hr;
+		// Create the buffer.
+		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
+			&m_settingCB);
+
+		assert(SUCCEEDED(hr));
+	}
+
+	ReleaseCOM(m_vsBlob);
+	ReleaseCOM(m_psBlob);
+	ReleaseCOM(m_gsBlob);
+	ReleaseCOM(m_hsBlob);
+	ReleaseCOM(m_dsBlob);
+	ReleaseCOM(m_csBlob);
+#endif
+
+#if GRAPHICS_OPENGL
+	glCreateBuffers(1, &m_settingCB);
+	glNamedBufferStorage(m_settingCB, sizeof(SETTING_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
+
+	GLint settingCBPos = glGetUniformBlockIndex(m_shaderProgram, "m_settingCB");
+	glUniformBlockBinding(m_shaderProgram, settingCBPos, 0);
+#endif
+}
+
+BlurEffect::~BlurEffect()
+{
+#if GRAPHICS_D3D11
+	ReleaseCOM(m_inputLayout);
+#endif
+}
+
+#if GRAPHICS_D3D11
 //----------------------------------------------------------//
 
 
@@ -1459,117 +1590,6 @@ void DeferredShadingCS::BindShaderResource(int idx) {
 
 //----------------------------------------------------------//
 
-
-HBlurEffect::HBlurEffect(const std::wstring& filename)
-	: Effect(L"", L"", L"", L"", L"", filename + L"_cs" + EXT)
-{
-	m_shaderResources = new ID3D11ShaderResourceView*[1];
-		{
-			// Fill in a buffer description.
-			D3D11_BUFFER_DESC cbDesc;
-			cbDesc.ByteWidth = sizeof(SETTING_CONSTANT_BUFFER);
-			cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-			cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-			cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-			cbDesc.MiscFlags = 0;
-			cbDesc.StructureByteStride = 0;
-
-			HRESULT hr;
-			// Create the buffer.
-			hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
-				&m_settingCB);
-
-			assert(SUCCEEDED(hr));
-		}
-	
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-}
-
-HBlurEffect::~HBlurEffect()
-{
-	ReleaseCOM(m_inputLayout);
-}
-
-//-------------------------------------------//
-
-
-BlurEffect::BlurEffect(const std::wstring& filename)
-	: Effect(std::wstring(L"FX/ScreenQuad_vs") + EXT, filename + L"_ps" + EXT)
-{
-	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
-		m_vsBlob->GetBufferSize(), &m_inputLayout));
-
-	m_shaderResources = new ID3D11ShaderResourceView*[3];
-	for (int i = 0; i < 3; i++) {
-		m_shaderResources[i] = 0;
-	}
-
-	{
-		// Fill in a buffer description.
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(SETTING_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		// Fill in the subresource data.
-		D3D11_SUBRESOURCE_DATA InitData;
-		InitData.pSysMem = &m_settingConstantBuffer;
-		InitData.SysMemPitch = 0;
-		InitData.SysMemSlicePitch = 0;
-
-		HRESULT hr;
-		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
-			&m_settingCB);
-
-		assert(SUCCEEDED(hr));
-	}
-
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-}
-
-BlurEffect::~BlurEffect()
-{
-	ReleaseCOM(m_inputLayout);
-}
-
-void BlurEffect::UpdateConstantBuffer() {
-	{
-		D3D11_MAPPED_SUBRESOURCE ms;
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_settingCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-		memcpy(ms.pData, &m_settingConstantBuffer, sizeof(SETTING_CONSTANT_BUFFER));
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_settingCB, NULL);
-	}
-}
-
-void BlurEffect::BindConstantBuffer() {
-	ID3D11Buffer* cbuf[] = { m_settingCB };
-	//static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 1, cbuf);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 1, cbuf);
-}
-
-void BlurEffect::BindShaderResource() {
-	//	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 2, m_shaderResources);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 3, m_shaderResources);
-}
 
 #else
 
@@ -1744,13 +1764,14 @@ EffectsManager::EffectsManager()
 	m_godrayEffect = std::unique_ptr<GodRayEffect>(new GodRayEffect(L"FX/GodRay"));
 	m_deferredGeometryTerrainPassEffect = std::unique_ptr<DeferredGeometryTerrainPassEffect>(new DeferredGeometryTerrainPassEffect(L"FX/DeferredGeometryTerrainPass"));
 	m_terrainShadowMapEffect = std::unique_ptr<TerrainShadowMapEffect>(new TerrainShadowMapEffect(L"FX/DeferredGeometryTerrainPass"));
+	m_vblurEffect = std::unique_ptr<VBlurEffect>(new VBlurEffect(L"FX/VBlur"));
+	m_hblurEffect = std::unique_ptr<HBlurEffect>(new HBlurEffect(L"FX/HBlur"));
+	m_blurEffect = std::unique_ptr<BlurEffect>(new BlurEffect(L"FX/Blur"));
 
 #if GRAPHICS_D3D11
 	m_deferredShadingCSEffect = std::unique_ptr<DeferredShadingCS>(new DeferredShadingCS(L"FX/DeferredShading"));
 
-	m_blurEffect = std::unique_ptr<BlurEffect>(new BlurEffect(L"FX/Blur"));
-	m_vblurEffect = std::unique_ptr<VBlurEffect>(new VBlurEffect(L"FX/VBlur"));
-	m_hblurEffect = std::unique_ptr<HBlurEffect>(new HBlurEffect(L"FX/HBlur"));
+	
 #endif
 
 }

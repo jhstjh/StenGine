@@ -206,6 +206,15 @@
     <None Include="FX\DeferredGeometryTerrainPass_vs.glsl">
       <Filter>FX</Filter>
     </None>
+    <None Include="FX\Blur_ps.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\HBlur_cs.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\VBlur_cs.glsl">
+      <Filter>FX</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\stdafx.h">
@@ -331,6 +340,12 @@
     <ClInclude Include="include\Scene\GameObjectManager.h">
       <Filter>include\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="include\Graphics\OpenGL\GLUAVBinding.h">
+      <Filter>include\Graphics\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\Abstraction\UAVBinding.h">
+      <Filter>include\Graphics\Abstraction</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -416,6 +431,9 @@
     </ClCompile>
     <ClCompile Include="src\System\GameObjectManager.cpp">
       <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\OpenGL\GLUAVBinding.cpp">
+      <Filter>src\Graphics\OpenGL</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

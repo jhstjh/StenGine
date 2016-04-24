@@ -247,7 +247,7 @@ PSOut main(PSIn input)
 
 #else
 	//float3 randVect =  2 * sample2D(gBumpMapSampler, 16 * pIn.iColor.xy, gBumpMap) - 1;
-	float3 randVect = normalize(gBumpMap.SampleLevel(gSamplerStateLinear, 16 * input.Tex, 0));
+	float3 randVect = normalize(gBumpMap.SampleLevel(gSamplerStateLinear, 16 * input.Tex, 0) * 2 - 1);
 
 	float occlusionSum = 0.0f;
 	float4 occlusionColor = float4(0, 0, 0, 0);
