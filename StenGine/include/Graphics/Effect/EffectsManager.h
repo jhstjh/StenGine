@@ -12,8 +12,6 @@
 
 #include <memory>
 
-#if PLATFORM_WIN32
-
 #if GRAPHICS_OPENGL
 #include "Graphics/OpenGL/GLBuffer.h"
 #include "glew.h"
@@ -22,14 +20,6 @@
 #include "Graphics/D3DIncludes.h"
 
 #define D3D_COMPILE_STANDARD_FILE_INCLUDE ((ID3DInclude*)(UINT_PTR)1)
-#elif  PLATFORM_ANDROID
-#include <EGL/egl.h>
-#include <GLES/gl.h>
-#include "NDKHelper.h"
-using namespace ndk_helper;
-#endif
-
-
 
 #pragma warning(disable: 4312)
 
@@ -601,18 +591,9 @@ public:
 
 
 class VBlurEffect : public Effect {
-private:
-	ID3D11Buffer* m_settingCB;
 
 public:
 	VBlurEffect(const std::wstring& filename);
-	~VBlurEffect();
-
-	struct SETTING_CONSTANT_BUFFER
-	{
-		XMFLOAT2 texOffset;
-		XMFLOAT2 pad;
-	};
 };
 
 
@@ -620,20 +601,34 @@ public:
 
 
 class HBlurEffect : public Effect {
-private:
-	ID3D11Buffer* m_settingCB;
 
 public:
 	HBlurEffect(const std::wstring& filename);
-	~HBlurEffect();
-
-	struct SETTING_CONSTANT_BUFFER
-	{
-		XMFLOAT2 texOffset;
-		XMFLOAT2 pad;
-	};
 };
 
+//--------------------------------------------------------------------//
+
+
+class ImGuiEffect : public Effect {
+public:
+#if GRAPHICS_D3D11
+	ID3D11Buffer* m_imguiCB;
+#endif
+#if GRAPHICS_OPENGL
+	GLuint m_imguiCB;
+#endif
+
+	ImGuiEffect(const std::wstring& filename);
+	~ImGuiEffect();
+
+	struct IMGUI_CONSTANT_BUFFER
+	{
+		XMMATRIX ProjMtx;
+#if GRAPHICS_OPENGL
+		uint64_t Texture;
+#endif
+	};
+};
 
 //--------------------------------------------------------------------//
 
@@ -801,6 +796,7 @@ public:
 	std::unique_ptr<VBlurEffect> m_vblurEffect;
 	std::unique_ptr<HBlurEffect> m_hblurEffect;
 	std::unique_ptr<DebugLineEffect> m_debugLineEffect;
+	std::unique_ptr<ImGuiEffect> m_imguiEffect;
 #else
 	DebugLineEffect* m_debugLineEffect;
 	SimpleMeshEffect* m_simpleMeshEffect;

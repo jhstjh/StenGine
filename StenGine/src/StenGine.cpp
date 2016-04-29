@@ -9,6 +9,7 @@
 #include "StenGine.h"
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Graphics/Effect/EffectsManager.h"
+#include "Graphics/UI/ImGuiMenu.h"
 #include "Scene/LightManager.h"
 #include "Scene/CameraManager.h"
 #include "Resource/ResourceManager.h"
@@ -79,6 +80,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	std::unique_ptr<ResourceManager> resourceManager = std::unique_ptr<ResourceManager>(ResourceManager::Instance());
 	std::unique_ptr<InputManager> inputManager = std::unique_ptr<InputManager>(InputManager::Instance());
 	std::unique_ptr<GameObjectManager> gameObjectManager = std::unique_ptr<GameObjectManager>(GameObjectManager::Instance());
+	std::unique_ptr<ImGuiMenu> imguiMenu = std::unique_ptr<ImGuiMenu>(ImGuiMenu::Instance());
 
 	gameObjectManager->LoadScene();
 

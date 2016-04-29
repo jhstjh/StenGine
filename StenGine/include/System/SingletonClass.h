@@ -2,6 +2,7 @@
 
 namespace StenGine
 {
+
 template <class T>
 class SingletonClass
 {
@@ -16,7 +17,30 @@ public:
 	}
 };
 
-}
 
 #define DEFINE_SINGLETON_CLASS(T) \
 	T* T::_instance = nullptr;
+
+
+template <class T>
+class AbstractSingletonClass
+{
+protected:
+	static T* _instance;
+
+public:
+	static T* Instance();
+};
+
+
+#define DEFINE_ABSTRACT_SINGLETON_CLASS(BASE, DERIVED) \
+	BASE* BASE::_instance = nullptr;	\
+										\
+	BASE* BASE::Instance()		\
+	{									\
+		if (!_instance)					\
+			_instance = new DERIVED();  \
+		return _instance;				\
+	}									\
+
+}

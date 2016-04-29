@@ -42,14 +42,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(SolutionDir)External\FBXSDK\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)lib;$(SolutionDir)External\FBXSDK\lib\vs2013\x64\debug;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\GL\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\GL\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(SolutionDir)External\FBXSDK\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)lib;$(SolutionDir)External\FBXSDK\lib\vs2013\x64\release;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\GL\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\GL\</IntDir>
@@ -88,7 +88,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>No</GenerateDebugInformation>
+      <GenerateDebugInformation>Debug</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>OpenGL32.lib;shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;libfbxsdk.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -132,6 +132,8 @@
     <None Include="FX\DeferredShadingPass_ps.glsl" />
     <None Include="FX\GodRay_ps.glsl" />
     <None Include="FX\HBlur_cs.glsl" />
+    <None Include="FX\imgui_ps.glsl" />
+    <None Include="FX\imgui_vs.glsl" />
     <None Include="FX\ScreenQuad_vs.glsl" />
     <None Include="FX\ShadowMap_vs.glsl" />
     <None Include="FX\Skybox_ps.glsl" />
@@ -148,6 +150,7 @@
     <None Include="Model\plane.fbx" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\Graphics\Abstraction\ContextState.h" />
     <ClInclude Include="include\Graphics\Abstraction\ConstantBuffer.h" />
     <ClInclude Include="include\Graphics\Abstraction\ConstantBufferBase.h" />
     <ClInclude Include="include\Graphics\Abstraction\DrawCmd.h" />
@@ -166,6 +169,7 @@
     <ClInclude Include="include\Graphics\OpenGL\GLConstantBuffer.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLImageLoader.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLUAVBinding.h" />
+    <ClInclude Include="include\Graphics\UI\ImGuiMenu.h" />
     <ClInclude Include="include\Input\InputManager.h" />
     <ClInclude Include="include\Math\MathHelper.h" />
     <ClInclude Include="include\Mesh\MeshRenderer.h" />
@@ -202,6 +206,7 @@
     <ClCompile Include="src\Graphics\OpenGL\GLImageLoader.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\GLRenderer.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\GLUAVBinding.cpp" />
+    <ClCompile Include="src\Graphics\UI\GLImGuiMenu.cpp" />
     <ClCompile Include="src\Input\InputManager.cpp" />
     <ClCompile Include="src\Mesh\MeshPrimitives.cpp" />
     <ClCompile Include="src\Mesh\MeshRenderer.cpp" />
@@ -226,6 +231,9 @@
   <ItemGroup>
     <ProjectReference Include="..\External\GLI\GLI.vcxproj">
       <Project>{df2d976c-3014-48ac-a84a-2413355ca342}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\External\imgui\imgui.vcxproj">
+      <Project>{7285f681-9fe0-4280-9a8a-e8b8978c470e}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

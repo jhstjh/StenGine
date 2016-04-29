@@ -16,6 +16,7 @@
 #define EXT L".glsl"
 #endif
 
+#include "imgui.h"
 
 #pragma warning( disable : 4996 )
 
@@ -1314,8 +1315,6 @@ TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
 	glVertexArrayAttribBinding(m_inputLayout, 1, 0);
 	glVertexArrayAttribBinding(m_inputLayout, 2, 0);
 
-
-
 	glCreateBuffers(1, &m_perObjectCB);
 	glNamedBufferStorage(m_perObjectCB, sizeof(PEROBJ_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
 
@@ -1347,85 +1346,61 @@ TerrainShadowMapEffect::~TerrainShadowMapEffect()
 VBlurEffect::VBlurEffect(const std::wstring& filename)
 	: Effect(L"", L"", L"", L"", L"", filename + L"_cs" + EXT)
 {
-#if GRAPHICS_D3D11
-	{
-		// Fill in a buffer description.
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(SETTING_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
 
-		HRESULT hr;
-		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
-			&m_settingCB);
-
-		assert(SUCCEEDED(hr));
-	}
-
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-#endif
-}
-
-VBlurEffect::~VBlurEffect()
-{
-#if GRAPHICS_D3D11
-	ReleaseCOM(m_inputLayout);
-#endif
 }
 
 //----------------------------------------------------------//
 
-
-
 HBlurEffect::HBlurEffect(const std::wstring& filename)
 	: Effect(L"", L"", L"", L"", L"", filename + L"_cs" + EXT)
 {
-#if GRAPHICS_D3D11
-	{
-		// Fill in a buffer description.
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(SETTING_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
 
-		HRESULT hr;
-		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
-			&m_settingCB);
-
-		assert(SUCCEEDED(hr));
-	}
-
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-#endif
-}
-
-HBlurEffect::~HBlurEffect()
-{
-#if GRAPHICS_D3D11
-	ReleaseCOM(m_inputLayout);
-#endif
 }
 
 //-------------------------------------------//
 
+ImGuiEffect::ImGuiEffect(const std::wstring& filename)
+	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT, L"", L"", L"", L"")
+{
+#if GRAPHICS_D3D11
+
+#endif
+
+#if GRAPHICS_OPENGL
+	glCreateVertexArrays(1, &m_inputLayout);
+
+	glEnableVertexArrayAttrib(m_inputLayout, 0);
+	glEnableVertexArrayAttrib(m_inputLayout, 1);
+	glEnableVertexArrayAttrib(m_inputLayout, 2);
+
+	glVertexArrayAttribFormat(m_inputLayout, 0, 2, GL_FLOAT, GL_FALSE, offsetof(ImDrawVert, pos));
+	glVertexArrayAttribFormat(m_inputLayout, 1, 2, GL_FLOAT, GL_FALSE, offsetof(ImDrawVert, uv));
+	glVertexArrayAttribFormat(m_inputLayout, 2, 4, GL_UNSIGNED_BYTE, GL_TRUE, offsetof(ImDrawVert, col));
+
+	glVertexArrayAttribBinding(m_inputLayout, 0, 0);
+	glVertexArrayAttribBinding(m_inputLayout, 1, 0);
+	glVertexArrayAttribBinding(m_inputLayout, 2, 0);
+
+	glCreateBuffers(1, &m_imguiCB);
+	glNamedBufferStorage(m_imguiCB, sizeof(IMGUI_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
+
+	GLint imguiUBOPos = glGetUniformBlockIndex(m_shaderProgram, "imGuiCB");
+	glUniformBlockBinding(m_shaderProgram, imguiUBOPos, 0);
+#endif
+}
+
+ImGuiEffect::~ImGuiEffect()
+{
+#if GRAPHICS_D3D11
+
+#endif
+
+#if GRAPHICS_OPENGL
+	glDeleteBuffers(1, &m_imguiCB);
+#endif
+}
+
+//-------------------------------------------//
 
 
 BlurEffect::BlurEffect(const std::wstring& filename)
@@ -1470,7 +1445,7 @@ BlurEffect::BlurEffect(const std::wstring& filename)
 	glCreateBuffers(1, &m_settingCB);
 	glNamedBufferStorage(m_settingCB, sizeof(SETTING_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
 
-	GLint settingCBPos = glGetUniformBlockIndex(m_shaderProgram, "m_settingCB");
+	GLint settingCBPos = glGetUniformBlockIndex(m_shaderProgram, "cbSettings");
 	glUniformBlockBinding(m_shaderProgram, settingCBPos, 0);
 #endif
 }
@@ -1767,11 +1742,10 @@ EffectsManager::EffectsManager()
 	m_vblurEffect = std::unique_ptr<VBlurEffect>(new VBlurEffect(L"FX/VBlur"));
 	m_hblurEffect = std::unique_ptr<HBlurEffect>(new HBlurEffect(L"FX/HBlur"));
 	m_blurEffect = std::unique_ptr<BlurEffect>(new BlurEffect(L"FX/Blur"));
+	m_imguiEffect = std::unique_ptr<ImGuiEffect>(new ImGuiEffect(L"FX/imgui"));
 
 #if GRAPHICS_D3D11
 	m_deferredShadingCSEffect = std::unique_ptr<DeferredShadingCS>(new DeferredShadingCS(L"FX/DeferredShading"));
-
-	
 #endif
 
 }

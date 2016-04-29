@@ -16,6 +16,7 @@
 #include "Graphics/Abstraction/Viewport.h"
 #include "Graphics/Abstraction/RenderTarget.h"
 #include "Graphics/Abstraction/UAVBinding.h"
+#include "Graphics/Abstraction/ContextState.h"
 
 namespace StenGine
 {
@@ -38,13 +39,17 @@ enum class DrawType
 
 struct CmdFlag
 {
-static const uint32_t	DRAW		 = 0x01;
-static const uint32_t	CLEAR_COLOR  = 0x02;
-static const uint32_t	CLEAR_DEPTH  = 0x04;
-static const uint32_t	BIND_FB		 = 0x08; // bind framebuffer
-static const uint32_t	SET_VP		 = 0x10; // set viewport
-static const uint32_t   SET_RSSTATE  = 0x20; // set rasterizer state
-static const uint32_t   COMPUTE      = 0x40; 
+static const uint32_t	DRAW		 = 0x0001;
+static const uint32_t	CLEAR_COLOR  = 0x0002;
+static const uint32_t	CLEAR_DEPTH  = 0x0004;
+static const uint32_t	BIND_FB		 = 0x0008; // bind framebuffer
+static const uint32_t	SET_VP		 = 0x0010; // set viewport
+static const uint32_t   SET_RSSTATE  = 0x0020; // set rasterizer state
+static const uint32_t   COMPUTE      = 0x0040; 
+static const uint32_t   SET_BS		 = 0x0080; // set blend state
+static const uint32_t   SET_DS		 = 0x0100; // set depth state
+static const uint32_t   SET_CS		 = 0x0200; // set cull state
+static const uint32_t   SET_SS		 = 0x0400; // set scissor state
 };
 
 struct DrawCmd {
@@ -73,6 +78,11 @@ struct DrawCmd {
 
 	std::vector<ConstantBuffer> cbuffers;
 	UAVBinding			uavs;
+
+	BlendState			blendState;
+	DepthState			depthState;
+	CullState			cullState;
+	ScissorState		scissorState;
 
 #if GRAPHICS_D3D11
 	D3D11SRVBinding srvs;

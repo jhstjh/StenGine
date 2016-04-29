@@ -80,6 +80,12 @@
     <Filter Include="include\System\API">
       <UniqueIdentifier>{01b3cf6a-e593-400d-b40e-5b10b343c799}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Graphics\UI">
+      <UniqueIdentifier>{3be654ae-55b5-47ef-9ff4-54c8a87eeae0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Graphics\UI">
+      <UniqueIdentifier>{405c8eb3-5730-4be6-8ebe-bcc77a270ee3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -215,6 +221,12 @@
     <None Include="FX\VBlur_cs.glsl">
       <Filter>FX</Filter>
     </None>
+    <None Include="FX\imgui_vs.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\imgui_ps.glsl">
+      <Filter>FX</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\stdafx.h">
@@ -346,6 +358,12 @@
     <ClInclude Include="include\Graphics\Abstraction\UAVBinding.h">
       <Filter>include\Graphics\Abstraction</Filter>
     </ClInclude>
+    <ClInclude Include="include\Graphics\UI\ImGuiMenu.h">
+      <Filter>include\Graphics\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\Abstraction\ContextState.h">
+      <Filter>include\Graphics\Abstraction</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -434,6 +452,9 @@
     </ClCompile>
     <ClCompile Include="src\Graphics\OpenGL\GLUAVBinding.cpp">
       <Filter>src\Graphics\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\UI\GLImGuiMenu.cpp">
+      <Filter>src\Graphics\UI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -15,6 +15,7 @@
 #include "Graphics/Effect/ShadowMap.h"
 #include "Graphics/Effect/Skybox.h"
 #include "Graphics/OpenGL/GLImageLoader.h"
+#include "imgui.h"
 #include <vector>
 #include <memory>
 #include <iostream>
@@ -391,6 +392,117 @@ public:
 				);
 			}
 
+			if (cmd.flags & CmdFlag::SET_BS)
+			{
+				if (cmd.blendState.blendEnable)
+				{
+					glEnable(GL_BLEND);
+
+					static const uint32_t convertBlendFunc[] =
+					{
+						0,
+						GL_FUNC_ADD,
+						GL_FUNC_SUBTRACT,
+						GL_FUNC_REVERSE_SUBTRACT,
+						GL_MIN,
+						GL_MAX,
+					};
+
+					glBlendEquationi(cmd.blendState.index, convertBlendFunc[(uint32_t)cmd.blendState.blendOpColor]);
+
+					static const uint32_t convertBlend[] =
+					{
+						0,
+						GL_ZERO,
+						GL_ONE,
+						GL_SRC_COLOR,
+						GL_ONE_MINUS_SRC_COLOR,
+						GL_SRC_ALPHA,
+						GL_ONE_MINUS_SRC_ALPHA,
+						GL_DST_ALPHA,
+						GL_ONE_MINUS_DST_ALPHA,
+						GL_DST_COLOR,
+						GL_ONE_MINUS_DST_COLOR,
+						GL_SRC_ALPHA_SATURATE,
+					};
+
+					glBlendFunci(cmd.blendState.index, convertBlend[(uint32_t)cmd.blendState.srcBlend], convertBlend[(uint32_t)cmd.blendState.destBlend]);
+				}
+				else
+				{
+					glDisable(GL_BLEND);
+				}
+			}
+
+			if (cmd.flags & CmdFlag::SET_DS)
+			{
+				if (cmd.depthState.depthCompEnable)
+				{
+					glEnable(GL_DEPTH_TEST);
+
+					static const uint32_t convertDepthFunc[] = 
+					{
+						0,
+						GL_NEVER,
+						GL_LESS,
+						GL_EQUAL,
+						GL_LEQUAL,
+						GL_GREATER,
+						GL_NOTEQUAL,
+						GL_GEQUAL,
+						GL_ALWAYS,
+					};
+
+					glDepthFunc(convertDepthFunc[(uint32_t)cmd.depthState.depthFunc]);
+				}
+				else
+				{
+					glDisable(GL_DEPTH_TEST);
+				}
+
+				if (cmd.depthState.depthWriteEnable)
+				{
+					glDepthMask(GL_TRUE);
+				}
+				else
+				{
+					glDepthMask(GL_FALSE);
+				}
+			}
+
+			if (cmd.flags & CmdFlag::SET_SS)
+			{
+				if (cmd.scissorState.scissorTestEnabled)
+				{
+					glEnable(GL_SCISSOR_TEST);
+					glScissor(cmd.scissorState.x, cmd.scissorState.y, cmd.scissorState.width, cmd.scissorState.height);
+				}
+				else
+				{
+					glDisable(GL_SCISSOR_TEST);
+				}
+			}
+
+			if (cmd.flags & CmdFlag::SET_CS)
+			{
+				if (cmd.cullState.cullFaceEnabled)
+				{
+					glEnable(GL_CULL_FACE);
+					static const uint32_t convertCull[] =
+					{
+						0,
+						GL_CW,
+						GL_CCW,
+					};
+
+					glFrontFace(convertCull[(uint32_t)cmd.cullState.frontFace]);
+				}
+				else
+				{
+					glDisable(GL_CULL_FACE);
+				}
+			}
+
 			if (cmd.flags & CmdFlag::DRAW || cmd.flags & CmdFlag::COMPUTE)
 			{
 				cmd.effect->SetShader();
@@ -445,16 +557,22 @@ public:
 	}
 
 	void Draw() override {
-		DrawShadowMap();
-		DrawGBuffer();
-		DrawDeferredShading();
-		m_SkyBox->Draw();
-		DrawBlurSSAOAndCombine();
-		// TODO put every graphics call into cmdlist
+		//DrawShadowMap();
+		//DrawGBuffer();
+		//DrawDeferredShading();
+		//m_SkyBox->Draw();
+		//DrawBlurSSAOAndCombine();
+		//// TODO put every graphics call into cmdlist
+		//ExecuteCmdList();
+		//
+		////DrawGodRay();
+		//DrawDebug();
+		//
+		ImGui::NewFrame();
+		bool show_test_window = true;
+		ImGui::ShowTestWindow(&show_test_window);
+		ImGui::Render();
 		ExecuteCmdList();
-	
-		//DrawGodRay();
-		DrawDebug();
 
 		SwapBuffers(m_deviceContext);
 	}
