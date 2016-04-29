@@ -10,6 +10,7 @@ layout(std140) uniform cbSettings {
 	sampler2D gScreenMap;
 	sampler2D gSSAOMap;
 	sampler2D gBloomMap;
+	sampler2D gDepthMap;
 };
 
 const float gWeights[21] =
@@ -25,6 +26,7 @@ void main()
 	vec4 originalColor = texture(gScreenMap, pTexUV);
 
 	//vec4 bloomColor = texture(gBloomMap, pTexUV);
+	gl_FragDepth = texture(gDepthMap, pTexUV).x;
 
 	ps_color = originalColor * texture(gSSAOMap, pTexUV);
 

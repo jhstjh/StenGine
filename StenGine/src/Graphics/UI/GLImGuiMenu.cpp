@@ -49,9 +49,9 @@ public:
 		BlendState &blendState = stateCmd.blendState;
 		blendState.index = 0;
 		blendState.blendEnable = true;
-		blendState.srcBlend = Blend::BLEND_SRC_ALPHA;
-		blendState.destBlend = Blend::BLEND_INV_SRC_ALPHA;
-		blendState.blendOpColor = BlendOp::BLEND_OP_ADD;
+		blendState.srcBlend = BlendState::Blend::BLEND_SRC_ALPHA;
+		blendState.destBlend = BlendState::Blend::BLEND_INV_SRC_ALPHA;
+		blendState.blendOpColor = BlendState::BlendOp::BLEND_OP_ADD;
 
 		DepthState &depthState = stateCmd.depthState;
 		depthState.depthCompEnable = false;
@@ -238,14 +238,5 @@ private:
 };
 
 DEFINE_ABSTRACT_SINGLETON_CLASS(ImGuiMenu, ImGuiMenuImpl)
-
-//ImGuiMenu* ImGuiMenu::_instance = nullptr;
-//
-//ImGuiMenu* ImGuiMenu::Instance()
-//{									
-//	if (!_instance)
-//		_instance = new ImGuiMenuImpl();
-//	return _instance;
-//}
 
 }

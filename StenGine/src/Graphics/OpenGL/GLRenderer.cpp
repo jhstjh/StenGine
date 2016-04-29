@@ -152,15 +152,7 @@ public:
 
 		glClearColor(0.2f, 0.2f, 0.2f, 0.f);
 		glClearDepth(1.0f);
-		glEnable(GL_DEPTH_TEST); // enable depth-testing
-		glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
-		glEnable(GL_CULL_FACE); // cull face
-		glCullFace(GL_BACK); // cull back face
-		glFrontFace(GL_CW); // GL_CCW for counter clock-wise
-		glDepthMask(GL_TRUE);
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-		glViewport(0, 0, m_clientWidth, m_clientHeight);
-
 		
 		/***************GBUFFER FB*********************/
 		glCreateFramebuffers(1, &m_deferredGBuffers);
@@ -495,7 +487,15 @@ public:
 						GL_CCW,
 					};
 
+					static const uint32_t convertType[] =
+					{
+						0,
+						GL_FRONT,
+						GL_BACK,
+					};
+
 					glFrontFace(convertCull[(uint32_t)cmd.cullState.frontFace]);
+					glCullFace(convertType[(uint32_t)cmd.cullState.cullType]);
 				}
 				else
 				{
@@ -557,23 +557,27 @@ public:
 	}
 
 	void Draw() override {
-		//DrawShadowMap();
-		//DrawGBuffer();
-		//DrawDeferredShading();
-		//m_SkyBox->Draw();
-		//DrawBlurSSAOAndCombine();
-		//// TODO put every graphics call into cmdlist
-		//ExecuteCmdList();
-		//
-		////DrawGodRay();
-		//DrawDebug();
-		//
+		EnterFrame();
+
+		DrawShadowMap();
+		DrawGBuffer();
+		DrawDeferredShading();
+		m_SkyBox->Draw();
+		DrawBlurSSAOAndCombine();
+		// TODO put every graphics call into cmdlist
+
+		//DrawGodRay();
+		DrawDebug();
+
+		// TEST
 		ImGui::NewFrame();
 		bool show_test_window = true;
 		ImGui::ShowTestWindow(&show_test_window);
 		ImGui::Render();
+		
+		
 		ExecuteCmdList();
-
+		
 		SwapBuffers(m_deviceContext);
 	}
 
@@ -611,6 +615,15 @@ public:
 
 	RenderTarget GetGbuffer() override {
 		return m_deferredGBuffers;
+	}
+
+	void EnterFrame()
+	{
+		// reset state
+		DrawCmd cmd;
+		cmd.flags = CmdFlag::SET_BS | CmdFlag::SET_CS | CmdFlag::SET_SS | CmdFlag::SET_DS;
+
+		AddDeferredDrawCmd(cmd);
 	}
 
 	void DrawShadowMap() override
@@ -714,10 +727,11 @@ public:
 
 		settingData->ScreenMap = m_deferredShadingTexHandle;
 		settingData->SSAOMap = m_computeOutputHandle[1];
+		settingData->DepthMap = m_depthBufferTexHandle;
 		//settingData->BloomMap = NOT_USED;
 		cmd.cbuffers.push_back(std::move(cbuffer0));
 
-		AddDeferredDrawCmd(std::move(cmd));
+		AddDeferredDrawCmd(cmd);
 	}
 
 	void doCSBlur(GLuint blurImgSRV, int uavSlotIdx) {
@@ -797,19 +811,40 @@ public:
 	}
 
 	void DrawDebug() override {
-		glDepthMask(GL_FALSE);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 		DebugLineEffect* debugLineFX = EffectsManager::Instance()->m_debugLineEffect.get();
-		debugLineFX->SetShader();
-		glBindVertexArray(m_debugCoordVAO);
-		debugLineFX->m_perObjUniformBuffer.ViewProj = CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
-		debugLineFX->UpdateConstantBuffer();
-		glDrawArrays(GL_LINES, 6, 44);
-		glDrawArrays(GL_LINES, 0, 6);
-		debugLineFX->UnSetShader();
-		debugLineFX->UnBindShaderResource();
-		glDepthMask(GL_TRUE);
+
+		DrawCmd cmd;
+
+		cmd.flags = /*CmdFlag::BIND_FB |*/ CmdFlag::SET_DS | CmdFlag::DRAW;
+
+		cmd.depthState.depthWriteEnable = false;
+		cmd.effect = debugLineFX;
+		cmd.inputLayout = (void*)m_debugCoordVAO;
+
+		ConstantBuffer cbuffer0(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), (void*)debugLineFX->m_perObjectCB);
+		DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+		perObjectData->ViewProj = CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
+
+		cmd.cbuffers.push_back(std::move(cbuffer0));
+		cmd.type = PrimitiveTopology::LINELIST;
+		cmd.drawType = DrawType::ARRAY;
+		cmd.framebuffer = 0;
+
+		cmd.offset = (void*)6;
+		cmd.elementCount = 44;
+
+		DrawCmd cmd2;
+
+		cmd2.effect = debugLineFX;
+		cmd2.flags = CmdFlag::DRAW;
+		cmd2.inputLayout = (void*)m_debugCoordVAO;
+		cmd2.offset = 0;
+		cmd2.elementCount = 6;
+		cmd2.type = PrimitiveTopology::LINELIST;
+		cmd2.drawType = DrawType::ARRAY;
+
+		AddDeferredDrawCmd(cmd);
+		AddDeferredDrawCmd(cmd2);
 	}
 
 	GLRenderer::~GLRenderer()

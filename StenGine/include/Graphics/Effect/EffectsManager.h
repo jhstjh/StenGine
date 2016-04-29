@@ -581,6 +581,7 @@ public:
 		uint64_t ScreenMap;
 		uint64_t SSAOMap;
 		uint64_t BloomMap;
+		uint64_t DepthMap;
 #endif
 	} ;
 
@@ -665,14 +666,13 @@ public:
 
 
 class DebugLineEffect : public Effect {
-private:
+public:
 #if GRAPHICS_D3D11
 	ID3D11Buffer* m_perObjectCB;
 #else
-	GLuint m_perObjectUBO;
+	GLuint m_perObjectCB;
 #endif
 
-public:
 	DebugLineEffect(const std::wstring& filename);
 	DebugLineEffect(const std::wstring& vsPath,
 		const std::wstring& psPath,
@@ -681,29 +681,10 @@ public:
 		const std::wstring& dsPath);
 	~DebugLineEffect();
 
-	virtual void UpdateConstantBuffer();
-	virtual void BindConstantBuffer();
-	virtual void BindShaderResource();
-
-	struct
-#if GRAPHICS_D3D11
-		PEROBJ_CONSTANT_BUFFER
-#else
-		PEROBJ_UNIFORM_BUFFER
-#endif
+	struct PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX ViewProj;
-	}
-#if GRAPHICS_D3D11
-	m_perObjConstantBuffer;
-#else
-	m_perObjUniformBuffer;
-#endif
-
-#if GRAPHICS_D3D11
-	virtual PEROBJ_CONSTANT_BUFFER* GetPerObjConstantBuffer() { return &m_perObjConstantBuffer; }
-#endif
-	//ID3D11ShaderResourceView *m_shaderResources[5];
+	};
 };
 
 
