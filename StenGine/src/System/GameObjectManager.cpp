@@ -3,6 +3,7 @@
 #include "Mesh/MeshRenderer.h"
 #include "Resource/ResourceManager.h"
 #include "Mesh/Terrain.h"
+#include "imgui.h"
 
 #define MIN_SCENE 1
 
@@ -90,6 +91,28 @@ void GameObjectManager::Update()
 	{
 		gameObject->Update();
 	}
+}
+
+void GameObjectManager::DrawMenu()
+{
+	ImGui::Begin("Scene");
+
+	ImGui::BeginChild("Scene", ImVec2(0, 300), true);
+	if (ImGui::TreeNode("Root"))
+	{
+		for (size_t i = 0; i < m_gameObjects.size(); i++)
+		{
+			const char* name = m_gameObjects[i]->m_name.c_str();
+			if (ImGui::TreeNode(name))
+			{
+				// list children
+				ImGui::TreePop();
+			}
+		}
+		ImGui::TreePop();
+	}
+	ImGui::EndChild();
+	ImGui::End();
 }
 
 }

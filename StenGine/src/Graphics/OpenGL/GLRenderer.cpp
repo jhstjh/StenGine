@@ -21,6 +21,9 @@
 #include <iostream>
 #include <unordered_map>
 
+//TEST
+#include "Scene/GameObjectManager.h"
+
 using namespace std;
 
 #pragma warning(disable: 4244) // conversion from 'int64_t' to 'GLsizei', possible loss of data
@@ -364,6 +367,19 @@ public:
 				glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)cmd.framebuffer);
 			}
 
+			if (cmd.flags & CmdFlag::SET_SS)
+			{
+				if (cmd.scissorState.scissorTestEnabled)
+				{
+					glEnable(GL_SCISSOR_TEST);
+					glScissor(cmd.scissorState.x, cmd.scissorState.y, cmd.scissorState.width, cmd.scissorState.height);
+				}
+				else
+				{
+					glDisable(GL_SCISSOR_TEST);
+				}
+			}
+
 			if (cmd.flags & CmdFlag::CLEAR_COLOR)
 			{
 				glClear(GL_COLOR_BUFFER_BIT);
@@ -462,19 +478,6 @@ public:
 				}
 			}
 
-			if (cmd.flags & CmdFlag::SET_SS)
-			{
-				if (cmd.scissorState.scissorTestEnabled)
-				{
-					glEnable(GL_SCISSOR_TEST);
-					glScissor(cmd.scissorState.x, cmd.scissorState.y, cmd.scissorState.width, cmd.scissorState.height);
-				}
-				else
-				{
-					glDisable(GL_SCISSOR_TEST);
-				}
-			}
-
 			if (cmd.flags & CmdFlag::SET_CS)
 			{
 				if (cmd.rasterizerState.cullFaceEnabled)
@@ -565,20 +568,18 @@ public:
 		m_SkyBox->Draw();
 		DrawBlurSSAOAndCombine();
 		// TODO put every graphics call into cmdlist
-
+		
 		//DrawGodRay();
 		DrawDebug();
 
 		// TEST
 		ImGui::NewFrame();
-		bool show_test_window = true;
-		ImGui::ShowTestWindow(&show_test_window);
+		//ImGui::ShowTestWindow();
+		GameObjectManager::Instance()->DrawMenu();
 		ImGui::Render();
 		
 		
-		ExecuteCmdList();
-		
-		SwapBuffers(m_deviceContext);
+		EndFrame();
 	}
 
 	float GetAspectRatio() override {
@@ -621,9 +622,20 @@ public:
 	{
 		// reset state
 		DrawCmd cmd;
-		cmd.flags = CmdFlag::SET_BS | CmdFlag::SET_CS | CmdFlag::SET_SS | CmdFlag::SET_DS;
+		cmd.flags = CmdFlag::SET_VP | CmdFlag::SET_BS | CmdFlag::SET_CS | CmdFlag::SET_SS | CmdFlag::SET_DS | CmdFlag::CLEAR_COLOR /*| CmdFlag::CLEAR_DEPTH*/;
+		cmd.viewport.TopLeftX = 0;
+		cmd.viewport.TopLeftY = 0;
+		cmd.viewport.Width = m_clientWidth;
+		cmd.viewport.Height = m_clientHeight;
 
 		AddDeferredDrawCmd(cmd);
+	}
+
+	void EndFrame()
+	{
+		ExecuteCmdList();
+
+		SwapBuffers(m_deviceContext);
 	}
 
 	void DrawShadowMap() override

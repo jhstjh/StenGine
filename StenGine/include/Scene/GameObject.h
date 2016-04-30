@@ -14,6 +14,7 @@ namespace StenGine
 {
 
 class Component;
+class GameObjectManager;
 
 class GameObject {
 protected:
@@ -34,6 +35,8 @@ public:
 	Component* GetComponentByIdx(int index) { return m_components[index]; }
 
 	virtual void Update();
+
+	friend GameObjectManager;
 };
 
 }

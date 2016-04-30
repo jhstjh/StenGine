@@ -14,6 +14,8 @@ public:
 	void LoadScene();
 	void Update();
 
+	void DrawMenu();
+
 private:
 	std::vector<GameObject*> m_gameObjects;
 };

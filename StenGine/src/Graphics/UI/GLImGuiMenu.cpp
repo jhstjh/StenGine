@@ -71,7 +71,7 @@ public:
 
 		Renderer::Instance()->AddDeferredDrawCmd(stateCmd);
 
-		DirectX::XMMATRIX ortho_projection =
+		const DirectX::XMMATRIX ortho_projection =
 		{
 			{ 2.0f / io.DisplaySize.x, 0.0f,                   0.0f, 0.0f },
 			{ 0.0f,                  2.0f / -io.DisplaySize.y, 0.0f, 0.0f },
@@ -127,7 +127,7 @@ public:
 
 					scissorState.scissorTestEnabled = true;
 					scissorState.x = (int32_t)pcmd->ClipRect.x;
-					scissorState.y = (int32_t)pcmd->ClipRect.y;
+					scissorState.y = (int32_t)(fb_height - pcmd->ClipRect.w);
 					scissorState.width = (int32_t)(pcmd->ClipRect.z - pcmd->ClipRect.x);
 					scissorState.height = (int32_t)(pcmd->ClipRect.w - pcmd->ClipRect.y);
 
@@ -144,7 +144,7 @@ public:
 					cmd.indexBuffer = (void*)m_ibo;
 					cmd.inputLayout = effect->GetInputLayout();
 					cmd.effect = effect;
-					cmd.elementCount = (int64_t)IdxBuffer.size();
+					cmd.elementCount = (int64_t)pcmd->ElemCount;
 					cmd.offset = (void*)(idx_buffer_offset + indexOffset);
 					cmd.vertexStride = sizeof(ImDrawVert);
 					cmd.vertexOffset = sizeof(ImDrawVert) * vertexOffset;
