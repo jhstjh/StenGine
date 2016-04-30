@@ -15,6 +15,11 @@ public:
 			_instance = new T();
 		return _instance;
 	}
+
+	static bool Created()
+	{
+		return _instance != nullptr;
+	}
 };
 
 
@@ -30,6 +35,11 @@ protected:
 
 public:
 	static T* Instance();
+
+	static bool Created()
+	{
+		return _instance != nullptr;
+	}
 };
 
 

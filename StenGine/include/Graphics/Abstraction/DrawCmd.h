@@ -81,7 +81,7 @@ struct DrawCmd {
 
 	BlendState			blendState;
 	DepthState			depthState;
-	CullState			cullState;
+	RasterizerState		rasterizerState;
 	ScissorState		scissorState;
 
 #if GRAPHICS_D3D11

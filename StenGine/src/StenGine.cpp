@@ -170,6 +170,9 @@ BOOL CreateWindowInstance(int32_t w, int32_t h, HINSTANCE hInstance/*, int nCmdS
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	if (StenGine::ImGuiMenu::Created())
+		StenGine::ImGuiMenu::Instance()->HandleMsg(message, wParam, lParam);
+
 	switch (message)
 	{
 	case WM_DESTROY:

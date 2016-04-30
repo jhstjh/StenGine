@@ -76,7 +76,7 @@ struct ScissorState
 	int32_t height;
 };
 
-struct CullState
+struct RasterizerState
 {
 	enum class FrontFace
 	{

@@ -1695,19 +1695,19 @@ EffectsManager::EffectsManager()
 	, m_debugLineEffect(nullptr)
 {
 
-	m_shadowMapEffect = std::unique_ptr<ShadowMapEffect>(new ShadowMapEffect(L"FX/ShadowMap"));
-	m_deferredGeometryPassEffect = std::unique_ptr<DeferredGeometryPassEffect>(new DeferredGeometryPassEffect(L"FX/DeferredGeometryPass"));
-	m_deferredShadingPassEffect = std::unique_ptr<DeferredShadingPassEffect>(new DeferredShadingPassEffect(L"FX/DeferredShadingPass"));
-	m_deferredGeometryTessPassEffect = std::unique_ptr<DeferredGeometryTessPassEffect>(new DeferredGeometryTessPassEffect(L"FX/DeferredGeometryTessPass"));
-	m_skyboxEffect = std::unique_ptr<SkyboxEffect>(new SkyboxEffect(L"FX/Skybox"));
-	m_debugLineEffect = std::unique_ptr<DebugLineEffect>(new DebugLineEffect(L"FX/DebugLine"));
-	m_godrayEffect = std::unique_ptr<GodRayEffect>(new GodRayEffect(L"FX/GodRay"));
-	m_deferredGeometryTerrainPassEffect = std::unique_ptr<DeferredGeometryTerrainPassEffect>(new DeferredGeometryTerrainPassEffect(L"FX/DeferredGeometryTerrainPass"));
-	m_terrainShadowMapEffect = std::unique_ptr<TerrainShadowMapEffect>(new TerrainShadowMapEffect(L"FX/DeferredGeometryTerrainPass"));
-	m_vblurEffect = std::unique_ptr<VBlurEffect>(new VBlurEffect(L"FX/VBlur"));
-	m_hblurEffect = std::unique_ptr<HBlurEffect>(new HBlurEffect(L"FX/HBlur"));
-	m_blurEffect = std::unique_ptr<BlurEffect>(new BlurEffect(L"FX/Blur"));
-	m_imguiEffect = std::unique_ptr<ImGuiEffect>(new ImGuiEffect(L"FX/imgui"));
+	m_shadowMapEffect = std::make_unique<ShadowMapEffect>(L"FX/ShadowMap");
+	m_deferredGeometryPassEffect = std::make_unique<DeferredGeometryPassEffect>(L"FX/DeferredGeometryPass");
+	m_deferredShadingPassEffect = std::make_unique<DeferredShadingPassEffect>(L"FX/DeferredShadingPass");
+	m_deferredGeometryTessPassEffect = std::make_unique<DeferredGeometryTessPassEffect>(L"FX/DeferredGeometryTessPass");
+	m_skyboxEffect = std::make_unique<SkyboxEffect>(L"FX/Skybox");
+	m_debugLineEffect = std::make_unique<DebugLineEffect>(L"FX/DebugLine");
+	m_godrayEffect = std::make_unique<GodRayEffect>(L"FX/GodRay");
+	m_deferredGeometryTerrainPassEffect = std::make_unique<DeferredGeometryTerrainPassEffect>(L"FX/DeferredGeometryTerrainPass");
+	m_terrainShadowMapEffect = std::make_unique<TerrainShadowMapEffect>(L"FX/DeferredGeometryTerrainPass");
+	m_vblurEffect = std::make_unique<VBlurEffect>(L"FX/VBlur");
+	m_hblurEffect = std::make_unique<HBlurEffect>(L"FX/HBlur");
+	m_blurEffect = std::make_unique<BlurEffect>(L"FX/Blur");
+	m_imguiEffect = std::make_unique<ImGuiEffect>(L"FX/imgui");
 
 #if GRAPHICS_D3D11
 	m_deferredShadingCSEffect = std::unique_ptr<DeferredShadingCS>(new DeferredShadingCS(L"FX/DeferredShading"));
