@@ -354,7 +354,7 @@
     <ClCompile Include="src\Graphics\Effect\EffectsManager.cpp" />
     <ClCompile Include="src\Graphics\Effect\ShadowMap.cpp" />
     <ClCompile Include="src\Graphics\Effect\Skybox.cpp" />
-    <ClCompile Include="src\Graphics\UI\D3DImGuiMenu.cpp" />
+    <ClCompile Include="src\Graphics\UI\D3D11ImGuiMenu.cpp" />
     <ClCompile Include="src\Input\InputManager.cpp" />
     <ClCompile Include="src\Mesh\MeshPrimitives.cpp" />
     <ClCompile Include="src\Mesh\MeshRenderer.cpp" />

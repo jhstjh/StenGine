@@ -1,5 +1,3 @@
-#if 0
-
 #include "imgui.h"
 #include "Graphics/UI/ImGuiMenu.h"
 #include "Graphics/Abstraction/ContextState.h"
@@ -43,7 +41,7 @@ public:
 
 		DrawCmd stateCmd;
 
-		stateCmd.flags = CmdFlag::SET_BS | CmdFlag::SET_DS | CmdFlag::SET_CS | CmdFlag::SET_VP | CmdFlag::BIND_FB | CmdFlag::CLEAR_DEPTH;
+		stateCmd.flags = CmdFlag::SET_BS | CmdFlag::SET_DS | CmdFlag::SET_CS | CmdFlag::SET_VP | /*CmdFlag::BIND_FB |*/ CmdFlag::CLEAR_DEPTH;
 
 		// Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled
 		BlendState &blendState = stateCmd.blendState;
@@ -66,51 +64,81 @@ public:
 		viewport.TopLeftY = 0;
 		viewport.Width = static_cast<float>(fb_width);
 		viewport.Height = static_cast<float>(fb_height);
-
-		stateCmd.framebuffer = 0;
+		viewport.MinDepth = 0.0f;
+		viewport.MaxDepth = 1.0f;
+		//stateCmd.framebuffer = 0;
 
 		Renderer::Instance()->AddDeferredDrawCmd(stateCmd);
 
+		const float L = 0.0f;
+		const float R = ImGui::GetIO().DisplaySize.x;
+		const float B = ImGui::GetIO().DisplaySize.y;
+		const float T = 0.0f;
 		const DirectX::XMMATRIX ortho_projection =
 		{
-			{ 2.0f / io.DisplaySize.x, 0.0f,                   0.0f, 0.0f },
-			{ 0.0f,                  2.0f / -io.DisplaySize.y, 0.0f, 0.0f },
-			{ 0.0f,                  0.0f,                  -1.0f, 0.0f },
-			{ -1.0f,                  1.0f,                   0.0f, 1.0f },
+            { 2.0f/(R-L),   0.0f,           0.0f,       0.0f },
+            { 0.0f,         2.0f/(T-B),     0.0f,       0.0f },
+            { 0.0f,         0.0f,           0.5f,       0.0f },
+            { (R+L)/(L-R),  (T+B)/(B-T),    0.5f,       1.0f },
 		};
 
 		ImGuiEffect* effect = EffectsManager::Instance()->m_imguiEffect.get();
 
-		ImVector<ImDrawIdx>     IdxBuffer;
-		ImVector<ImDrawVert>    VtxBuffer;
-
-		for (int n = 0; n < draw_data->CmdListsCount; n++)
+		// Create and grow vertex/index buffers if needed
+		if (!m_vb || m_vbSize < draw_data->TotalVtxCount)
 		{
-			const ImDrawList* cmd_list = draw_data->CmdLists[n];
-			const ImDrawIdx* idx_buffer_offset = 0;
-
-			for (int32_t i = 0; i < cmd_list->VtxBuffer.size(); i++)
-			{
-				VtxBuffer.push_back(cmd_list->VtxBuffer[i]);
-			}
-
-			for (int32_t i = 0; i < cmd_list->IdxBuffer.size(); i++)
-			{
-				IdxBuffer.push_back(cmd_list->IdxBuffer[i]);
-			}
+			if (m_vb) { m_vb->Release(); m_vb = NULL; }
+			m_vbSize = draw_data->TotalVtxCount + 5000;
+			D3D11_BUFFER_DESC desc;
+			memset(&desc, 0, sizeof(D3D11_BUFFER_DESC));
+			desc.Usage = D3D11_USAGE_DYNAMIC;
+			desc.ByteWidth = m_vbSize * sizeof(ImDrawVert);
+			desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+			desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			desc.MiscFlags = 0;
+			if (static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&desc, NULL, &m_vb) < 0)
+				return;
+		}
+		if (!m_ib || m_ibSize < draw_data->TotalIdxCount)
+		{
+			if (m_ib) { m_ib->Release(); m_ib = NULL; }
+			m_ibSize = draw_data->TotalIdxCount + 10000;
+			D3D11_BUFFER_DESC bufferDesc;
+			memset(&bufferDesc, 0, sizeof(D3D11_BUFFER_DESC));
+			bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+			bufferDesc.ByteWidth = m_ibSize * sizeof(ImDrawIdx);
+			bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+			bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			if (static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&bufferDesc, NULL, &m_ib) < 0)
+				return;
 		}
 
-		glNamedBufferData(m_vbo, VtxBuffer.size() * sizeof(ImDrawVert), &VtxBuffer.front(), D3D11_STREAM_DRAW);
-		glNamedBufferData(m_ibo, IdxBuffer.size() * sizeof(ImDrawIdx), &IdxBuffer.front(), D3D11_STREAM_DRAW);
+		// Copy and convert all vertices into a single contiguous buffer
+		D3D11_MAPPED_SUBRESOURCE vtx_resource, idx_resource;
+		if (static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_vb, 0, D3D11_MAP_WRITE_DISCARD, 0, &vtx_resource) != S_OK)
+			return;
+		if (static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_ib, 0, D3D11_MAP_WRITE_DISCARD, 0, &idx_resource) != S_OK)
+			return;
+		ImDrawVert* vtx_dst = (ImDrawVert*)vtx_resource.pData;
+		ImDrawIdx* idx_dst = (ImDrawIdx*)idx_resource.pData;
+		for (int n = 0; n < draw_data->CmdListsCount; n++)
+		{
+			const ImDrawList* cmd_list = draw_data->CmdLists[n];
+			memcpy(vtx_dst, &cmd_list->VtxBuffer[0], cmd_list->VtxBuffer.size() * sizeof(ImDrawVert));
+			memcpy(idx_dst, &cmd_list->IdxBuffer[0], cmd_list->IdxBuffer.size() * sizeof(ImDrawIdx));
+			vtx_dst += cmd_list->VtxBuffer.size();
+			idx_dst += cmd_list->IdxBuffer.size();
+		}
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_vb, 0);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_ib, 0);
 
-		uint32_t vertexOffset = 0;
-		uint32_t indexOffset = 0;
+
+		uint32_t vtx_offset = 0;
+		uint32_t idx_offset = 0;
 
 		for (int n = 0; n < draw_data->CmdListsCount; n++)
 		{
 			const ImDrawList* cmd_list = draw_data->CmdLists[n];
-			const ImDrawIdx* idx_buffer_offset = 0;
-
 			for (const ImDrawCmd* pcmd = cmd_list->CmdBuffer.begin(); pcmd != cmd_list->CmdBuffer.end(); pcmd++)
 			{
 				if (pcmd->UserCallback)
@@ -127,35 +155,34 @@ public:
 
 					scissorState.scissorTestEnabled = true;
 					scissorState.x = (int32_t)pcmd->ClipRect.x;
-					scissorState.y = (int32_t)(fb_height - pcmd->ClipRect.w);
-					scissorState.width = (int32_t)(pcmd->ClipRect.z - pcmd->ClipRect.x);
-					scissorState.height = (int32_t)(pcmd->ClipRect.w - pcmd->ClipRect.y);
+					scissorState.y = (int32_t)pcmd->ClipRect.y;
+					scissorState.width = (int32_t)pcmd->ClipRect.z;
+					scissorState.height = (int32_t)pcmd->ClipRect.w;
 
 					ConstantBuffer cbuffer0(0, sizeof(ImGuiEffect::IMGUI_CONSTANT_BUFFER), (void*)effect->m_imguiCB);
 					ImGuiEffect::IMGUI_CONSTANT_BUFFER* imguiData = (ImGuiEffect::IMGUI_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 
-					imguiData->Texture = (uint64_t)pcmd->TextureId;
 					imguiData->ProjMtx = ortho_projection;
 
+					cmd.srvs.AddSRV((ID3D11ShaderResourceView*)pcmd->TextureId, 0);
 					cmd.cbuffers.push_back(std::move(cbuffer0));
 					cmd.drawType = DrawType::INDEXED;
-					cmd.type = PrimitiveTopology::TRIAND3D11ELIST;
-					cmd.vertexBuffer = (void*)m_vbo;
-					cmd.indexBuffer = (void*)m_ibo;
+					cmd.type = PrimitiveTopology::TRIANGLELIST;
+					cmd.vertexBuffer = m_vb;
+					cmd.indexBuffer = m_ib;
 					cmd.inputLayout = effect->GetInputLayout();
 					cmd.effect = effect;
 					cmd.elementCount = (int64_t)pcmd->ElemCount;
-					cmd.offset = (void*)(idx_buffer_offset + indexOffset);
+					cmd.offset = (void*)(idx_offset);
 					cmd.vertexStride = sizeof(ImDrawVert);
-					cmd.vertexOffset = sizeof(ImDrawVert) * vertexOffset;
+					cmd.vertexOffset = vtx_offset;
 
 					Renderer::Instance()->AddDeferredDrawCmd(cmd);
 				}
-				idx_buffer_offset += pcmd->ElemCount;
+				idx_offset += pcmd->ElemCount;
 			}
 
-			vertexOffset += cmd_list->VtxBuffer.size();
-			indexOffset += cmd_list->IdxBuffer.size();
+			vtx_offset += cmd_list->VtxBuffer.size();
 		}
 	}
 
@@ -224,20 +251,15 @@ private:
 	bool CreateDeviceObjects()
 	{
 		CreateFontTexture();
-
-		glCreateBuffers(1, &m_vbo);
-		glCreateBuffers(1, &m_ibo);
-
 		return true;
 	}
 
 	void InvalidateDeviceObjects()
 	{
-		glDeleteBuffers(1, &m_ibo);
-		glDeleteBuffers(1, &m_vbo);
-
-		glMakeTextureHandleNonResidentARB(m_fontTextureHandle);
-		glDeleteTextures(1, &m_fontTexture);
+		SafeRelease(m_fontSampler);
+		SafeRelease(m_fontTextureSRV);
+		SafeRelease(m_vb);
+		SafeRelease(m_ib);
 	}
 
 	static void _RenderDrawLists(ImDrawData* draw_data)
@@ -295,12 +317,13 @@ private:
 	ID3D11ShaderResourceView*       m_fontTextureSRV = nullptr;
 	ID3D11SamplerState*				m_fontSampler = nullptr;
 
-	ID3D11Buffer*		 m_vbo = nullptr;
-	ID3D11Buffer*		 m_ibo = nullptr;
+	ID3D11Buffer*		 m_vb = nullptr;
+	ID3D11Buffer*		 m_ib = nullptr;
+
+	uint32_t			 m_vbSize = 0;
+	uint32_t			 m_ibSize = 0;
 };
 
-DEFINE_ABSTRACT_SIND3D11ETON_CLASS(ImGuiMenu, ImGuiMenuImpl)
+DEFINE_ABSTRACT_SINGLETON_CLASS(ImGuiMenu, ImGuiMenuImpl)
 
 }
-
-#endif

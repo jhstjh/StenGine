@@ -224,6 +224,8 @@
     <None Include="FX\VBlur_cs.hlsl">
       <Filter>FX</Filter>
     </None>
+    <None Include="FX\imgui_ps.hlsl" />
+    <None Include="FX\imgui_vs.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\stdafx.h">
@@ -446,16 +448,8 @@
       <Filter>src\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\D3D11\D3D11UAVBinding.cpp" />
-    <ClCompile Include="src\Graphics\UI\D3DImGuiMenu.cpp">
+    <ClCompile Include="src\Graphics\UI\D3D11ImGuiMenu.cpp">
       <Filter>src\Graphics\UI</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="FX\imgui_ps.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\imgui_vs.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
   </ItemGroup>
 </Project>

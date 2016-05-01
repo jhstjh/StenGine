@@ -15,6 +15,9 @@
 #include <unordered_map>
 #include <map>
 
+#include "Scene/GameObjectManager.h"
+#include "imgui.h"
+
 #pragma warning(disable: 4267 4244 4311 4302)
 
 namespace StenGine
@@ -610,6 +613,12 @@ public:
 		
 		//DrawGodRay();
 		DrawDebug();
+
+		// TEST
+		ImGui::NewFrame();
+		GameObjectManager::Instance()->DrawMenu();
+		ImGui::Render();
+
 		ExecuteCmdList();
 
 		// clean up
@@ -617,6 +626,7 @@ public:
 		m_d3d11DeviceContext->RSSetState(0);
 		m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
 		m_d3d11DeviceContext->OMSetRenderTargets(0, NULL, NULL);
+		m_d3d11DeviceContext->RSSetScissorRects(0, 0);
 		HR(m_swapChain->Present(0, 0));
 	}
 
@@ -649,6 +659,19 @@ public:
 				cmd.framebuffer.SetRenderTarget(m_d3d11DeviceContext);
 			}
 
+			if (cmd.flags & CmdFlag::SET_SS)
+			{
+				if (cmd.scissorState.scissorTestEnabled)
+				{
+					const D3D11_RECT r = { (LONG)cmd.scissorState.x, (LONG)cmd.scissorState.y, (LONG)cmd.scissorState.width, (LONG)cmd.scissorState.height };
+					m_d3d11DeviceContext->RSSetScissorRects(1, &r);
+				}
+				else
+				{
+					m_d3d11DeviceContext->RSSetScissorRects(1, 0);
+				}
+			}
+
 			if (cmd.flags & CmdFlag::CLEAR_COLOR)
 			{
 				cmd.framebuffer.ClearColor(m_d3d11DeviceContext);
@@ -667,6 +690,25 @@ public:
 			if (cmd.flags & CmdFlag::SET_RSSTATE)
 			{
 				m_d3d11DeviceContext->RSSetState(cmd.rsState);
+			}
+
+			if (cmd.flags & CmdFlag::SET_BS)
+			{
+				const float blendFactor[4] = { 1.f, 1.f, 1.f, 1.f };
+				auto bsState = GetBlendState(cmd.blendState);
+				m_d3d11DeviceContext->OMSetBlendState(bsState, blendFactor, 0xffffffff);
+			}
+
+			if (cmd.flags & CmdFlag::SET_DS)
+			{
+				auto dsState = GetDepthState(cmd.depthState);
+				m_d3d11DeviceContext->OMSetDepthStencilState(dsState, 0);
+			}
+
+			if (cmd.flags & CmdFlag::SET_CS)
+			{
+				auto rsState = GetRasterizerState(cmd.rasterizerState);
+				m_d3d11DeviceContext->RSSetState(rsState);
 			}
 
 			if (cmd.flags & CmdFlag::DRAW || cmd.flags & CmdFlag::COMPUTE)
@@ -689,7 +731,8 @@ public:
 					if (cmd.vertexBuffer)
 					{
 						ID3D11Buffer* vertexBuffer = static_cast<ID3D11Buffer*>(cmd.vertexBuffer);
-						m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &cmd.vertexStride, &cmd.vertexOffset);
+						UINT offset = 0;
+						m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &cmd.vertexStride, &offset);
 					}
 
 					if (cmd.drawType == DrawType::INDEXED)
@@ -700,7 +743,7 @@ public:
 							m_d3d11DeviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 						}
 
-						m_d3d11DeviceContext->DrawIndexed(cmd.elementCount, (int64_t)cmd.offset, 0);
+						m_d3d11DeviceContext->DrawIndexed(cmd.elementCount, (int64_t)cmd.offset, cmd.vertexOffset);
 					}
 					else if (cmd.drawType == DrawType::ARRAY)
 					{
@@ -1097,6 +1140,99 @@ public:
 		return m_blendStateMap[blendState];
 	}
 
+	ID3D11DepthStencilState* GetDepthState(DepthState& depthState)
+	{
+		auto entry = m_depthStateMap.find(depthState);
+		if (entry == m_depthStateMap.end())
+		{
+			static const D3D11_COMPARISON_FUNC convertDepthFunc[] =
+			{
+				D3D11_COMPARISON_NEVER,
+				D3D11_COMPARISON_NEVER,
+				D3D11_COMPARISON_LESS,
+				D3D11_COMPARISON_EQUAL,
+				D3D11_COMPARISON_LESS_EQUAL,
+				D3D11_COMPARISON_GREATER,
+				D3D11_COMPARISON_NOT_EQUAL,
+				D3D11_COMPARISON_GREATER_EQUAL,
+				D3D11_COMPARISON_ALWAYS,
+			};
+
+			D3D11_DEPTH_STENCIL_DESC dsDesc;
+
+			// Depth test parameters
+			dsDesc.DepthEnable = depthState.depthCompEnable;
+			dsDesc.DepthWriteMask = (D3D11_DEPTH_WRITE_MASK)depthState.depthWriteEnable;
+			dsDesc.DepthFunc = convertDepthFunc[(uint32_t)depthState.depthFunc];
+
+			// Stencil test parameters
+			dsDesc.StencilEnable = false;
+			//dsDesc.StencilReadMask = 0xFF;
+			//dsDesc.StencilWriteMask = 0xFF;
+			//
+			//// Stencil operations if pixel is front-facing
+			//dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+			//dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+			//dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+			//dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+			//
+			//// Stencil operations if pixel is back-facing
+			//dsDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+			//dsDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+			//dsDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+			//dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+			ID3D11DepthStencilState* d3d11depthState;
+
+			m_d3d11Device->CreateDepthStencilState(&dsDesc, &d3d11depthState);
+
+			m_depthStateMap[depthState] = d3d11depthState;
+		}
+
+		return m_depthStateMap[depthState];
+	}
+
+	ID3D11RasterizerState* GetRasterizerState(RasterizerState & rasterizerState)
+	{
+		auto entry = m_rasterizerStateMap.find(rasterizerState);
+		if (entry == m_rasterizerStateMap.end())
+		{
+			// static const uint32_t convertCull[] =
+			// {
+			// 	0,
+			// 	GL_CW,
+			// 	GL_CCW,
+			// };
+
+			static const D3D11_CULL_MODE convertType[] =
+			{
+				D3D11_CULL_NONE,
+				D3D11_CULL_FRONT,
+				D3D11_CULL_BACK,
+			};
+
+			D3D11_RASTERIZER_DESC desc;
+			ZeroMemory(&desc, sizeof(desc));
+			desc.FillMode = D3D11_FILL_SOLID;
+			desc.CullMode = D3D11_CULL_NONE;
+
+			if (rasterizerState.cullFaceEnabled)
+			{
+				desc.CullMode = convertType[(uint32_t)rasterizerState.cullType];
+			}
+
+			desc.ScissorEnable = true;
+			desc.DepthClipEnable = false;
+
+			ID3D11RasterizerState* d3d11rasterizerState;
+
+			m_d3d11Device->CreateRasterizerState(&desc, &d3d11rasterizerState);
+			m_rasterizerStateMap[rasterizerState] = d3d11rasterizerState;
+		}
+
+		return m_rasterizerStateMap[rasterizerState];
+	}
+
 	virtual void* GetDevice() override {
 		return m_d3d11Device;
 	}
@@ -1206,6 +1342,8 @@ private:
 
 	std::unordered_map<PrimitiveTopology, D3D_PRIMITIVE_TOPOLOGY> m_drawTopologyMap;
 	std::unordered_map<BlendState, ID3D11BlendState*> m_blendStateMap;
+	std::unordered_map<DepthState, ID3D11DepthStencilState*> m_depthStateMap;
+	std::unordered_map<RasterizerState, ID3D11RasterizerState*> m_rasterizerStateMap;
 
 	RenderTarget m_GBuffer;
 };
