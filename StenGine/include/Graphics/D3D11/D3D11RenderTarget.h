@@ -15,7 +15,7 @@ struct RenderTarget
 
 	void SetRenderTarget(ID3D11DeviceContext* deviceContext)
 	{
-		deviceContext->OMSetRenderTargets(rtvs.size(), rtvs.data(), dsv);
+		deviceContext->OMSetRenderTargets((UINT)rtvs.size(), rtvs.data(), dsv);
 	}
 
 	void ClearColor(ID3D11DeviceContext* deviceContext)

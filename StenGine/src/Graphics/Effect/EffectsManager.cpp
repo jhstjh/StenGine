@@ -1328,6 +1328,24 @@ ImGuiEffect::ImGuiEffect(const std::wstring& filename)
 	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT, L"", L"", L"", L"")
 {
 #if GRAPHICS_D3D11
+	D3D11_INPUT_ELEMENT_DESC localLayout[] = {
+		{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (size_t)(&((ImDrawVert*)0)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(localLayout, 3, m_vsBlob->GetBufferPointer(), m_vsBlob->GetBufferSize(), &m_inputLayout));
+
+	// Create the constant buffer
+	{
+		D3D11_BUFFER_DESC cbDesc;
+		cbDesc.ByteWidth = sizeof(IMGUI_CONSTANT_BUFFER);
+		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		cbDesc.MiscFlags = 0;
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, NULL, &m_imguiCB));
+	}
 
 #endif
 

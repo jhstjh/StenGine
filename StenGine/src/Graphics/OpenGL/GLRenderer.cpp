@@ -849,7 +849,6 @@ public:
 
 		cmd2.effect = debugLineFX;
 		cmd2.flags = CmdFlag::DRAW;
-		cmd2.inputLayout = (void*)m_debugCoordVAO;
 		cmd2.offset = 0;
 		cmd2.elementCount = 6;
 		cmd2.type = PrimitiveTopology::LINELIST;

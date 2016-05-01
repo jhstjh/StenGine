@@ -43,7 +43,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)lib;$(SolutionDir)External\FBXSDK\lib\vs2013\x64\debug;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\D3D11\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\D3D11\</IntDir>
@@ -52,7 +52,7 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\D3D11\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\D3D11\</IntDir>
-    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)lib;$(SolutionDir)External\FBXSDK\lib\vs2013\x64\release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -316,6 +316,7 @@
     <ClInclude Include="include\Graphics\Effect\Material.h" />
     <ClInclude Include="include\Graphics\Effect\ShadowMap.h" />
     <ClInclude Include="include\Graphics\Effect\Skybox.h" />
+    <ClInclude Include="include\Graphics\UI\ImGuiMenu.h" />
     <ClInclude Include="include\Input\InputManager.h" />
     <ClInclude Include="include\Math\MathHelper.h" />
     <ClInclude Include="include\Mesh\MeshRenderer.h" />
@@ -353,6 +354,7 @@
     <ClCompile Include="src\Graphics\Effect\EffectsManager.cpp" />
     <ClCompile Include="src\Graphics\Effect\ShadowMap.cpp" />
     <ClCompile Include="src\Graphics\Effect\Skybox.cpp" />
+    <ClCompile Include="src\Graphics\UI\D3DImGuiMenu.cpp" />
     <ClCompile Include="src\Input\InputManager.cpp" />
     <ClCompile Include="src\Mesh\MeshPrimitives.cpp" />
     <ClCompile Include="src\Mesh\MeshRenderer.cpp" />
@@ -378,6 +380,17 @@
     <ProjectReference Include="..\External\DirectXTex\DDSTextureLoader\DDSTextureLoader.vcxproj">
       <Project>{0cde1fd5-2c0a-407e-a345-ca98d30ca53c}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\External\imgui\imgui.vcxproj">
+      <Project>{7285f681-9fe0-4280-9a8a-e8b8978c470e}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="FX\imgui_ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="FX\imgui_vs.hlsl">
+      <FileType>Document</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

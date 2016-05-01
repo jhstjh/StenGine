@@ -1,10 +1,11 @@
+#if 0
+
 #include "imgui.h"
 #include "Graphics/UI/ImGuiMenu.h"
-#include "glew.h"
 #include "Graphics/Abstraction/ContextState.h"
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Graphics/Effect/EffectsManager.h"
-
+#include "Graphics/D3DIncludes.h"
 #include <stdint.h>
 
 namespace StenGine
@@ -99,8 +100,8 @@ public:
 			}
 		}
 
-		glNamedBufferData(m_vbo, VtxBuffer.size() * sizeof(ImDrawVert), &VtxBuffer.front(), GL_STREAM_DRAW);
-		glNamedBufferData(m_ibo, IdxBuffer.size() * sizeof(ImDrawIdx), &IdxBuffer.front(), GL_STREAM_DRAW);
+		glNamedBufferData(m_vbo, VtxBuffer.size() * sizeof(ImDrawVert), &VtxBuffer.front(), D3D11_STREAM_DRAW);
+		glNamedBufferData(m_ibo, IdxBuffer.size() * sizeof(ImDrawIdx), &IdxBuffer.front(), D3D11_STREAM_DRAW);
 
 		uint32_t vertexOffset = 0;
 		uint32_t indexOffset = 0;
@@ -138,7 +139,7 @@ public:
 
 					cmd.cbuffers.push_back(std::move(cbuffer0));
 					cmd.drawType = DrawType::INDEXED;
-					cmd.type = PrimitiveTopology::TRIANGLELIST;
+					cmd.type = PrimitiveTopology::TRIAND3D11ELIST;
 					cmd.vertexBuffer = (void*)m_vbo;
 					cmd.indexBuffer = (void*)m_ibo;
 					cmd.inputLayout = effect->GetInputLayout();
@@ -161,42 +162,61 @@ public:
 private:
 	bool CreateFontTexture()
 	{
+		// Build texture atlas
 		ImGuiIO& io = ImGui::GetIO();
 		unsigned char* pixels;
 		int width, height;
-		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);   // Load as RGBA 32-bits for OpenGL3 demo because it is more likely to be compatible with user's existing shader.
+		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-		glCreateTextures(GL_TEXTURE_2D, 1, &m_fontTexture);
-		glTextureParameteri(m_fontTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTextureParameteri(m_fontTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		
-		glTextureStorage2D(m_fontTexture, 1, GL_RGBA8, width, height);
-		
-		GLuint pbo;
-		glCreateBuffers(1, &pbo);
-		glNamedBufferData(pbo, width * height * 4, nullptr, GL_STREAM_DRAW);
-		void* pboData = glMapNamedBuffer(pbo, GL_WRITE_ONLY);
-		
-		memcpy(pboData, pixels, width * height * 4);
-		
-		glUnmapNamedBuffer(pbo);
-		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
-		
-		glTextureSubImage2D(
-			m_fontTexture, 0,
-			0, 0,
-			width,
-			height,
-			GL_RGBA, GL_UNSIGNED_BYTE,
-			(void*)0);
-		
-		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-		glDeleteBuffers(1, &pbo);
+		// Upload texture to graphics system
+		{
+			D3D11_TEXTURE2D_DESC texDesc;
+			ZeroMemory(&texDesc, sizeof(texDesc));
+			texDesc.Width = width;
+			texDesc.Height = height;
+			texDesc.MipLevels = 1;
+			texDesc.ArraySize = 1;
+			texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			texDesc.SampleDesc.Count = 1;
+			texDesc.Usage = D3D11_USAGE_DEFAULT;
+			texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			texDesc.CPUAccessFlags = 0;
 
-		m_fontTextureHandle = glGetTextureHandleARB(m_fontTexture);
-		glMakeTextureHandleResidentARB(m_fontTextureHandle);
+			ID3D11Texture2D *pTexture = NULL;
+			D3D11_SUBRESOURCE_DATA subResource;
+			subResource.pSysMem = pixels;
+			subResource.SysMemPitch = texDesc.Width * 4;
+			subResource.SysMemSlicePitch = 0;
+			static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateTexture2D(&texDesc, &subResource, &pTexture);
 
-		io.Fonts->TexID = (void*)m_fontTextureHandle;
+			// Create texture view
+			D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+			ZeroMemory(&srvDesc, sizeof(srvDesc));
+			srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+			srvDesc.Texture2D.MipLevels = texDesc.MipLevels;
+			srvDesc.Texture2D.MostDetailedMip = 0;
+			static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateShaderResourceView(pTexture, &srvDesc, &m_fontTextureSRV);
+			pTexture->Release();
+		}
+
+		// Store our identifier
+		io.Fonts->TexID = (void *)m_fontTextureSRV;
+
+		// Create texture sampler
+		{
+			D3D11_SAMPLER_DESC samplerDesc;
+			ZeroMemory(&samplerDesc, sizeof(samplerDesc));
+			samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+			samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+			samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+			samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+			samplerDesc.MipLODBias = 0.f;
+			samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+			samplerDesc.MinLOD = 0.f;
+			samplerDesc.MaxLOD = 0.f;
+			static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateSamplerState(&samplerDesc, &m_fontSampler);
+		}
 
 		return true;
 	}
@@ -272,13 +292,15 @@ private:
 		return false;
 	}
 
-	GLuint       m_fontTexture;
-	uint64_t	 m_fontTextureHandle;
+	ID3D11ShaderResourceView*       m_fontTextureSRV = nullptr;
+	ID3D11SamplerState*				m_fontSampler = nullptr;
 
-	GLuint		 m_vbo;
-	GLuint		 m_ibo;
+	ID3D11Buffer*		 m_vbo = nullptr;
+	ID3D11Buffer*		 m_ibo = nullptr;
 };
 
-DEFINE_ABSTRACT_SINGLETON_CLASS(ImGuiMenu, ImGuiMenuImpl)
+DEFINE_ABSTRACT_SIND3D11ETON_CLASS(ImGuiMenu, ImGuiMenuImpl)
 
 }
+
+#endif

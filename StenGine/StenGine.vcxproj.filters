@@ -80,6 +80,12 @@
     <Filter Include="include\System\API">
       <UniqueIdentifier>{a3ada901-62ef-4229-ae0a-541211f10800}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Graphics\UI">
+      <UniqueIdentifier>{d28ecfc8-5b06-403b-a22f-e183d0489824}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Graphics\UI">
+      <UniqueIdentifier>{7406bd36-d87d-4df6-8c65-ce3ae5c4f1d4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -350,6 +356,9 @@
     <ClInclude Include="include\Graphics\Abstraction\UAVBinding.h">
       <Filter>include\Graphics\Abstraction</Filter>
     </ClInclude>
+    <ClInclude Include="include\Graphics\UI\ImGuiMenu.h">
+      <Filter>include\Graphics\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -437,5 +446,16 @@
       <Filter>src\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\D3D11\D3D11UAVBinding.cpp" />
+    <ClCompile Include="src\Graphics\UI\D3DImGuiMenu.cpp">
+      <Filter>src\Graphics\UI</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="FX\imgui_ps.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\imgui_vs.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

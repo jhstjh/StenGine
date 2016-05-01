@@ -13,6 +13,7 @@
 #include "Math/MathHelper.h"
 
 #include <unordered_map>
+#include <map>
 
 #pragma warning(disable: 4267 4244 4311 4302)
 
@@ -606,10 +607,10 @@ public:
 		DrawDeferredShading();
 		m_SkyBox->Draw();
 		DrawBlurSSAOAndCombine();
-
-		ExecuteCmdList();
+		
 		//DrawGodRay();
 		DrawDebug();
+		ExecuteCmdList();
 
 		// clean up
 		m_d3d11DeviceContext->ClearState();
@@ -965,33 +966,49 @@ public:
 	}
 
 	void DrawDebug() {
-		// draw debug line
-		m_d3d11DeviceContext->OMSetDepthStencilState(m_noZWriteDSState, 1); // turn off z write
-		m_d3d11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-		m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_deferredRenderDepthStencilView);
-
 		UINT stride = sizeof(Vertex::DebugLine);
 		UINT offset = 0;
 
-		DebugLineEffect* debugFX = EffectsManager::Instance()->m_debugLineEffect.get();
-		debugFX->SetShader();
-		m_d3d11DeviceContext->IASetInputLayout((ID3D11InputLayout *)debugFX->GetInputLayout());
-		m_d3d11DeviceContext->IASetIndexBuffer(m_gridCoordIndexBufferGPU, DXGI_FORMAT_R32_UINT, 0);
-		m_d3d11DeviceContext->IASetVertexBuffers(0, 1, &m_gridCoordVertexBufferGPU, &stride, &offset);
-		debugFX->GetPerObjConstantBuffer()->ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+		DebugLineEffect* debugLineFX = EffectsManager::Instance()->m_debugLineEffect.get();
 
-		debugFX->UpdateConstantBuffer();
-		debugFX->BindConstantBuffer();
+		DrawCmd cmd;
 
-		// draw grid first
-		m_d3d11DeviceContext->DrawIndexed(44, 6, 0);
-		// then draw axes
-		m_d3d11DeviceContext->DrawIndexed(6, 0, 0);
+		cmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_DS | CmdFlag::DRAW;
 
-		debugFX->UnBindConstantBuffer();
-		debugFX->UnSetShader();
+		cmd.depthState.depthWriteEnable = false;
+		cmd.effect = debugLineFX;
+		cmd.inputLayout = debugLineFX->GetInputLayout();
+		cmd.indexBuffer = m_gridCoordIndexBufferGPU;
+		cmd.vertexBuffer = m_gridCoordVertexBufferGPU;
 
-		m_d3d11DeviceContext->OMSetDepthStencilState(0, 0); // turn off z write
+		ConstantBuffer cbuffer0(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), (void*)debugLineFX->m_perObjectCB);
+		DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+		perObjectData->ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+
+		cmd.cbuffers.push_back(std::move(cbuffer0));
+		cmd.type = PrimitiveTopology::LINELIST;
+		cmd.drawType = DrawType::INDEXED;
+
+		cmd.offset = (void*)6;
+		cmd.elementCount = 44;
+		cmd.vertexStride = stride;
+		cmd.vertexOffset = offset;
+		cmd.framebuffer.rtvs.push_back(m_renderTargetView);
+		cmd.framebuffer.dsv = m_deferredRenderDepthStencilView;
+
+		DrawCmd cmd2;
+
+		cmd2.effect = debugLineFX;
+		cmd2.flags = CmdFlag::DRAW;
+		cmd2.offset = 0;
+		cmd2.elementCount = 6;
+		cmd2.type = PrimitiveTopology::LINELIST;
+		cmd2.drawType = DrawType::INDEXED;
+		cmd2.vertexStride = stride;
+		cmd2.vertexOffset = offset;
+
+		AddDeferredDrawCmd(cmd);
+		AddDeferredDrawCmd(cmd2);
 	}
 
 	void doCSBlur(ID3D11ShaderResourceView* blurImgSRV, int uavSlotIdx) {
@@ -1026,6 +1043,58 @@ public:
 		cmdH.uavs.AddUAV(m_unorderedAccessViews[uavSlotIdx + 1], 0);
 
 		AddDeferredDrawCmd(std::move(cmdH));
+	}
+
+	ID3D11BlendState* GetBlendState(BlendState& blendState)
+	{
+		auto entry = m_blendStateMap.find(blendState);
+		if (entry == m_blendStateMap.end())
+		{
+			static const D3D11_BLEND convertBlend[] =
+			{
+				D3D11_BLEND_ZERO, //
+				D3D11_BLEND_ZERO,
+				D3D11_BLEND_ONE,
+				D3D11_BLEND_SRC_COLOR,
+				D3D11_BLEND_INV_SRC_COLOR,
+				D3D11_BLEND_SRC_ALPHA,
+				D3D11_BLEND_INV_SRC_ALPHA,
+				D3D11_BLEND_DEST_ALPHA,
+				D3D11_BLEND_INV_DEST_ALPHA,
+				D3D11_BLEND_DEST_COLOR,
+				D3D11_BLEND_INV_DEST_COLOR,
+				D3D11_BLEND_SRC_ALPHA_SAT,
+			};
+
+			static const D3D11_BLEND_OP convertBlendFunc[] =
+			{
+				D3D11_BLEND_OP_ADD, //
+				D3D11_BLEND_OP_ADD,
+				D3D11_BLEND_OP_SUBTRACT,
+				D3D11_BLEND_OP_REV_SUBTRACT,
+				D3D11_BLEND_OP_MIN,
+				D3D11_BLEND_OP_MAX,
+			};
+
+			D3D11_BLEND_DESC desc;
+			ZeroMemory(&desc, sizeof(desc));
+			desc.AlphaToCoverageEnable = false;
+			desc.RenderTarget[blendState.index].BlendEnable = blendState.blendEnable;
+			desc.RenderTarget[blendState.index].SrcBlend = convertBlend[(uint32_t)blendState.srcBlend];
+			desc.RenderTarget[blendState.index].DestBlend = convertBlend[(uint32_t)blendState.destBlend];
+			desc.RenderTarget[blendState.index].BlendOp = convertBlendFunc[(uint32_t)blendState.blendOpColor];
+			desc.RenderTarget[blendState.index].SrcBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+			desc.RenderTarget[blendState.index].DestBlendAlpha = D3D11_BLEND_ZERO;
+			desc.RenderTarget[blendState.index].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+			desc.RenderTarget[blendState.index].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+			ID3D11BlendState* d3d11blendState;
+			m_d3d11Device->CreateBlendState(&desc, &d3d11blendState);
+
+			m_blendStateMap[blendState] = d3d11blendState;
+		}
+
+		return m_blendStateMap[blendState];
 	}
 
 	virtual void* GetDevice() override {
@@ -1136,6 +1205,7 @@ private:
 	std::vector<DrawEventHandler> m_shadowDrawHandler;
 
 	std::unordered_map<PrimitiveTopology, D3D_PRIMITIVE_TOPOLOGY> m_drawTopologyMap;
+	std::unordered_map<BlendState, ID3D11BlendState*> m_blendStateMap;
 
 	RenderTarget m_GBuffer;
 };
