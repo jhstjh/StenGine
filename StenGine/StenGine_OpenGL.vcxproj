@@ -151,6 +151,8 @@
     <None Include="Model\plane.fbx" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\Engine\Console.h" />
+    <ClInclude Include="include\Engine\EngineBase.h" />
     <ClInclude Include="include\Graphics\Abstraction\ContextState.h" />
     <ClInclude Include="include\Graphics\Abstraction\ConstantBuffer.h" />
     <ClInclude Include="include\Graphics\Abstraction\ConstantBufferBase.h" />
@@ -198,6 +200,8 @@
     <ClInclude Include="include\Utility\Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Engine\Console.cpp" />
+    <ClCompile Include="src\Engine\EngineBase.cpp" />
     <ClCompile Include="src\Graphics\Color.cpp" />
     <ClCompile Include="src\Graphics\Effect\EffectsManager.cpp" />
     <ClCompile Include="src\Graphics\Effect\ShadowMap.cpp" />

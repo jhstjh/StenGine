@@ -86,6 +86,12 @@
     <Filter Include="src\Graphics\UI">
       <UniqueIdentifier>{7406bd36-d87d-4df6-8c65-ce3ae5c4f1d4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Engine">
+      <UniqueIdentifier>{f626ac98-e7d3-42e5-9762-42c6ac59e2f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engine">
+      <UniqueIdentifier>{bc0b8e77-9003-4843-b6ec-17d3c7d397fe}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -361,6 +367,12 @@
     <ClInclude Include="include\Graphics\UI\ImGuiMenu.h">
       <Filter>include\Graphics\UI</Filter>
     </ClInclude>
+    <ClInclude Include="include\Engine\EngineBase.h">
+      <Filter>include\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Engine\Console.h">
+      <Filter>include\Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -450,6 +462,12 @@
     <ClCompile Include="src\Graphics\D3D11\D3D11UAVBinding.cpp" />
     <ClCompile Include="src\Graphics\UI\D3D11ImGuiMenu.cpp">
       <Filter>src\Graphics\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\EngineBase.cpp">
+      <Filter>src\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Console.cpp">
+      <Filter>src\Engine</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
