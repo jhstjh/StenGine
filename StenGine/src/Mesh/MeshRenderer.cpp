@@ -13,6 +13,7 @@
 
 #include "Graphics/Effect/Skybox.h"
 #include "Math/MathHelper.h"
+#include "imgui.h"
 
 #pragma warning(disable: 4312) // 'type cast': conversion from 'GLuint' to 'void *' of greater size
 #pragma warning(disable: 4267) // conversion from 'size_t' to 'UINT', possible loss of data
@@ -60,6 +61,33 @@ void Mesh::Prepare() {
 
 	for (uint32_t i = 0; i < m_subMeshes.size(); i++) {
 		m_subMeshes[i].PrepareGPUBuffer();
+	}
+}
+
+void Mesh::DrawMenu()
+{
+	if (ImGui::CollapsingHeader("Mesh Renderer", nullptr, true, true))
+	{
+		ImGui::Checkbox("Cast Shadow", &m_castShadow);
+		ImGui::Checkbox("Receive Shadow", &m_receiveShadow);
+
+		if (ImGui::TreeNode("Materials"))
+		{
+			char scratch[32];
+			for (size_t i = 0; i < m_subMeshes.size(); ++i)
+			{
+				sprintf(scratch, "Material%d", i);
+				if (ImGui::TreeNode(scratch))
+				{
+					ImGui::DragFloat3("Diffuse", reinterpret_cast<float*>(&m_subMeshes[i].m_material.diffuse), 0.01f, 0.0f, 1.0f);
+					ImGui::DragFloat3("Roughness/Metalic/c/DoubleSided", reinterpret_cast<float*>(&m_subMeshes[i].m_material.roughness_metalic_c_doublesided), 0.01f, 0.0f, 1.0f);
+					ImGui::DragFloat("DoubleSided", &m_subMeshes[i].m_material.roughness_metalic_c_doublesided.w, 1.0f, 0.0f, 1.0f);
+					ImGui::TreePop();
+				}
+			}
+			
+			ImGui::TreePop();
+		}
 	}
 }
 
@@ -126,7 +154,7 @@ void Mesh::GatherDrawCall() {
 
 			perframeData->EyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
 
-			perObjData->Mat = m_material;
+			perObjData->Mat = m_subMeshes[iSubMesh].m_material;
 			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 			perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
 			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
@@ -213,6 +241,10 @@ void Mesh::GatherDrawCall() {
 }
 
 void Mesh::GatherShadowDrawCall() {
+	
+	if (!m_castShadow)
+		return;
+	
 	ShadowMapEffect* effect = EffectsManager::Instance()->m_shadowMapEffect.get();
 	UINT stride = sizeof(Vertex::ShadowMapVertex);
 	UINT offset = 0;

@@ -1,4 +1,7 @@
 #include "Scene/GameObject.h"
+#include "imgui.h"
+#include "Math/MathHelper.h"
+
 #include <algorithm>
 
 namespace StenGine
@@ -77,6 +80,42 @@ void GameObject::Update() {
 	if (stricmp("sphere", m_name.c_str()) == 0)
 		RotateAroundY(-Timer::GetDeltaTime() * 3.14159f);
 #endif
+}
+
+void GameObject::DrawMenu()
+{
+	ImGui::Text(m_name.c_str());
+
+	if (ImGui::CollapsingHeader("Transform", nullptr, true, true))
+	{
+		ImGui::Text("Position");
+		XMFLOAT3 pos = GetPosition();
+		char scratch[16];
+		sprintf(scratch, "%f", pos.x);
+		ImGui::Text("X"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0)); ImGui::SameLine();
+		sprintf(scratch, "%f", pos.y);
+		ImGui::Text("Y"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0)); ImGui::SameLine();
+		sprintf(scratch, "%f", pos.z);
+		ImGui::Text("Z"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0));
+
+		ImGui::Text("Rotation");
+		sprintf(scratch, "%f", atan2(m_worldTransform._23, m_worldTransform._33) * 180 / PI);
+		ImGui::Text("X"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0)); ImGui::SameLine();
+		sprintf(scratch, "%f", atan2(-m_worldTransform._13, sqrt(m_worldTransform._23 * m_worldTransform._23 + m_worldTransform._33 * m_worldTransform._33)) * 180 / PI);
+		ImGui::Text("Y"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0)); ImGui::SameLine();
+		sprintf(scratch, "%f", atan2(m_worldTransform._12, m_worldTransform._11) * 180 / PI);
+		ImGui::Text("Z"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0));
+
+		ImGui::Text("Scale");
+		ImGui::Text("X"); ImGui::SameLine(); ImGui::Button("1.0", ImVec2(80, 0)); ImGui::SameLine();
+		ImGui::Text("Y"); ImGui::SameLine(); ImGui::Button("1.0", ImVec2(80, 0)); ImGui::SameLine();
+		ImGui::Text("Z"); ImGui::SameLine(); ImGui::Button("1.0", ImVec2(80, 0));
+	}
+
+	for (auto& component : m_components)
+	{
+		component->DrawMenu();
+	}
 }
 
 }

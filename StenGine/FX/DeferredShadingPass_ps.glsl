@@ -1,12 +1,6 @@
 #version 450
 #extension GL_ARB_bindless_texture : require
 
-struct Material {
-	vec4 ambient;
-	vec4 diffuse;
-	vec4 specular;
-};
-
 struct DirectionalLight {
 	vec4 intensity;
 	vec3 direction;
@@ -94,7 +88,7 @@ void main() {
 	vec2 realUV = pTexUV;
 
 	vec3 normalV = texture(gNormalGMap, realUV).xyz * 2 - 1;
-	vec3 specularFactor = texture(gSpecularGMap, realUV).xyz;
+	vec4 roughness_metalic_c_doublesided = texture(gSpecularGMap, realUV);
 	vec3 diffuseFactor = texture(gDiffuseGMap, realUV).xyz;
 
 	float z = texture(gDepthGMap, realUV).x;
@@ -110,7 +104,7 @@ void main() {
 	vec4 diffColor = vec4(0, 0, 0, 0);
 	vec4 specColor = vec4(0, 0, 0, 0);
 
-	float diffuseK = dot(-gDirLight.direction, normalV);
+	float diffuseK = roughness_metalic_c_doublesided.w > 0.5? abs(dot(-gDirLight.direction, normalV)) : dot(-gDirLight.direction, normalV);
 	float shadowLit = texture(gDiffuseGMap, realUV).w;
 //
 //	if (diffuseK > 0) {
@@ -124,14 +118,14 @@ void main() {
 //	ps_color = (vec4(0.2, 0.2, 0.2, 0) + diffColor * shadowLit) * texture(gDiffuseGMap, realUV) + specColor * shadowLit /*+ float4(1, 1, 1, 1) * vPositionVS.z / 20*/;
 //	//ps_color = texture(gDiffuseGMap, realUV);
 
-	float roughnessFactor = 0.1;
+	float roughnessFactor = roughness_metalic_c_doublesided.x; //0.1;
 
 	vec3 viewRay = normalize(vec3(0, 0, 0) - vPositionVS.xyz);
 	vec3 light = -gDirLight.direction;
 
 	vec3 halfVec = normalize(light + viewRay);
-	float NdotL = clamp(dot(normalV, light), 0.0, 1.0);
-	float NdotH = clamp(dot(normalV, halfVec), 0.0, 1.0);
+	float NdotL = roughness_metalic_c_doublesided.w > 0.5 ? abs(dot(normalV, light)) : clamp(dot(normalV, light), 0.0, 1.0);
+	float NdotH = roughness_metalic_c_doublesided.w > 0.5 ? abs(dot(normalV, halfVec)) : clamp(dot(normalV, halfVec), 0.0, 1.0);
 	float NdotV = clamp(dot(normalV, viewRay), 0.0, 1.0);
 	float VdotH = clamp(dot(viewRay, halfVec), 0.0, 1.0);
 	float LdotH = clamp(dot(light, halfVec), 0.0, 1.0);
@@ -153,7 +147,7 @@ void main() {
 //	float roughness_c = r_sq * NdotH * NdotH;
 
 //	roughness = roughness_a * exp(roughness_b / roughness_c);
-	float c = 1.0f;
+	float c = roughness_metalic_c_doublesided.z; //1.0f;
 	float alpha = acos(dot(normalV, halfVec));
 	roughness = c * exp(-(alpha / r_sq));
 
@@ -175,7 +169,7 @@ void main() {
 	vec3 cDiffuse = diffuseFactor * ((max(0, diffuseK) * gDirLight.intensity.xyz) * shadowLit);
 
 
-	vec3 final = max(0.0f, NdotL) * (clamp(specularFactor * Rs * shadowLit, 0.0, 1.0) + cDiffuse) + vec3(0.2, 0.2, 0.2) * diffuseFactor;
+	vec3 final = max(0.0f, NdotL) * (vec3(clamp(roughness_metalic_c_doublesided.y * Rs * shadowLit, 0.0, 1.0)) + cDiffuse) + vec3(0.2, 0.2, 0.2) * diffuseFactor;
 
 	//vec3 r = vec3(0.2, 0.2, 0.2) + NdotL * (0.8 + (1 - 0.8) * Rs);
 

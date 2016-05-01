@@ -39,6 +39,8 @@ public:
 #endif
 
 	Material m_material;
+
+	virtual void DrawMenu() override;
 };
 
 }

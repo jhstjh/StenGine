@@ -97,22 +97,22 @@ void GameObjectManager::DrawMenu()
 {
 	ImGui::Begin("Scene");
 
-	ImGui::BeginChild("Scene", ImVec2(0, 300), true);
-	if (ImGui::TreeNode("Root"))
+	static int32_t currentItem = -1;
+	std::vector<const char*> names;
+	for (size_t i = 0; i < m_gameObjects.size(); ++i)
 	{
-		for (size_t i = 0; i < m_gameObjects.size(); i++)
-		{
-			const char* name = m_gameObjects[i]->m_name.c_str();
-			if (ImGui::TreeNode(name))
-			{
-				// list children
-				ImGui::TreePop();
-			}
-		}
-		ImGui::TreePop();
+		names.push_back(m_gameObjects[i]->m_name.c_str());
 	}
-	ImGui::EndChild();
+
+	ImGui::ListBox("", &currentItem, names.data(), names.size(), 10);
 	ImGui::End();
+
+	if (currentItem != -1)
+	{
+		ImGui::Begin("Inspector");
+		m_gameObjects[currentItem]->DrawMenu();
+		ImGui::End();
+	}
 }
 
 }

@@ -13,6 +13,8 @@ using namespace DirectX;
 namespace StenGine
 {
 
+static float PI = 3.1415926f;
+
 class MatrixHelper {
 public:
 	inline static XMFLOAT3 GetPosition(const XMFLOAT4X4& mat) { return XMFLOAT3(mat._41, mat._42, mat._43); }

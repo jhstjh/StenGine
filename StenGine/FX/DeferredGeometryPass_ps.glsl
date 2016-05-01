@@ -73,8 +73,8 @@ void main() {
 
 	ps_diff = ((1 - DiffX_NormY_ShadZ.x) * textureLod(gCubeMap, refRay, 3) + DiffX_NormY_ShadZ.x * texture(gDiffuseMap, pIn.pTexUV)) * gMat.diffuse;
 
-	ps_spec = gMat.specular;
-	ps_spec.w /= 255.0f;
+	ps_spec = gMat.roughness_metalic_c_doublesided;
+	//ps_spec.w /= 255.0f;
 
 
 	ps_diff.w = 1.0; // 1: lit, 0: shadow
@@ -82,10 +82,13 @@ void main() {
 
 	shadowTrans.xyz /= shadowTrans.w;
 
-	float epsilon = 0.003;
-	float shadow = texture2D(gShadowMap, shadowTrans.xy).r;
-	shadow += epsilon;
-	if (shadow  < shadowTrans.z) {
-		ps_diff.w = 0.0;
+	if (DiffX_NormY_ShadZ.z > 0)
+	{
+		float epsilon = 0.003;
+		float shadow = texture2D(gShadowMap, shadowTrans.xy).r;
+		shadow += epsilon;
+		if (shadow  < shadowTrans.z) {
+			ps_diff.w = 0.0;
+		}
 	}
 }

@@ -36,6 +36,8 @@ public:
 
 	virtual void Update();
 
+	virtual void DrawMenu();
+
 	friend GameObjectManager;
 };
 

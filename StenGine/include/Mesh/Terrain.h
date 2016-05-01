@@ -26,6 +26,8 @@ public:
 	virtual void GatherDrawCall() override;
 	virtual void GatherShadowDrawCall() override;
 
+	virtual void DrawMenu() override;
+
 private:
 	static const int CellsPerPatch = 64;
 

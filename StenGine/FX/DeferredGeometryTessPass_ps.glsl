@@ -77,14 +77,20 @@ void main() {
 
 	shadowTrans.xyz /= shadowTrans.w;
 
+	ps_spec = gMat.roughness_metalic_c_doublesided;
+
 	//ps_diff = vec4(texture2D(gShadowMap, shadowTrans.xy).r, texture2D(gShadowMap, shadowTrans.xy).r, texture2D(gShadowMap, shadowTrans.xy).r, 1);
 	//ps_diff = vec4(shadowTrans.z, shadowTrans.z, shadowTrans.z, 1);
 	//return;
 
-	float epsilon = 0.003;
-	float shadow = texture2D(gShadowMap, shadowTrans.xy).r;
-	if (shadow + epsilon < shadowTrans.z) {
-		ps_diff.w = 0.0;
+	if (DiffX_NormY_ShadZ.z > 0)
+	{
+		float epsilon = 0.003;
+		float shadow = texture2D(gShadowMap, shadowTrans.xy).r;
+		shadow += epsilon;
+		if (shadow  < shadowTrans.z) {
+			ps_diff.w = 0.0;
+		}
 	}
 
 	//vec3 viewRay = normalize(pPosW - gEyePosW.xyz);

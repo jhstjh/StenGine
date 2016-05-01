@@ -8,6 +8,7 @@
 #include "Scene/LightManager.h"
 #include "Resource/ResourceManager.h"
 #include "Math/MathHelper.h"
+#include "imgui.h"
 
 #if GRAPHICS_OPENGL
 #include "Graphics/OpenGL/GLImageLoader.h"
@@ -415,6 +416,8 @@ void Terrain::GatherShadowDrawCall() {
 	perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()));
 	perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform())));
 
+	XMFLOAT4 resourceMask(0, 0, 0, 0);
+
 	XMMATRIX worldView = XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewMatrix();
 	perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
 
@@ -455,6 +458,14 @@ void Terrain::GatherShadowDrawCall() {
 
 	Renderer::Instance()->AddShadowDrawCmd(cmd);
 
+}
+
+void Terrain::DrawMenu()
+{
+	if (ImGui::CollapsingHeader("Terrain Renderer", nullptr, true, true))
+	{
+
+	}
 }
 
 }

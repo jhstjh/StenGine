@@ -65,6 +65,8 @@ public:
 	virtual void GatherDrawCall() override;
 	virtual void GatherShadowDrawCall() override;
 	void Prepare();
+
+	virtual void DrawMenu() override;
 };
 
 }
