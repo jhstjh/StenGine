@@ -46,17 +46,9 @@ public:
 	std::vector<XMFLOAT2> m_texUVBufferCPU;
 	std::vector<XMFLOAT4> m_colorBufferCPU;
 	std::vector<XMFLOAT3> m_tangentBufferCPU;
-#if GRAPHICS_D3D11
-	ID3D11ShaderResourceView* m_diffuseMapSRV;
-	ID3D11ShaderResourceView* m_normalMapSRV;
-	ID3D11ShaderResourceView* m_bumpMapSRV;
-#else
-	GLuint m_diffuseMap;
-	GLuint m_normalMap;
-#endif
 
-	Material m_material;
 	std::vector<SubMesh> m_subMeshes;
+	std::vector<Material> m_materials;
 	XMFLOAT4X4 m_worldTransform;
 	bool m_castShadow;
 	bool m_receiveShadow;

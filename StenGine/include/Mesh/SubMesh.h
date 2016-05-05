@@ -28,17 +28,11 @@ public:
 
 #if GRAPHICS_D3D11
 	ID3D11Buffer* m_indexBufferGPU;
-	ID3D11ShaderResourceView* m_diffuseMapSRV;
-	ID3D11ShaderResourceView* m_normalMapSRV;
-	ID3D11ShaderResourceView* m_bumpMapSRV;
 #else
 	GLuint m_indexBufferGPU;
-	uint64_t m_diffuseMapTex;
-	uint64_t m_normalMapTex;
-	uint64_t m_bumpMapTex;
 #endif
 
-	Material m_material;
+	uint32_t m_matIndex;
 
 	virtual void DrawMenu() override;
 };

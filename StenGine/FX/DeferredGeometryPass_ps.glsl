@@ -57,7 +57,7 @@ void main() {
 		normalMapNormal = 2.0f * normalMapNormal - 1.0;
 
 		vec3 N = normalize(normal);
-		vec3 T = normalize(pIn.pTangV - dot(pIn.pTangV, N)*N);
+		vec3 T = normalize(dot(pIn.pTangV, N)*N - pIn.pTangV);
 		vec3 B = cross(N, T);
 
 		mat3 TBN = mat3(T, B, N);

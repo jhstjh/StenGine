@@ -144,7 +144,7 @@ public:
 		XMMATRIX World;
 		XMMATRIX ViewProj;
 		XMMATRIX ShadowTransform;
-		Material Mat;
+		Material::MaterialAttrib Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
 	};
 
@@ -163,7 +163,7 @@ public:
 		XMMATRIX WorldView;
 		XMMATRIX ViewProj;
 		XMMATRIX ShadowTransform;
-		Material Mat;
+		Material::MaterialAttrib Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
 		uint64_t DiffuseMap;
 		uint64_t NormalMap;
@@ -215,7 +215,7 @@ public:
 		XMMATRIX ViewProj;
 		XMMATRIX ShadowTransform;
 		XMMATRIX View;
-		Material Mat;
+		Material::MaterialAttrib Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
 
 #if GRAPHICS_OPENGL
@@ -286,7 +286,7 @@ public:
 		XMMATRIX ViewProj;
 		XMMATRIX ShadowTransform;
 		XMMATRIX View;
-		Material Mat;
+		Material::MaterialAttrib Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
 
 #if GRAPHICS_OPENGL
@@ -365,7 +365,7 @@ public:
 		XMMATRIX World;
 		XMMATRIX ViewProj;
 		XMMATRIX ShadowTransform;
-		Material Mat;
+		Material::MaterialAttrib Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
 	} m_perObjConstantBuffer;
 
@@ -384,7 +384,7 @@ public:
 		XMMATRIX World;
 		XMMATRIX WorldView;
 		XMMATRIX ShadowTransform;
-		Material Mat;
+		Material::MaterialAttrib Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
 	} m_perObjUniformBuffer;
 
@@ -718,7 +718,7 @@ public:
 		XMMATRIX World;
 		XMMATRIX WorldView;
 		XMMATRIX ShadowTransform;
-		Material Mat;
+		Material::MaterialAttrib Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
 	} m_perObjUniformBuffer;
 

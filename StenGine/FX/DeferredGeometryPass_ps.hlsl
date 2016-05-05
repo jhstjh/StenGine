@@ -35,7 +35,7 @@ PixelOut main(VertexOut pin)
 		normalMapNormal = 2.0f * normalMapNormal - 1.0;
 
 		float3 N = normalize(pin.NormalV);
-		float3 T = normalize(pin.TangentV - dot(pin.TangentV, N)*N);
+		float3 T = normalize(dot(pin.TangentV, N)*N - pin.TangentV );
 		float3 B = cross(N, T);
 
 		float3x3 TBN = float3x3(T, B, N);

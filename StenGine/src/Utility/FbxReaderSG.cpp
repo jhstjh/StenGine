@@ -4,10 +4,14 @@
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Shlwapi.h"
 #include <sys/stat.h>
+#include <direct.h>
 
 #pragma warning(disable:4244) // conversion from 'fbxsdk_2015_1::FbxDouble' to 'float', possible loss of data
 
-#define USE_MODEL_CACHE 1
+#include "assimp/Importer.hpp"
+#include "assimp/scene.h"
+
+#define USE_MODEL_CACHE 0
 
 namespace StenGine
 {
@@ -20,17 +24,13 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 
 	std::string gFilename = std::string(filename.begin(), filename.end());
 
-	mesh->m_material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f);
-	mesh->m_material.diffuse = XMFLOAT4(1.0f, 0.8f, 0.7f, 1.f);
-	mesh->m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
-
 #if USE_MODEL_CACHE
 	if (ReadModelCache(mesh, filename))
 		return true;
 #endif
 
 	const char* lFilename = gFilename.c_str();
-
+#if 0
 	FbxManager* lSdkManager = FbxManager::Create();
 
 	FbxIOSettings *ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
@@ -64,7 +64,98 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 	lSdkManager->Destroy();
 
 	return true;
+#endif
+
+	auto importer = new Assimp::Importer();
+
+	importer->ReadFile(lFilename, 0);
+
+	auto scene = importer->GetScene();
+
+	mesh->m_subMeshes.resize(scene->mNumMeshes);
+
+	uint32_t counter = 0;
+	for (uint32_t i = 0; i < scene->mNumMeshes; ++i)
+	{
+		auto &fMesh = scene->mMeshes[i];
+		uint32_t triangleCount = fMesh->mNumFaces; // assume it is a triangle
+
+		for (uint32_t t = 0; t < triangleCount; ++t)
+		{
+			mesh->m_subMeshes[i].m_indexBufferCPU.push_back(counter * 3);
+			mesh->m_subMeshes[i].m_indexBufferCPU.push_back(counter * 3 + 1);
+			mesh->m_subMeshes[i].m_indexBufferCPU.push_back(counter * 3 + 2);
+			counter++;
+		}
+	}
+	for (uint32_t i = 0; i < mesh->m_subMeshes.size(); i++) {
+		mesh->m_indexBufferCPU.insert(mesh->m_indexBufferCPU.end(),
+			mesh->m_subMeshes[i].m_indexBufferCPU.begin(),
+			mesh->m_subMeshes[i].m_indexBufferCPU.end());
+	}
+
+	for (uint32_t i = 0; i < scene->mNumMeshes; ++i)
+	{
+		auto &fMesh = scene->mMeshes[i];
+		uint32_t triangleCount = fMesh->mNumFaces; // assume it is a triangle
+
+		mesh->m_subMeshes[i].m_matIndex = fMesh->mMaterialIndex;
+
+		for (uint32_t j = 0; j < fMesh->mNumVertices; j++)
+		{
+			mesh->m_positionBufferCPU.push_back(XMFLOAT3(fMesh->mVertices[j].x, fMesh->mVertices[j].y, fMesh->mVertices[j].z));
+			mesh->m_texUVBufferCPU.push_back(XMFLOAT2(fMesh->mTextureCoords[0][j].x, fMesh->mTextureCoords[0][j].y)); // load first uv set for now
+			mesh->m_normalBufferCPU.push_back(XMFLOAT3(fMesh->mNormals[j].x, fMesh->mNormals[j].y, fMesh->mNormals[j].z));
+			mesh->m_tangentBufferCPU.push_back(XMFLOAT3(fMesh->mTangents[j].x, fMesh->mTangents[j].y, fMesh->mTangents[j].z));
+		}
+	}
+
+	mesh->m_materials.resize(scene->mNumMaterials);
+	for (uint32_t i = 0; i < scene->mNumMaterials; ++i)
+	{
+		
+		auto &fMat = scene->mMaterials[i];
+
+		char dir[512];
+		_getcwd(dir, 512);
+
+		std::string dirStr(dir);
+
+		aiString texPath;
+		if (fMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
+		{
+#if GRAPHICS_D3D11
+			mesh->m_materials[i].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>((dirStr + "\\Model\\" + texPath.C_Str()).c_str());
+#else
+			mesh->m_materials[i].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>((dirStr + "\\Model\\" + texPath.C_Str()).c_str()));
+#endif
+		}
+
+		if (fMat->GetTexture(aiTextureType_NORMALS, 0, &texPath, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
+		{
+#if GRAPHICS_D3D11
+			mesh->m_materials[i].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>((dirStr + "\\Model\\" + texPath.C_Str()).c_str());
+#else
+			mesh->m_materials[i].m_normalMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>((dirStr + "\\Model\\" + texPath.C_Str()).c_str()));
+#endif
+		}
+
+		if (fMat->GetTexture(aiTextureType_DISPLACEMENT, 0, &texPath, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
+		{
+#if GRAPHICS_D3D11
+			mesh->m_materials[i].m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>((dirStr + "\\Model\\" + texPath.C_Str()).c_str());
+#else
+			mesh->m_materials[i].m_bumpMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>((dirStr + "\\Model\\" + texPath.C_Str()).c_str()));
+#endif
+		}
+
+	}
+	delete importer;
+
+	return true;
 }
+
+#if 0
 
 void ReadFbxMesh(FbxNode* node, Mesh* mesh, const std::wstring& filename) {
 	FbxMesh* fbxMesh = node->GetMesh();
@@ -516,5 +607,6 @@ bool ReadModelCache(Mesh* mesh, const std::wstring& filename)
 
 	return true;
 }
+#endif
 
 }

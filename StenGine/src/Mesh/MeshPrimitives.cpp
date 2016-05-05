@@ -160,19 +160,21 @@ void Mesh::CreateBoxPrimitive() {
 	};
 
 	m_subMeshes.resize(1);
+	m_materials.resize(1);
 
-	m_material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f);
-	m_material.diffuse = XMFLOAT4(1.0f, 0.5f, 0.3f, 1.f);
-	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
+	m_materials[0].m_attributes.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f);
+	m_materials[0].m_attributes.diffuse = XMFLOAT4(1.0f, 0.5f, 0.3f, 1.f);
+	m_materials[0].m_attributes.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
 	m_subMeshes[0].m_indexBufferCPU = m_indexBufferCPU;
+	m_subMeshes[0].m_matIndex = 0;
 
 #if PLATFORM_WIN32
 #if GRAPHICS_D3D11
-	m_subMeshes[0].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02.dds");
-	m_subMeshes[0].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02_normal.dds");
+	m_materials[0].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02.dds");
+	m_materials[0].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02_normal.dds");
 #else
-	m_subMeshes[0].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(L"./Model/WoodCrate02.dds"));
-	m_subMeshes[0].m_normalMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(L"./Model/WoodCrate02_normal.dds"));
+	m_materials[0].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(L"./Model/WoodCrate02.dds"));
+	m_materials[0].m_normalMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(L"./Model/WoodCrate02_normal.dds"));
 #endif
 #endif
 }
@@ -217,17 +219,10 @@ void Mesh::CreatePlanePrimitive() {
 		2, 0, 3,
 	};
 
-	m_material.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f);
-	m_material.diffuse = XMFLOAT4(1.0f, 0.5f, 0.3f, 1.f);
-	m_material.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 16.0f);
-
-#if GRAPHICS_D3D11
-	m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/darkbrickdxt1.dds");
-	m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/darkbrickdxt1_normal.dds");
-	m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/darkbrickdxt1_bump.dds");
-#else
-	// gl
-#endif
+	m_materials.resize(1);
+	m_materials[0].m_attributes.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f);
+	m_materials[0].m_attributes.diffuse = XMFLOAT4(1.0f, 0.5f, 0.3f, 1.f);
+	m_materials[0].m_attributes.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 16.0f);
 }
 
 }

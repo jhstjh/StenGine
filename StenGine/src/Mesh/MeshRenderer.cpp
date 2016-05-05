@@ -30,9 +30,6 @@ Mesh::Mesh(int type = 0)
 #if GRAPHICS_D3D11
 	, m_stdMeshVertexBufferGPU(nullptr)
 	, m_shadowMapVertexBufferGPU(nullptr)
-	, m_diffuseMapSRV(nullptr)
-	, m_normalMapSRV(nullptr)
-	, m_bumpMapSRV(nullptr)
 #endif
 {
 	//ObjReader::Read(L"Model/ball.obj", this);
@@ -43,12 +40,6 @@ Mesh::Mesh(int type = 0)
 }
 
 Mesh::~Mesh() {
-#if GRAPHICS_D3D11
-	ReleaseCOM(m_diffuseMapSRV);
-	ReleaseCOM(m_normalMapSRV);
-	ReleaseCOM(m_bumpMapSRV);
-#endif
-
 	SafeDelete(m_shadowMapVertexBufferGPU);
 	SafeDelete(m_stdMeshVertexBufferGPU);
 	SafeDelete(m_indexBufferGPU);
@@ -79,9 +70,9 @@ void Mesh::DrawMenu()
 				sprintf(scratch, "Material%d", i);
 				if (ImGui::TreeNode(scratch))
 				{
-					ImGui::DragFloat3("Diffuse", reinterpret_cast<float*>(&m_subMeshes[i].m_material.diffuse), 0.01f, 0.0f, 1.0f);
-					ImGui::DragFloat3("Roughness/Metalic/c/DoubleSided", reinterpret_cast<float*>(&m_subMeshes[i].m_material.roughness_metalic_c_doublesided), 0.01f, 0.0f, 1.0f);
-					ImGui::DragFloat("DoubleSided", &m_subMeshes[i].m_material.roughness_metalic_c_doublesided.w, 1.0f, 0.0f, 1.0f);
+					ImGui::DragFloat3("Diffuse", reinterpret_cast<float*>(&m_materials[m_subMeshes[i].m_matIndex].m_attributes.diffuse), 0.01f, 0.0f, 1.0f);
+					ImGui::DragFloat3("Roughness/Metalic/c/DoubleSided", reinterpret_cast<float*>(&m_materials[m_subMeshes[i].m_matIndex].m_attributes.roughness_metalic_c_doublesided), 0.01f, 0.0f, 1.0f);
+					ImGui::DragFloat("DoubleSided", &m_materials[m_subMeshes[i].m_matIndex].m_attributes.roughness_metalic_c_doublesided.w, 1.0f, 0.0f, 1.0f);
 					ImGui::TreePop();
 				}
 			}
@@ -126,15 +117,6 @@ void Mesh::GatherDrawCall() {
 	UINT stride = sizeof(Vertex::StdMeshVertex);
 	UINT offset = 0;
 
-#if GRAPHICS_D3D11
-	if (m_subMeshes[0].m_bumpMapSRV)
-#endif
-#if GRAPHICS_OPENGL
-		if (m_subMeshes[0].m_bumpMapTex)
-#endif
-			effect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect.get();
-
-
 	XMFLOAT4 resourceMask(0, 0, 0, 0);
 
 	if (m_receiveShadow)
@@ -143,6 +125,15 @@ void Mesh::GatherDrawCall() {
 	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
 		int startIndex = 0;
 		for (uint32_t iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
+
+#if GRAPHICS_D3D11
+			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapSRV)
+#endif
+#if GRAPHICS_OPENGL
+			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex)
+#endif
+				effect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect.get();
+
 
 			ConstantBuffer cbuffer0(1, sizeof(DeferredGeometryPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB);
 			ConstantBuffer cbuffer1(0, sizeof(DeferredGeometryPassEffect::PEROBJ_CONSTANT_BUFFER), (void*)effect->m_perObjectCB);
@@ -154,7 +145,7 @@ void Mesh::GatherDrawCall() {
 
 			perframeData->EyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
 
-			perObjData->Mat = m_subMeshes[iSubMesh].m_material;
+			perObjData->Mat = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_attributes;
 			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 			perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
 			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
@@ -173,18 +164,18 @@ void Mesh::GatherDrawCall() {
 			perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform())));
 			perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
-			if (m_subMeshes[iSubMesh].m_diffuseMapSRV) {
+			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapSRV) {
 				resourceMask.x = 1;
-				cmd.srvs.AddSRV(m_subMeshes[iSubMesh].m_diffuseMapSRV, 0);
+				cmd.srvs.AddSRV(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapSRV, 0);
 			}
-			if (m_subMeshes[iSubMesh].m_normalMapSRV) {
+			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapSRV) {
 				resourceMask.y = 1;
-				cmd.srvs.AddSRV(m_subMeshes[iSubMesh].m_normalMapSRV, 1);
+				cmd.srvs.AddSRV(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapSRV, 1);
 			}
 
-			if (m_subMeshes[iSubMesh].m_bumpMapSRV) {
+			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapSRV) {
 				cmd.type = PrimitiveTopology::CONTROL_POINT_3_PATCHLIST;
-				cmd.srvs.AddSRV(m_subMeshes[iSubMesh].m_bumpMapSRV, 2);
+				cmd.srvs.AddSRV(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapSRV, 2);
 			}
 			else
 			{
@@ -195,11 +186,11 @@ void Mesh::GatherDrawCall() {
 #endif
 
 #if GRAPHICS_OPENGL
-			if (m_subMeshes[iSubMesh].m_diffuseMapTex > 0)
+			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex > 0)
 				resourceMask.x = 1;
-			if (m_subMeshes[iSubMesh].m_normalMapTex > 0)
+			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex > 0)
 				resourceMask.y = 1;
-			if (m_subMeshes[iSubMesh].m_bumpMapTex > 0)
+			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex > 0)
 			{
 				cmd.type = PrimitiveTopology::CONTROL_POINT_3_PATCHLIST;
 			}
@@ -208,11 +199,11 @@ void Mesh::GatherDrawCall() {
 				cmd.type = PrimitiveTopology::TRIANGLELIST;
 			}
 
-			perObjData->DiffuseMap = m_subMeshes[iSubMesh].m_diffuseMapTex;
-			perObjData->NormalMap = m_subMeshes[iSubMesh].m_normalMapTex;
+			perObjData->DiffuseMap = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex;
+			perObjData->NormalMap = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex;
 			perObjData->ShadowMapTex = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
 			perObjData->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;
-			perObjData->BumpMapTex = m_subMeshes[iSubMesh].m_bumpMapTex;
+			perObjData->BumpMapTex = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex;
 
 			cmd.offset = (void*)(startIndex * sizeof(unsigned int));
 

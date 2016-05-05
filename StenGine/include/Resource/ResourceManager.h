@@ -18,7 +18,6 @@
 #include <assert.h>
 #include "SgmReader.h"
 #endif
-/*class Mesh;*/
 
 namespace StenGine
 {

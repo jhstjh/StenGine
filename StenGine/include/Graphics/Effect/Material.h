@@ -12,11 +12,25 @@ namespace StenGine
 
 class Material {
 public:
-	XMFLOAT4 ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f);;
-	XMFLOAT4 diffuse = XMFLOAT4(1.0f, 0.8f, 0.7f, 1.f);
-	XMFLOAT4 specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
+	struct MaterialAttrib
+	{
+		XMFLOAT4 ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f);;
+		XMFLOAT4 diffuse = XMFLOAT4(1.0f, 0.8f, 0.7f, 1.f);
+		XMFLOAT4 specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
 
-	XMFLOAT4 roughness_metalic_c_doublesided = { 0.1f, 1.0f, 0.6f, 0.0f };
+		XMFLOAT4 roughness_metalic_c_doublesided = { 0.1f, 1.0f, 0.6f, 0.0f };
+	} m_attributes;
+
+#if GRAPHICS_D3D11
+	ID3D11ShaderResourceView* m_diffuseMapSRV = nullptr;
+	ID3D11ShaderResourceView* m_normalMapSRV = nullptr;
+	ID3D11ShaderResourceView* m_bumpMapSRV = nullptr;
+#else
+	uint64_t m_diffuseMapTex = 0;
+	uint64_t m_normalMapTex = 0;
+	uint64_t m_bumpMapTex = 0;
+#endif
+
 };
 
 }

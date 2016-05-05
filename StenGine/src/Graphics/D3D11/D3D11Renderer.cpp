@@ -477,7 +477,7 @@ public:
 		vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		vbd.CPUAccessFlags = 0;
 		vbd.MiscFlags = 0;
-		//vbd.StructureByteStride = 0;
+		vbd.StructureByteStride = 0;
 		D3D11_SUBRESOURCE_DATA vinitData;
 		vinitData.pSysMem = &coordVertexBuffer[0];
 		HR(m_d3d11Device->CreateBuffer(&vbd, &vinitData, &m_gridCoordVertexBufferGPU));
