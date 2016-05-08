@@ -2,7 +2,7 @@
 #include "Graphics/Effect/EffectsManager.h"
 #include "Scene/CameraManager.h"
 #include "Scene/LightManager.h"
-#include "Scene/Component.h"
+#include "Scene/GameObject.h"
 
 #if PLATFORM_WIN32
 #include "Resource/ResourceManager.h"
@@ -17,6 +17,7 @@
 
 #pragma warning(disable: 4312) // 'type cast': conversion from 'GLuint' to 'void *' of greater size
 #pragma warning(disable: 4267) // conversion from 'size_t' to 'UINT', possible loss of data
+#pragma warning(disable: 4996)
 
 namespace StenGine
 {
@@ -67,7 +68,7 @@ void Mesh::DrawMenu()
 			char scratch[32];
 			for (size_t i = 0; i < m_subMeshes.size(); ++i)
 			{
-				sprintf(scratch, "Material%d", i);
+				sprintf(scratch, "Material%zd", i);
 				if (ImGui::TreeNode(scratch))
 				{
 					ImGui::DragFloat3("Diffuse", reinterpret_cast<float*>(&m_materials[m_subMeshes[i].m_matIndex].m_attributes.diffuse), 0.01f, 0.0f, 1.0f);
@@ -146,13 +147,13 @@ void Mesh::GatherDrawCall() {
 			perframeData->EyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
 
 			perObjData->Mat = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_attributes;
-			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
-			perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()));
-			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
+			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+			perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()));
+			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
 			perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
 			XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
 
-			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
+			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
 			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
 			resourceMask.x = 0;
@@ -161,7 +162,7 @@ void Mesh::GatherDrawCall() {
 #if GRAPHICS_D3D11
 			cmd.srvs.AddSRV(Renderer::Instance()->GetSkyBox()->m_cubeMapSRV, 4);
 			cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-			perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetWorldTransform())));
+			perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform())));
 			perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
 			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapSRV) {
@@ -242,7 +243,7 @@ void Mesh::GatherShadowDrawCall() {
 
 	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
 
-		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
+		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
 
 		ConstantBuffer cbuffer0(0, sizeof(ShadowMapEffect::PEROBJ_CONSTANT_BUFFER), (void*)effect->m_perObjectCB);
 		ShadowMapEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (ShadowMapEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();

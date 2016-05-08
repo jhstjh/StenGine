@@ -3,6 +3,7 @@
 #include "Mesh/MeshRenderer.h"
 #include "Resource/ResourceManager.h"
 #include "Mesh/Terrain.h"
+#include "Math/MathHelper.h"
 #include "imgui.h"
 
 #define MIN_SCENE 1
@@ -22,10 +23,9 @@ GameObjectManager::~GameObjectManager()
 
 void GameObjectManager::LoadScene()
 {
-	GameObject* box0 = new GameObject("box0", 0.f, 1.2f, 0.f);
+	GameObject* box0 = new GameObject("box0", 0.f, 1.2f, 0.f, 0.f, PI/5);
 	Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
 	box0->AddComponent(box0Mesh);
-	box0->RotateAroundY(3.14159f / 5);
 	m_gameObjects.push_back(box0);
 
 
@@ -50,13 +50,12 @@ void GameObjectManager::LoadScene()
 	plants0->AddComponent(plants0Mesh);
 	m_gameObjects.push_back(plants0);
 
-	GameObject* house0 = new GameObject("plants0", 0.f, -0.1f, 20.f);
+	GameObject* house0 = new GameObject("house0", 0.f, -0.1f, 20.f, 0.f, PI/2);
 	Mesh* house0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/house.fbx");
 	house0->AddComponent(house0Mesh);
-	house0->RotateAroundY(3.1415926f / 2);
 	m_gameObjects.push_back(house0);
 
-	GameObject* dragon = new GameObject("dragon", 3, 0.2, 0);
+	GameObject* dragon = new GameObject("dragon", 3.f, 0.2f, 0.f);
 	Mesh* dragonMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/dragon.fbx");
 	dragon->AddComponent(dragonMesh);
 	m_gameObjects.push_back(dragon);

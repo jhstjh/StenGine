@@ -335,6 +335,7 @@
     <ClInclude Include="include\Scene\GameObject.h" />
     <ClInclude Include="include\Scene\GameObjectManager.h" />
     <ClInclude Include="include\Scene\LightManager.h" />
+    <ClInclude Include="include\Scene\Transform.h" />
     <ClInclude Include="include\stdafx.h" />
     <ClInclude Include="include\StenGine.h" />
     <ClInclude Include="include\System\AlignedClass.h" />
@@ -373,6 +374,7 @@
     <ClCompile Include="src\Scene\Drawable.cpp" />
     <ClCompile Include="src\Scene\GameObject.cpp" />
     <ClCompile Include="src\Scene\LightManager.cpp" />
+    <ClCompile Include="src\Scene\Transform.cpp" />
     <ClCompile Include="src\stdafx.cpp" />
     <ClCompile Include="src\StenGine.cpp" />
     <ClCompile Include="src\System\GameObjectManager.cpp" />

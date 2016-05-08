@@ -376,6 +376,9 @@
     <ClInclude Include="include\Engine\Console.h">
       <Filter>include\Engine</Filter>
     </ClInclude>
+    <ClInclude Include="include\Scene\Transform.h">
+      <Filter>include\Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -473,6 +476,9 @@
     </ClCompile>
     <ClCompile Include="src\Engine\Console.cpp">
       <Filter>src\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\Transform.cpp">
+      <Filter>src\Mesh</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

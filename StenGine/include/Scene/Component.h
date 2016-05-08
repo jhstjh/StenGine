@@ -1,7 +1,6 @@
 #ifndef __COMPONENT__
 #define __COMPONENT__
 
-#include "GameObject.h"
 #include <vector>
 
 namespace StenGine

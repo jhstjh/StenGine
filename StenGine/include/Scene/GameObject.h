@@ -2,13 +2,9 @@
 #define __GAMEOBJECT__
 
 #include "System/API/PlatformAPIDefs.h"
-
-#if (PLATFORM_WIN32) || (SG_TOOL)
 #include "Graphics/D3DIncludes.h"
-#elif  PLATFORM_ANDROID
-#include "AndroidType.h"
-#endif
 #include "Scene/Component.h"
+#include "Scene/Transform.h"
 
 namespace StenGine
 {
@@ -18,24 +14,32 @@ class GameObjectManager;
 
 class GameObject {
 protected:
-
+	Transform* m_transform;
 	std::vector<Component*> m_components;
 	std::string m_name;
 
 public:
-	XMFLOAT4X4 m_worldTransform;
-	GameObject(const char* name);
-	GameObject(const char* name, float x, float y, float z);
+	GameObject(const char* name, 
+			   float tx = 0, float ty = 0, float tz = 0,
+			   float rx = 0, float ry = 0, float rz = 0,
+			   float sx = 1, float sy = 1, float sz = 1);
 	~GameObject();
-	void SetPosition(float x, float y, float z);
-	XMFLOAT3 GetPosition();
-	void RotateAroundY(float radius);
 	void AddComponent(Component* c);
-	XMFLOAT4X4* GetWorldTransform() { return &m_worldTransform; }
 	Component* GetComponentByIdx(int index) { return m_components[index]; }
 
-	virtual void Update();
+	template <class T>
+	T* GetFirstComponentByType()
+	{
+		for (auto &comp : m_components)
+		{
+			if (dynamic_cast<T*>comp)
+				return comp;
+		}
+	}
 
+	Transform* GetTransform() { return m_transform; };
+
+	virtual void Update();
 	virtual void DrawMenu();
 
 	friend GameObjectManager;

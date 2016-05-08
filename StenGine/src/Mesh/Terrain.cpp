@@ -6,6 +6,7 @@
 #include "Graphics/Effect/ShadowMap.h"
 #include "Scene/CameraManager.h"
 #include "Scene/LightManager.h"
+#include "Scene/GameObject.h"
 #include "Resource/ResourceManager.h"
 #include "Math/MathHelper.h"
 #include "imgui.h"
@@ -340,17 +341,17 @@ void Terrain::GatherDrawCall()
 
 	perObjData->View = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
 	perObjData->ViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
-	perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()));
-	perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform())));
+	perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()));
+	perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform())));
 
-	XMMATRIX worldView = XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
+	XMMATRIX worldView = XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
 	perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
 
 	XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
 	perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
 	perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
-	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
 #if GRAPHICS_D3D11
 	cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
@@ -413,19 +414,19 @@ void Terrain::GatherShadowDrawCall() {
 
 	perObjData->View = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetViewMatrix());
 	perObjData->ViewProj = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
-	perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()));
-	perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[0]->GetWorldTransform())));
+	perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()));
+	perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform())));
 
 	XMFLOAT4 resourceMask(0, 0, 0, 0);
 
-	XMMATRIX worldView = XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewMatrix();
+	XMMATRIX worldView = XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewMatrix();
 	perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
 
 	XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
 	perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
 	//perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
-	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
+	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
 
 #if GRAPHICS_D3D11
 	cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
