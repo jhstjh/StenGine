@@ -66,14 +66,68 @@ void Mesh::DrawMenu()
 		if (ImGui::TreeNode("Materials"))
 		{
 			char scratch[32];
-			for (size_t i = 0; i < m_subMeshes.size(); ++i)
+			for (size_t i = 0; i < m_materials.size(); ++i)
 			{
 				sprintf(scratch, "Material%zd", i);
 				if (ImGui::TreeNode(scratch))
 				{
-					ImGui::DragFloat3("Diffuse", reinterpret_cast<float*>(&m_materials[m_subMeshes[i].m_matIndex].m_attributes.diffuse), 0.01f, 0.0f, 1.0f);
-					ImGui::DragFloat3("Roughness/Metalic/c/DoubleSided", reinterpret_cast<float*>(&m_materials[m_subMeshes[i].m_matIndex].m_attributes.roughness_metalic_c_doublesided), 0.01f, 0.0f, 1.0f);
-					ImGui::DragFloat("DoubleSided", &m_materials[m_subMeshes[i].m_matIndex].m_attributes.roughness_metalic_c_doublesided.w, 1.0f, 0.0f, 1.0f);
+					ImGui::DragFloat3("Diffuse", reinterpret_cast<float*>(&m_materials[i].m_attributes.diffuse), 0.01f, 0.0f, 1.0f);
+					ImGui::DragFloat3("Roughness/Metalic/c/DoubleSided", reinterpret_cast<float*>(&m_materials[i].m_attributes.roughness_metalic_c_doublesided), 0.01f, 0.0f, 1.0f);
+					ImGui::DragFloat("DoubleSided", &m_materials[i].m_attributes.roughness_metalic_c_doublesided.w, 1.0f, 0.0f, 1.0f);
+
+#if GRAPHICS_OPENGL
+					if (m_materials[i].m_diffuseMapTex)
+					{
+						ImGui::Text("Diffuse Map");
+						ImGui::SameLine();
+
+						// TODO need a Texture class to store meta data
+						ImGui::ImageButton((ImTextureID)m_materials[i].m_diffuseMapTex, ImVec2(64, 64));
+					}
+					if (m_materials[i].m_normalMapTex)
+					{
+						ImGui::Text("Normal Map");
+						ImGui::SameLine();
+
+						// TODO need a Texture class to store meta data
+						ImGui::ImageButton((ImTextureID)m_materials[i].m_normalMapTex, ImVec2(64, 64));
+					}
+					if (m_materials[i].m_bumpMapTex)
+					{
+						ImGui::Text("Bump Map");
+						ImGui::SameLine();
+
+						// TODO need a Texture class to store meta data
+						ImGui::ImageButton((ImTextureID)m_materials[i].m_bumpMapTex, ImVec2(64, 64));
+					}
+#endif
+
+#if GRAPHICS_D3D11
+					if (m_materials[i].m_diffuseMapSRV)
+					{
+						ImGui::Text("Diffuse Map");
+						ImGui::SameLine();
+
+						// TODO need a Texture class to store meta data
+						ImGui::ImageButton((ImTextureID)m_materials[i].m_diffuseMapSRV, ImVec2(64, 64));
+					}
+					if (m_materials[i].m_normalMapSRV)
+					{
+						ImGui::Text("Normal Map");
+						ImGui::SameLine();
+
+						// TODO need a Texture class to store meta data
+						ImGui::ImageButton((ImTextureID)m_materials[i].m_normalMapSRV, ImVec2(64, 64));
+					}
+					if (m_materials[i].m_bumpMapSRV)
+					{
+						ImGui::Text("Bump Map");
+						ImGui::SameLine();
+
+						// TODO need a Texture class to store meta data
+						ImGui::ImageButton((ImTextureID)m_materials[i].m_bumpMapSRV, ImVec2(64, 64));
+					}
+#endif
 					ImGui::TreePop();
 				}
 			}
