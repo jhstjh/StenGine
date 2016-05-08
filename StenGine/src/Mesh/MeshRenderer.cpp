@@ -75,59 +75,42 @@ void Mesh::DrawMenu()
 					ImGui::DragFloat3("Roughness/Metalic/c/DoubleSided", reinterpret_cast<float*>(&m_materials[i].m_attributes.roughness_metalic_c_doublesided), 0.01f, 0.0f, 1.0f);
 					ImGui::DragFloat("DoubleSided", &m_materials[i].m_attributes.roughness_metalic_c_doublesided.w, 1.0f, 0.0f, 1.0f);
 
-#if GRAPHICS_OPENGL
+					static const float TEX_CUBE_SIZE = 64.f;
+
 					if (m_materials[i].m_diffuseMapTex)
 					{
 						ImGui::Text("Diffuse Map");
 						ImGui::SameLine();
 
-						// TODO need a Texture class to store meta data
-						ImGui::ImageButton((ImTextureID)m_materials[i].m_diffuseMapTex, ImVec2(64, 64));
+						uint32_t width, height;
+						m_materials[i].m_diffuseMapTex->GetDimension(width, height);
+
+						float scale = min(TEX_CUBE_SIZE / width, TEX_CUBE_SIZE / height);
+						ImGui::ImageButton((ImTextureID)m_materials[i].m_diffuseMapTex->GetTexture(), ImVec2(width * scale, height * scale));
 					}
 					if (m_materials[i].m_normalMapTex)
 					{
 						ImGui::Text("Normal Map");
 						ImGui::SameLine();
 
-						// TODO need a Texture class to store meta data
-						ImGui::ImageButton((ImTextureID)m_materials[i].m_normalMapTex, ImVec2(64, 64));
+						uint32_t width, height;
+						m_materials[i].m_normalMapTex->GetDimension(width, height);
+
+						float scale = min(TEX_CUBE_SIZE / width, TEX_CUBE_SIZE / height);
+						ImGui::ImageButton((ImTextureID)m_materials[i].m_normalMapTex->GetTexture(), ImVec2(width * scale, height * scale));
 					}
 					if (m_materials[i].m_bumpMapTex)
 					{
 						ImGui::Text("Bump Map");
 						ImGui::SameLine();
 
-						// TODO need a Texture class to store meta data
-						ImGui::ImageButton((ImTextureID)m_materials[i].m_bumpMapTex, ImVec2(64, 64));
-					}
-#endif
+						uint32_t width, height;
+						m_materials[i].m_bumpMapTex->GetDimension(width, height);
 
-#if GRAPHICS_D3D11
-					if (m_materials[i].m_diffuseMapSRV)
-					{
-						ImGui::Text("Diffuse Map");
-						ImGui::SameLine();
-
-						// TODO need a Texture class to store meta data
-						ImGui::ImageButton((ImTextureID)m_materials[i].m_diffuseMapSRV, ImVec2(64, 64));
+						float scale = min(TEX_CUBE_SIZE / width, TEX_CUBE_SIZE / height);
+						ImGui::ImageButton((ImTextureID)m_materials[i].m_bumpMapTex->GetTexture(), ImVec2(width * scale, height * scale));
 					}
-					if (m_materials[i].m_normalMapSRV)
-					{
-						ImGui::Text("Normal Map");
-						ImGui::SameLine();
 
-						// TODO need a Texture class to store meta data
-						ImGui::ImageButton((ImTextureID)m_materials[i].m_normalMapSRV, ImVec2(64, 64));
-					}
-					if (m_materials[i].m_bumpMapSRV)
-					{
-						ImGui::Text("Bump Map");
-						ImGui::SameLine();
-
-						// TODO need a Texture class to store meta data
-						ImGui::ImageButton((ImTextureID)m_materials[i].m_bumpMapSRV, ImVec2(64, 64));
-					}
-#endif
 					ImGui::TreePop();
 				}
 			}
@@ -181,14 +164,8 @@ void Mesh::GatherDrawCall() {
 		int startIndex = 0;
 		for (uint32_t iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
 
-#if GRAPHICS_D3D11
-			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapSRV)
-#endif
-#if GRAPHICS_OPENGL
 			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex)
-#endif
 				effect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect.get();
-
 
 			ConstantBuffer cbuffer0(1, sizeof(DeferredGeometryPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB);
 			ConstantBuffer cbuffer1(0, sizeof(DeferredGeometryPassEffect::PEROBJ_CONSTANT_BUFFER), (void*)effect->m_perObjectCB);
@@ -219,18 +196,18 @@ void Mesh::GatherDrawCall() {
 			perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform())));
 			perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
-			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapSRV) {
+			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex) {
 				resourceMask.x = 1;
-				cmd.srvs.AddSRV(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapSRV, 0);
+				cmd.srvs.AddSRV(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture(), 0);
 			}
-			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapSRV) {
+			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex) {
 				resourceMask.y = 1;
-				cmd.srvs.AddSRV(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapSRV, 1);
+				cmd.srvs.AddSRV(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture(), 1);
 			}
 
-			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapSRV) {
+			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex) {
 				cmd.type = PrimitiveTopology::CONTROL_POINT_3_PATCHLIST;
-				cmd.srvs.AddSRV(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapSRV, 2);
+				cmd.srvs.AddSRV(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex->GetTexture(), 2);
 			}
 			else
 			{
@@ -242,23 +219,26 @@ void Mesh::GatherDrawCall() {
 
 #if GRAPHICS_OPENGL
 			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex > 0)
+			{
 				resourceMask.x = 1;
+				perObjData->DiffuseMap = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture();
+			}
 			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex > 0)
+			{
 				resourceMask.y = 1;
+				perObjData->NormalMap = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture();
+			}
 			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex > 0)
 			{
 				cmd.type = PrimitiveTopology::CONTROL_POINT_3_PATCHLIST;
+				perObjData->BumpMapTex = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex->GetTexture();
 			}
 			else
 			{
 				cmd.type = PrimitiveTopology::TRIANGLELIST;
 			}
-
-			perObjData->DiffuseMap = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex;
-			perObjData->NormalMap = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex;
 			perObjData->ShadowMapTex = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
 			perObjData->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;
-			perObjData->BumpMapTex = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex;
 
 			cmd.offset = (void*)(startIndex * sizeof(unsigned int));
 

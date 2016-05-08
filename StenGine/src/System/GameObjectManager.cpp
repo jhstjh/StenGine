@@ -103,7 +103,7 @@ void GameObjectManager::DrawMenu()
 		names.push_back(m_gameObjects[i]->m_name.c_str());
 	}
 
-	ImGui::ListBox("", &currentItem, names.data(), names.size(), 10);
+	ImGui::ListBox("", &currentItem, names.data(), (int32_t)names.size(), 10);
 	ImGui::End();
 
 	if (currentItem != -1)

@@ -379,6 +379,12 @@
     <ClInclude Include="include\Scene\Transform.h">
       <Filter>include\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="include\Graphics\OpenGL\GLTexture.h">
+      <Filter>include\Graphics\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\Abstraction\Texture.h">
+      <Filter>include\Graphics\Abstraction</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -479,6 +485,9 @@
     </ClCompile>
     <ClCompile Include="src\Scene\Transform.cpp">
       <Filter>src\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\OpenGL\GLTexture.cpp">
+      <Filter>src\Graphics\OpenGL</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

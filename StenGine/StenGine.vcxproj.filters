@@ -376,6 +376,12 @@
     <ClInclude Include="include\Scene\Transform.h">
       <Filter>include\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="include\Graphics\Abstraction\Texture.h">
+      <Filter>include\Graphics\Abstraction</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\D3D11\D3D11Texture.h">
+      <Filter>include\Graphics\D3D11</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -474,6 +480,10 @@
     </ClCompile>
     <ClCompile Include="src\Scene\Transform.cpp">
       <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="include\Graphics\D3D11\D3D11Texture.cpp" />
+    <ClCompile Include="src\Graphics\D3D11\D3D11Texture.cpp">
+      <Filter>src\Graphics\D3D11</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

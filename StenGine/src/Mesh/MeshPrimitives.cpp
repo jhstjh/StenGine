@@ -170,11 +170,11 @@ void Mesh::CreateBoxPrimitive() {
 
 #if PLATFORM_WIN32
 #if GRAPHICS_D3D11
-	m_materials[0].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02.dds");
-	m_materials[0].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(L"./Model/WoodCrate02_normal.dds");
+	m_materials[0].m_diffuseMapTex = ResourceManager::Instance()->GetResource<Texture>(L"./Model/WoodCrate02.dds");
+	m_materials[0].m_normalMapTex = ResourceManager::Instance()->GetResource<Texture>(L"./Model/WoodCrate02_normal.dds");
 #else
-	m_materials[0].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(L"./Model/WoodCrate02.dds"));
-	m_materials[0].m_normalMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>(L"./Model/WoodCrate02_normal.dds"));
+	m_materials[0].m_diffuseMapTex = (ResourceManager::Instance()->GetResource<Texture>(L"./Model/WoodCrate02.dds"));
+	m_materials[0].m_normalMapTex = (ResourceManager::Instance()->GetResource<Texture>(L"./Model/WoodCrate02_normal.dds"));
 #endif
 #endif
 }

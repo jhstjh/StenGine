@@ -22,9 +22,9 @@ Terrain::Terrain(InitInfo &info) :
 	m_quadPatchVB(0),
 	m_quadPatchIB(0),
 #if GRAPHICS_D3D11
-	m_layerMapArraySRV(0),
-	m_blendMapSRV(0),
-	m_heightMapSRV(0),
+	m_layerMapArrayTex(0),
+	m_blendMapTex(0),
+	m_heightMapTex(0),
 #endif
 	m_numPatchVertices(0),
 	m_numPatchQuadFaces(0),
@@ -47,19 +47,12 @@ Terrain::Terrain(InitInfo &info) :
 	BuildQuadPatchIB();
 	BuildHeightMapSRV();
 
-#if GRAPHICS_D3D11
-	m_blendMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(m_initInfo.BlendMapFilename);
-	m_layerMapArraySRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>(m_initInfo.LayerMapFilenames);
-#endif
-
-#if GRAPHICS_OPENGL
-	m_blendMapTex = *ResourceManager::Instance()->GetResource<uint64_t>(m_initInfo.BlendMapFilename);
-	m_layerMapArrayTex = *ResourceManager::Instance()->GetResource<uint64_t>(m_initInfo.LayerMapFilenames);
-#endif
-
+	m_blendMapTex = ResourceManager::Instance()->GetResource<Texture>(m_initInfo.BlendMapFilename);
+	m_layerMapArrayTex = ResourceManager::Instance()->GetResource<Texture>(m_initInfo.LayerMapFilenames);
 }
 
 Terrain::~Terrain() {
+	SafeDelete(m_heightMapTex);
 	SafeDelete(m_quadPatchIB);
 	SafeDelete(m_quadPatchVB);
 }
@@ -218,7 +211,11 @@ void Terrain::BuildHeightMapSRV() {
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MostDetailedMip = 0;
 	srvDesc.Texture2D.MipLevels = -1;
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateShaderResourceView(hmapTex, &srvDesc, &m_heightMapSRV));
+
+	ID3D11ShaderResourceView* heightMapSRV;
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateShaderResourceView(hmapTex, &srvDesc, &heightMapSRV));
+
+	m_heightMapTex = new Texture(m_initInfo.HeightmapWidth, m_initInfo.HeightmapHeight, heightMapSRV);
 
 	// SRV saves reference.
 	ReleaseCOM(hmapTex);
@@ -243,8 +240,7 @@ void Terrain::BuildHeightMapSRV() {
 
 	glDeleteBuffers(1, &pbo);
 
-	m_heightMapTex = glGetTextureHandleARB(hmapTex);
-	glMakeTextureHandleResidentARB(m_heightMapTex); // TODO make it non resident
+	m_heightMapTex = new Texture(m_initInfo.HeightmapWidth, m_initInfo.HeightmapHeight, hmapTex);
 #endif
 }
 
@@ -355,16 +351,16 @@ void Terrain::GatherDrawCall()
 
 #if GRAPHICS_D3D11
 	cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-	cmd.srvs.AddSRV(m_heightMapSRV, 5);
-	cmd.srvs.AddSRV(m_layerMapArraySRV, 6);
-	cmd.srvs.AddSRV(m_blendMapSRV, 7);
+	cmd.srvs.AddSRV(m_heightMapTex->GetTexture(), 5);
+	cmd.srvs.AddSRV(m_layerMapArrayTex->GetTexture(), 6);
+	cmd.srvs.AddSRV(m_blendMapTex->GetTexture(), 7);
 #endif
 
 #if GRAPHICS_OPENGL
 	perObjData->gShadowMap = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
-	perObjData->gHeightMap = m_heightMapTex;
-	perObjData->gLayerMapArray = m_layerMapArrayTex;
-	perObjData->gBlendMap = m_blendMapTex;
+	perObjData->gHeightMap = m_heightMapTex->GetTexture();
+	perObjData->gLayerMapArray = m_layerMapArrayTex->GetTexture();
+	perObjData->gBlendMap = m_blendMapTex->GetTexture();
 #endif
 
 	cmd.drawType = DrawType::INDEXED;
@@ -430,16 +426,16 @@ void Terrain::GatherShadowDrawCall() {
 
 #if GRAPHICS_D3D11
 	cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-	cmd.srvs.AddSRV(m_heightMapSRV, 5);
-	cmd.srvs.AddSRV(m_layerMapArraySRV, 6);
-	cmd.srvs.AddSRV(m_blendMapSRV, 7);
+	cmd.srvs.AddSRV(m_heightMapTex->GetTexture(), 5);
+	cmd.srvs.AddSRV(m_layerMapArrayTex->GetTexture(), 6);
+	cmd.srvs.AddSRV(m_blendMapTex->GetTexture(), 7);
 #endif
 
 #if GRAPHICS_OPENGL
 	perObjData->gShadowMap = LightManager::Instance()->m_shadowMap->GetDepthTex();
-	perObjData->gHeightMap = m_heightMapTex;
-	perObjData->gLayerMapArray = m_layerMapArrayTex;
-	perObjData->gBlendMap = m_blendMapTex;
+	perObjData->gHeightMap = m_heightMapTex->GetTexture();
+	perObjData->gLayerMapArray = m_layerMapArrayTex->GetTexture();
+	perObjData->gBlendMap = m_blendMapTex->GetTexture();
 #endif
 
 	cmd.drawType = DrawType::INDEXED;

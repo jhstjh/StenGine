@@ -6,7 +6,7 @@
 namespace StenGine
 {
 
-GLuint CreateGLTextureFromFile(const char* filename)
+GLuint CreateGLTextureFromFile(const char* filename, uint32_t* width, uint32_t* height)
 {
 	gli::texture Texture = gli::load(filename);
 	if (Texture.empty())
@@ -141,10 +141,14 @@ GLuint CreateGLTextureFromFile(const char* filename)
 			}
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	glDeleteBuffers(1, &pbo);
+
+	if (width) *width = Texture.extent(0).x;
+	if (height) *height = Texture.extent(0).y;
+
 	return TextureName;
 }
 
-GLuint CreateGLTextureArrayFromFiles(std::vector<std::wstring>& filenames)
+GLuint CreateGLTextureArrayFromFiles(std::vector<std::wstring>& filenames, uint32_t* width, uint32_t* height)
 {
 	std::vector<gli::texture> Textures;
 	uint32_t totalSize = 0;
@@ -220,6 +224,9 @@ GLuint CreateGLTextureArrayFromFiles(std::vector<std::wstring>& filenames)
 	glDeleteBuffers(1, &pbo);
 
 	glGenerateTextureMipmap(texArray);
+
+	if (width) *width = Textures[0].extent(0).x;
+	if (height) *height = Textures[0].extent(0).y;
 	return texArray;
 }
 

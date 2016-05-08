@@ -124,29 +124,17 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 		aiString texPath;
 		if (fMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
 		{
-#if GRAPHICS_D3D11
-			mesh->m_materials[i].m_diffuseMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>((dirStr + "\\Model\\" + texPath.C_Str()).c_str());
-#else
-			mesh->m_materials[i].m_diffuseMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>((dirStr + "\\Model\\" + texPath.C_Str()).c_str()));
-#endif
+			mesh->m_materials[i].m_diffuseMapTex = ResourceManager::Instance()->GetResource<Texture>((dirStr + "\\Model\\" + texPath.C_Str()).c_str());
 		}
 
 		if (fMat->GetTexture(aiTextureType_NORMALS, 0, &texPath, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
 		{
-#if GRAPHICS_D3D11
-			mesh->m_materials[i].m_normalMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>((dirStr + "\\Model\\" + texPath.C_Str()).c_str());
-#else
-			mesh->m_materials[i].m_normalMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>((dirStr + "\\Model\\" + texPath.C_Str()).c_str()));
-#endif
+			mesh->m_materials[i].m_normalMapTex = ResourceManager::Instance()->GetResource<Texture>((dirStr + "\\Model\\" + texPath.C_Str()).c_str());
 		}
 
 		if (fMat->GetTexture(aiTextureType_DISPLACEMENT, 0, &texPath, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
 		{
-#if GRAPHICS_D3D11
-			mesh->m_materials[i].m_bumpMapSRV = ResourceManager::Instance()->GetResource<ID3D11ShaderResourceView>((dirStr + "\\Model\\" + texPath.C_Str()).c_str());
-#else
-			mesh->m_materials[i].m_bumpMapTex = *(ResourceManager::Instance()->GetResource<uint64_t>((dirStr + "\\Model\\" + texPath.C_Str()).c_str()));
-#endif
+			mesh->m_materials[i].m_bumpMapTex = ResourceManager::Instance()->GetResource<Texture>((dirStr + "\\Model\\" + texPath.C_Str()).c_str());
 		}
 
 	}

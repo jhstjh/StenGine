@@ -2,6 +2,7 @@
 #define __MATERIAL__
 
 #include "System/API/PlatformAPIDefs.h"
+#include "Graphics/Abstraction/Texture.h"
 
 #if PLATFORM_WIN32
 #include "Graphics/D3DIncludes.h"
@@ -21,15 +22,9 @@ public:
 		XMFLOAT4 roughness_metalic_c_doublesided = { 0.1f, 1.0f, 0.6f, 0.0f };
 	} m_attributes;
 
-#if GRAPHICS_D3D11
-	ID3D11ShaderResourceView* m_diffuseMapSRV = nullptr;
-	ID3D11ShaderResourceView* m_normalMapSRV = nullptr;
-	ID3D11ShaderResourceView* m_bumpMapSRV = nullptr;
-#else
-	uint64_t m_diffuseMapTex = 0;
-	uint64_t m_normalMapTex = 0;
-	uint64_t m_bumpMapTex = 0;
-#endif
+	Texture* m_diffuseMapTex = nullptr;
+	Texture* m_normalMapTex = nullptr;
+	Texture* m_bumpMapTex = nullptr;
 
 };
 

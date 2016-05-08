@@ -9,9 +9,9 @@
 namespace StenGine
 {
 
-GLuint CreateGLTextureFromFile(const char* filename);
+GLuint CreateGLTextureFromFile(const char* filename, uint32_t* width = nullptr, uint32_t* height = nullptr);
 
-GLuint CreateGLTextureArrayFromFiles(std::vector<std::wstring> &filenames);
+GLuint CreateGLTextureArrayFromFiles(std::vector<std::wstring> &filenames, uint32_t* width = nullptr, uint32_t* height = nullptr);
 
 }
 

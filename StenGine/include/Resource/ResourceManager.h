@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include "Mesh/MeshRenderer.h"
 #include "System/SingletonClass.h"
+#include "Graphics/Abstraction/Texture.h"
 
 #if GRAPHICS_OPENGL
 #include "Graphics/OpenGL/GLImageLoader.h"
@@ -14,9 +15,6 @@
 #include "Graphics/D3DIncludes.h"
 #include <type_traits>
 #include "Utility/FbxReaderSG.h"
-#elif  PLATFORM_ANDROID
-#include <assert.h>
-#include "SgmReader.h"
 #endif
 
 namespace StenGine
@@ -54,96 +52,95 @@ public:
 	}
 
 	template <typename T>
-	T* GetResource(std::wstring path) {
-		if (std::is_same<T, Mesh>::value) {
-			auto got = m_meshResourceMap.find(path);
-			if (got == m_meshResourceMap.end()) {
-				if (path == L"GenerateBox") {
-					Mesh* box = new Mesh(0);
-					box->Prepare();
-					m_meshResourceMap[L"GenerateBox"] = box;
-					return (T*)box;
-				}
-				else if (path == L"GeneratePlane") {
-					Mesh* plane = new Mesh(1);
-					plane->Prepare();
-					m_meshResourceMap[L"GeneratePlane"] = plane;
-					return (T*)plane;
-				}
-				else {
-#if PLATFORM_WIN32
-					Mesh* newMesh = new Mesh(2);
-					bool result = FbxReaderSG::Read(path, newMesh);
-					assert(result);
-					newMesh->Prepare();
-					m_meshResourceMap[path] = newMesh;
-
-					return (T*)newMesh;
-#elif (PLATFORM_ANDROID)
-					Mesh* newMesh = new Mesh(2);
-
-					std::string _path(path.begin(), path.end());
-					bool result = SgmReader::Read(_path, newMesh);
-					assert(result);
-					newMesh->Prepare();
-					m_meshResourceMap[path] = newMesh;
-
-					return (T*)newMesh;
-#endif
-				}
-
-			}
-			else {
-				return (T*)got->second;
-			}
-		}
-		//#if PLATFORM_WIN32
-#if GRAPHICS_D3D11
-		else if (std::is_same<T, ID3D11ShaderResourceView>::value) {
-			auto got = m_textureSRVResourceMap.find(path);
-			if (got == m_textureSRVResourceMap.end()) {
-				ID3D11ShaderResourceView* texSRV;
-				HR(CreateDDSTextureFromFile(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice()),
-					path.c_str(), nullptr, &texSRV));
-				m_textureSRVResourceMap[path] = texSRV;
-				return (T*)texSRV;
-			}
-			else {
-				return (T*)got->second;
-			}
-		}
-#else
-		else if (std::is_same<T, uint64_t>::value) {
-			auto got = m_textureResourceMap.find(path);
-			if (got == m_textureResourceMap.end()) {
-				std::string s(path.begin(), path.end());
-				GLuint tex = CreateGLTextureFromFile(s.c_str());
-				assert(tex != 0);
-				uint64_t texHandle = glGetTextureHandleARB(tex);
-				glMakeTextureHandleResidentARB(texHandle);
-				m_textureResourceMap[path] = texHandle;
-				return (T*)&m_textureResourceMap[path];
-			}
-			else {
-				return (T*)&(got->second);
-			}
-		}
-#endif
-		//#endif
+	T* GetResource(std::wstring path) 
+	{
 		return nullptr;
 	}
 
+	template <>
+	Mesh* GetResource<Mesh>(std::wstring path) 
+	{
+		auto got = m_meshResourceMap.find(path);
+		if (got == m_meshResourceMap.end()) 
+		{
+			if (path == L"GenerateBox") 
+			{
+				Mesh* box = new Mesh(0);
+				box->Prepare();
+				m_meshResourceMap[L"GenerateBox"] = box;
+				return box;
+			}
+			else if (path == L"GeneratePlane") 
+			{
+				Mesh* plane = new Mesh(1);
+				plane->Prepare();
+				m_meshResourceMap[L"GeneratePlane"] = plane;
+				return plane;
+			}
+			else 
+			{
+				Mesh* newMesh = new Mesh(2);
+				bool result = FbxReaderSG::Read(path, newMesh);
+				assert(result);
+				newMesh->Prepare();
+				m_meshResourceMap[path] = newMesh;
+
+				return newMesh;
+			}
+		}
+		else 
+		{
+			return got->second;
+		}
+	}
+
+	template <>
+	Texture* GetResource<Texture>(std::wstring path) 
+	{
+
+#if GRAPHICS_D3D11
+			auto got = m_textureResourceMap.find(path);
+			if (got == m_textureResourceMap.end()) 
+			{
+				ID3D11ShaderResourceView* texSRV;
+				ID3D11Texture2D* texRes;
+				HR(CreateDDSTextureFromFile(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice()),
+					path.c_str(), (ID3D11Resource**)(&texRes), &texSRV));
+
+				D3D11_TEXTURE2D_DESC texElementDesc;
+				texRes->GetDesc(&texElementDesc);
+
+				m_textureResourceMap[path] = new Texture(texElementDesc.Width, texElementDesc.Height, texSRV);
+			}
+			return m_textureResourceMap[path];
+#endif
+#if GRAPHICS_OPENGL
+			auto got = m_textureResourceMap.find(path);
+			if (got == m_textureResourceMap.end()) {
+				std::string s(path.begin(), path.end());
+				uint32_t width, height;
+				GLuint tex = CreateGLTextureFromFile(s.c_str(), &width, &height);
+				assert(tex != 0);
+
+				m_textureResourceMap[path] = new Texture(width, height, tex);
+			}
+			return m_textureResourceMap[path];
+#endif
+		return nullptr;
+	}
+
+	// cubemap
 	template <typename T>
 	T* GetResource(std::vector<std::wstring> &filenames) {
 #if GRAPHICS_D3D11
-		if (std::is_same<T, ID3D11ShaderResourceView>::value) {
+		if (std::is_same<T, Texture>::value) {
 			//
 			// Load the texture elements individually from file.  These textures
 			// won't be used by the GPU (0 bind flags), they are just used to 
 			// load the image data from file.  We use the STAGING usage so the
 			// CPU can read the resource.
 			//
-			UINT size = filenames.size();
+			UINT size = (UINT)filenames.size();
 			std::vector<ID3D11Texture2D*> srcTex(size);
 			auto device = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice());
 			for (UINT i = 0; i < size; ++i)
@@ -206,10 +203,11 @@ public:
 			viewDesc.Texture2DArray.ArraySize = size;
 			HR(device->CreateShaderResourceView(texArray, &viewDesc, &textureArraySRV));
 
-			return textureArraySRV;
+			return new Texture(texArrayDesc.Width, texArrayDesc.Height, textureArraySRV);
 		}
-#else
-		if (std::is_same<T, uint64_t>::value) {
+#endif
+#if GRAPHICS_OPENGL
+		if (std::is_same<T, Texture>::value) {
 			std::wstring paths;
 
 			for (auto &filename : filenames)
@@ -219,22 +217,16 @@ public:
 
 			auto got = m_textureResourceMap.find(paths);
 			if (got == m_textureResourceMap.end()) {
-				
-				GLuint tex = CreateGLTextureArrayFromFiles(filenames);
+				uint32_t width, height;
+				GLuint tex = CreateGLTextureArrayFromFiles(filenames, &width, &height);
 				assert(tex != 0);
 
 				glTextureParameteri(tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				glTextureParameteri(tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-				uint64_t texHandle = glGetTextureHandleARB(tex);
-				glMakeTextureHandleResidentARB(texHandle);
-
-				m_textureResourceMap[paths] = texHandle;
-				return (T*)&m_textureResourceMap[paths];
+				m_textureResourceMap[paths] = new Texture(width, height, tex);
 			}
-			else {
-				return (T*)&(got->second);
-			}
+			return m_textureResourceMap[paths];
 		}
 #endif
 	}
@@ -244,10 +236,12 @@ public:
 private:
 	std::unordered_map<std::wstring, Mesh*> m_meshResourceMap;
 #if GRAPHICS_D3D11
-	std::unordered_map<std::wstring, ID3D11ShaderResourceView*> m_textureSRVResourceMap;
+	//std::unordered_map<std::wstring, ID3D11ShaderResourceView*> m_textureSRVResourceMap;
 #else
-	std::unordered_map<std::wstring, uint64_t> m_textureResourceMap;
+	//std::unordered_map<std::wstring, uint64_t> m_textureResourceMap;
 #endif
+
+	std::unordered_map<std::wstring, Texture*> m_textureResourceMap;
 };
 
 }

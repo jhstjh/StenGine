@@ -160,6 +160,7 @@
     <ClInclude Include="include\Graphics\Abstraction\GPUBuffer.h" />
     <ClInclude Include="include\Graphics\Abstraction\GPUBufferBase.h" />
     <ClInclude Include="include\Graphics\Abstraction\RendererBase.h" />
+    <ClInclude Include="include\Graphics\Abstraction\Texture.h" />
     <ClInclude Include="include\Graphics\Abstraction\UAVBinding.h" />
     <ClInclude Include="include\Graphics\Abstraction\Viewport.h" />
     <ClInclude Include="include\Graphics\Color.h" />
@@ -171,6 +172,7 @@
     <ClInclude Include="include\Graphics\OpenGL\GLBuffer.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLConstantBuffer.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLImageLoader.h" />
+    <ClInclude Include="include\Graphics\OpenGL\GLTexture.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLUAVBinding.h" />
     <ClInclude Include="include\Graphics\UI\ImGuiMenu.h" />
     <ClInclude Include="include\Input\InputManager.h" />
@@ -211,6 +213,7 @@
     <ClCompile Include="src\Graphics\OpenGL\GLConstantBuffer.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\GLImageLoader.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\GLRenderer.cpp" />
+    <ClCompile Include="src\Graphics\OpenGL\GLTexture.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\GLUAVBinding.cpp" />
     <ClCompile Include="src\Graphics\UI\GLImGuiMenu.cpp" />
     <ClCompile Include="src\Input\InputManager.cpp" />
