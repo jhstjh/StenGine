@@ -221,7 +221,7 @@ public:
 #else
 	struct PEROBJ_CONSTANT_BUFFER
 	{
-		XMMATRIX MatrixPalette[16]; // TODO will eventually be in a SSBO/Structured buffer
+		XMMATRIX MatrixPalette[64]; // TODO will eventually be in a SSBO/Structured buffer
 		XMMATRIX WorldViewProj;
 		XMMATRIX World;
 		XMMATRIX WorldView;

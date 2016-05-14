@@ -36,12 +36,10 @@ void GameObjectManager::LoadScene()
 	m_gameObjects.push_back(sphere);
 
 
-	GameObject* zombie = new GameObject("Zombie", 0.f, 3.7f, -0.5f);
-	SkinnedMesh* zombieMesh = ResourceManager::Instance()->GetResource<SkinnedMesh>(L"Model/JointFBX.fbx");
+	GameObject* zombie = new GameObject("Zombie", 10.f, -0.f, -0.5f, 0.f, PI, 0.f, 0.5f, 0.5f, 0.5f);
+	SkinnedMesh* zombieMesh = ResourceManager::Instance()->GetResource<SkinnedMesh>(L"Model/vampire-t-pose.fbx");
 	zombie->AddComponent(zombieMesh);
 	m_gameObjects.push_back(zombie);
-
-
 	
 
 #if !MIN_SCENE || BUILD_RELEASE

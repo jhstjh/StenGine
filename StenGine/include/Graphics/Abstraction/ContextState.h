@@ -143,7 +143,7 @@ struct RasterizerState
 
 	RasterizerState()
 	{
-		cullFaceEnabled = true;
+		cullFaceEnabled = false;
 		frontFace = FrontFace::CW;
 		cullType = CullType::BACK;
 	}

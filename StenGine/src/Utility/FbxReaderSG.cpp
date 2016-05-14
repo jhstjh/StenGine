@@ -70,7 +70,7 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 
 	auto importer = new Assimp::Importer();
 
-	importer->ReadFile(lFilename, aiProcess_Triangulate);
+	importer->ReadFile(lFilename, aiProcess_Triangulate | aiProcess_LimitBoneWeights | aiProcess_FixInfacingNormals | aiProcess_OptimizeGraph | aiProcess_OptimizeMeshes);
 
 	auto scene = importer->GetScene();
 
@@ -159,21 +159,57 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 
 			auto assimp_node = scene->mRootNode;
 
+			const XMMATRIX identityMat = XMMatrixIdentity();
+
 			skinnedMesh->m_jointTranformBufferCPU.resize(fMesh->mNumBones);
+			skinnedMesh->m_jointPreRotationBufferCPU.resize(fMesh->mNumBones, identityMat);
+			skinnedMesh->m_jointRotationBufferCPU.resize(fMesh->mNumBones, identityMat);
 			std::function<void(aiNode*, int32_t)> IndexJoint;
 			IndexJoint = [&](aiNode* node, int32_t parentIdx)
 			{
 				std::string nodeName(node->mName.C_Str());
+				bool isPreRotation = false;
+				bool isRotation = false;
+			   
+				if (nodeName.find("_$AssimpFbx$_PreRotation") != std::string::npos)
+				{
+					nodeName.resize(nodeName.length() - strlen("_$AssimpFbx$_PreRotation"));
+					isPreRotation = true;
+				}
+				else if (nodeName.find("_$AssimpFbx$_Rotation") != std::string::npos)
+				{
+					nodeName.resize(nodeName.length() - strlen("_$AssimpFbx$_Rotation"));
+					isRotation = true;
+				}
+				else if (nodeName.find("_$AssimpFbx$_") != std::string::npos)
+				{
+					printf("%s\r\n", nodeName.c_str());
+				}
+
 				auto entry = mJointNameIndexMap.find(nodeName);
 				if (entry != mJointNameIndexMap.end())
 				{
-					skinnedMesh->m_joints[entry->second].m_parentIdx = parentIdx;
-					parentIdx = entry->second;
-					skinnedMesh->m_jointTranformBufferCPU[entry->second] =
+					XMMATRIX mat =
 						DirectX::XMMATRIX(node->mTransformation[0][0], node->mTransformation[1][0], node->mTransformation[2][0], node->mTransformation[3][0], 
 										  node->mTransformation[0][1], node->mTransformation[1][1], node->mTransformation[2][1], node->mTransformation[3][1], 
 										  node->mTransformation[0][2], node->mTransformation[1][2], node->mTransformation[2][2], node->mTransformation[3][2], 
 										  node->mTransformation[0][3], node->mTransformation[1][3], node->mTransformation[2][3], node->mTransformation[3][3]);
+
+					if (isPreRotation)
+					{
+						skinnedMesh->m_jointPreRotationBufferCPU[entry->second] = mat;
+					}
+					else if (isRotation)
+					{
+						skinnedMesh->m_jointRotationBufferCPU[entry->second] = mat;
+					}
+					else
+					{
+						skinnedMesh->m_joints[entry->second].m_parentIdx = parentIdx;
+						parentIdx = entry->second;
+
+						skinnedMesh->m_jointTranformBufferCPU[entry->second] = mat * skinnedMesh->m_jointPreRotationBufferCPU[entry->second] * skinnedMesh->m_jointRotationBufferCPU[entry->second];
+					}
 				}
 
 				for (uint32_t ic = 0; ic < node->mNumChildren; ic++)
@@ -205,12 +241,12 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 		{
 			mesh->m_materials[i].m_diffuseMapTex = ResourceManager::Instance()->GetResource<Texture>((dirStr + "\\Model\\" + texPath.C_Str()).c_str());
 		}
-
+		
 		if (fMat->GetTexture(aiTextureType_NORMALS, 0, &texPath, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
 		{
 			mesh->m_materials[i].m_normalMapTex = ResourceManager::Instance()->GetResource<Texture>((dirStr + "\\Model\\" + texPath.C_Str()).c_str());
 		}
-
+		
 		if (fMat->GetTexture(aiTextureType_DISPLACEMENT, 0, &texPath, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
 		{
 			mesh->m_materials[i].m_bumpMapTex = ResourceManager::Instance()->GetResource<Texture>((dirStr + "\\Model\\" + texPath.C_Str()).c_str());

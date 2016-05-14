@@ -29,7 +29,7 @@ layout(location = 1) out vec4 ps_diff;
 layout(location = 2) out vec4 ps_spec;
 
 layout(std140) uniform ubPerObj{
-	mat4 gMatrixpalette[16]; // TODO move to SSBO
+	mat4 gMatrixpalette[64]; // TODO move to SSBO
 	mat4 gWorldViewProj;
 	mat4 gWorld;
 	mat4 gWorldView;
