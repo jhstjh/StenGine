@@ -39,8 +39,7 @@ void SkinnedMesh::PrepareMatrixPalette()
 		if (index == -1)
 			return XMMatrixIdentity();
 		else
-			//return m_animation->GetTransform(m_joints[index].m_name + "_$AssimpFbx$_Rotation") * m_animation->GetTransform(m_joints[index].m_name) * m_jointPreRotationBufferCPU[index] * m_jointRotationBufferCPU[index] * CalcTransform(m_joints[index].m_parentIdx);
-			return m_animation->GetTransform(m_joints[index].m_name) * m_animation->GetTransform(m_joints[index].m_name + "_$AssimpFbx$_Rotation") * m_jointPreRotationBufferCPU[index] * m_jointRotationBufferCPU[index] * CalcTransform(m_joints[index].m_parentIdx);
+			return m_animation->GetTransform(m_joints[index].m_name + "_$AssimpFbx$_Rotation") * m_jointPreRotationBufferCPU[index] * m_animation->GetTransform(m_joints[index].m_name) * CalcTransform(m_joints[index].m_parentIdx);
 
 	};
 

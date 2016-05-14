@@ -26,8 +26,6 @@ public:
 	std::vector<std::vector<float> > m_jointIndicesBufferCPU;
 
 	std::vector<XMMATRIX> m_jointPreRotationBufferCPU;
-	std::vector<XMMATRIX> m_jointRotationBufferCPU;
-	std::vector<XMMATRIX> m_jointTranformBufferCPU;
 	std::vector<XMMATRIX> m_jointOffsetTransformCPU;
 	std::vector<XMMATRIX> m_matrixPalette;
 	std::vector<Joint> m_joints;
