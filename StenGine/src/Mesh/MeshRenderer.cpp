@@ -4,12 +4,10 @@
 #include "Scene/LightManager.h"
 #include "Scene/GameObject.h"
 
-#if PLATFORM_WIN32
 #include "Resource/ResourceManager.h"
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Utility/ObjReader.h"
 #include "Graphics/Effect/ShadowMap.h"
-#endif
 
 #include "Graphics/Effect/Skybox.h"
 #include "Math/MathHelper.h"
@@ -29,7 +27,7 @@ Mesh::Mesh(int type = 0)
 	, m_associatedEffect(nullptr)
 	, m_associatedDeferredEffect(nullptr)
 #if GRAPHICS_D3D11
-	, m_stdMeshVertexBufferGPU(nullptr)
+	, m_vertexBufferGPU(nullptr)
 	, m_shadowMapVertexBufferGPU(nullptr)
 #endif
 {
@@ -42,7 +40,7 @@ Mesh::Mesh(int type = 0)
 
 Mesh::~Mesh() {
 	SafeDelete(m_shadowMapVertexBufferGPU);
-	SafeDelete(m_stdMeshVertexBufferGPU);
+	SafeDelete(m_vertexBufferGPU);
 	SafeDelete(m_indexBufferGPU);
 }
 
@@ -140,7 +138,7 @@ void Mesh::PrepareGPUBuffer()
 		vertices[k].TexUV = m_texUVBufferCPU[i];
 	}
 
-	m_stdMeshVertexBufferGPU = new GPUBuffer(vertices.size() * sizeof(Vertex::StdMeshVertex), BufferUsage::IMMUTABLE, (void*)&vertices.front(), BufferType::VERTEX_BUFFER);
+	m_vertexBufferGPU = new GPUBuffer(vertices.size() * sizeof(Vertex::StdMeshVertex), BufferUsage::IMMUTABLE, (void*)&vertices.front(), BufferType::VERTEX_BUFFER);
 	m_indexBufferGPU = new GPUBuffer(m_indexBufferCPU.size() * sizeof(UINT), BufferUsage::IMMUTABLE, (void*)&m_indexBufferCPU.front(), BufferType::INDEX_BUFFER);
 }
 
@@ -250,7 +248,7 @@ void Mesh::GatherDrawCall() {
 			cmd.drawType = DrawType::INDEXED;
 			cmd.inputLayout = effect->GetInputLayout();
 			cmd.framebuffer = Renderer::Instance()->GetGbuffer();
-			cmd.vertexBuffer = (void*)m_stdMeshVertexBufferGPU->GetBuffer();
+			cmd.vertexBuffer = (void*)m_vertexBufferGPU->GetBuffer();
 			cmd.indexBuffer = (void*)m_indexBufferGPU->GetBuffer();
 			cmd.vertexStride = stride;
 			cmd.vertexOffset = offset;

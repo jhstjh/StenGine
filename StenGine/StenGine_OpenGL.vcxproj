@@ -131,6 +131,8 @@
     <None Include="FX\DeferredGeometryTessPass_ds.glsl" />
     <None Include="FX\DeferredGeometryTessPass_vs.glsl" />
     <None Include="FX\DeferredShadingPass_ps.glsl" />
+    <None Include="FX\DeferredSkinnedGeometryPass_ps.glsl" />
+    <None Include="FX\DeferredSkinnedGeometryPass_vs.glsl" />
     <None Include="FX\GodRay_ps.glsl" />
     <None Include="FX\HBlur_cs.glsl" />
     <None Include="FX\imgui_ps.glsl" />

@@ -570,7 +570,7 @@ public:
 		// TODO put every graphics call into cmdlist
 		
 		//DrawGodRay();
-		DrawDebug();
+		//DrawDebug();
 
 		// TEST
 		ImGui::NewFrame();

@@ -15,6 +15,7 @@ GLTexture::GLTexture(uint32_t width, uint32_t height, GLuint tex)
 GLTexture::~GLTexture()
 {
 	glMakeTextureHandleNonResidentARB(m_textureHandle);
+	glDeleteTextures(1, &m_texture);
 }
 
 }

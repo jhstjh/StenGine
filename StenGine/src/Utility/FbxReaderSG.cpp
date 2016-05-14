@@ -2,6 +2,7 @@
 #include <fbxsdk.h>
 #include "Resource/ResourceManager.h"
 #include "Graphics/Abstraction/RendererBase.h"
+#include "Mesh/SkinnedMesh.h"
 #include "Shlwapi.h"
 #include <sys/stat.h>
 #include <direct.h>
@@ -10,6 +11,7 @@
 
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
+#include "assimp/postprocess.h"
 
 #define USE_MODEL_CACHE 0
 
@@ -68,7 +70,7 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 
 	auto importer = new Assimp::Importer();
 
-	importer->ReadFile(lFilename, 0);
+	importer->ReadFile(lFilename, aiProcess_Triangulate);
 
 	auto scene = importer->GetScene();
 
@@ -101,12 +103,89 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 
 		mesh->m_subMeshes[i].m_matIndex = fMesh->mMaterialIndex;
 
+		mesh->m_positionBufferCPU.reserve(fMesh->mNumVertices);
+		mesh->m_texUVBufferCPU.reserve(fMesh->mNumVertices);
+		mesh->m_normalBufferCPU.reserve(fMesh->mNumVertices);
+		mesh->m_tangentBufferCPU.reserve(fMesh->mNumVertices);
+
 		for (uint32_t j = 0; j < fMesh->mNumVertices; j++)
 		{
 			mesh->m_positionBufferCPU.push_back(XMFLOAT3(fMesh->mVertices[j].x, fMesh->mVertices[j].y, fMesh->mVertices[j].z));
 			mesh->m_texUVBufferCPU.push_back(XMFLOAT2(fMesh->mTextureCoords[0][j].x, fMesh->mTextureCoords[0][j].y)); // load first uv set for now
 			mesh->m_normalBufferCPU.push_back(XMFLOAT3(fMesh->mNormals[j].x, fMesh->mNormals[j].y, fMesh->mNormals[j].z));
 			mesh->m_tangentBufferCPU.push_back(XMFLOAT3(fMesh->mTangents[j].x, fMesh->mTangents[j].y, fMesh->mTangents[j].z));
+		}
+
+		if (fMesh->HasBones())
+		{
+			std::unordered_map<std::string, uint32_t> mJointNameIndexMap;
+
+			SkinnedMesh* skinnedMesh = dynamic_cast<SkinnedMesh*>(mesh);
+			if (skinnedMesh)
+			{
+				skinnedMesh->m_jointWeightsBufferCPU.resize(fMesh->mNumVertices);
+				skinnedMesh->m_jointIndicesBufferCPU.resize(fMesh->mNumVertices);
+
+				skinnedMesh->m_jointOffsetTransformCPU.resize(fMesh->mNumBones);
+				skinnedMesh->m_joints.resize(fMesh->mNumBones);
+
+				for (uint32_t j = 0; j < fMesh->mNumBones; j++)
+				{
+					const auto &bone = fMesh->mBones[j];
+					skinnedMesh->m_joints[j].m_index = j;
+					skinnedMesh->m_joints[j].m_name = std::string(bone->mName.C_Str());
+					mJointNameIndexMap.emplace(bone->mName.C_Str(), j);
+					skinnedMesh->m_joints[j].m_inverseBindPosMat =
+						DirectX::XMMATRIX(bone->mOffsetMatrix[0][0], bone->mOffsetMatrix[1][0], bone->mOffsetMatrix[2][0], bone->mOffsetMatrix[3][0], 
+										  bone->mOffsetMatrix[0][1], bone->mOffsetMatrix[1][1], bone->mOffsetMatrix[2][1], bone->mOffsetMatrix[3][1], 
+										  bone->mOffsetMatrix[0][2], bone->mOffsetMatrix[1][2], bone->mOffsetMatrix[2][2], bone->mOffsetMatrix[3][2], 
+										  bone->mOffsetMatrix[0][3], bone->mOffsetMatrix[1][3], bone->mOffsetMatrix[2][3], bone->mOffsetMatrix[3][3]);
+					for (uint32_t k = 0; k < bone->mNumWeights; k++)
+					{
+						auto weight = bone->mWeights[k];
+						uint32_t vertexIdx = weight.mVertexId;
+						skinnedMesh->m_jointWeightsBufferCPU[vertexIdx].push_back(weight.mWeight);
+						skinnedMesh->m_jointIndicesBufferCPU[vertexIdx].push_back(j);
+					}
+				}
+			}
+
+			for (uint32_t j = 0; j < fMesh->mNumVertices; j++)
+			{
+				// Only support up to 4 joint weights
+				skinnedMesh->m_jointWeightsBufferCPU[j].resize(4, 0.f); 
+				skinnedMesh->m_jointIndicesBufferCPU[j].resize(4, 0.f);
+			}
+
+			auto assimp_node = scene->mRootNode;
+
+			skinnedMesh->m_jointTranformBufferCPU.resize(fMesh->mNumBones);
+			std::function<void(aiNode*, int32_t)> IndexJoint;
+			IndexJoint = [&](aiNode* node, int32_t parentIdx)
+			{
+				std::string nodeName(node->mName.C_Str());
+				auto entry = mJointNameIndexMap.find(nodeName);
+				if (entry != mJointNameIndexMap.end())
+				{
+					skinnedMesh->m_joints[entry->second].m_parentIdx = parentIdx;
+					parentIdx = entry->second;
+					skinnedMesh->m_jointTranformBufferCPU[entry->second] =
+						DirectX::XMMATRIX(node->mTransformation[0][0], node->mTransformation[1][0], node->mTransformation[2][0], node->mTransformation[3][0], 
+										  node->mTransformation[0][1], node->mTransformation[1][1], node->mTransformation[2][1], node->mTransformation[3][1], 
+										  node->mTransformation[0][2], node->mTransformation[1][2], node->mTransformation[2][2], node->mTransformation[3][2], 
+										  node->mTransformation[0][3], node->mTransformation[1][3], node->mTransformation[2][3], node->mTransformation[3][3]);
+				}
+
+				for (uint32_t ic = 0; ic < node->mNumChildren; ic++)
+				{
+					IndexJoint(node->mChildren[ic], parentIdx);
+				}
+			};
+
+			IndexJoint(scene->mRootNode, -1);
+
+			int aassas = scene->mNumAnimations;
+
 		}
 	}
 

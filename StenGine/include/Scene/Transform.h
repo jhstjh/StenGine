@@ -29,6 +29,8 @@ private:
 	XMVECTOR m_rotation;
 	XMVECTOR m_scale;
 
+	XMFLOAT3 m_pos;
+
 	XMFLOAT4X4 m_worldTransform;
 };
 

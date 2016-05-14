@@ -27,7 +27,7 @@ class Effect;
 class Mesh : public Component, public Drawable {
 protected:
 	GPUBuffer* m_indexBufferGPU;
-	GPUBuffer* m_stdMeshVertexBufferGPU;
+	GPUBuffer* m_vertexBufferGPU;
 	GPUBuffer* m_shadowMapVertexBufferGPU;
 
 	Effect* m_associatedEffect;

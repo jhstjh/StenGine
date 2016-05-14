@@ -119,8 +119,6 @@ public:
 	std::vector<Mesh*> m_associatedMeshes;
 };
 
-#if PLATFORM_WIN32
-
 class DeferredGeometryPassEffect : public Effect {
 
 public:
@@ -186,6 +184,72 @@ public:
 
 //--------------------------------------------------------------------//
 
+class DeferredSkinnedGeometryPassEffect : public Effect {
+
+public:
+	DeferredSkinnedGeometryPassEffect(const std::wstring& filename);
+	DeferredSkinnedGeometryPassEffect(const std::wstring& vsPath,
+		const std::wstring& psPath,
+		const std::wstring& gsPath,
+		const std::wstring& hsPath,
+		const std::wstring& dsPath);
+	~DeferredSkinnedGeometryPassEffect();
+
+	void PrepareBuffer();
+
+#if GRAPHICS_D3D11
+	struct PEROBJ_CONSTANT_BUFFER
+	{
+		XMMATRIX WorldViewProj;
+		XMMATRIX WorldViewInvTranspose;
+		XMMATRIX WorldInvTranspose;
+		XMMATRIX WorldView;
+		XMMATRIX World;
+		XMMATRIX ViewProj;
+		XMMATRIX ShadowTransform;
+		Material::MaterialAttrib Mat;
+		XMFLOAT4 DiffX_NormY_ShadZ;
+	};
+
+	struct PERFRAME_CONSTANT_BUFFER
+	{
+		XMFLOAT4 EyePosW;
+	};
+
+	ID3D11Buffer* m_perFrameCB;
+	ID3D11Buffer* m_perObjectCB;
+#else
+	struct PEROBJ_CONSTANT_BUFFER
+	{
+		XMMATRIX MatrixPalette[16]; // TODO will eventually be in a SSBO/Structured buffer
+		XMMATRIX WorldViewProj;
+		XMMATRIX World;
+		XMMATRIX WorldView;
+		XMMATRIX ViewProj;
+		XMMATRIX ShadowTransform;
+		Material::MaterialAttrib Mat;
+		
+		XMFLOAT4 DiffX_NormY_ShadZ;
+		uint64_t DiffuseMap;
+		uint64_t NormalMap;
+		uint64_t ShadowMapTex;
+		uint64_t BumpMapTex;
+		uint64_t CubeMapTex;
+	};
+
+	struct PERFRAME_CONSTANT_BUFFER
+	{
+		XMFLOAT4 EyePosW;
+		DirectionalLight DirLight;
+	};
+
+	GLuint m_perFrameCB;
+	GLuint m_perObjectCB;
+#endif
+};
+
+
+//--------------------------------------------------------------------//
 
 class DeferredGeometryTerrainPassEffect : public Effect {
 public:
@@ -326,81 +390,6 @@ public:
 	};
 };
 
-//--------------------------------------------------------------------//
-
-class DeferredGeometrySkinnedPassEffect : public Effect {
-private:
-#if GRAPHICS_D3D11
-	ID3D11Buffer* m_perFrameCB;
-	ID3D11Buffer* m_perObjectCB;
-#else
-	GLuint m_perFrameUBO;
-	GLuint m_perObjectUBO;
-
-	GLint DiffuseMapPosition;
-	GLint NormalMapPosition;
-	GLint ShadowMapPosition;
-	GLint CubeMapPosition;
-#endif
-
-public:
-	DeferredGeometrySkinnedPassEffect(const std::wstring& filename);
-	DeferredGeometrySkinnedPassEffect(const std::wstring& vsPath,
-		const std::wstring& psPath,
-		const std::wstring& gsPath,
-		const std::wstring& hsPath,
-		const std::wstring& dsPath);
-	~DeferredGeometrySkinnedPassEffect();
-
-	virtual void UpdateConstantBuffer();
-	virtual void BindConstantBuffer();
-	virtual void BindShaderResource();
-#if GRAPHICS_D3D11
-	struct PEROBJ_CONSTANT_BUFFER
-	{
-		XMMATRIX WorldViewProj;
-		XMMATRIX WorldViewInvTranspose;
-		XMMATRIX WorldInvTranspose;
-		XMMATRIX WorldView;
-		XMMATRIX World;
-		XMMATRIX ViewProj;
-		XMMATRIX ShadowTransform;
-		Material::MaterialAttrib Mat;
-		XMFLOAT4 DiffX_NormY_ShadZ;
-	} m_perObjConstantBuffer;
-
-	struct PERFRAME_CONSTANT_BUFFER
-	{
-		XMFLOAT4 EyePosW;
-	} m_perFrameConstantBuffer;
-
-	virtual PEROBJ_CONSTANT_BUFFER* GetPerObjConstantBuffer() { return &m_perObjConstantBuffer; }
-	virtual PERFRAME_CONSTANT_BUFFER* GetPerFrameConstantBuffer() { return &m_perFrameConstantBuffer; }
-	//ID3D11ShaderResourceView *m_shaderResources[5];
-#else
-	struct PEROBJ_UNIFORM_BUFFER
-	{
-		XMMATRIX WorldViewProj;
-		XMMATRIX World;
-		XMMATRIX WorldView;
-		XMMATRIX ShadowTransform;
-		Material::MaterialAttrib Mat;
-		XMFLOAT4 DiffX_NormY_ShadZ;
-	} m_perObjUniformBuffer;
-
-	struct PERFRAME_UNIFORM_BUFFER
-	{
-		XMFLOAT4 EyePosW;
-		DirectionalLight DirLight;
-	} m_perFrameUniformBuffer;
-
-	GLint DiffuseMap;
-	GLint NormalMap;
-	GLint ShadowMapTex;
-	GLint CubeMapTex;
-
-#endif
-};
 //--------------------------------------------------------------------//
 
 
@@ -690,71 +679,7 @@ public:
 
 /**************************************************************/
 
-#else
 
-class SimpleMeshEffect : public Effect {
-private:
-	GLuint m_perFrameUBO;
-	GLuint m_perObjectUBO;
-
-	//GLint DiffuseMapPosition;
-	//GLint NormalMapPosition;
-	//GLint ShadowMapPosition;
-	//GLint CubeMapPosition;
-
-public:
-	SimpleMeshEffect(const std::string& filename);
-	SimpleMeshEffect(const std::string& vsPath,
-		const std::string& psPath);
-	~SimpleMeshEffect();
-
-	virtual void UpdateConstantBuffer();
-	virtual void BindConstantBuffer();
-	//virtual void BindShaderResource();
-
-	struct PEROBJ_UNIFORM_BUFFER
-	{
-		XMMATRIX WorldViewProj;
-		XMMATRIX World;
-		XMMATRIX WorldView;
-		XMMATRIX ShadowTransform;
-		Material::MaterialAttrib Mat;
-		XMFLOAT4 DiffX_NormY_ShadZ;
-	} m_perObjUniformBuffer;
-
-	struct PERFRAME_UNIFORM_BUFFER
-	{
-		XMFLOAT4 EyePosW;
-		DirectionalLight DirLight;
-	} m_perFrameUniformBuffer;
-
-	//GLint DiffuseMap;
-	//GLint NormalMap;
-	//GLint ShadowMapTex;
-	//GLint CubeMapTex;
-};
-
-class DebugLineEffect : public Effect {
-private:
-	GLuint m_perObjectUBO;
-
-public:
-	DebugLineEffect(const std::string &filename);
-	DebugLineEffect(const char* vsPath, const char* psPath);
-	~DebugLineEffect();
-
-	virtual void UpdateConstantBuffer();
-	virtual void BindConstantBuffer();
-
-	struct PEROBJ_UNIFORM_BUFFER
-	{
-		Mat4 ViewProj;
-	}
-	m_perObjUniformBuffer;
-};
-
-
-#endif
 
 class EffectsManager : public SingletonClass<EffectsManager> {
 public:
@@ -766,7 +691,7 @@ public:
 	std::unique_ptr<ShadowMapEffect> m_shadowMapEffect;
 	std::unique_ptr<TerrainShadowMapEffect> m_terrainShadowMapEffect;
 	std::unique_ptr<DeferredGeometryPassEffect> m_deferredGeometryPassEffect;
-	std::unique_ptr<DeferredGeometrySkinnedPassEffect> m_deferredGeometrySkinnedPassEffect;
+	std::unique_ptr<DeferredSkinnedGeometryPassEffect> m_deferredSkinnedGeometryPassEffect;
 	std::unique_ptr<DeferredGeometryTerrainPassEffect> m_deferredGeometryTerrainPassEffect;
 	std::unique_ptr<DeferredGeometryTessPassEffect> m_deferredGeometryTessPassEffect;
 	std::unique_ptr<DeferredShadingPassEffect> m_deferredShadingPassEffect;

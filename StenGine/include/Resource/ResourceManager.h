@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include "Mesh/MeshRenderer.h"
+#include "Mesh/SkinnedMesh.h"
 #include "System/SingletonClass.h"
 #include "Graphics/Abstraction/Texture.h"
 
@@ -91,6 +92,26 @@ public:
 		else 
 		{
 			return got->second;
+		}
+	}
+
+	template <>
+	SkinnedMesh* GetResource<SkinnedMesh>(std::wstring path)
+	{
+		auto got = m_meshResourceMap.find(path);
+		if (got == m_meshResourceMap.end()) 
+		{
+			SkinnedMesh* newMesh = new SkinnedMesh();
+			bool result = FbxReaderSG::Read(path, newMesh);
+			assert(result);
+			newMesh->Prepare();
+			m_meshResourceMap[path] = newMesh;
+
+			return newMesh;
+		}
+		else 
+		{
+			return dynamic_cast<SkinnedMesh*>(got->second);
 		}
 	}
 

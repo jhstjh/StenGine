@@ -33,7 +33,7 @@ struct SkinnedMeshVertex {
 	DirectX::XMFLOAT3 Tangent;
 	DirectX::XMFLOAT2 TexUV;
 	DirectX::XMFLOAT4 JointWeights;
-	DirectX::XMUINT4  JointIndices;
+	DirectX::XMFLOAT4  JointIndices;
 };
 
 struct TerrainVertex {
