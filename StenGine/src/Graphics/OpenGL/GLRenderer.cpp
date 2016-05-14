@@ -517,7 +517,8 @@ public:
 
 				if (cmd.flags & CmdFlag::DRAW)
 				{
-					glBindVertexArray((GLuint)cmd.inputLayout);
+					if (cmd.inputLayout)
+						glBindVertexArray((GLuint)cmd.inputLayout);
 
 					if (cmd.vertexBuffer)
 						glBindVertexBuffer(0, (GLuint)cmd.vertexBuffer, cmd.vertexOffset, cmd.vertexStride);
@@ -561,7 +562,7 @@ public:
 
 	void Draw() override {
 		EnterFrame();
-
+		
 		DrawShadowMap();
 		DrawGBuffer();
 		DrawDeferredShading();
@@ -570,8 +571,8 @@ public:
 		// TODO put every graphics call into cmdlist
 		
 		//DrawGodRay();
-		//DrawDebug();
-
+		DrawDebug();
+		
 		// TEST
 		ImGui::NewFrame();
 		//ImGui::ShowTestWindow();
