@@ -3,6 +3,7 @@
 #include "Scene/Component.h"
 #include "Mesh/MeshRenderer.h"
 #include "Mesh/Skeleton.h"
+#include "Graphics/Animation/Animation.h"
 
 using namespace DirectX;
 
@@ -19,7 +20,7 @@ struct Joint {
 class SkinnedMesh : public Mesh {
 public:
 	SkinnedMesh();
-	~SkinnedMesh();
+	virtual ~SkinnedMesh();
 
 	std::vector<std::vector<float> > m_jointWeightsBufferCPU;
 	std::vector<std::vector<float> > m_jointIndicesBufferCPU;
@@ -36,6 +37,8 @@ public:
 
 	virtual void DrawMenu() override {}
 
+	void SetAnimation(Animation* animation) { m_animation = animation; }
+
 private:
 
 	void PrepareMatrixPalette();
@@ -43,10 +46,7 @@ private:
 	virtual void PrepareGPUBuffer() override;
 	virtual void PrepareShadowMapBuffer() override;
 
-	Skeleton* m_skeleton;
-
-	GLuint m_ssbo;
-
+	Animation* m_animation;
 };
 
 }

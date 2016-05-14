@@ -6,6 +6,7 @@
 #include "Mesh/SkinnedMesh.h"
 #include "System/SingletonClass.h"
 #include "Graphics/Abstraction/Texture.h"
+#include "Graphics/Animation/Animation.h"
 
 #if GRAPHICS_OPENGL
 #include "Graphics/OpenGL/GLImageLoader.h"
@@ -112,6 +113,26 @@ public:
 		else 
 		{
 			return dynamic_cast<SkinnedMesh*>(got->second);
+		}
+	}
+
+	template <>
+	Animation* GetResource<Animation>(std::wstring path)
+	{
+		auto got = m_animationResourceMap.find(path);
+		if (got == m_animationResourceMap.end())
+		{
+			Animation* newAnimation = new Animation();
+			bool result = FbxReaderSG::Read(path, newAnimation);
+			assert(result);
+
+			m_animationResourceMap[path] = newAnimation;
+
+			return newAnimation;
+		}
+		else
+		{
+			return dynamic_cast<Animation*>(got->second);
 		}
 	}
 
@@ -256,13 +277,8 @@ public:
 
 private:
 	std::unordered_map<std::wstring, Mesh*> m_meshResourceMap;
-#if GRAPHICS_D3D11
-	//std::unordered_map<std::wstring, ID3D11ShaderResourceView*> m_textureSRVResourceMap;
-#else
-	//std::unordered_map<std::wstring, uint64_t> m_textureResourceMap;
-#endif
-
 	std::unordered_map<std::wstring, Texture*> m_textureResourceMap;
+	std::unordered_map<std::wstring, Animation*> m_animationResourceMap;
 };
 
 }

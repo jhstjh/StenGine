@@ -2,6 +2,7 @@
 #include <fbxsdk.h>
 #include "Resource/ResourceManager.h"
 #include "Graphics/Abstraction/RendererBase.h"
+#include "Graphics/Animation/Animation.h"
 #include "Mesh/SkinnedMesh.h"
 #include "Shlwapi.h"
 #include <sys/stat.h>
@@ -115,7 +116,7 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 			mesh->m_normalBufferCPU.push_back(XMFLOAT3(fMesh->mNormals[j].x, fMesh->mNormals[j].y, fMesh->mNormals[j].z));
 			mesh->m_tangentBufferCPU.push_back(XMFLOAT3(fMesh->mTangents[j].x, fMesh->mTangents[j].y, fMesh->mTangents[j].z));
 		}
-
+		
 		if (fMesh->HasBones())
 		{
 			std::unordered_map<std::string, uint32_t> mJointNameIndexMap;
@@ -208,7 +209,7 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 						skinnedMesh->m_joints[entry->second].m_parentIdx = parentIdx;
 						parentIdx = entry->second;
 
-						skinnedMesh->m_jointTranformBufferCPU[entry->second] = mat * skinnedMesh->m_jointPreRotationBufferCPU[entry->second] * skinnedMesh->m_jointRotationBufferCPU[entry->second];
+						skinnedMesh->m_jointTranformBufferCPU[entry->second] = mat /** skinnedMesh->m_jointPreRotationBufferCPU[entry->second] * skinnedMesh->m_jointRotationBufferCPU[entry->second]*/;
 					}
 				}
 
@@ -219,9 +220,6 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 			};
 
 			IndexJoint(scene->mRootNode, -1);
-
-			int aassas = scene->mNumAnimations;
-
 		}
 	}
 
@@ -253,6 +251,66 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 		}
 
 	}
+	delete importer;
+
+	return true;
+}
+
+bool FbxReaderSG::Read(const std::wstring& filename, Animation* animation) {
+
+	std::string gFilename = std::string(filename.begin(), filename.end());
+
+	const char* lFilename = gFilename.c_str();
+
+	auto importer = new Assimp::Importer();
+
+	importer->ReadFile(lFilename, aiProcess_Triangulate | aiProcess_LimitBoneWeights | aiProcess_FixInfacingNormals | aiProcess_OptimizeGraph);
+
+	auto scene = importer->GetScene();
+
+	for (uint32_t i = 0; i < scene->mNumAnimations; i++)
+	{
+		const auto &fAnimation = scene->mAnimations[i];
+
+		for (uint32_t ichannel = 0; ichannel < fAnimation->mNumChannels; ichannel++)
+		{
+			const auto &channel = fAnimation->mChannels[ichannel];
+			AnimationNode &animationNode = animation->m_animations[std::string(channel->mNodeName.C_Str())];
+
+			printf("%s\r\n", channel->mNodeName.C_Str());
+
+			animationNode.position.resize(channel->mNumPositionKeys);
+			animationNode.positionTime.resize(channel->mNumPositionKeys);
+			for (uint32_t iPos = 0; iPos < channel->mNumPositionKeys; iPos++)
+			{
+				const auto &position = channel->mPositionKeys[iPos];
+				XMFLOAT3 xmpos(position.mValue.x, position.mValue.y, position.mValue.z);
+				animationNode.position[iPos] = XMLoadFloat3(&xmpos);
+				animationNode.positionTime[iPos] = position.mTime;
+			}
+
+			animationNode.rotation.resize(channel->mNumRotationKeys);
+			animationNode.rotationTime.resize(channel->mNumRotationKeys);
+			for (uint32_t iRot = 0; iRot < channel->mNumRotationKeys; iRot++)
+			{
+				const auto &rotation = channel->mRotationKeys[iRot];
+				XMFLOAT4 xmrot(rotation.mValue.x, rotation.mValue.y, rotation.mValue.z, rotation.mValue.w);
+				animationNode.rotation[iRot] = XMLoadFloat4(&xmrot);
+				animationNode.rotationTime[iRot] = rotation.mTime;
+			}
+
+			animationNode.scale.resize(channel->mNumScalingKeys);
+			animationNode.scaleTime.resize(channel->mNumScalingKeys);
+			for (uint32_t iScale = 0; iScale < channel->mNumScalingKeys; iScale++)
+			{
+				const auto &scale = channel->mScalingKeys[iScale];
+				XMFLOAT3 xmscale(scale.mValue.x, scale.mValue.y, scale.mValue.z);
+				animationNode.scale[iScale] = XMLoadFloat3(&xmscale);
+				animationNode.scaleTime[iScale] = scale.mTime;
+			}
+		}
+	}
+	
 	delete importer;
 
 	return true;

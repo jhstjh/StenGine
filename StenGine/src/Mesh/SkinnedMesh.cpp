@@ -20,6 +20,7 @@ namespace StenGine
 
 SkinnedMesh::SkinnedMesh() 
 	: Mesh(2) // TODO: just a temporary solution
+	, m_animation(nullptr)
 {
 
 }
@@ -38,7 +39,9 @@ void SkinnedMesh::PrepareMatrixPalette()
 		if (index == -1)
 			return XMMatrixIdentity();
 		else
-			return m_jointTranformBufferCPU[index] * CalcTransform(m_joints[index].m_parentIdx);
+			//return m_animation->GetTransform(m_joints[index].m_name + "_$AssimpFbx$_Rotation") * m_animation->GetTransform(m_joints[index].m_name) * m_jointPreRotationBufferCPU[index] * m_jointRotationBufferCPU[index] * CalcTransform(m_joints[index].m_parentIdx);
+			return m_animation->GetTransform(m_joints[index].m_name) * m_animation->GetTransform(m_joints[index].m_name + "_$AssimpFbx$_Rotation") * m_jointPreRotationBufferCPU[index] * m_jointRotationBufferCPU[index] * CalcTransform(m_joints[index].m_parentIdx);
+
 	};
 
 	for (size_t i = 0; i < m_joints.size(); ++i)
@@ -72,6 +75,9 @@ void SkinnedMesh::PrepareShadowMapBuffer()
 
 void SkinnedMesh::GatherDrawCall()
 {
+	if (m_animation)
+		m_animation->Update();
+
 	PrepareMatrixPalette();
 
 	DeferredSkinnedGeometryPassEffect* effect = EffectsManager::Instance()->m_deferredSkinnedGeometryPassEffect.get();

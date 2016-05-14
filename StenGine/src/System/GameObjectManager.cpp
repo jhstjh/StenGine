@@ -5,6 +5,7 @@
 #include "Resource/ResourceManager.h"
 #include "Mesh/Terrain.h"
 #include "Math/MathHelper.h"
+#include "Graphics/Animation/Animation.h"
 #include "imgui.h"
 
 #define MIN_SCENE 1
@@ -24,23 +25,25 @@ GameObjectManager::~GameObjectManager()
 
 void GameObjectManager::LoadScene()
 {
-	GameObject* box0 = new GameObject("box0", 0.f, 1.2f, 0.f, 0.f, PI / 5);
-	Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
-	box0->AddComponent(box0Mesh);
-	m_gameObjects.push_back(box0);
+	//GameObject* box0 = new GameObject("box0", 0.f, 1.2f, 0.f, 0.f, PI / 5);
+	//Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
+	//box0->AddComponent(box0Mesh);
+	//m_gameObjects.push_back(box0);
+	//
+	//
+	//GameObject* sphere = new GameObject("sphere", 0.f, 3.7f, -0.5f);
+	//Mesh* sphereMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/earth.fbx");
+	//sphere->AddComponent(sphereMesh);
+	//m_gameObjects.push_back(sphere);
 
 
-	GameObject* sphere = new GameObject("sphere", 0.f, 3.7f, -0.5f);
-	Mesh* sphereMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/earth.fbx");
-	sphere->AddComponent(sphereMesh);
-	m_gameObjects.push_back(sphere);
-
-
-	GameObject* zombie = new GameObject("Zombie", 10.f, -0.f, -0.5f, 0.f, PI, 0.f, 0.5f, 0.5f, 0.5f);
-	SkinnedMesh* zombieMesh = ResourceManager::Instance()->GetResource<SkinnedMesh>(L"Model/vampire-t-pose.fbx");
+	GameObject* zombie = new GameObject("Zombie", 10.f, -0.f, -0.5f, 0.f, PI, 0.f);
+	SkinnedMesh* zombieMesh = ResourceManager::Instance()->GetResource<SkinnedMesh>(L"Model/vampire-animated.fbx");
 	zombie->AddComponent(zombieMesh);
 	m_gameObjects.push_back(zombie);
-	
+
+	Animation* animation = ResourceManager::Instance()->GetResource<Animation>(L"Model/vampire-animated.fbx");
+	zombieMesh->SetAnimation(animation);
 
 #if !MIN_SCENE || BUILD_RELEASE
 

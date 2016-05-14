@@ -53,7 +53,7 @@ public:
 	bool m_castShadow;
 	bool m_receiveShadow;
 	Mesh(int type);
-	~Mesh();
+	virtual ~Mesh();
 	virtual void GatherDrawCall() override;
 	virtual void GatherShadowDrawCall() override;
 	void Prepare();

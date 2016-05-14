@@ -165,6 +165,7 @@
     <ClInclude Include="include\Graphics\Abstraction\Texture.h" />
     <ClInclude Include="include\Graphics\Abstraction\UAVBinding.h" />
     <ClInclude Include="include\Graphics\Abstraction\Viewport.h" />
+    <ClInclude Include="include\Graphics\Animation\Animation.h" />
     <ClInclude Include="include\Graphics\Color.h" />
     <ClInclude Include="include\Graphics\D3DIncludes.h" />
     <ClInclude Include="include\Graphics\Effect\EffectsManager.h" />
@@ -207,6 +208,7 @@
   <ItemGroup>
     <ClCompile Include="src\Engine\Console.cpp" />
     <ClCompile Include="src\Engine\EngineBase.cpp" />
+    <ClCompile Include="src\Graphics\Animation\Animation.cpp" />
     <ClCompile Include="src\Graphics\Color.cpp" />
     <ClCompile Include="src\Graphics\Effect\EffectsManager.cpp" />
     <ClCompile Include="src\Graphics\Effect\ShadowMap.cpp" />

@@ -92,6 +92,12 @@
     <Filter Include="src\Engine">
       <UniqueIdentifier>{06a4a628-5047-4305-a7e0-471402991af8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Graphics\Animation">
+      <UniqueIdentifier>{bb505fb6-acfe-4f2f-848d-ae1324eabf30}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Graphics\Animation">
+      <UniqueIdentifier>{e244f084-d001-4257-bcad-2584b784909d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -391,6 +397,9 @@
     <ClInclude Include="include\Graphics\Abstraction\Texture.h">
       <Filter>include\Graphics\Abstraction</Filter>
     </ClInclude>
+    <ClInclude Include="include\Graphics\Animation\Animation.h">
+      <Filter>include\Graphics\Animation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -494,6 +503,9 @@
     </ClCompile>
     <ClCompile Include="src\Graphics\OpenGL\GLTexture.cpp">
       <Filter>src\Graphics\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Animation\Animation.cpp">
+      <Filter>src\Graphics\Animation</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
