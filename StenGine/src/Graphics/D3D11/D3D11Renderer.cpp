@@ -429,7 +429,7 @@ public:
 
 
 		DirectionalLight* dLight = new DirectionalLight();
-		dLight->intensity = XMFLOAT4(1, 1, 1, 1);
+		dLight->intensity = XMFLOAT4(1.5f, 1.5f, 1.5f, 1);
 		dLight->direction = MatrixHelper::NormalizeFloat3(XMFLOAT3(-0.5, -2, 1));
 		dLight->castShadow = 1;
 

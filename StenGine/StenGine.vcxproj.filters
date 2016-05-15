@@ -92,6 +92,12 @@
     <Filter Include="include\Engine">
       <UniqueIdentifier>{bc0b8e77-9003-4843-b6ec-17d3c7d397fe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Graphics\Animation">
+      <UniqueIdentifier>{329813c1-e749-46ee-84a1-bd776d703ace}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Animation">
+      <UniqueIdentifier>{3cfe2199-899a-4c46-8dbd-6c47d240db76}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -382,6 +388,9 @@
     <ClInclude Include="include\Graphics\D3D11\D3D11Texture.h">
       <Filter>include\Graphics\D3D11</Filter>
     </ClInclude>
+    <ClInclude Include="include\Graphics\Animation\Animation.h">
+      <Filter>include\Graphics\Animation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -481,9 +490,11 @@
     <ClCompile Include="src\Scene\Transform.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="include\Graphics\D3D11\D3D11Texture.cpp" />
     <ClCompile Include="src\Graphics\D3D11\D3D11Texture.cpp">
       <Filter>src\Graphics\D3D11</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Animation\Animation.cpp">
+      <Filter>src\Animation</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

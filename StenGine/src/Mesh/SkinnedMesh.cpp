@@ -38,7 +38,7 @@ void SkinnedMesh::PrepareMatrixPalette()
 	for (int64_t i = m_joints.size() - 1; i >= 0; --i)
 	{
 		m_toRootTransform[i] = m_animation->GetTransform(m_joints[i].m_name + "_$AssimpFbx$_Rotation") * m_jointPreRotationBufferCPU[i] * m_animation->GetTransform(m_joints[i].m_name) * (m_joints[i].m_parentIdx == -1? IDENTITY_MAT : m_toRootTransform[m_joints[i].m_parentIdx]);
-		m_matrixPalette[i] = m_joints[i].m_inverseBindPosMat * m_toRootTransform[i];
+		m_matrixPalette[i] = TRASNPOSE_API_CHOOSER(m_joints[i].m_inverseBindPosMat * m_toRootTransform[i]);
 	}
 }
 
@@ -80,9 +80,6 @@ void SkinnedMesh::GatherDrawCall()
 		int startIndex = 0;
 		for (uint32_t iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
 
-			//if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex)
-			//	effect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect.get();
-
 			ConstantBuffer cbuffer0(1, sizeof(DeferredSkinnedGeometryPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB);
 			ConstantBuffer cbuffer1(0, sizeof(DeferredSkinnedGeometryPassEffect::PEROBJ_CONSTANT_BUFFER), (void*)effect->m_perObjectCB);
 
@@ -103,10 +100,15 @@ void SkinnedMesh::GatherDrawCall()
 			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
 			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
-			for (size_t iMat = 0; iMat < m_matrixPalette.size(); iMat++)
-			{
-				perObjData->MatrixPalette[iMat] = m_matrixPalette[iMat];
-			}
+			//glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, effect->m_matrixPaletteSB, 0, sizeof(XMMATRIX) * m_matrixPalette.size());
+			//void* ssbo = glMapNamedBufferRange(
+			//	effect->m_matrixPaletteSB,
+			//	0,
+			//	sizeof(XMMATRIX) * m_matrixPalette.size(),
+			//	GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+			//);
+			//memcpy(ssbo, &m_matrixPalette[0], sizeof(XMMATRIX) * m_matrixPalette.size());
+			//glUnmapNamedBuffer(effect->m_matrixPaletteSB);
 
 			resourceMask.x = 0;
 			resourceMask.y = 0;
@@ -149,12 +151,6 @@ void SkinnedMesh::GatherDrawCall()
 				resourceMask.y = 1;
 				perObjData->NormalMap = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture();
 			}
-			//if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex > 0)
-			//{
-			//	cmd.type = PrimitiveTopology::CONTROL_POINT_3_PATCHLIST;
-			//	perObjData->BumpMapTex = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex->GetTexture();
-			//}
-			//else
 			{
 				cmd.type = PrimitiveTopology::TRIANGLELIST;
 			}
@@ -223,10 +219,15 @@ void SkinnedMesh::GatherShadowDrawCall()
 			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
 			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
 
-			for (size_t iMat = 0; iMat < m_matrixPalette.size(); iMat++)
-			{
-				perObjData->MatrixPalette[iMat] = m_matrixPalette[iMat];
-			}
+			glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, effect->m_matrixPaletteSB, 0, sizeof(XMMATRIX) * m_matrixPalette.size());
+			void* ssbo = glMapNamedBufferRange(
+				effect->m_matrixPaletteSB,
+				0,
+				sizeof(XMMATRIX) * m_matrixPalette.size(),
+				GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+			);
+			memcpy(ssbo, &m_matrixPalette[0], sizeof(XMMATRIX) * m_matrixPalette.size());
+			glUnmapNamedBuffer(effect->m_matrixPaletteSB);
 
 #if GRAPHICS_D3D11
 			cmd.offset = (void*)(startIndex);

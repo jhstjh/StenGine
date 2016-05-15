@@ -22,8 +22,9 @@ struct DirectionalLight {
 	float pad;
 };
 
-layout(std140) uniform ubPerObj{
-	mat4 gMatrixpalette[64]; // TODO move to SSBO
+layout(std140) uniform ubPerObj
+{
+	//mat4 gMatrixpalette[64]; // TODO move to SSBO
 	mat4 gWorldViewProj;
 	mat4 gWorld;
 	mat4 gWorldView;
@@ -39,9 +40,15 @@ layout(std140) uniform ubPerObj{
 	samplerCube gCubeMap;
 };
 
-layout(std140) uniform ubPerFrame{
+layout(std140) uniform ubPerFrame
+{
 	vec4 gEyePosW;
 	DirectionalLight gDirLight;
+};
+
+layout(std430, binding = 2) buffer MatrixPalette
+{
+	mat4 gMatrixPalette[];
 };
 
 out VertexOut {
@@ -55,18 +62,18 @@ out VertexOut {
 
 void main() {
 
-	vec4 PosL0 =     gMatrixpalette[int(JointIndeices.x)] * vec4(PosL, 1.0);
-	vec4 PosL1 =     gMatrixpalette[int(JointIndeices.y)] * vec4(PosL, 1.0);
-	vec4 PosL2 =     gMatrixpalette[int(JointIndeices.z)] * vec4(PosL, 1.0);
-	vec4 PosL3 =     gMatrixpalette[int(JointIndeices.w)] * vec4(PosL, 1.0);
-	vec4 NormalL0 =  gMatrixpalette[int(JointIndeices.x)] * vec4(NormalL, 0.0);
-	vec4 NormalL1 =  gMatrixpalette[int(JointIndeices.y)] * vec4(NormalL, 0.0);
-	vec4 NormalL2 =  gMatrixpalette[int(JointIndeices.z)] * vec4(NormalL, 0.0);
-	vec4 NormalL3 =  gMatrixpalette[int(JointIndeices.w)] * vec4(NormalL, 0.0);
-	vec4 TangentL0 = gMatrixpalette[int(JointIndeices.x)] * vec4(TangentL, 0.0);
-	vec4 TangentL1 = gMatrixpalette[int(JointIndeices.y)] * vec4(TangentL, 0.0);
-	vec4 TangentL2 = gMatrixpalette[int(JointIndeices.z)] * vec4(TangentL, 0.0);
-	vec4 TangentL3 = gMatrixpalette[int(JointIndeices.w)] * vec4(TangentL, 0.0);
+	vec4 PosL0 =     gMatrixPalette[int(JointIndeices.x)] * vec4(PosL, 1.0);
+	vec4 PosL1 =     gMatrixPalette[int(JointIndeices.y)] * vec4(PosL, 1.0);
+	vec4 PosL2 =     gMatrixPalette[int(JointIndeices.z)] * vec4(PosL, 1.0);
+	vec4 PosL3 =     gMatrixPalette[int(JointIndeices.w)] * vec4(PosL, 1.0);
+	vec4 NormalL0 =  gMatrixPalette[int(JointIndeices.x)] * vec4(NormalL, 0.0);
+	vec4 NormalL1 =  gMatrixPalette[int(JointIndeices.y)] * vec4(NormalL, 0.0);
+	vec4 NormalL2 =  gMatrixPalette[int(JointIndeices.z)] * vec4(NormalL, 0.0);
+	vec4 NormalL3 =  gMatrixPalette[int(JointIndeices.w)] * vec4(NormalL, 0.0);
+	vec4 TangentL0 = gMatrixPalette[int(JointIndeices.x)] * vec4(TangentL, 0.0);
+	vec4 TangentL1 = gMatrixPalette[int(JointIndeices.y)] * vec4(TangentL, 0.0);
+	vec4 TangentL2 = gMatrixPalette[int(JointIndeices.z)] * vec4(TangentL, 0.0);
+	vec4 TangentL3 = gMatrixPalette[int(JointIndeices.w)] * vec4(TangentL, 0.0);
 
 
 	vec4 PosLBlend = PosL0 * JointWeights.x + PosL1 * JointWeights.y + PosL2 * JointWeights.z + PosL3 * JointWeights.w;
@@ -88,5 +95,5 @@ void main() {
 	vOut.pTangV = vec3(gWorldView * vec4(TangentLBlend.xyz, 0.0));
 	vOut.pPosW = vec3(gWorld * vec4(PosLBlend.xyz, 1.0));
 	vOut.pTexUV = TexUV;
-	vOut.pShadowTransform = gShadowTransform * vec4(PosL, 1.0);
+	vOut.pShadowTransform = gShadowTransform * vec4(PosLBlend.xyz, 1.0);
 }

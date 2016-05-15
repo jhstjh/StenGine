@@ -23,8 +23,6 @@
 namespace StenGine
 {
 
-#if PLATFORM_WIN32
-
 Effect::Effect(const std::wstring& filename)
 {
 
@@ -734,6 +732,9 @@ void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
 
 	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
 	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
+
+	glCreateBuffers(1, &m_matrixPaletteSB);
+	glNamedBufferStorage(m_matrixPaletteSB, sizeof(XMMATRIX) * 64, nullptr, GL_MAP_WRITE_BIT); // alloc a buffer of up to 64 joint;
 #endif
 }
 
@@ -1518,119 +1519,7 @@ bool Effect::ReadShaderFile(std::wstring filename, char* shaderContent, int maxL
 
 #endif
 
-#else
-Effect::Effect(const std::string vsPath, std::string psPath) {
 
-	// Create shader program
-	m_shaderProgram = glCreateProgram();
-	LOGI("Created Shader %d", m_shaderProgram);
-
-	// Create and compile vertex shader
-	if (!ndk_helper::shader::CompileShader(&m_vertexShader, GL_VERTEX_SHADER, vsPath.c_str()))
-	{
-		LOGI("Failed to compile vertex shader");
-		glDeleteProgram(m_shaderProgram);
-		return;
-	}
-
-	// Create and compile fragment shader
-	if (!ndk_helper::shader::CompileShader(&m_pixelShader, GL_FRAGMENT_SHADER, psPath.c_str()))
-	{
-		LOGI("Failed to compile fragment shader");
-		glDeleteProgram(m_shaderProgram);
-		return;
-	}
-
-	// Attach vertex shader to program
-	glAttachShader(m_shaderProgram, m_vertexShader);
-
-	// Attach fragment shader to program
-	glAttachShader(m_shaderProgram, m_pixelShader);
-
-	// 	// Bind attribute locations
-	// 	// this needs to be done prior to linking
-	// 	glBindAttribLocation(program, ATTRIB_VERTEX, "myVertex");
-	// 	glBindAttribLocation(program, ATTRIB_NORMAL, "myNormal");
-	// 	glBindAttribLocation(program, ATTRIB_UV, "myUV");
-
-		// Link program
-	if (!ndk_helper::shader::LinkProgram(m_shaderProgram))
-	{
-		LOGI("Failed to link program: %d", m_shaderProgram);
-
-		if (m_vertexShader)
-		{
-			glDeleteShader(m_vertexShader);
-			m_vertexShader = 0;
-		}
-		if (m_pixelShader)
-		{
-			glDeleteShader(m_pixelShader);
-			m_pixelShader = 0;
-		}
-		if (m_shaderProgram)
-		{
-			glDeleteProgram(m_shaderProgram);
-		}
-
-		return;
-	}
-
-	// Get uniform locations
-// 	params->matrix_projection_ = glGetUniformLocation(program, "uPMatrix");
-// 	params->matrix_view_ = glGetUniformLocation(program, "uMVMatrix");
-// 
-// 	params->light0_ = glGetUniformLocation(program, "vLight0");
-// 	params->material_diffuse_ = glGetUniformLocation(program, "vMaterialDiffuse");
-// 	params->material_ambient_ = glGetUniformLocation(program, "vMaterialAmbient");
-// 	params->material_specular_ = glGetUniformLocation(program, "vMaterialSpecular");
-
-	// Release vertex and fragment shaders
-	if (m_vertexShader)
-		glDeleteShader(m_vertexShader);
-	if (m_pixelShader)
-		glDeleteShader(m_pixelShader);
-
-	//	params->program_ = program;
-	return;
-}
-
-void Effect::SetShader() {
-	glUseProgram(m_shaderProgram);
-}
-
-/***************************************************************/
-
-DebugLineEffect::DebugLineEffect(const std::string &filename)
-	: Effect(filename + "_vs.glsl", filename + "_ps.glsl")
-{
-	glGenBuffers(1, &m_perObjectUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_perObjectUBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PEROBJ_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
-}
-
-DebugLineEffect::~DebugLineEffect()
-{
-
-}
-
-void DebugLineEffect::UpdateConstantBuffer() {
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perObjectUBO);
-	PEROBJ_UNIFORM_BUFFER* perObjectUBOPtr = (PEROBJ_UNIFORM_BUFFER*)glMapBufferRange(
-		GL_UNIFORM_BUFFER,
-		0,
-		sizeof(PEROBJ_UNIFORM_BUFFER),
-		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-	);
-	memcpy(perObjectUBOPtr, &m_perObjUniformBuffer, sizeof(PEROBJ_UNIFORM_BUFFER));
-	glUnmapBuffer(GL_UNIFORM_BUFFER);
-}
-
-void DebugLineEffect::BindConstantBuffer() {
-
-}
-
-#endif
 
 //----------------------------------------------------------//
 

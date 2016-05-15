@@ -221,7 +221,6 @@ public:
 #else
 	struct PEROBJ_CONSTANT_BUFFER
 	{
-		XMMATRIX MatrixPalette[64]; // TODO will eventually be in a SSBO/Structured buffer
 		XMMATRIX WorldViewProj;
 		XMMATRIX World;
 		XMMATRIX WorldView;
@@ -245,6 +244,7 @@ public:
 
 	GLuint m_perFrameCB;
 	GLuint m_perObjectCB;
+	GLuint m_matrixPaletteSB;
 #endif
 };
 

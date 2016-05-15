@@ -29,9 +29,12 @@ using namespace std;
 #pragma warning(disable: 4244) // conversion from 'int64_t' to 'GLsizei', possible loss of data
 #pragma warning(disable: 4312 4311 4302) // 'type cast': conversion from 'GLuint' to 'void *' of greater size
 
-// somehow this are not in glew???
-PFNGLDISPATCHCOMPUTEPROC glDispatchCompute​;
-PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
+extern "C"
+{
+	// somehow this are not in glew???
+	PFNGLDISPATCHCOMPUTEPROC glDispatchCompute​;
+	PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
+}
 
 namespace StenGine
 {
@@ -233,7 +236,7 @@ public:
 		glMakeTextureHandleResidentARB(m_randVecTexHandle);
 
 		DirectionalLight* dLight = new DirectionalLight();
-		dLight->intensity = XMFLOAT4(1, 1, 1, 1);
+		dLight->intensity = XMFLOAT4(1.5f, 1.5f, 1.5f, 1);
 		dLight->direction = MatrixHelper::NormalizeFloat3(XMFLOAT3(-0.5, -2, 1));
 		dLight->castShadow = 1;
 
