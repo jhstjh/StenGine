@@ -61,6 +61,7 @@ struct AnimationNode
 	float playbackTime = 0;
 	XMMATRIX transformMatrix = XMMatrixIdentity();
 	bool dirty = true;
+	uint32_t length = 0;
 };
 
 class Animation {

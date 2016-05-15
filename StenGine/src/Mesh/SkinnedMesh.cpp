@@ -60,18 +60,12 @@ void SkinnedMesh::PrepareGPUBuffer()
 	m_indexBufferGPU = new GPUBuffer(m_indexBufferCPU.size() * sizeof(UINT), BufferUsage::IMMUTABLE, (void*)&m_indexBufferCPU.front(), BufferType::INDEX_BUFFER);
 }
 
-void SkinnedMesh::PrepareShadowMapBuffer() 
+void SkinnedMesh::PrepareShadowMapBuffer()
 {
-
 }
 
 void SkinnedMesh::GatherDrawCall()
 {
-	if (m_animation)
-		m_animation->Update();
-
-	PrepareMatrixPalette();
-
 	DeferredSkinnedGeometryPassEffect* effect = EffectsManager::Instance()->m_deferredSkinnedGeometryPassEffect.get();
 
 	UINT stride = sizeof(Vertex::SkinnedMeshVertex);
@@ -195,7 +189,71 @@ void SkinnedMesh::GatherDrawCall()
 
 void SkinnedMesh::GatherShadowDrawCall()
 {
+	if (m_animation)
+		m_animation->Update();
 
+	PrepareMatrixPalette();
+
+	DeferredSkinnedGeometryPassEffect* effect = EffectsManager::Instance()->m_deferredSkinnedGeometryPassEffect.get();
+
+	UINT stride = sizeof(Vertex::SkinnedMeshVertex);
+	UINT offset = 0;
+
+	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
+		int startIndex = 0;
+		for (uint32_t iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
+
+			ConstantBuffer cbuffer0(1, sizeof(DeferredSkinnedGeometryPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB);
+			ConstantBuffer cbuffer1(0, sizeof(DeferredSkinnedGeometryPassEffect::PEROBJ_CONSTANT_BUFFER), (void*)effect->m_perObjectCB);
+
+			DeferredSkinnedGeometryPassEffect::PERFRAME_CONSTANT_BUFFER* perframeData = (DeferredSkinnedGeometryPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+			DeferredSkinnedGeometryPassEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (DeferredSkinnedGeometryPassEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
+
+			DrawCmd cmd;
+
+			perframeData->EyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
+
+			perObjData->Mat = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_attributes;
+			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
+			perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()));
+			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewMatrix();;
+			perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
+			XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
+
+			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
+			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
+
+			for (size_t iMat = 0; iMat < m_matrixPalette.size(); iMat++)
+			{
+				perObjData->MatrixPalette[iMat] = m_matrixPalette[iMat];
+			}
+
+#if GRAPHICS_D3D11
+			cmd.offset = (void*)(startIndex);
+#endif
+
+#if GRAPHICS_OPENGL
+			cmd.offset = (void*)(startIndex * sizeof(unsigned int));
+#endif
+
+			cmd.flags = CmdFlag::DRAW;
+			cmd.drawType = DrawType::INDEXED;
+			cmd.inputLayout = effect->GetInputLayout();
+			cmd.framebuffer = Renderer::Instance()->GetGbuffer();
+			cmd.vertexBuffer = (void*)m_vertexBufferGPU->GetBuffer();
+			cmd.indexBuffer = (void*)m_indexBufferGPU->GetBuffer();
+			cmd.vertexStride = stride;
+			cmd.vertexOffset = offset;
+			cmd.effect = effect;
+			cmd.elementCount = m_subMeshes[iSubMesh].m_indexBufferCPU.size();
+			cmd.cbuffers.push_back(std::move(cbuffer0));
+			cmd.cbuffers.push_back(std::move(cbuffer1));
+
+			Renderer::Instance()->AddDeferredDrawCmd(cmd);
+
+			startIndex += m_subMeshes[iSubMesh].m_indexBufferCPU.size();
+		}
+	}
 }
 
 }

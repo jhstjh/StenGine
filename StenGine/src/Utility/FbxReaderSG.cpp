@@ -257,8 +257,7 @@ bool FbxReaderSG::Read(const std::wstring& filename, Animation* animation) {
 			const auto &channel = fAnimation->mChannels[ichannel];
 			AnimationNode &animationNode = animation->m_animations[std::string(channel->mNodeName.C_Str())];
 
-			printf("%s\r\n", channel->mNodeName.C_Str());
-
+			animationNode.length = max(animationNode.length, channel->mNumPositionKeys);
 			animationNode.position.resize(channel->mNumPositionKeys);
 			animationNode.positionTime.resize(channel->mNumPositionKeys);
 			for (uint32_t iPos = 0; iPos < channel->mNumPositionKeys; iPos++)
@@ -269,6 +268,7 @@ bool FbxReaderSG::Read(const std::wstring& filename, Animation* animation) {
 				animationNode.positionTime[iPos] = position.mTime;
 			}
 
+			animationNode.length = max(animationNode.length, channel->mNumRotationKeys);
 			animationNode.rotation.resize(channel->mNumRotationKeys);
 			animationNode.rotationTime.resize(channel->mNumRotationKeys);
 			for (uint32_t iRot = 0; iRot < channel->mNumRotationKeys; iRot++)
@@ -279,6 +279,7 @@ bool FbxReaderSG::Read(const std::wstring& filename, Animation* animation) {
 				animationNode.rotationTime[iRot] = rotation.mTime;
 			}
 
+			animationNode.length = max(animationNode.length, channel->mNumScalingKeys);
 			animationNode.scale.resize(channel->mNumScalingKeys);
 			animationNode.scaleTime.resize(channel->mNumScalingKeys);
 			for (uint32_t iScale = 0; iScale < channel->mNumScalingKeys; iScale++)
