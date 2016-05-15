@@ -3,12 +3,14 @@
 #include <unordered_map>
 #include <vector>
 #include "Scene/Transform.h"
+#include "Math/MathHelper.h"
 
 namespace StenGine
 {
 
 const XMVECTOR VEC3ZERO = XMLoadFloat3(&XMFLOAT3(0, 0, 0));
 const XMVECTOR QUATIDENT = XMQuaternionIdentity();
+const float FRAME_RATE = 30.f;
 
 struct AnimationNode
 {
@@ -27,7 +29,7 @@ struct AnimationNode
 	void UpdateAnimation()
 	{
 		float dt = Timer::GetDeltaTime();
-		playbackTime += dt * 30.f;
+		playbackTime += dt * FRAME_RATE;
 
 		if (playbackTime > positionTime[positionIndex])
 		{
@@ -80,7 +82,7 @@ public:
 		{
 			return find->second.GetTransform();
 		}
-		return XMMatrixIdentity();
+		return IDENTITY_MAT;
 	}
 };
 

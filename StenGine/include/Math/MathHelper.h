@@ -13,7 +13,8 @@ using namespace DirectX;
 namespace StenGine
 {
 
-static float PI = 3.1415926f;
+static const float PI = 3.1415926f;
+static const XMMATRIX IDENTITY_MAT = XMMatrixIdentity();
 
 class MatrixHelper {
 public:

@@ -33,19 +33,12 @@ SkinnedMesh::~SkinnedMesh()
 void SkinnedMesh::PrepareMatrixPalette()
 {
 	m_matrixPalette.resize(m_joints.size());
+	m_toRootTransform.resize(m_joints.size());
 
-	std::function<XMMATRIX(uint32_t)> CalcTransform = [this, &CalcTransform](uint32_t index) -> XMMATRIX
+	for (int64_t i = m_joints.size() - 1; i >= 0; --i)
 	{
-		if (index == -1)
-			return XMMatrixIdentity();
-		else
-			return m_animation->GetTransform(m_joints[index].m_name + "_$AssimpFbx$_Rotation") * m_jointPreRotationBufferCPU[index] * m_animation->GetTransform(m_joints[index].m_name) * CalcTransform(m_joints[index].m_parentIdx);
-
-	};
-
-	for (size_t i = 0; i < m_joints.size(); ++i)
-	{
-		m_matrixPalette[i] = m_joints[i].m_inverseBindPosMat * CalcTransform(i);
+		m_toRootTransform[i] = m_animation->GetTransform(m_joints[i].m_name + "_$AssimpFbx$_Rotation") * m_jointPreRotationBufferCPU[i] * m_animation->GetTransform(m_joints[i].m_name) * (m_joints[i].m_parentIdx == -1? IDENTITY_MAT : m_toRootTransform[m_joints[i].m_parentIdx]);
+		m_matrixPalette[i] = m_joints[i].m_inverseBindPosMat * m_toRootTransform[i];
 	}
 }
 

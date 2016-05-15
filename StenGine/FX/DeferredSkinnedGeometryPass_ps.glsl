@@ -74,9 +74,7 @@ void main() {
 	vec3 eyeRay = normalize(pIn.pPosW - gEyePosW.xyz);
 	vec3 refRay = reflect(eyeRay, pIn.pNormalW);
 
-	//ps_diff = ((1 - DiffX_NormY_ShadZ.x) * textureLod(gCubeMap, refRay, 3) + DiffX_NormY_ShadZ.x * texture(gDiffuseMap, pIn.pTexUV)) * gMat.diffuse;
-
-	ps_diff = vec4(2);
+	ps_diff = ((1 - DiffX_NormY_ShadZ.x) * textureLod(gCubeMap, refRay, 3) + DiffX_NormY_ShadZ.x * texture(gDiffuseMap, pIn.pTexUV)) * gMat.diffuse;
 
 	ps_spec = gMat.roughness_metalic_c_doublesided;
 	//ps_spec.w /= 255.0f;

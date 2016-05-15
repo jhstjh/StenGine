@@ -27,6 +27,7 @@ public:
 
 	std::vector<XMMATRIX> m_jointPreRotationBufferCPU;
 	std::vector<XMMATRIX> m_jointOffsetTransformCPU;
+	std::vector<XMMATRIX> m_toRootTransform;
 	std::vector<XMMATRIX> m_matrixPalette;
 	std::vector<Joint> m_joints;
 
