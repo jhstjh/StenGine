@@ -7,7 +7,7 @@ layout(location = 1) in vec3 NormalL;
 layout(location = 2) in vec3 TangentL;
 layout(location = 3) in vec2 TexUV;
 layout(location = 4) in vec4 JointWeights;
-layout(location = 5) in vec4 JointIndeices;
+layout(location = 5) in uvec4 JointIndeices;
 
 struct Material {
 	vec4 ambient;
@@ -62,18 +62,18 @@ out VertexOut {
 
 void main() {
 
-	vec4 PosL0 =     gMatrixPalette[int(JointIndeices.x)] * vec4(PosL, 1.0);
-	vec4 PosL1 =     gMatrixPalette[int(JointIndeices.y)] * vec4(PosL, 1.0);
-	vec4 PosL2 =     gMatrixPalette[int(JointIndeices.z)] * vec4(PosL, 1.0);
-	vec4 PosL3 =     gMatrixPalette[int(JointIndeices.w)] * vec4(PosL, 1.0);
-	vec4 NormalL0 =  gMatrixPalette[int(JointIndeices.x)] * vec4(NormalL, 0.0);
-	vec4 NormalL1 =  gMatrixPalette[int(JointIndeices.y)] * vec4(NormalL, 0.0);
-	vec4 NormalL2 =  gMatrixPalette[int(JointIndeices.z)] * vec4(NormalL, 0.0);
-	vec4 NormalL3 =  gMatrixPalette[int(JointIndeices.w)] * vec4(NormalL, 0.0);
-	vec4 TangentL0 = gMatrixPalette[int(JointIndeices.x)] * vec4(TangentL, 0.0);
-	vec4 TangentL1 = gMatrixPalette[int(JointIndeices.y)] * vec4(TangentL, 0.0);
-	vec4 TangentL2 = gMatrixPalette[int(JointIndeices.z)] * vec4(TangentL, 0.0);
-	vec4 TangentL3 = gMatrixPalette[int(JointIndeices.w)] * vec4(TangentL, 0.0);
+	vec4 PosL0 =     gMatrixPalette[JointIndeices.x] * vec4(PosL, 1.0);
+	vec4 PosL1 =     gMatrixPalette[JointIndeices.y] * vec4(PosL, 1.0);
+	vec4 PosL2 =     gMatrixPalette[JointIndeices.z] * vec4(PosL, 1.0);
+	vec4 PosL3 =     gMatrixPalette[JointIndeices.w] * vec4(PosL, 1.0);
+	vec4 NormalL0 =  gMatrixPalette[JointIndeices.x] * vec4(NormalL, 0.0);
+	vec4 NormalL1 =  gMatrixPalette[JointIndeices.y] * vec4(NormalL, 0.0);
+	vec4 NormalL2 =  gMatrixPalette[JointIndeices.z] * vec4(NormalL, 0.0);
+	vec4 NormalL3 =  gMatrixPalette[JointIndeices.w] * vec4(NormalL, 0.0);
+	vec4 TangentL0 = gMatrixPalette[JointIndeices.x] * vec4(TangentL, 0.0);
+	vec4 TangentL1 = gMatrixPalette[JointIndeices.y] * vec4(TangentL, 0.0);
+	vec4 TangentL2 = gMatrixPalette[JointIndeices.z] * vec4(TangentL, 0.0);
+	vec4 TangentL3 = gMatrixPalette[JointIndeices.w] * vec4(TangentL, 0.0);
 
 
 	vec4 PosLBlend = PosL0 * JointWeights.x + PosL1 * JointWeights.y + PosL2 * JointWeights.z + PosL3 * JointWeights.w;

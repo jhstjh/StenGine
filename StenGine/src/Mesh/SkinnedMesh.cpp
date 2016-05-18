@@ -53,7 +53,7 @@ void SkinnedMesh::PrepareGPUBuffer()
 		vertices[k].Tangent = m_tangentBufferCPU[i];
 		vertices[k].TexUV = m_texUVBufferCPU[i];
 		vertices[k].JointWeights = XMFLOAT4(&m_jointWeightsBufferCPU[i][0]);
-		vertices[k].JointIndices = XMFLOAT4(&m_jointIndicesBufferCPU[i][0]);
+		vertices[k].JointIndices = XMUINT4(&m_jointIndicesBufferCPU[i][0]);
 	}
 
 	m_vertexBufferGPU = new GPUBuffer(vertices.size() * sizeof(Vertex::SkinnedMeshVertex), BufferUsage::IMMUTABLE, (void*)&vertices.front(), BufferType::VERTEX_BUFFER);

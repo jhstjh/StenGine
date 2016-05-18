@@ -23,7 +23,7 @@ public:
 	virtual ~SkinnedMesh();
 
 	std::vector<std::vector<float> > m_jointWeightsBufferCPU;
-	std::vector<std::vector<float> > m_jointIndicesBufferCPU;
+	std::vector<std::vector<uint32_t> > m_jointIndicesBufferCPU;
 
 	std::vector<XMMATRIX> m_jointPreRotationBufferCPU;
 	std::vector<XMMATRIX> m_jointOffsetTransformCPU;

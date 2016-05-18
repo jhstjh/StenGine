@@ -712,7 +712,7 @@ void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
 	glVertexArrayAttribFormat(m_inputLayout, 2, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::SkinnedMeshVertex, Tangent));
 	glVertexArrayAttribFormat(m_inputLayout, 3, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex::SkinnedMeshVertex, TexUV));
 	glVertexArrayAttribFormat(m_inputLayout, 4, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex::SkinnedMeshVertex, JointWeights));
-	glVertexArrayAttribFormat(m_inputLayout, 5, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex::SkinnedMeshVertex, JointIndices));
+	glVertexArrayAttribIFormat(m_inputLayout, 5, 4, GL_UNSIGNED_INT, offsetof(Vertex::SkinnedMeshVertex, JointIndices));
 
 	glVertexArrayAttribBinding(m_inputLayout, 0, 0);
 	glVertexArrayAttribBinding(m_inputLayout, 1, 0);
