@@ -18,7 +18,8 @@ public:
 	void* map();
 	void unmap();
 
-	GLuint GetBuffer() { return m_buffer; };
+	GLuint GetBuffer() { return m_buffer; }
+	uint32_t GetFlags() { return m_flags; }
 
 private:
 	GLuint m_buffer;

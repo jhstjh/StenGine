@@ -1,3 +1,5 @@
+#if GRAPHICS_OPENGL
+
 #include "Mesh/SkinnedMesh.h"
 #include "Graphics/Effect/EffectsManager.h"
 #include "Scene/CameraManager.h"
@@ -80,8 +82,8 @@ void SkinnedMesh::GatherDrawCall()
 		int startIndex = 0;
 		for (uint32_t iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
 
-			ConstantBuffer cbuffer0(1, sizeof(DeferredSkinnedGeometryPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB);
-			ConstantBuffer cbuffer1(0, sizeof(DeferredSkinnedGeometryPassEffect::PEROBJ_CONSTANT_BUFFER), (void*)effect->m_perObjectCB);
+			ConstantBuffer cbuffer0(1, sizeof(DeferredSkinnedGeometryPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB->GetBuffer());
+			ConstantBuffer cbuffer1(0, sizeof(DeferredSkinnedGeometryPassEffect::PEROBJ_CONSTANT_BUFFER), (void*)effect->m_perObjectCB->GetBuffer());
 
 			DeferredSkinnedGeometryPassEffect::PERFRAME_CONSTANT_BUFFER* perframeData = (DeferredSkinnedGeometryPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 			DeferredSkinnedGeometryPassEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (DeferredSkinnedGeometryPassEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
@@ -199,8 +201,8 @@ void SkinnedMesh::GatherShadowDrawCall()
 		int startIndex = 0;
 		for (uint32_t iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
 
-			ConstantBuffer cbuffer0(1, sizeof(DeferredSkinnedGeometryPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB);
-			ConstantBuffer cbuffer1(0, sizeof(DeferredSkinnedGeometryPassEffect::PEROBJ_CONSTANT_BUFFER), (void*)effect->m_perObjectCB);
+			ConstantBuffer cbuffer0(1, sizeof(DeferredSkinnedGeometryPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB->GetBuffer());
+			ConstantBuffer cbuffer1(0, sizeof(DeferredSkinnedGeometryPassEffect::PEROBJ_CONSTANT_BUFFER), (void*)effect->m_perObjectCB->GetBuffer());
 
 			DeferredSkinnedGeometryPassEffect::PERFRAME_CONSTANT_BUFFER* perframeData = (DeferredSkinnedGeometryPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 			DeferredSkinnedGeometryPassEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (DeferredSkinnedGeometryPassEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
@@ -219,15 +221,15 @@ void SkinnedMesh::GatherShadowDrawCall()
 			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
 			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
 
-			glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, effect->m_matrixPaletteSB, 0, sizeof(XMMATRIX) * m_matrixPalette.size());
+			glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, effect->m_matrixPaletteSB->GetBuffer(), 0, sizeof(XMMATRIX) * m_matrixPalette.size());
 			void* ssbo = glMapNamedBufferRange(
-				effect->m_matrixPaletteSB,
+				effect->m_matrixPaletteSB->GetBuffer(),
 				0,
 				sizeof(XMMATRIX) * m_matrixPalette.size(),
 				GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
 			);
 			memcpy(ssbo, &m_matrixPalette[0], sizeof(XMMATRIX) * m_matrixPalette.size());
-			glUnmapNamedBuffer(effect->m_matrixPaletteSB);
+			glUnmapNamedBuffer(effect->m_matrixPaletteSB->GetBuffer());
 
 #if GRAPHICS_D3D11
 			cmd.offset = (void*)(startIndex);
@@ -258,3 +260,5 @@ void SkinnedMesh::GatherShadowDrawCall()
 }
 
 }
+
+#endif

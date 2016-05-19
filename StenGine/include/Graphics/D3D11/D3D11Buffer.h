@@ -21,6 +21,7 @@ public:
 private:
 	ID3D11Buffer* m_buffer;
 	size_t m_size;
+	uint32_t m_usage;
 	uint32_t m_flags;
 	bool m_mapped;
 };

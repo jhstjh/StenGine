@@ -15,6 +15,9 @@ GLBuffer::GLBuffer(size_t size, BufferUsage usage, void* data, BufferType type)
 	case BufferUsage::DYNAMIC:
 		m_flags = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_COHERENT_BIT | GL_MAP_PERSISTENT_BIT;
 		break;
+	case BufferUsage::WRITE:
+		m_flags = GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT;
+		break;
 	default:
 		m_flags = 0;
 		break;

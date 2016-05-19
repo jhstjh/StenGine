@@ -130,7 +130,7 @@ public:
 					scissorState.width = (int32_t)(pcmd->ClipRect.z - pcmd->ClipRect.x);
 					scissorState.height = (int32_t)(pcmd->ClipRect.w - pcmd->ClipRect.y);
 
-					ConstantBuffer cbuffer0(0, sizeof(ImGuiEffect::IMGUI_CONSTANT_BUFFER), (void*)effect->m_imguiCB);
+					ConstantBuffer cbuffer0(0, sizeof(ImGuiEffect::IMGUI_CONSTANT_BUFFER), (void*)effect->m_imguiCB->GetBuffer());
 					ImGuiEffect::IMGUI_CONSTANT_BUFFER* imguiData = (ImGuiEffect::IMGUI_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 
 					imguiData->Texture = (uint64_t)pcmd->TextureId;

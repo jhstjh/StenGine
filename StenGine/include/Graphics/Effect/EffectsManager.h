@@ -5,6 +5,7 @@
 
 #include "Scene/LightManager.h"
 #include "Graphics/Abstraction/ConstantBuffer.h"
+#include "Graphics/Abstraction/GPUBuffer.h"
 #include "Graphics/Effect/Material.h"
 #include "Mesh/MeshRenderer.h"
 #include "System/SingletonClass.h"
@@ -151,8 +152,6 @@ public:
 		XMFLOAT4 EyePosW;
 	};
 
-	ID3D11Buffer* m_perFrameCB;
-	ID3D11Buffer* m_perObjectCB;
 #else
 	struct PEROBJ_CONSTANT_BUFFER
 	{
@@ -175,10 +174,10 @@ public:
 		XMFLOAT4 EyePosW;
 		DirectionalLight DirLight;
 	};
-
-	GLuint m_perFrameCB;
-	GLuint m_perObjectCB;
 #endif
+
+	GPUBuffer* m_perFrameCB;
+	GPUBuffer* m_perObjectCB;
 };
 
 
@@ -193,7 +192,7 @@ public:
 		const std::wstring& gsPath,
 		const std::wstring& hsPath,
 		const std::wstring& dsPath);
-	~DeferredSkinnedGeometryPassEffect();
+	virtual ~DeferredSkinnedGeometryPassEffect();
 
 	void PrepareBuffer();
 
@@ -216,8 +215,6 @@ public:
 		XMFLOAT4 EyePosW;
 	};
 
-	ID3D11Buffer* m_perFrameCB;
-	ID3D11Buffer* m_perObjectCB;
 #else
 	struct PEROBJ_CONSTANT_BUFFER
 	{
@@ -241,11 +238,11 @@ public:
 		XMFLOAT4 EyePosW;
 		DirectionalLight DirLight;
 	};
-
-	GLuint m_perFrameCB;
-	GLuint m_perObjectCB;
-	GLuint m_matrixPaletteSB;
 #endif
+
+	GPUBuffer* m_perFrameCB;
+	GPUBuffer* m_perObjectCB;
+	GPUBuffer* m_matrixPaletteSB;
 };
 
 
@@ -253,13 +250,8 @@ public:
 
 class DeferredGeometryTerrainPassEffect : public Effect {
 public:
-#if GRAPHICS_D3D11
-	ID3D11Buffer* m_perFrameCB;
-	ID3D11Buffer* m_perObjectCB;
-#else
-	GLuint m_perFrameCB;
-	GLuint m_perObjectCB;
-#endif
+	GPUBuffer* m_perFrameCB;
+	GPUBuffer* m_perObjectCB;
 
 	DeferredGeometryTerrainPassEffect(const std::wstring& filename);
 	DeferredGeometryTerrainPassEffect(const std::wstring& vsPath,
@@ -324,13 +316,8 @@ public:
 
 class TerrainShadowMapEffect : public Effect {
 public:
-#if GRAPHICS_D3D11
-	ID3D11Buffer* m_perFrameCB;
-	ID3D11Buffer* m_perObjectCB;
-#else
-	GLuint m_perFrameCB;
-	GLuint m_perObjectCB;
-#endif
+	GPUBuffer* m_perFrameCB;
+	GPUBuffer* m_perObjectCB;
 
 	TerrainShadowMapEffect(const std::wstring& filename);
 	TerrainShadowMapEffect(const std::wstring& vsPath,
@@ -407,11 +394,7 @@ public:
 
 class DeferredShadingPassEffect : public Effect {
 public:
-#if GRAPHICS_D3D11
-	ID3D11Buffer* m_perFrameCB;
-#else
-	GLuint m_perFrameCB;
-#endif
+	GPUBuffer* m_perFrameCB;
 
 	DeferredShadingPassEffect(const std::wstring& filename);
 	~DeferredShadingPassEffect();
@@ -460,11 +443,7 @@ public:
 		XMMATRIX gWorldViewProj;
 	};
 
-#if GRAPHICS_D3D11
-	ID3D11Buffer* m_perObjectCB;
-#else
-	GLuint m_perObjectCB;
-#endif
+	GPUBuffer* m_perObjectCB;
 };
 
 
@@ -516,11 +495,8 @@ public:
 
 class SkyboxEffect : public Effect {
 public:
-#if GRAPHICS_D3D11
-	ID3D11Buffer* m_perObjectCB;
-#else
-	GLuint m_perObjectCB;
-#endif
+
+	GPUBuffer* m_perObjectCB;
 
 public:
 	SkyboxEffect(const std::wstring& filename);
@@ -541,7 +517,7 @@ public:
 		uint64_t gCubeMap;
 	};
 #endif
-	//ID3D11ShaderResourceView *m_shaderResources[1];
+
 };
 
 
@@ -550,13 +526,8 @@ public:
 
 class BlurEffect : public Effect {
 public:
-#if GRAPHICS_D3D11
-	ID3D11Buffer* m_settingCB;
-#endif
 
-#if GRAPHICS_OPENGL
-	GLuint m_settingCB;
-#endif
+	GPUBuffer* m_settingCB;
 
 public:
 	BlurEffect(const std::wstring& filename);
@@ -601,12 +572,8 @@ public:
 
 class ImGuiEffect : public Effect {
 public:
-#if GRAPHICS_D3D11
-	ID3D11Buffer* m_imguiCB;
-#endif
-#if GRAPHICS_OPENGL
-	GLuint m_imguiCB;
-#endif
+	
+	GPUBuffer* m_imguiCB;
 
 	ImGuiEffect(const std::wstring& filename);
 	~ImGuiEffect();
@@ -620,47 +587,13 @@ public:
 	};
 };
 
-//--------------------------------------------------------------------//
-
-
-class DeferredShadingCS : public Effect {
-private:
-	ID3D11Buffer* m_perFrameCB;
-
-public:
-	DeferredShadingCS(const std::wstring& filename);
-	~DeferredShadingCS();
-
-	virtual void UpdateConstantBuffer();
-	virtual void BindConstantBuffer();
-	virtual void BindShaderResource(int idx = 0);
-
-	struct PERFRAME_CONSTANT_BUFFER
-	{
-		DirectionalLight gDirLight;
-		XMFLOAT4 gEyePosW;
-		XMMATRIX gProjInv;
-		XMMATRIX gProj;
-	} m_perFrameConstantBuffer;
-
-	/// Texture Ordering:
-	/// Texture2D gDiffuseGB;
-	/// Texture2D gNormalGB;
-	/// Texture2D gSpecularGB;
-	/// Texture2D gDepthGB;
-	//ID3D11ShaderResourceView *m_shaderResources[4];
-};
 
 //--------------------------------------------------------------------//
 
 
 class DebugLineEffect : public Effect {
 public:
-#if GRAPHICS_D3D11
-	ID3D11Buffer* m_perObjectCB;
-#else
-	GLuint m_perObjectCB;
-#endif
+	GPUBuffer* m_perObjectCB;
 
 	DebugLineEffect(const std::wstring& filename);
 	DebugLineEffect(const std::wstring& vsPath,
@@ -695,7 +628,6 @@ public:
 	std::unique_ptr<DeferredGeometryTerrainPassEffect> m_deferredGeometryTerrainPassEffect;
 	std::unique_ptr<DeferredGeometryTessPassEffect> m_deferredGeometryTessPassEffect;
 	std::unique_ptr<DeferredShadingPassEffect> m_deferredShadingPassEffect;
-	std::unique_ptr<DeferredShadingCS> m_deferredShadingCSEffect;
 	std::unique_ptr<GodRayEffect> m_godrayEffect;
 	std::unique_ptr<SkyboxEffect> m_skyboxEffect;
 	std::unique_ptr<BlurEffect> m_blurEffect;

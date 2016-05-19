@@ -819,13 +819,11 @@ public:
 		clearCmd.flags = CmdFlag::BIND_FB;
 		clearCmd.framebuffer.dsv = nullptr;
 
-#define PS_SHADING 1
-#if PS_SHADING 
 		//-------------- composite deferred render target views AND SSAO-------------------//
 		DrawCmd cmd;
 		DeferredShadingPassEffect* effect = EffectsManager::Instance()->m_deferredShadingPassEffect.get();
 
-		ConstantBuffer cbuffer0(0, sizeof(DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB);
+		ConstantBuffer cbuffer0(0, sizeof(DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB->GetBuffer());
 		DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER* perFrameData = (DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 
 
@@ -867,50 +865,6 @@ public:
 		cmd.cbuffers.push_back(std::move(cbuffer0));
 
 		m_drawList.push_back(std::move(cmd));
-#else
-		// -------compute shader deferred shading -------//
-
-
-		m_d3d11DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
-		DeferredShadingCS* deferredCSEffect = EffectsManager::Instance()->m_deferredShadingCSEffect;
-		deferredCSEffect->SetShader();
-
-		DirectionalLight viewDirLight;
-		memcpy(&viewDirLight, LightManager::Instance()->m_dirLights[0], sizeof(DirectionalLight));
-
-		XMMATRIX ViewInvTranspose = MatrixHelper::InverseTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
-		XMStoreFloat3(&viewDirLight.direction, XMVector3Transform(XMLoadFloat3(&viewDirLight.direction), ViewInvTranspose));
-		deferredCSEffect->m_perFrameConstantBuffer.gDirLight = viewDirLight;
-
-		XMFLOAT4 camPos = CameraManager::Instance()->GetActiveCamera()->GetPos();
-		XMStoreFloat4(&camPos, XMVector3Transform(XMLoadFloat4(&camPos), CameraManager::Instance()->GetActiveCamera()->GetViewMatrix()));
-		deferredCSEffect->m_perFrameConstantBuffer.gEyePosW = camPos;
-
-		XMMATRIX projMat = CameraManager::Instance()->GetActiveCamera()->GetProjMatrix();
-		XMVECTOR det = XMMatrixDeterminant(projMat);
-		deferredCSEffect->m_perFrameConstantBuffer.gProj = XMMatrixTranspose(projMat);
-
-		deferredCSEffect->m_perFrameConstantBuffer.gProjInv = XMMatrixTranspose(XMMatrixInverse(&det, projMat));
-
-		deferredCSEffect->SetShaderResources(m_diffuseBufferSRV, 0);
-		deferredCSEffect->SetShaderResources(m_normalBufferSRV, 1);
-		deferredCSEffect->SetShaderResources(m_specularBufferSRV, 2);
-		deferredCSEffect->SetShaderResources(m_deferredRenderShaderResourceView, 3);
-
-		m_d3d11DeviceContext->CSSetSamplers(0, 1, &m_samplerState);
-
-		deferredCSEffect->UpdateConstantBuffer();
-		deferredCSEffect->BindConstantBuffer();
-		deferredCSEffect->BindShaderResource();
-
-		m_d3d11DeviceContext->Dispatch(80, 45, 1);
-
-		deferredCSEffect->UnBindConstantBuffer();
-		deferredCSEffect->UnbindUnorderedAccessViews();
-		deferredCSEffect->UnBindShaderResource();
-		deferredCSEffect->UnSetShader();
-
-#endif
 	}
 
 	void DrawBlurSSAOAndCombine() {
@@ -928,16 +882,11 @@ public:
 
 		AddDeferredDrawCmd(std::move(clearRTcmd));
 
-#if PS_SHADING
 		doCSBlur(m_SSAOSRV, 0);
 		doCSBlur(m_deferredShadingSRV, 2);
 
 		ID3D11ShaderResourceView* blurredSSAOSRV = m_outputShaderResources[1];//doCSBlur(m_SSAOSRV, 0);
 		ID3D11ShaderResourceView* blurredSRV = m_outputShaderResources[3];//doCSBlur(m_deferredShadingSRV, 1);
-#else
-		ID3D11ShaderResourceView* blurredSSAOSRV = doCSBlur(deferredCSEffect->GetOutputShaderResource(1), 0);
-		ID3D11ShaderResourceView* blurredSRV = doCSBlur(deferredCSEffect->GetOutputShaderResource(0), 1);
-#endif
 
 		// ------ Screen Quad -------//
 		BlurEffect* blurEffect = EffectsManager::Instance()->m_blurEffect.get();
@@ -959,11 +908,7 @@ public:
 		cmd.effect = blurEffect;
 		cmd.elementCount = 6;
 
-#if PS_SHADING
 		cmd.srvs.AddSRV(m_deferredShadingSRV, 0);
-#else
-		cmd.srvs.AddSRV(deferredCSEffect->GetOutputShaderResource(0), 0);
-#endif
 		cmd.srvs.AddSRV(blurredSSAOSRV/*m_SSAOSRV*/, 1);
 		cmd.srvs.AddSRV(blurredSRV, 2);
 
@@ -1024,7 +969,7 @@ public:
 		cmd.indexBuffer = m_gridCoordIndexBufferGPU;
 		cmd.vertexBuffer = m_gridCoordVertexBufferGPU;
 
-		ConstantBuffer cbuffer0(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), (void*)debugLineFX->m_perObjectCB);
+		ConstantBuffer cbuffer0(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), (void*)debugLineFX->m_perObjectCB->GetBuffer());
 		DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 		perObjectData->ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 

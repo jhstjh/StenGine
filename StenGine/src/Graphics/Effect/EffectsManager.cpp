@@ -450,22 +450,6 @@ ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
 	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
-	{
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		HRESULT hr;
-		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
-			&m_perObjectCB);
-
-		assert(SUCCEEDED(hr));
-	}
 
 	ReleaseCOM(m_vsBlob);
 	ReleaseCOM(m_psBlob);
@@ -479,9 +463,10 @@ ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
 	glVertexArrayAttribFormat(m_inputLayout, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Pos));
 	glVertexArrayAttribBinding(m_inputLayout, 0, 0);
 
-	glCreateBuffers(1, &m_perObjectCB);
-	glNamedBufferStorage(m_perObjectCB, sizeof(PEROBJ_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
 #endif
+
+	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+
 }
 
 ShadowMapEffect::~ShadowMapEffect()
@@ -491,6 +476,8 @@ ShadowMapEffect::~ShadowMapEffect()
 #else
 	glDeleteVertexArrays(1, &m_inputLayout);
 #endif
+
+	SafeDelete(m_perObjectCB);
 }
 
 
@@ -515,6 +502,9 @@ DeferredGeometryPassEffect::~DeferredGeometryPassEffect()
 #else
 	glDeleteVertexArrays(1, &m_inputLayout);
 #endif
+
+	SafeDelete(m_perObjectCB);
+	SafeDelete(m_perFrameCB);
 }
 
 void DeferredGeometryPassEffect::PrepareBuffer()
@@ -535,41 +525,6 @@ void DeferredGeometryPassEffect::PrepareBuffer()
 
 	for (int i = 0; i < 5; i++) {
 		m_shaderResources[i] = 0;
-	}
-
-	{
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		HRESULT hr;
-		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
-			&m_perObjectCB);
-
-		assert(SUCCEEDED(hr));
-	}
-
-	{
-		// Fill in a buffer description.
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		HRESULT hr;
-		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
-			&m_perFrameCB);
-
-		assert(SUCCEEDED(hr));
 	}
 
 	ReleaseCOM(m_vsBlob);
@@ -597,22 +552,20 @@ void DeferredGeometryPassEffect::PrepareBuffer()
 	glVertexArrayAttribBinding(m_inputLayout, 2, 0);
 	glVertexArrayAttribBinding(m_inputLayout, 3, 0);
 
-
-	glCreateBuffers(1, &m_perFrameCB);
-	glNamedBufferStorage(m_perFrameCB, sizeof(PERFRAME_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
-
-	glCreateBuffers(1, &m_perObjectCB);
-	glNamedBufferStorage(m_perObjectCB, sizeof(PEROBJ_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
-
 	GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
 	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
 
 	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
 	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
 #endif
+
+	m_perFrameCB = new GPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 //------------------------------------------------------------//
+
+#if GRAPHICS_OPENGL
 
 DeferredSkinnedGeometryPassEffect::DeferredSkinnedGeometryPassEffect(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath)
 	:Effect(vsPath, psPath, gsPath, hsPath, dsPath)
@@ -633,6 +586,10 @@ DeferredSkinnedGeometryPassEffect::~DeferredSkinnedGeometryPassEffect()
 #else
 	glDeleteVertexArrays(1, &m_inputLayout);
 #endif
+
+	SafeDelete(m_perFrameCB);
+	SafeDelete(m_perObjectCB);
+	SafeDelete(m_matrixPaletteSB);
 }
 
 void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
@@ -721,22 +678,28 @@ void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
 	glVertexArrayAttribBinding(m_inputLayout, 4, 0);
 	glVertexArrayAttribBinding(m_inputLayout, 5, 0);
 
-	glCreateBuffers(1, &m_perFrameCB);
-	glNamedBufferStorage(m_perFrameCB, sizeof(PERFRAME_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
-
-	glCreateBuffers(1, &m_perObjectCB);
-	glNamedBufferStorage(m_perObjectCB, sizeof(PEROBJ_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
-
+	//glCreateBuffers(1, &m_perFrameCB);
+	//glNamedBufferStorage(m_perFrameCB, sizeof(PERFRAME_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
+	//
+	//glCreateBuffers(1, &m_perObjectCB);
+	//glNamedBufferStorage(m_perObjectCB, sizeof(PEROBJ_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
+	//
 	GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
 	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
-
+	
 	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
 	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
+	
+	//glCreateBuffers(1, &m_matrixPaletteSB);
+	//glNamedBufferStorage(m_matrixPaletteSB, sizeof(XMMATRIX) * 64, nullptr, GL_MAP_WRITE_BIT); // alloc a buffer of up to 64 joint;
 
-	glCreateBuffers(1, &m_matrixPaletteSB);
-	glNamedBufferStorage(m_matrixPaletteSB, sizeof(XMMATRIX) * 64, nullptr, GL_MAP_WRITE_BIT); // alloc a buffer of up to 64 joint;
+	m_perFrameCB = new GPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_matrixPaletteSB = new GPUBuffer(sizeof(XMMATRIX) * 64, BufferUsage::WRITE, nullptr, BufferType::UNORDERED_ACCESS);
 #endif
 }
+
+#endif
 
 //------------------------------------------------------------//
 
@@ -758,24 +721,6 @@ DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filenam
 		m_shaderResources[i] = 0;
 	}
 
-	{
-		// Fill in a buffer description.
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		HRESULT hr;
-		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
-			&m_perFrameCB);
-
-		assert(SUCCEEDED(hr));
-	}
-
 	ReleaseCOM(m_vsBlob);
 	ReleaseCOM(m_psBlob);
 	ReleaseCOM(m_gsBlob);
@@ -783,9 +728,10 @@ DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filenam
 	ReleaseCOM(m_dsBlob);
 	ReleaseCOM(m_csBlob);
 #else
-	glCreateBuffers(1, &m_perFrameCB);
-	glNamedBufferStorage(m_perFrameCB, sizeof(PERFRAME_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
+
 #endif
+
+	m_perFrameCB = new GPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 DeferredShadingPassEffect::~DeferredShadingPassEffect()
@@ -793,6 +739,8 @@ DeferredShadingPassEffect::~DeferredShadingPassEffect()
 #if GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
 #endif
+
+	SafeDelete(m_perFrameCB);
 }
 
 //----------------------------------------------------------//
@@ -919,23 +867,6 @@ SkyboxEffect::SkyboxEffect(const std::wstring& filename)
 	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
-	{
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		HRESULT hr;
-		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
-			&m_perObjectCB);
-
-		assert(SUCCEEDED(hr));
-	}
-
 	ReleaseCOM(m_vsBlob);
 	ReleaseCOM(m_psBlob);
 	ReleaseCOM(m_gsBlob);
@@ -943,9 +874,9 @@ SkyboxEffect::SkyboxEffect(const std::wstring& filename)
 	ReleaseCOM(m_dsBlob);
 	ReleaseCOM(m_csBlob);
 #else
-	glCreateBuffers(1, &m_perObjectCB);
-	glNamedBufferStorage(m_perObjectCB, sizeof(PEROBJ_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
+
 #endif
+	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 SkyboxEffect::~SkyboxEffect()
@@ -953,6 +884,8 @@ SkyboxEffect::~SkyboxEffect()
 #if GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
 #endif
+
+	SafeDelete(m_perObjectCB);
 }
 
 //------------------------------------------------------------//
@@ -975,23 +908,6 @@ DebugLineEffect::DebugLineEffect(const std::wstring& filename)
 	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
-	{
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		HRESULT hr;
-		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
-			&m_perObjectCB);
-
-		assert(SUCCEEDED(hr));
-	}
-
 	ReleaseCOM(m_vsBlob);
 	ReleaseCOM(m_psBlob);
 	ReleaseCOM(m_gsBlob);
@@ -999,9 +915,11 @@ DebugLineEffect::DebugLineEffect(const std::wstring& filename)
 	ReleaseCOM(m_dsBlob);
 	ReleaseCOM(m_csBlob);
 #else
-	glCreateBuffers(1, &m_perObjectCB);
-	glNamedBufferStorage(m_perObjectCB, sizeof(PEROBJ_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
+
 #endif
+
+	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+
 }
 
 DebugLineEffect::~DebugLineEffect()
@@ -1010,9 +928,7 @@ DebugLineEffect::~DebugLineEffect()
 	ReleaseCOM(m_inputLayout);
 #endif
 
-#if GRAPHICS_OPENGL
-	glDeleteBuffers(1, &m_perObjectCB);
-#endif
+	SafeDelete(m_perObjectCB);
 }
 
 
@@ -1064,33 +980,6 @@ DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::
 		m_shaderResources[i] = 0;
 	}
 
-	{
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		// Create the buffer.
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr, &m_perObjectCB));
-	}
-
-	{
-		// Fill in a buffer description.
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		// Create the buffer.
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr, &m_perFrameCB));
-	}
-
 	ReleaseCOM(m_vsBlob);
 	ReleaseCOM(m_psBlob);
 	ReleaseCOM(m_gsBlob);
@@ -1116,20 +1005,16 @@ DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::
 	glVertexArrayAttribBinding(m_inputLayout, 1, 0);
 	glVertexArrayAttribBinding(m_inputLayout, 2, 0);
 
-
-
-	glCreateBuffers(1, &m_perObjectCB);
-	glNamedBufferStorage(m_perObjectCB, sizeof(PEROBJ_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
-
-	glCreateBuffers(1, &m_perFrameCB);
-	glNamedBufferStorage(m_perFrameCB, sizeof(PERFRAME_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
-
 	GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
 	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
 	
 	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
 	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
 #endif
+
+	m_perFrameCB = new GPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+
 }
 
 DeferredGeometryTerrainPassEffect::~DeferredGeometryTerrainPassEffect()
@@ -1139,9 +1024,11 @@ DeferredGeometryTerrainPassEffect::~DeferredGeometryTerrainPassEffect()
 #endif
 
 #if GRAPHICS_OPENGL
-	glDeleteBuffers(1, &m_perObjectCB);
-	glDeleteBuffers(1, &m_perFrameCB);
+	glDeleteVertexArrays(1, &m_inputLayout);
 #endif
+
+	SafeDelete(m_perFrameCB);
+	SafeDelete(m_perObjectCB);
 }
 
 
@@ -1170,33 +1057,6 @@ TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
 		m_shaderResources[i] = 0;
 	}
 
-	{
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		// Create the buffer.
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr, &m_perObjectCB));
-	}
-
-	{
-		// Fill in a buffer description.
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		// Create the buffer.
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr, &m_perFrameCB));
-	}
-
 	ReleaseCOM(m_vsBlob);
 	ReleaseCOM(m_psBlob);
 	ReleaseCOM(m_gsBlob);
@@ -1221,18 +1081,16 @@ TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
 	glVertexArrayAttribBinding(m_inputLayout, 1, 0);
 	glVertexArrayAttribBinding(m_inputLayout, 2, 0);
 
-	glCreateBuffers(1, &m_perObjectCB);
-	glNamedBufferStorage(m_perObjectCB, sizeof(PEROBJ_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
-
-	glCreateBuffers(1, &m_perFrameCB);
-	glNamedBufferStorage(m_perFrameCB, sizeof(PERFRAME_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
-
 	GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
 	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
 
 	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
 	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
 #endif
+
+	m_perFrameCB = new GPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+
 }
 
 TerrainShadowMapEffect::~TerrainShadowMapEffect()
@@ -1242,9 +1100,10 @@ TerrainShadowMapEffect::~TerrainShadowMapEffect()
 #endif
 
 #if GRAPHICS_OPENGL
-	glDeleteBuffers(1, &m_perObjectCB);
-	glDeleteBuffers(1, &m_perFrameCB);
+	glDeleteVertexArrays(1, &m_inputLayout);
 #endif
+	SafeDelete(m_perObjectCB);
+	SafeDelete(m_perFrameCB);
 }
 
 //----------------------------------------------------------//
@@ -1277,17 +1136,6 @@ ImGuiEffect::ImGuiEffect(const std::wstring& filename)
 
 	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(localLayout, 3, m_vsBlob->GetBufferPointer(), m_vsBlob->GetBufferSize(), &m_inputLayout));
 
-	// Create the constant buffer
-	{
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(IMGUI_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, NULL, &m_imguiCB));
-	}
-
 #endif
 
 #if GRAPHICS_OPENGL
@@ -1305,23 +1153,25 @@ ImGuiEffect::ImGuiEffect(const std::wstring& filename)
 	glVertexArrayAttribBinding(m_inputLayout, 1, 0);
 	glVertexArrayAttribBinding(m_inputLayout, 2, 0);
 
-	glCreateBuffers(1, &m_imguiCB);
-	glNamedBufferStorage(m_imguiCB, sizeof(IMGUI_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
-
 	GLint imguiUBOPos = glGetUniformBlockIndex(m_shaderProgram, "imGuiCB");
 	glUniformBlockBinding(m_shaderProgram, imguiUBOPos, 0);
 #endif
+
+	m_imguiCB = new GPUBuffer(sizeof(IMGUI_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+
 }
 
 ImGuiEffect::~ImGuiEffect()
 {
 #if GRAPHICS_D3D11
-
+	ReleaseCOM(m_inputLayout);
 #endif
 
 #if GRAPHICS_OPENGL
-	glDeleteBuffers(1, &m_imguiCB);
+	glDeleteVertexArrays(1, &m_inputLayout);
 #endif
+
+	SafeDelete(m_imguiCB);
 }
 
 //-------------------------------------------//
@@ -1339,24 +1189,6 @@ BlurEffect::BlurEffect(const std::wstring& filename)
 	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
 
-	{
-		// Fill in a buffer description.
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(SETTING_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		HRESULT hr;
-		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
-			&m_settingCB);
-
-		assert(SUCCEEDED(hr));
-	}
-
 	ReleaseCOM(m_vsBlob);
 	ReleaseCOM(m_psBlob);
 	ReleaseCOM(m_gsBlob);
@@ -1366,12 +1198,11 @@ BlurEffect::BlurEffect(const std::wstring& filename)
 #endif
 
 #if GRAPHICS_OPENGL
-	glCreateBuffers(1, &m_settingCB);
-	glNamedBufferStorage(m_settingCB, sizeof(SETTING_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
-
 	GLint settingCBPos = glGetUniformBlockIndex(m_shaderProgram, "cbSettings");
 	glUniformBlockBinding(m_shaderProgram, settingCBPos, 0);
 #endif
+
+	m_settingCB = new GPUBuffer(sizeof(SETTING_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 BlurEffect::~BlurEffect()
@@ -1379,119 +1210,11 @@ BlurEffect::~BlurEffect()
 #if GRAPHICS_D3D11
 	ReleaseCOM(m_inputLayout);
 #endif
+
+	SafeDelete(m_settingCB);
 }
 
-#if GRAPHICS_D3D11
-//----------------------------------------------------------//
-
-
-DeferredShadingCS::DeferredShadingCS(const std::wstring& filename)
-	: Effect(L"", L"", L"", L"", L"", filename + L"_cs" + EXT)
-{
-
-	m_shaderResources = new ID3D11ShaderResourceView*[4];
-	for (int i = 0; i < 4; i++) {
-		m_shaderResources[i] = 0;
-	}
-
-	{
-		// Fill in a buffer description.
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		HRESULT hr;
-		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
-			&m_perFrameCB);
-
-		assert(SUCCEEDED(hr));
-	}
-
-
-	m_outputShaderResources = new ID3D11ShaderResourceView*[2];
-	m_unorderedAccessViews = new ID3D11UnorderedAccessView*[2];
-
-	for (int i = 0; i < 2; i++) {
-
-		D3D11_TEXTURE2D_DESC shadedTexDesc;
-		shadedTexDesc.Width = Renderer::Instance()->GetScreenWidth();
-		shadedTexDesc.Height = Renderer::Instance()->GetScreenHeight();
-		shadedTexDesc.MipLevels = 1;
-		shadedTexDesc.ArraySize = 1;
-		shadedTexDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		shadedTexDesc.SampleDesc.Count = 1;
-		shadedTexDesc.SampleDesc.Quality = 0;
-		shadedTexDesc.Usage = D3D11_USAGE_DEFAULT;
-		shadedTexDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
-		shadedTexDesc.CPUAccessFlags = 0;
-		shadedTexDesc.MiscFlags = 0;
-
-		ID3D11Texture2D* shadedTex = 0;
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateTexture2D(&shadedTexDesc, 0, &shadedTex));
-
-		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-		srvDesc.Format = shadedTexDesc.Format;
-		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MostDetailedMip = 0;
-		srvDesc.Texture2D.MipLevels = 1;
-
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateShaderResourceView(shadedTex, &srvDesc, &m_outputShaderResources[i]));
-
-		D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
-		uavDesc.Format = shadedTexDesc.Format;
-		uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
-		uavDesc.Texture2D.MipSlice = 0;
-
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateUnorderedAccessView(shadedTex, &uavDesc, &m_unorderedAccessViews[i]));
-
-
-		ReleaseCOM(shadedTex);
-
-	}
-
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-}
-
-DeferredShadingCS::~DeferredShadingCS()
-{
-	ReleaseCOM(m_inputLayout);
-}
-
-void DeferredShadingCS::UpdateConstantBuffer() {
-
-	D3D11_MAPPED_SUBRESOURCE ms;
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-	memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perFrameCB, NULL);
-
-}
-
-void DeferredShadingCS::BindConstantBuffer() {
-	ID3D11Buffer* cbuf[] = { m_perFrameCB };
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetConstantBuffers(0, 1, cbuf);
-}
-
-void DeferredShadingCS::BindShaderResource(int idx) {
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetShaderResources(0, 4, m_shaderResources);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetUnorderedAccessViews(0, 2, &m_unorderedAccessViews[idx], 0);
-}
-
-
-//----------------------------------------------------------//
-
-
-#else
-
+#if GRAPHICS_OPENGL
 
 /********************************************************************/
 
@@ -1533,7 +1256,6 @@ EffectsManager::EffectsManager()
 	, m_deferredGeometryTerrainPassEffect(nullptr)
 	, m_deferredGeometryTessPassEffect(nullptr)
 	, m_deferredShadingPassEffect(nullptr)
-	, m_deferredShadingCSEffect(nullptr)
 	, m_godrayEffect(nullptr)
 	, m_skyboxEffect(nullptr)
 	, m_blurEffect(nullptr)
@@ -1544,7 +1266,9 @@ EffectsManager::EffectsManager()
 
 	m_shadowMapEffect = std::make_unique<ShadowMapEffect>(L"FX/ShadowMap");
 	m_deferredGeometryPassEffect = std::make_unique<DeferredGeometryPassEffect>(L"FX/DeferredGeometryPass");
+#if GRAPHICS_OPENGL
 	m_deferredSkinnedGeometryPassEffect = std::make_unique<DeferredSkinnedGeometryPassEffect>(L"FX/DeferredSkinnedGeometryPass");
+#endif
 	m_deferredShadingPassEffect = std::make_unique<DeferredShadingPassEffect>(L"FX/DeferredShadingPass");
 	m_deferredGeometryTessPassEffect = std::make_unique<DeferredGeometryTessPassEffect>(L"FX/DeferredGeometryTessPass");
 	m_skyboxEffect = std::make_unique<SkyboxEffect>(L"FX/Skybox");
@@ -1556,11 +1280,6 @@ EffectsManager::EffectsManager()
 	m_hblurEffect = std::make_unique<HBlurEffect>(L"FX/HBlur");
 	m_blurEffect = std::make_unique<BlurEffect>(L"FX/Blur");
 	m_imguiEffect = std::make_unique<ImGuiEffect>(L"FX/imgui");
-
-#if GRAPHICS_D3D11
-	m_deferredShadingCSEffect = std::unique_ptr<DeferredShadingCS>(new DeferredShadingCS(L"FX/DeferredShading"));
-#endif
-
 }
 
 EffectsManager::~EffectsManager()

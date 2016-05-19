@@ -7,31 +7,37 @@ namespace StenGine
 D3D11Buffer::D3D11Buffer(size_t size, BufferUsage usage, void* data, BufferType type)
 	: m_size(size)
 	, m_mapped(false)
+	, m_flags(0)
 {
 	switch (usage)
 	{
 	case BufferUsage::IMMUTABLE:
-		m_flags = D3D11_USAGE_IMMUTABLE;
+		m_usage = D3D11_USAGE_IMMUTABLE;
 		break;
 	case BufferUsage::DYNAMIC:
-		m_flags = D3D11_USAGE_DYNAMIC;
+		m_usage = D3D11_USAGE_DYNAMIC;
+		break;
+	case BufferUsage::WRITE:
+		m_usage = D3D11_USAGE_DYNAMIC;
+		m_flags = D3D11_CPU_ACCESS_WRITE;
 		break;
 	default:
-		m_flags = D3D11_USAGE_DEFAULT;
+		m_usage = D3D11_USAGE_DEFAULT;
 		break;
 	}
 
 	D3D11_BUFFER_DESC desc;
-	desc.Usage = (D3D11_USAGE)m_flags;
+	desc.Usage = (D3D11_USAGE)m_usage;
 	desc.ByteWidth = size;
 	desc.BindFlags = (UINT)type;
-	desc.CPUAccessFlags = 0;
+	desc.CPUAccessFlags = m_flags;
 	desc.MiscFlags = 0;
-	//vbd.StructureByteStride = 0;
+	desc.StructureByteStride = 0;
 	D3D11_SUBRESOURCE_DATA vinitData;
-	vinitData.pSysMem = data;
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&desc, &vinitData, &m_buffer));
 
+	if (data)
+		vinitData.pSysMem = data;
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&desc, data ? &vinitData : nullptr, &m_buffer));
 }
 
 D3D11Buffer::~D3D11Buffer()
