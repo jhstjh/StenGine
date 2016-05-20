@@ -215,6 +215,11 @@ public:
 		XMFLOAT4 EyePosW;
 	};
 
+	struct MATRIX_PALETTE_BUFFER
+	{
+		XMMATRIX MatrixPalette[64];
+	};
+
 #else
 	struct PEROBJ_CONSTANT_BUFFER
 	{

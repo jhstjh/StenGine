@@ -217,14 +217,14 @@
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
       <FileType>Document</FileType>
     </None>
-    <None Include="FX\DeferredGeometryPass_vs.hlsl">
+    <FxCompile Include="FX\DeferredGeometryPass_vs.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(RelativeDir)%(Filename).cso</ObjectFileOutput>
       <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DisableOptimizations>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
       <FileType>Document</FileType>
-    </None>
+    </FxCompile>
     <None Include="FX\DeferredGeometryTessPass_ds.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -403,6 +403,16 @@
     <None Include="FX\imgui_vs.hlsl">
       <FileType>Document</FileType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="FX\DeferredSkinnedGeometryPass_ps.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <FxCompile Include="FX\DeferredSkinnedGeometryPass_vs.hlsl">
+      <FileType>Document</FileType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

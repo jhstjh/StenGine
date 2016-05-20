@@ -9,6 +9,9 @@ D3D11Buffer::D3D11Buffer(size_t size, BufferUsage usage, void* data, BufferType 
 	, m_mapped(false)
 	, m_flags(0)
 {
+	uint32_t misc = 0;
+	uint32_t stride = 0;
+
 	switch (usage)
 	{
 	case BufferUsage::IMMUTABLE:
@@ -31,8 +34,8 @@ D3D11Buffer::D3D11Buffer(size_t size, BufferUsage usage, void* data, BufferType 
 	desc.ByteWidth = size;
 	desc.BindFlags = (UINT)type;
 	desc.CPUAccessFlags = m_flags;
-	desc.MiscFlags = 0;
-	desc.StructureByteStride = 0;
+	desc.MiscFlags = misc;
+	desc.StructureByteStride = stride;
 	D3D11_SUBRESOURCE_DATA vinitData;
 
 	if (data)

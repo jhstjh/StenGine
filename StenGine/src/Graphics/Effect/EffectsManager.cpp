@@ -565,8 +565,6 @@ void DeferredGeometryPassEffect::PrepareBuffer()
 
 //------------------------------------------------------------//
 
-#if GRAPHICS_OPENGL
-
 DeferredSkinnedGeometryPassEffect::DeferredSkinnedGeometryPassEffect(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath)
 	:Effect(vsPath, psPath, gsPath, hsPath, dsPath)
 {
@@ -597,55 +595,16 @@ void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
 #if GRAPHICS_D3D11
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex::SkinnedMeshVertex, Pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex::SkinnedMeshVertex, Normal), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex::SkinnedMeshVertex, Tangent), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(Vertex::SkinnedMeshVertex, TexUV), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "JOINTWEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, offsetof(Vertex::SkinnedMeshVertex, JointWeights), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "JOINTINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, offsetof(Vertex::SkinnedMeshVertex, JointIndices), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 4, m_vsBlob->GetBufferPointer(),
+	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 6, m_vsBlob->GetBufferPointer(),
 		m_vsBlob->GetBufferSize(), &m_inputLayout));
-
-	m_shaderResources = new ID3D11ShaderResourceView*[5];
-
-	for (int i = 0; i < 5; i++) {
-		m_shaderResources[i] = 0;
-	}
-
-	{
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PEROBJ_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		HRESULT hr;
-		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
-			&m_perObjectCB);
-
-		assert(SUCCEEDED(hr));
-	}
-
-	{
-		// Fill in a buffer description.
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		HRESULT hr;
-		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, nullptr,
-			&m_perFrameCB);
-
-		assert(SUCCEEDED(hr));
-	}
 
 	ReleaseCOM(m_vsBlob);
 	ReleaseCOM(m_psBlob);
@@ -678,12 +637,6 @@ void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
 	glVertexArrayAttribBinding(m_inputLayout, 4, 0);
 	glVertexArrayAttribBinding(m_inputLayout, 5, 0);
 
-	//glCreateBuffers(1, &m_perFrameCB);
-	//glNamedBufferStorage(m_perFrameCB, sizeof(PERFRAME_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
-	//
-	//glCreateBuffers(1, &m_perObjectCB);
-	//glNamedBufferStorage(m_perObjectCB, sizeof(PEROBJ_CONSTANT_BUFFER), nullptr, GL_MAP_WRITE_BIT);
-	//
 	GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
 	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
 	
@@ -693,13 +646,14 @@ void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
 	//glCreateBuffers(1, &m_matrixPaletteSB);
 	//glNamedBufferStorage(m_matrixPaletteSB, sizeof(XMMATRIX) * 64, nullptr, GL_MAP_WRITE_BIT); // alloc a buffer of up to 64 joint;
 
+#endif
+
 	m_perFrameCB = new GPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
-	m_matrixPaletteSB = new GPUBuffer(sizeof(XMMATRIX) * 64, BufferUsage::WRITE, nullptr, BufferType::UNORDERED_ACCESS);
-#endif
+	m_matrixPaletteSB = new GPUBuffer(sizeof(XMMATRIX) * 64, BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+
 }
 
-#endif
 
 //------------------------------------------------------------//
 
@@ -1266,9 +1220,7 @@ EffectsManager::EffectsManager()
 
 	m_shadowMapEffect = std::make_unique<ShadowMapEffect>(L"FX/ShadowMap");
 	m_deferredGeometryPassEffect = std::make_unique<DeferredGeometryPassEffect>(L"FX/DeferredGeometryPass");
-#if GRAPHICS_OPENGL
 	m_deferredSkinnedGeometryPassEffect = std::make_unique<DeferredSkinnedGeometryPassEffect>(L"FX/DeferredSkinnedGeometryPass");
-#endif
 	m_deferredShadingPassEffect = std::make_unique<DeferredShadingPassEffect>(L"FX/DeferredShadingPass");
 	m_deferredGeometryTessPassEffect = std::make_unique<DeferredGeometryTessPassEffect>(L"FX/DeferredGeometryTessPass");
 	m_skyboxEffect = std::make_unique<SkyboxEffect>(L"FX/Skybox");

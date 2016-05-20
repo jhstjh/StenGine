@@ -83,9 +83,9 @@ cbuffer cbPerFrame : register(b1) {
 #endif
 };
 
-// TODO: should be in a tbuffer. tmp cbuffer for now
-cbuffer cbMatrixPalette : register(b2) {
-	float4x4 gJointMatrixPalette[96];
+// TODO: should be in a structured buffer. tmp cbuffer for now
+cbuffer cbMatrixPalette : register(b13) {
+	float4x4 gMatrixPalette[64];
 }
 
 struct VertexIn {

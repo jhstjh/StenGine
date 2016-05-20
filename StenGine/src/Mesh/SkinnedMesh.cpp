@@ -1,5 +1,3 @@
-#if GRAPHICS_OPENGL
-
 #include "Mesh/SkinnedMesh.h"
 #include "Graphics/Effect/EffectsManager.h"
 #include "Scene/CameraManager.h"
@@ -221,7 +219,21 @@ void SkinnedMesh::GatherShadowDrawCall()
 			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
 			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
 
-			glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, effect->m_matrixPaletteSB->GetBuffer(), 0, sizeof(XMMATRIX) * m_matrixPalette.size());
+#if GRAPHICS_D3D11
+			// TODO m_matrixPalette should not be in a cbuffer
+			ConstantBuffer cbuffer2(13, sizeof(DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER), (void*)effect->m_matrixPaletteSB->GetBuffer());
+			DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER* matrixPaletteData = (DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER*)cbuffer2.GetBuffer();
+
+			memcpy(matrixPaletteData, &m_matrixPalette[0], sizeof(XMMATRIX) * m_matrixPalette.size());
+
+			cmd.cbuffers.push_back(std::move(cbuffer2));
+#endif
+
+#if GRAPHICS_OPENGL
+			cmd.offset = (void*)(startIndex * sizeof(unsigned int));
+
+			// TODO !!!
+			glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 15, effect->m_matrixPaletteSB->GetBuffer(), 0, sizeof(XMMATRIX) * m_matrixPalette.size());
 			void* ssbo = glMapNamedBufferRange(
 				effect->m_matrixPaletteSB->GetBuffer(),
 				0,
@@ -230,13 +242,6 @@ void SkinnedMesh::GatherShadowDrawCall()
 			);
 			memcpy(ssbo, &m_matrixPalette[0], sizeof(XMMATRIX) * m_matrixPalette.size());
 			glUnmapNamedBuffer(effect->m_matrixPaletteSB->GetBuffer());
-
-#if GRAPHICS_D3D11
-			cmd.offset = (void*)(startIndex);
-#endif
-
-#if GRAPHICS_OPENGL
-			cmd.offset = (void*)(startIndex * sizeof(unsigned int));
 #endif
 
 			cmd.flags = CmdFlag::DRAW;
@@ -260,5 +265,3 @@ void SkinnedMesh::GatherShadowDrawCall()
 }
 
 }
-
-#endif

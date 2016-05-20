@@ -8,7 +8,7 @@
 #include "Graphics/Animation/Animation.h"
 #include "imgui.h"
 
-#define MIN_SCENE 0
+#define MIN_SCENE 1
 
 namespace StenGine
 {
@@ -36,7 +36,7 @@ void GameObjectManager::LoadScene()
 	sphere->AddComponent(sphereMesh);
 	m_gameObjects.push_back(sphere);
 
-#if GRAPHICS_OPENGL
+
 	GameObject* zombie = new GameObject("Zombie", 7.f, -0.f, -0.5f, 0.f, PI, 0.f, 0.4f, 0.4f, 0.4f);
 	SkinnedMesh* zombieMesh = ResourceManager::Instance()->GetResource<SkinnedMesh>(L"Model/vampire-animated.fbx");
 	zombie->AddComponent(zombieMesh);
@@ -44,7 +44,6 @@ void GameObjectManager::LoadScene()
 
 	Animation* animation = ResourceManager::Instance()->GetResource<Animation>(L"Model/vampire-animated.fbx");
 	zombieMesh->SetAnimation(animation);
-#endif
 
 
 #if !MIN_SCENE || BUILD_RELEASE
