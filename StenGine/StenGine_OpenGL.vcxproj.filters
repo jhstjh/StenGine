@@ -400,6 +400,9 @@
     <ClInclude Include="include\Graphics\Animation\Animation.h">
       <Filter>include\Graphics\Animation</Filter>
     </ClInclude>
+    <ClInclude Include="include\Engine\EventSystem.h">
+      <Filter>include\Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -506,6 +509,9 @@
     </ClCompile>
     <ClCompile Include="src\Graphics\Animation\Animation.cpp">
       <Filter>src\Graphics\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\EventSystem.cpp">
+      <Filter>src\Engine</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -8,6 +8,7 @@
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Utility/ObjReader.h"
 #include "Graphics/Effect/ShadowMap.h"
+#include "Engine/EventSystem.h"
 
 #include "Graphics/Effect/Skybox.h"
 #include "Math/MathHelper.h"
@@ -22,7 +23,7 @@ SkinnedMesh::SkinnedMesh()
 	: Mesh(2) // TODO: just a temporary solution
 	, m_animation(nullptr)
 {
-
+	EventSystem::Instance()->RegisterEventHandler(EventSystem::EventType::PRE_RENDER, [this]() {	PrepareMatrixPalette(); });
 }
 
 SkinnedMesh::~SkinnedMesh() 
@@ -185,11 +186,6 @@ void SkinnedMesh::GatherDrawCall()
 
 void SkinnedMesh::GatherShadowDrawCall()
 {
-	if (m_animation)
-		m_animation->Update();
-
-	PrepareMatrixPalette();
-
 	DeferredSkinnedGeometryPassEffect* effect = EffectsManager::Instance()->m_deferredSkinnedGeometryPassEffect.get();
 
 	UINT stride = sizeof(Vertex::SkinnedMeshVertex);

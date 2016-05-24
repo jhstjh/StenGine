@@ -9,6 +9,7 @@
 #include "Input/InputManager.h"
 #include "Utility/Timer.h"
 #include "Engine/Console.h"
+#include "Engine/EventSystem.h"
 
 #include <Windows.h>
 
@@ -36,6 +37,7 @@ private:
 	HINSTANCE m_hInstance;
 	HWND m_hMainWnd;
 
+	std::unique_ptr<EventSystem> m_eventSystem;
 	std::unique_ptr<EffectsManager> m_effectManager;
 	std::unique_ptr<CameraManager> m_cameraManager;
 	std::unique_ptr<ResourceManager> m_resourceManager;

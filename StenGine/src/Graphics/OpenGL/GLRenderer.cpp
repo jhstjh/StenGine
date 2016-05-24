@@ -15,6 +15,7 @@
 #include "Graphics/Effect/ShadowMap.h"
 #include "Graphics/Effect/Skybox.h"
 #include "Graphics/OpenGL/GLImageLoader.h"
+#include "Engine/EventSystem.h"
 #include "imgui.h"
 #include <vector>
 #include <memory>
@@ -253,6 +254,9 @@ public:
 		m_drawTopologyMap[PrimitiveTopology::TRIANGLELIST] = GL_TRIANGLES;
 		m_drawTopologyMap[PrimitiveTopology::CONTROL_POINT_3_PATCHLIST] = GL_PATCHES;
 		m_drawTopologyMap[PrimitiveTopology::CONTROL_POINT_4_PATCHLIST] = GL_PATCHES;
+
+
+		EventSystem::Instance()->RegisterEventHandler(EventSystem::EventType::RENDER, [this]() {Draw(); });
 
 		return true;
 	}

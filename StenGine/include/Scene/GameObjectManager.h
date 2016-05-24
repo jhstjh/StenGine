@@ -10,6 +10,7 @@ namespace StenGine
 class GameObjectManager : public SingletonClass<GameObjectManager>
 {
 public:
+	GameObjectManager();
 	~GameObjectManager();
 	void LoadScene();
 	void Update();

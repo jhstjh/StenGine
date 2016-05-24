@@ -1,12 +1,9 @@
 #include "Scene/CameraManager.h"
-
-#if PLATFORM_WIN32
 #include "Input/InputManager.h"
 #include "Graphics/Abstraction/RendererBase.h"
+#include "Engine/EventSystem.h"
+
 using namespace DirectX;
-#elif  PLATFORM_ANDROID
-#include "GLESRenderer.h"
-#endif
 
 #include "Math/MathHelper.h"
 
@@ -20,8 +17,6 @@ Camera::Camera(float px, float py, float pz,
 	float ux, float uy, float uz,
 	float fov, float np, float fp)
 {
-#if PLATFORM_WIN32
-
 	XMVECTOR pos = XMVectorSet(px, py, pz, 0.0f);
 	m_target = XMVectorSet(tx, ty, tz, 0.0f);
 	m_up = XMVectorSet(ux, uy, uz, 0.0f);
@@ -46,22 +41,6 @@ Camera::Camera(float px, float py, float pz,
 	m_theta = asinf((pz - tz) / (m_radius * sinf(m_phi)));
 
 	XMStoreFloat4x4(&m_worldTransform, MatrixHelper::Inverse(V));
-#elif  PLATFORM_ANDROID
-
-// 	m_target = ndk_helper::Vec4(tx, ty, tz, 0.0f);
-// 	m_up = XMVectorSet(ux, uy, uz, 0.0f);
-// 	XMStoreFloat4(&m_pos, pos);
-
-	m_view = ndk_helper::Mat4::LookAt(ndk_helper::Vec3(px, py, pz),
-		ndk_helper::Vec3(tx, ty, tz), ndk_helper::Vec3(ux, uy, uz));
-
-	int32_t viewport[4];
-	glGetIntegerv(GL_VIEWPORT, viewport);
-	float fAspect = (float)viewport[2] / (float)viewport[3];
-
-	m_proj = ndk_helper::Mat4::Perspective(fAspect, 1.f, np, fp);
-
-#endif
 }
 
 Camera::~Camera()
@@ -69,28 +48,19 @@ Camera::~Camera()
 
 }
 
-XMMATRIX Camera::GetViewProjMatrix() {
-#if PLATFORM_WIN32
+XMMATRIX Camera::GetViewProjMatrix() 
+{
 	return XMLoadFloat4x4(&m_view) * XMLoadFloat4x4(&m_proj);
-#elif  PLATFORM_ANDROID
-	return m_proj * m_view;
-#endif
 }
 
-XMMATRIX Camera::GetViewMatrix() {
-#if PLATFORM_WIN32
+XMMATRIX Camera::GetViewMatrix() 
+{
 	return XMLoadFloat4x4(&m_view);
-#elif  PLATFORM_ANDROID
-	return m_view;
-#endif
 }
 
-XMMATRIX Camera::GetProjMatrix() {
-#if PLATFORM_WIN32
+XMMATRIX Camera::GetProjMatrix() 
+{
 	return XMLoadFloat4x4(&m_proj);
-#elif  PLATFORM_ANDROID
-	return m_proj;
-#endif
 }
 
 // void Camera::OnMouseDown(WPARAM btnState, int x, int y) {
@@ -127,8 +97,8 @@ XMMATRIX Camera::GetProjMatrix() {
 // 	XMStoreFloat4x4(&m_view, V);
 //}
 
-void Camera::Update() {
-#if PLATFORM_WIN32
+void Camera::Update() 
+{
 	if (InputManager::Instance()->GetKeyHold('W')) {
 		MatrixHelper::MoveForward(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
 		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
@@ -171,15 +141,23 @@ void Camera::Update() {
 		XMStoreFloat4x4(&m_worldTransform, M);
 		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(M));
 	}
-#endif
 }
 
-CameraManager::CameraManager() {
+CameraManager::CameraManager()
+{
 	m_debugCamera = new Camera(4.0f, 11.f, -11.f, 0.0f, 5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.25f * 3.14159f, 1.0f, 1000.0f);
 	m_activeCamera = m_debugCamera;
+
+	auto updateCam = [this]()
+	{
+		m_activeCamera->Update();
+	};
+
+	EventSystem::Instance()->RegisterEventHandler(EventSystem::EventType::UPDATE, updateCam);
 }
 
-CameraManager::~CameraManager() {
+CameraManager::~CameraManager() 
+{
 	SafeDelete(m_debugCamera);
 }
 

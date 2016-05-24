@@ -80,6 +80,7 @@ void EngineBase::Init(HINSTANCE hInstance)
 	MyRegisterClass(hInstance);
 
 	m_console = std::make_unique<Console>();
+	m_eventSystem = std::unique_ptr<EventSystem>(EventSystem::Instance());
 
 	m_renderer = Renderer::Create(hInstance, m_hMainWnd);
 
@@ -128,10 +129,9 @@ void EngineBase::Run()
 				m_renderer->UpdateTitle(outs.str().c_str());
 				m_elaspedFrame = 0;
 			}
-			m_inputManager->Update();
-			m_cameraManager->GetActiveCamera()->Update();
-			m_gameObjectManager->Update();
-			m_renderer->Draw();
+
+			m_eventSystem->Update();
+
 			m_elaspedFrame++;
 		}
 	}

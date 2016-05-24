@@ -11,6 +11,7 @@
 #include "Scene/LightManager.h"
 #include "Scene/CameraManager.h"
 #include "Math/MathHelper.h"
+#include "Engine/EventSystem.h"
 
 #include <unordered_map>
 #include <map>
@@ -588,6 +589,8 @@ public:
 
 			ReleaseCOM(blurredTex);
 		}
+
+		EventSystem::Instance()->RegisterEventHandler(EventSystem::EventType::RENDER, [this]() {Draw(); });
 
 		return true;
 	}

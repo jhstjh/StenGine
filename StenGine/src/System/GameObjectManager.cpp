@@ -7,6 +7,7 @@
 #include "Math/MathHelper.h"
 #include "Graphics/Animation/Animation.h"
 #include "imgui.h"
+#include "Engine/EventSystem.h"
 
 #define MIN_SCENE 1
 
@@ -14,6 +15,11 @@ namespace StenGine
 {
 
 DEFINE_SINGLETON_CLASS(GameObjectManager)
+
+GameObjectManager::GameObjectManager()
+{
+	EventSystem::Instance()->RegisterEventHandler(EventSystem::EventType::UPDATE, [this]() {Update(); });
+}
 
 GameObjectManager::~GameObjectManager()
 {

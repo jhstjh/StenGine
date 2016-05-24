@@ -301,6 +301,7 @@
   <ItemGroup>
     <ClInclude Include="include\Engine\Console.h" />
     <ClInclude Include="include\Engine\EngineBase.h" />
+    <ClInclude Include="include\Engine\EventSystem.h" />
     <ClInclude Include="include\Graphics\Abstraction\ConstantBuffer.h" />
     <ClInclude Include="include\Graphics\Abstraction\ConstantBufferBase.h" />
     <ClInclude Include="include\Graphics\Abstraction\DrawCmd.h" />
@@ -354,6 +355,7 @@
     <ClInclude Include="include\Graphics\D3D11\D3D11Buffer.h" />
     <ClCompile Include="src\Engine\Console.cpp" />
     <ClCompile Include="src\Engine\EngineBase.cpp" />
+    <ClCompile Include="src\Engine\EventSystem.cpp" />
     <ClCompile Include="src\Graphics\Animation\Animation.cpp" />
     <ClCompile Include="src\Graphics\Color.cpp" />
     <ClCompile Include="src\Graphics\D3D11\D3D11Buffer.cpp" />

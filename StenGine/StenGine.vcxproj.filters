@@ -179,9 +179,6 @@
     <None Include="FX\DeferredGeometryPass_ps.hlsl">
       <Filter>FX</Filter>
     </None>
-    <None Include="FX\DeferredGeometryPass_vs.hlsl">
-      <Filter>FX</Filter>
-    </None>
     <None Include="FX\DeferredGeometrySkinnedPass_vs.hlsl">
       <Filter>FX</Filter>
     </None>
@@ -236,12 +233,13 @@
     <None Include="FX\VBlur_cs.hlsl">
       <Filter>FX</Filter>
     </None>
-    <None Include="FX\imgui_ps.hlsl" />
-    <None Include="FX\imgui_vs.hlsl" />
     <None Include="FX\DeferredSkinnedGeometryPass_ps.hlsl">
       <Filter>FX</Filter>
     </None>
-    <None Include="FX\DeferredSkinnedGeometryPass_vs.hlsl">
+    <None Include="FX\imgui_ps.hlsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\imgui_vs.hlsl">
       <Filter>FX</Filter>
     </None>
   </ItemGroup>
@@ -397,6 +395,9 @@
     <ClInclude Include="include\Graphics\Animation\Animation.h">
       <Filter>include\Graphics\Animation</Filter>
     </ClInclude>
+    <ClInclude Include="include\Engine\EventSystem.h">
+      <Filter>include\Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -502,5 +503,16 @@
     <ClCompile Include="src\Graphics\Animation\Animation.cpp">
       <Filter>src\Animation</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\EventSystem.cpp">
+      <Filter>src\Engine</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="FX\DeferredGeometryPass_vs.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
+    <FxCompile Include="FX\DeferredSkinnedGeometryPass_vs.hlsl">
+      <Filter>FX</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

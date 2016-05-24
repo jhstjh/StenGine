@@ -68,6 +68,8 @@ class Animation {
 public:
 	std::unordered_map<std::string, AnimationNode> m_animations;
 
+	Animation();
+
 	void Update()
 	{
 		for (auto &node : m_animations)

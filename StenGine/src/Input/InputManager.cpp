@@ -1,4 +1,5 @@
 #include "Input/InputManager.h"
+#include "Engine/EventSystem.h"
 
 namespace StenGine
 {
@@ -7,7 +8,7 @@ DEFINE_SINGLETON_CLASS(InputManager)
 
 InputManager::InputManager()
 {
-
+	EventSystem::Instance()->RegisterEventHandler(EventSystem::EventType::UPDATE_INPUT, [this](){Update();});
 }
 
 InputManager::~InputManager() {
