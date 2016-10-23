@@ -2,10 +2,8 @@
 #define __SKYBOX__
 
 #include "Graphics/D3DIncludes.h"
-
-#if GRAPHICS_OPENGL
 #include "glew.h"
-#endif
+
 namespace StenGine
 {
 
@@ -15,13 +13,12 @@ public:
 	~Skybox();
 
 	void Draw();
-#if GRAPHICS_D3D11
+
+	// TODO unify D3D/GL member
 	ID3D11ShaderResourceView* m_cubeMapSRV;
-#else
+
 	uint64_t m_cubeMapTex;
 	GLuint m_skyboxVAO;
-#endif
-
 };
 
 }

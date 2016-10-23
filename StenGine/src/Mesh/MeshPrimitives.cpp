@@ -1,5 +1,6 @@
 #include "Mesh/MeshRenderer.h"
 #include "Resource/ResourceManager.h"
+#include "Graphics/Abstraction/RendererBase.h"
 
 namespace StenGine
 {
@@ -168,15 +169,8 @@ void Mesh::CreateBoxPrimitive() {
 	m_subMeshes[0].m_indexBufferCPU = m_indexBufferCPU;
 	m_subMeshes[0].m_matIndex = 0;
 
-#if PLATFORM_WIN32
-#if GRAPHICS_D3D11
 	m_materials[0].m_diffuseMapTex = ResourceManager::Instance()->GetResource<Texture>(L"./Model/WoodCrate02.dds");
 	m_materials[0].m_normalMapTex = ResourceManager::Instance()->GetResource<Texture>(L"./Model/WoodCrate02_normal.dds");
-#else
-	m_materials[0].m_diffuseMapTex = (ResourceManager::Instance()->GetResource<Texture>(L"./Model/WoodCrate02.dds"));
-	m_materials[0].m_normalMapTex = (ResourceManager::Instance()->GetResource<Texture>(L"./Model/WoodCrate02_normal.dds"));
-#endif
-#endif
 }
 
 void Mesh::CreatePlanePrimitive() {

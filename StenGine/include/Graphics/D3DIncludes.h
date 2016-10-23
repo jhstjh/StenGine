@@ -14,10 +14,7 @@
 #include <math.h>
 #include <algorithm>
 
-#if GRAPHICS_D3D11
 #include "DDSTextureLoader.h"
-#endif
-
 #include "DirectXPackedVector.h"
 
 using namespace DirectX;

@@ -24,17 +24,14 @@ Camera::Camera(float px, float py, float pz,
 
 	XMMATRIX V = XMMatrixLookAtLH(pos, m_target, m_up);
 	XMStoreFloat4x4(&m_view, V);
-#if GRAPHICS_D3D11
 	XMMATRIX P = XMMatrixPerspectiveFovLH(fov, Renderer::Instance()->GetAspectRatio(), np, fp);
-#else
-	XMMATRIX P = XMMatrixPerspectiveFovLH(fov, Renderer::Instance()->GetAspectRatio(), np, fp);
-#endif
 	XMStoreFloat4x4(&m_proj, P);
 
-#if GRAPHICS_OPENGL
-	m_proj.m[2][2] = (np + fp) / (fp - np);
-	m_proj.m[3][2] = - 2 * (np * fp) / (fp - np);
-#endif
+	if (Renderer::GetRenderBackend() == RenderBackend::OPENGL4)
+	{
+		m_proj.m[2][2] = (np + fp) / (fp - np);
+		m_proj.m[3][2] = -2 * (np * fp) / (fp - np);
+	}
 
 	m_radius = XMVectorGetX(XMVector3Length(pos - m_target));
 	m_phi = acosf((py - ty) / m_radius);

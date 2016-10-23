@@ -42,7 +42,6 @@ public:
 	virtual void DrawGBuffer();
 	virtual void DrawDeferredShading();
 	virtual void DrawBlurSSAOAndCombine();
-	virtual void DrawGodRay();
 	virtual void DrawDebug();
 	void doCSBlur(ID3D11ShaderResourceView* blurImgSRV, int uavSlotIdx);
 	ID3D11BlendState* GetBlendState(BlendState& blendState);

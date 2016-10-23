@@ -1,9 +1,7 @@
 #ifndef __FBX_READER__
 #define __FBX_READER__
 
-#if  (PLATFORM_WIN32) || defined(SG_TOOL)
 #include "Graphics/D3DIncludes.h"
-#endif
 #include "Mesh/MeshRenderer.h"
 
 namespace StenGine

@@ -4,13 +4,9 @@
 #include "System/API/PlatformAPIDefs.h"
 #include "System/SingletonClass.h"
 
-#if PLATFORM_WIN32
 #include <DirectXMath.h>
 #include <windows.h>
 using namespace DirectX;
-#else
-#include "AndroidType.h"
-#endif
 
 #include "System/AlignedClass.h"
 
@@ -41,11 +37,7 @@ public:
 	XMMATRIX GetViewMatrix();
 	XMMATRIX GetProjMatrix();
 	XMFLOAT4 GetPos() { 
-#if PLATFORM_ANDROID
-		return m_pos;
-#else
 		return XMFLOAT4(m_worldTransform._41, m_worldTransform._42, m_worldTransform._43, 0.0); 
-#endif
 	}
 // 	void OnMouseDown(WPARAM btnState, int x, int y);
 // 	void OnMouseUp(WPARAM btnState, int x, int y);

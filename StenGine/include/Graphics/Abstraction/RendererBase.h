@@ -75,7 +75,6 @@ public:
 	virtual void DrawDeferredShading() = 0;
 	virtual void DrawBlurSSAOAndCombine() = 0;
 	virtual void DrawDebug() = 0;
-	virtual void DrawGodRay() = 0;
 	virtual class Skybox* GetSkyBox() = 0;
 	virtual void* GetDevice() = 0;
 	virtual void* GetDeviceContext() = 0;

@@ -2,16 +2,24 @@
 #define __MATH_HELPER__
 
 #include <DirectXMath.h>
+#include "Graphics/Abstraction/RendererBase.h"
 
 using namespace DirectX;
 
-#if GRAPHICS_D3D11
-#define TRASNPOSE_API_CHOOSER(M) XMMatrixTranspose(M) 
-#elif  GRAPHICS_OPENGL
-#define TRASNPOSE_API_CHOOSER(M) (M) 
-#endif
 namespace StenGine
 {
+
+inline XMMATRIX TRASNPOSE_API_CHOOSER(const XMMATRIX& mat)
+{
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+		return XMMatrixTranspose(mat);
+	case RenderBackend::OPENGL4:
+		return mat;
+	}
+	return mat;
+}
 
 static const float PI = 3.1415926f;
 static const XMMATRIX IDENTITY_MAT = XMMatrixIdentity();

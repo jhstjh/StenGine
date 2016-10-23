@@ -3,25 +3,31 @@
 
 #include <Windows.h>
 
-#if GRAPHICS_D3D11
 #include "D3DCompiler.h"
-
-#define READ_SHADER_FROM_FILE 0
-#if READ_SHADER_FROM_FILE
-#define EXT L".cso"
-#else
-#define EXT L".hlsl"
-#endif
-#else
-#define EXT L".glsl"
-#endif
-
 #include "imgui.h"
 
 #pragma warning( disable : 4996 )
 
 namespace StenGine
 {
+
+inline std::wstring GetExt()
+{
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		return L".hlsl";
+	}
+	case RenderBackend::OPENGL4:
+	{
+		return L".glsl";
+	}
+	}
+
+	assert(false);
+	return L".fx";
+}
 
 Effect::Effect(const std::wstring& filename)
 {
@@ -34,14 +40,20 @@ Effect::Effect(const std::wstring& vsPath,
 			   const std::wstring& hsPath = L"",
 			   const std::wstring& dsPath = L"",
 			   const std::wstring& csPath = L"")
-			   : m_vertexShader(0)
-			   , m_pixelShader(0)
-			   , m_geometryShader(0)
-			   , m_hullShader(0)
-			   , m_domainShader(0)
-			   , m_computeShader(0)
-			   , m_inputLayout(0)
-#if GRAPHICS_D3D11
+			   : m_d3d11vertexShader(nullptr)
+			   , m_d3d11pixelShader(nullptr)
+			   , m_d3d11geometryShader(nullptr)
+			   , m_d3d11hullShader(nullptr)
+			   , m_d3d11domainShader(nullptr)
+			   , m_d3d11computeShader(nullptr)
+			   , m_d3d11inputLayout(0)
+			   , m_glvertexShader(0)
+			   , m_glpixelShader(0)
+			   , m_glgeometryShader(0)
+			   , m_glhullShader(0)
+			   , m_gldomainShader(0)
+			   , m_glcomputeShader(0)
+			   , m_glinputLayout(0)
 			   , m_vsBlob(nullptr)
 			   , m_psBlob(nullptr)
 			   , m_gsBlob(nullptr)
@@ -49,305 +61,320 @@ Effect::Effect(const std::wstring& vsPath,
 			   , m_dsBlob(nullptr)
 			   , m_csBlob(nullptr)
 			   , m_shaderResources(nullptr)
-#else
-			   // gl
-#endif
+
 {
-#if GRAPHICS_D3D11
-	// Add error checking
-	HRESULT hr;
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		// Add error checking
+		HRESULT hr;
 
-	if (vsPath.length()) {
-		ReadShaderFile(vsPath, &m_vsBlob, "vs_5_0");
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateVertexShader(
-			m_vsBlob->GetBufferPointer(),
-			m_vsBlob->GetBufferSize(),
-			nullptr,
-			&m_vertexShader
-		);
-		assert(SUCCEEDED(hr));
-	}
-
-	if (psPath.length()) {
-		ReadShaderFile(psPath, &m_psBlob, "ps_5_0");
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreatePixelShader(
-			m_psBlob->GetBufferPointer(),
-			m_psBlob->GetBufferSize(),
-			nullptr,
-			&m_pixelShader
-		);
-		assert(SUCCEEDED(hr));
-	}
-
-	if (gsPath.length()) {
-		ReadShaderFile(gsPath, &m_gsBlob, "gs_5_0");
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateGeometryShader(
-			m_gsBlob->GetBufferPointer(),
-			m_gsBlob->GetBufferSize(),
-			nullptr,
-			&m_geometryShader
+		if (vsPath.length()) {
+			ReadShaderFile(vsPath, &m_vsBlob, "vs_5_0");
+			hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateVertexShader(
+				m_vsBlob->GetBufferPointer(),
+				m_vsBlob->GetBufferSize(),
+				nullptr,
+				&m_d3d11vertexShader
 			);
-		assert(SUCCEEDED(hr));
-	}
-
-	if (hsPath.length()) {
-		ReadShaderFile(hsPath, &m_hsBlob, "hs_5_0");
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateHullShader(
-			m_hsBlob->GetBufferPointer(),
-			m_hsBlob->GetBufferSize(),
-			nullptr,
-			&m_hullShader
-			);
-		assert(SUCCEEDED(hr));
-	}
-
-	if (dsPath.length()) {
-		ReadShaderFile(dsPath, &m_dsBlob, "ds_5_0");
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateDomainShader(
-			m_dsBlob->GetBufferPointer(),
-			m_dsBlob->GetBufferSize(),
-			nullptr,
-			&m_domainShader
-			);
-		assert(SUCCEEDED(hr));
-	}
-
-	if (csPath.length()) {
-		ReadShaderFile(csPath, &m_csBlob, "cs_5_0");
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateComputeShader(
-			m_csBlob->GetBufferPointer(),
-			m_csBlob->GetBufferSize(),
-			nullptr,
-			&m_computeShader
-			);
-		assert(SUCCEEDED(hr));
-	}
-#else
-	char shaderbuffer[1024*256];
-	const GLchar* p;
-	int params = -1;
-
-	if (vsPath.length()) {
-		(ReadShaderFile(vsPath, shaderbuffer, 1024*256));
-		m_vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		p = (const GLchar*)shaderbuffer;
-		glShaderSource(m_vertexShader, 1, &p, NULL);
-		glCompileShader(m_vertexShader);
-
-		/* check for shader compile errors - very important! */
-
-		glGetShaderiv(m_vertexShader, GL_COMPILE_STATUS, &params);
-		if (GL_TRUE != params) {
-			GLint maxLength = 0;
-			glGetShaderiv(m_vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
-
-			//The maxLength includes the NULL character
-			std::vector<GLchar> infoLog(maxLength);
-			glGetShaderInfoLog(m_vertexShader, maxLength, &maxLength, &infoLog[0]);
-			//We don't need the shader anymore.
-			glDeleteShader(m_vertexShader);
-
-			OutputDebugStringA(&infoLog[0]);
-			assert(false);
-			return;
-
-// 			fprintf(stderr, "ERROR: GL shader index %i did not compile\n", m_vertexShader);
-// 			_print_shader_info_log(vs);
+			assert(SUCCEEDED(hr));
 		}
-	}
 
-	if (hsPath.length()) {
-		(ReadShaderFile(hsPath, shaderbuffer, 1024 * 256));
-		m_hullShader = glCreateShader(GL_TESS_CONTROL_SHADER);
-		p = (const GLchar*)shaderbuffer;
-		glShaderSource(m_hullShader, 1, &p, NULL);
-		glCompileShader(m_hullShader);
-
-		/* check for shader compile errors - very important! */
-
-		glGetShaderiv(m_hullShader, GL_COMPILE_STATUS, &params);
-		if (GL_TRUE != params) {
-			GLint maxLength = 0;
-			glGetShaderiv(m_hullShader, GL_INFO_LOG_LENGTH, &maxLength);
-
-			//The maxLength includes the NULL character
-			std::vector<GLchar> infoLog(maxLength);
-			glGetShaderInfoLog(m_hullShader, maxLength, &maxLength, &infoLog[0]);
-			//We don't need the shader anymore.
-			glDeleteShader(m_hullShader);
-
-			OutputDebugStringA(&infoLog[0]);
-			assert(false);
-			return;
-
-			// 			fprintf(stderr, "ERROR: GL shader index %i did not compile\n", m_vertexShader);
-			// 			_print_shader_info_log(vs);
+		if (psPath.length()) {
+			ReadShaderFile(psPath, &m_psBlob, "ps_5_0");
+			hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreatePixelShader(
+				m_psBlob->GetBufferPointer(),
+				m_psBlob->GetBufferSize(),
+				nullptr,
+				&m_d3d11pixelShader
+			);
+			assert(SUCCEEDED(hr));
 		}
-	}
 
-	if (dsPath.length()) {
-		(ReadShaderFile(dsPath, shaderbuffer, 1024 * 256));
-		m_domainShader = glCreateShader(GL_TESS_EVALUATION_SHADER);
-		p = (const GLchar*)shaderbuffer;
-		glShaderSource(m_domainShader, 1, &p, NULL);
-		glCompileShader(m_domainShader);
-
-		/* check for shader compile errors - very important! */
-
-		glGetShaderiv(m_domainShader, GL_COMPILE_STATUS, &params);
-		if (GL_TRUE != params) {
-			GLint maxLength = 0;
-			glGetShaderiv(m_domainShader, GL_INFO_LOG_LENGTH, &maxLength);
-
-			//The maxLength includes the NULL character
-			std::vector<GLchar> infoLog(maxLength);
-			glGetShaderInfoLog(m_domainShader, maxLength, &maxLength, &infoLog[0]);
-			//We don't need the shader anymore.
-			glDeleteShader(m_domainShader);
-
-			OutputDebugStringA(&infoLog[0]);
-			assert(false);
-			return;
-
-			// 			fprintf(stderr, "ERROR: GL shader index %i did not compile\n", m_vertexShader);
-			// 			_print_shader_info_log(vs);
+		if (gsPath.length()) {
+			ReadShaderFile(gsPath, &m_gsBlob, "gs_5_0");
+			hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateGeometryShader(
+				m_gsBlob->GetBufferPointer(),
+				m_gsBlob->GetBufferSize(),
+				nullptr,
+				&m_d3d11geometryShader
+			);
+			assert(SUCCEEDED(hr));
 		}
+
+		if (hsPath.length()) {
+			ReadShaderFile(hsPath, &m_hsBlob, "hs_5_0");
+			hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateHullShader(
+				m_hsBlob->GetBufferPointer(),
+				m_hsBlob->GetBufferSize(),
+				nullptr,
+				&m_d3d11hullShader
+			);
+			assert(SUCCEEDED(hr));
+		}
+
+		if (dsPath.length()) {
+			ReadShaderFile(dsPath, &m_dsBlob, "ds_5_0");
+			hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateDomainShader(
+				m_dsBlob->GetBufferPointer(),
+				m_dsBlob->GetBufferSize(),
+				nullptr,
+				&m_d3d11domainShader
+			);
+			assert(SUCCEEDED(hr));
+		}
+
+		if (csPath.length()) {
+			ReadShaderFile(csPath, &m_csBlob, "cs_5_0");
+			hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateComputeShader(
+				m_csBlob->GetBufferPointer(),
+				m_csBlob->GetBufferSize(),
+				nullptr,
+				&m_d3d11computeShader
+			);
+			assert(SUCCEEDED(hr));
+		}
+		break;
 	}
+	case RenderBackend::OPENGL4:
+	{
+		char shaderbuffer[1024 * 256];
+		const GLchar* p;
+		int params = -1;
 
-	if (psPath.length()) {
-		(ReadShaderFile(psPath, shaderbuffer, 1024 * 256));
-		m_pixelShader = glCreateShader(GL_FRAGMENT_SHADER);
-		p = (const GLchar*)shaderbuffer;
-		glShaderSource(m_pixelShader, 1, &p, NULL);
-		glCompileShader(m_pixelShader);
+		if (vsPath.length()) {
+			(ReadShaderFile(vsPath, shaderbuffer, 1024 * 256));
+			m_glvertexShader = glCreateShader(GL_VERTEX_SHADER);
+			p = (const GLchar*)shaderbuffer;
+			glShaderSource(m_glvertexShader, 1, &p, NULL);
+			glCompileShader(m_glvertexShader);
 
-		/* check for shader compile errors - very important! */
+			/* check for shader compile errors - very important! */
 
-		glGetShaderiv(m_pixelShader, GL_COMPILE_STATUS, &params);
+			glGetShaderiv(m_glvertexShader, GL_COMPILE_STATUS, &params);
+			if (GL_TRUE != params) {
+				GLint maxLength = 0;
+				glGetShaderiv(m_glvertexShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+				//The maxLength includes the NULL character
+				std::vector<GLchar> infoLog(maxLength);
+				glGetShaderInfoLog(m_glvertexShader, maxLength, &maxLength, &infoLog[0]);
+				//We don't need the shader anymore.
+				glDeleteShader(m_glvertexShader);
+
+				OutputDebugStringA(&infoLog[0]);
+				assert(false);
+				return;
+
+				// 			fprintf(stderr, "ERROR: GL shader index %i did not compile\n", m_vertexShader);
+				// 			_print_shader_info_log(vs);
+			}
+		}
+
+		if (hsPath.length()) {
+			(ReadShaderFile(hsPath, shaderbuffer, 1024 * 256));
+			m_glhullShader = glCreateShader(GL_TESS_CONTROL_SHADER);
+			p = (const GLchar*)shaderbuffer;
+			glShaderSource(m_glhullShader, 1, &p, NULL);
+			glCompileShader(m_glhullShader);
+
+			/* check for shader compile errors - very important! */
+
+			glGetShaderiv(m_glhullShader, GL_COMPILE_STATUS, &params);
+			if (GL_TRUE != params) {
+				GLint maxLength = 0;
+				glGetShaderiv(m_glhullShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+				//The maxLength includes the NULL character
+				std::vector<GLchar> infoLog(maxLength);
+				glGetShaderInfoLog(m_glhullShader, maxLength, &maxLength, &infoLog[0]);
+				//We don't need the shader anymore.
+				glDeleteShader(m_glhullShader);
+
+				OutputDebugStringA(&infoLog[0]);
+				assert(false);
+				return;
+
+				// 			fprintf(stderr, "ERROR: GL shader index %i did not compile\n", m_vertexShader);
+				// 			_print_shader_info_log(vs);
+			}
+		}
+
+		if (dsPath.length()) {
+			(ReadShaderFile(dsPath, shaderbuffer, 1024 * 256));
+			m_gldomainShader = glCreateShader(GL_TESS_EVALUATION_SHADER);
+			p = (const GLchar*)shaderbuffer;
+			glShaderSource(m_gldomainShader, 1, &p, NULL);
+			glCompileShader(m_gldomainShader);
+
+			/* check for shader compile errors - very important! */
+
+			glGetShaderiv(m_gldomainShader, GL_COMPILE_STATUS, &params);
+			if (GL_TRUE != params) {
+				GLint maxLength = 0;
+				glGetShaderiv(m_gldomainShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+				//The maxLength includes the NULL character
+				std::vector<GLchar> infoLog(maxLength);
+				glGetShaderInfoLog(m_gldomainShader, maxLength, &maxLength, &infoLog[0]);
+				//We don't need the shader anymore.
+				glDeleteShader(m_gldomainShader);
+
+				OutputDebugStringA(&infoLog[0]);
+				assert(false);
+				return;
+
+				// 			fprintf(stderr, "ERROR: GL shader index %i did not compile\n", m_vertexShader);
+				// 			_print_shader_info_log(vs);
+			}
+		}
+
+		if (psPath.length()) {
+			(ReadShaderFile(psPath, shaderbuffer, 1024 * 256));
+			m_glpixelShader = glCreateShader(GL_FRAGMENT_SHADER);
+			p = (const GLchar*)shaderbuffer;
+			glShaderSource(m_glpixelShader, 1, &p, NULL);
+			glCompileShader(m_glpixelShader);
+
+			/* check for shader compile errors - very important! */
+
+			glGetShaderiv(m_glpixelShader, GL_COMPILE_STATUS, &params);
+			if (GL_TRUE != params) {
+				//assert(false);
+				// 			fprintf(stderr, "ERROR: GL shader index %i did not compile\n", m_vertexShader);
+				// 			_print_shader_info_log(vs);
+
+				GLint maxLength = 0;
+				glGetShaderiv(m_glpixelShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+				//The maxLength includes the NULL character
+				std::vector<GLchar> infoLog(maxLength);
+				glGetShaderInfoLog(m_glpixelShader, maxLength, &maxLength, &infoLog[0]);
+				//We don't need the shader anymore.
+				glDeleteShader(m_glpixelShader);
+
+				OutputDebugStringA(&infoLog[0]);
+				assert(false);
+				return;
+			}
+		}
+
+		if (csPath.length()) {
+			(ReadShaderFile(csPath, shaderbuffer, 1024 * 256));
+			m_glcomputeShader = glCreateShader(GL_COMPUTE_SHADER);
+			p = (const GLchar*)shaderbuffer;
+			glShaderSource(m_glcomputeShader, 1, &p, NULL);
+			glCompileShader(m_glcomputeShader);
+
+			/* check for shader compile errors - very important! */
+
+			glGetShaderiv(m_glcomputeShader, GL_COMPILE_STATUS, &params);
+			if (GL_TRUE != params) {
+				//assert(false);
+				// 			fprintf(stderr, "ERROR: GL shader index %i did not compile\n", m_vertexShader);
+				// 			_print_shader_info_log(vs);
+
+				GLint maxLength = 0;
+				glGetShaderiv(m_glcomputeShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+				//The maxLength includes the NULL character
+				std::vector<GLchar> infoLog(maxLength);
+				glGetShaderInfoLog(m_glcomputeShader, maxLength, &maxLength, &infoLog[0]);
+				//We don't need the shader anymore.
+				glDeleteShader(m_glcomputeShader);
+
+				OutputDebugStringA(&infoLog[0]);
+				assert(false);
+				return;
+			}
+		}
+
+		m_shaderProgram = glCreateProgram();
+		if (vsPath.length()) glAttachShader(m_shaderProgram, m_glvertexShader);
+		if (hsPath.length()) glAttachShader(m_shaderProgram, m_glhullShader);
+		if (dsPath.length()) glAttachShader(m_shaderProgram, m_gldomainShader);
+		if (psPath.length()) glAttachShader(m_shaderProgram, m_glpixelShader);
+		if (csPath.length()) glAttachShader(m_shaderProgram, m_glcomputeShader);
+		glLinkProgram(m_shaderProgram);
+
+		/* check for shader linking errors - very important! */
+		glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &params);
 		if (GL_TRUE != params) {
 			//assert(false);
-			// 			fprintf(stderr, "ERROR: GL shader index %i did not compile\n", m_vertexShader);
-			// 			_print_shader_info_log(vs);
-
+	// 		fprintf(
+	// 			stderr,
+	// 			"ERROR: could not link shader programme GL index %i\n",
+	// 			shader_programme
+	// 			);
+	// 		_print_programme_info_log(shader_programme);
+	// 		return 1;
 			GLint maxLength = 0;
-			glGetShaderiv(m_pixelShader, GL_INFO_LOG_LENGTH, &maxLength);
+			glGetProgramiv(m_shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
 
 			//The maxLength includes the NULL character
 			std::vector<GLchar> infoLog(maxLength);
-			glGetShaderInfoLog(m_pixelShader, maxLength, &maxLength, &infoLog[0]);
+			glGetProgramInfoLog(m_shaderProgram, maxLength, &maxLength, &infoLog[0]);
 			//We don't need the shader anymore.
-			glDeleteShader(m_pixelShader);
+			glDeleteProgram(m_shaderProgram);
 
 			OutputDebugStringA(&infoLog[0]);
-			assert(false);
+			assert(GL_TRUE != params);
 			return;
 		}
-	}
 
-	if (csPath.length()) {
-		(ReadShaderFile(csPath, shaderbuffer, 1024 * 256));
-		m_computeShader = glCreateShader(GL_COMPUTE_SHADER);
-		p = (const GLchar*)shaderbuffer;
-		glShaderSource(m_computeShader, 1, &p, NULL);
-		glCompileShader(m_computeShader);
-
-		/* check for shader compile errors - very important! */
-
-		glGetShaderiv(m_computeShader, GL_COMPILE_STATUS, &params);
+		glValidateProgram(m_shaderProgram);
+		glGetProgramiv(m_shaderProgram, GL_VALIDATE_STATUS, &params);
+		printf("program %i GL_VALIDATE_STATUS = %i\n", m_shaderProgram, params);
 		if (GL_TRUE != params) {
-			//assert(false);
-			// 			fprintf(stderr, "ERROR: GL shader index %i did not compile\n", m_vertexShader);
-			// 			_print_shader_info_log(vs);
-
-			GLint maxLength = 0;
-			glGetShaderiv(m_computeShader, GL_INFO_LOG_LENGTH, &maxLength);
-
-			//The maxLength includes the NULL character
-			std::vector<GLchar> infoLog(maxLength);
-			glGetShaderInfoLog(m_computeShader, maxLength, &maxLength, &infoLog[0]);
-			//We don't need the shader anymore.
-			glDeleteShader(m_computeShader);
-
-			OutputDebugStringA(&infoLog[0]);
 			assert(false);
-			return;
+			// 		_print_programme_info_log(sp);
+			// 		return false;
 		}
+		break;
 	}
-
-	m_shaderProgram = glCreateProgram();
-	if (vsPath.length()) glAttachShader(m_shaderProgram, m_vertexShader);
-	if (hsPath.length()) glAttachShader(m_shaderProgram, m_hullShader);
-	if (dsPath.length()) glAttachShader(m_shaderProgram, m_domainShader);
-	if (psPath.length()) glAttachShader(m_shaderProgram, m_pixelShader);
-	if (csPath.length()) glAttachShader(m_shaderProgram, m_computeShader);
-	glLinkProgram(m_shaderProgram);
-
-	/* check for shader linking errors - very important! */
-	glGetProgramiv(m_shaderProgram, GL_LINK_STATUS, &params);
-	if (GL_TRUE != params) {
-		//assert(false);
-// 		fprintf(
-// 			stderr,
-// 			"ERROR: could not link shader programme GL index %i\n",
-// 			shader_programme
-// 			);
-// 		_print_programme_info_log(shader_programme);
-// 		return 1;
-		GLint maxLength = 0;
-		glGetProgramiv(m_shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
-
-		//The maxLength includes the NULL character
-		std::vector<GLchar> infoLog(maxLength);
-		glGetProgramInfoLog(m_shaderProgram, maxLength, &maxLength, &infoLog[0]);
-		//We don't need the shader anymore.
-		glDeleteProgram(m_shaderProgram);
-
-		OutputDebugStringA(&infoLog[0]);
-		assert(GL_TRUE != params);
-		return;
 	}
-
-	glValidateProgram(m_shaderProgram);
-	glGetProgramiv(m_shaderProgram, GL_VALIDATE_STATUS, &params);
-	printf("program %i GL_VALIDATE_STATUS = %i\n", m_shaderProgram, params);
-	if (GL_TRUE != params) {
-		assert(false);
-// 		_print_programme_info_log(sp);
-// 		return false;
-	}
-#endif
 }
 
 Effect::~Effect()
 {
-#if GRAPHICS_D3D11
-	SafeDeleteArray(m_shaderResources);
-	ReleaseCOM(m_vertexShader);
-	ReleaseCOM(m_pixelShader);
-	ReleaseCOM(m_geometryShader);
-	ReleaseCOM(m_hullShader);
-	ReleaseCOM(m_domainShader);
-	ReleaseCOM(m_computeShader);
-#else
-	// gl
-#endif
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		SafeDeleteArray(m_shaderResources);
+		ReleaseCOM(m_d3d11vertexShader);
+		ReleaseCOM(m_d3d11pixelShader);
+		ReleaseCOM(m_d3d11geometryShader);
+		ReleaseCOM(m_d3d11hullShader);
+		ReleaseCOM(m_d3d11domainShader);
+		ReleaseCOM(m_d3d11computeShader);
+		break;
+	}
+	case RenderBackend::OPENGL4:
+	{
+		glDeleteShader(m_glvertexShader);
+		glDeleteShader(m_glpixelShader);
+		glDeleteShader(m_glgeometryShader);
+		glDeleteShader(m_glhullShader);
+		glDeleteShader(m_gldomainShader);
+		glDeleteShader(m_glcomputeShader);
+		glDeleteProgram(m_shaderProgram);
+		break;
+	}
+	}
 }
 
 void Effect::UnBindConstantBuffer() {
-#if GRAPHICS_D3D11
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 0, nullptr);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 0, nullptr);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetConstantBuffers(0, 0, nullptr);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetConstantBuffers(0, 0, nullptr);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->GSSetConstantBuffers(0, 0, nullptr);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetConstantBuffers(0, 0, nullptr);
-#else
-// gl
-#endif
 }
 
 void Effect::UnBindShaderResource() {
-#if GRAPHICS_D3D11
 	static ID3D11ShaderResourceView* nullSRV[16] = { 0 };
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 16, nullSRV);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 16, nullSRV);
@@ -355,47 +382,58 @@ void Effect::UnBindShaderResource() {
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShaderResources(0, 16, nullSRV);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->GSSetShaderResources(0, 16, nullSRV);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetShaderResources(0, 16, nullSRV);
-#else
-// gl
-#endif
 }
-
 
 
 void Effect::SetShader() {
-#if GRAPHICS_D3D11
-	//if (m_vertexShader)
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShader(m_vertexShader, 0, 0);
-	//if (m_pixelShader)
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShader(m_pixelShader, 0, 0);
-	//if (m_geometryShader)
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->GSSetShader(m_geometryShader, 0, 0);
-	//if (m_hullShader)
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShader(m_hullShader, 0, 0);
-	//if (m_domainShader)
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShader(m_domainShader, 0, 0);
-		//if (m_domainShader)
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetShader(m_computeShader, 0, 0);
-#else
-	// gl
-	glUseProgram(m_shaderProgram);
-#endif
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		//if (m_vertexShader)
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShader(m_d3d11vertexShader, 0, 0);
+		//if (m_pixelShader)											
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShader(m_d3d11pixelShader, 0, 0);
+		//if (m_geometryShader)																
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->GSSetShader(m_d3d11geometryShader, 0, 0);
+		//if (m_hullShader)																	
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShader(m_d3d11hullShader, 0, 0);
+		//if (m_domainShader)														
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShader(m_d3d11domainShader, 0, 0);
+		//if (m_domainShader)														
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetShader(m_d3d11computeShader, 0, 0);
+		break;
+	}
+	case RenderBackend::OPENGL4:
+	{
+		// gl
+		glUseProgram(m_shaderProgram);
+		break;
+	}
+	}
 }
 
 void Effect::UnSetShader() {
-#if GRAPHICS_D3D11
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShader(nullptr, 0, 0);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShader(nullptr, 0, 0);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShader(nullptr, 0, 0);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->GSSetShader(nullptr, 0, 0);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShader(nullptr, 0, 0);
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetShader(nullptr, 0, 0);
-#else
-	// gl
-#endif
 }
 
-#if GRAPHICS_D3D11
+void* Effect::GetInputLayout()
+{
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+		return (void*)m_d3d11inputLayout;
+	case RenderBackend::OPENGL4:
+		return (void*)m_glinputLayout;
+	}
+	return nullptr;
+}
+
 void Effect::UnbindUnorderedAccessViews() {
 	static ID3D11UnorderedAccessView* nullUAV[7] = { 0 };
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetUnorderedAccessViews(0, 7, nullUAV, 0);
@@ -403,7 +441,6 @@ void Effect::UnbindUnorderedAccessViews() {
 
 void Effect::ReadShaderFile(std::wstring filename, ID3DBlob **blob, char* target, char* entryPoint) {
 	HRESULT hr;
-#if !READ_SHADER_FROM_FILE
 	hr = D3DCompileFromFile(
 		filename.c_str(),
 		nullptr,
@@ -415,9 +452,7 @@ void Effect::ReadShaderFile(std::wstring filename, ID3DBlob **blob, char* target
 		blob,
 		nullptr
 		);
-#else
-	hr = D3DReadFileToBlob(vsPath.c_str(), &m_vsBlob);
-#endif
+
 	assert(SUCCEEDED(hr));
 }
 
@@ -428,54 +463,58 @@ void Effect::SetShaderResources(ID3D11ShaderResourceView* res, int idx) {
 ID3D11ShaderResourceView* Effect::GetOutputShaderResource(int idx) {
 	return m_outputShaderResources[idx];
 }
-#endif
-
 
 //----------------------------------------------------------//
 
 
 ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
-#if GRAPHICS_D3D11
-	: Effect(filename + L"_vs" + EXT, L"")
-#else
-	: Effect(filename + L"_vs" + EXT, std::wstring(L"FX/ZOnly_ps") + EXT)
-#endif
+	: Effect(filename + L"_vs" + GetExt(), (Renderer::GetRenderBackend() == RenderBackend::D3D11) ? L"" : (std::wstring(L"FX/ZOnly_ps.glsl")))
 {
-#if GRAPHICS_D3D11
-	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	switch (Renderer::GetRenderBackend())
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
+	case RenderBackend::D3D11:
+	{
+		D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
 
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
-		m_vsBlob->GetBufferSize(), &m_inputLayout));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
 
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-#else
-	glCreateVertexArrays(1, &m_inputLayout);
-	glEnableVertexArrayAttrib(m_inputLayout, 0);
-	glVertexArrayAttribFormat(m_inputLayout, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Pos));
-	glVertexArrayAttribBinding(m_inputLayout, 0, 0);
-
-#endif
+		ReleaseCOM(m_vsBlob);
+		ReleaseCOM(m_psBlob);
+		ReleaseCOM(m_gsBlob);
+		ReleaseCOM(m_hsBlob);
+		ReleaseCOM(m_dsBlob);
+		ReleaseCOM(m_csBlob);
+		break;
+	}
+	case RenderBackend::OPENGL4:
+	{
+		glCreateVertexArrays(1, &m_glinputLayout);
+		glEnableVertexArrayAttrib(m_glinputLayout, 0);
+		glVertexArrayAttribFormat(m_glinputLayout, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Pos));
+		glVertexArrayAttribBinding(m_glinputLayout, 0, 0);
+		break;
+	}
+	}
 
 	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
-
 }
 
 ShadowMapEffect::~ShadowMapEffect()
 {
-#if GRAPHICS_D3D11
-	ReleaseCOM(m_inputLayout);
-#else
-	glDeleteVertexArrays(1, &m_inputLayout);
-#endif
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+		ReleaseCOM(m_d3d11inputLayout);
+		break;
+	case RenderBackend::OPENGL4:
+		glDeleteVertexArrays(1, &m_glinputLayout);
+		break;
+	}
 
 	SafeDelete(m_perObjectCB);
 }
@@ -490,74 +529,93 @@ DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& vsPat
 }
 
 DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filename)
-	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT)
+	: Effect(filename + L"_vs" + GetExt(), filename + L"_ps" + GetExt())
 {
 	PrepareBuffer();
 }
 
 DeferredGeometryPassEffect::~DeferredGeometryPassEffect()
 {
-#if GRAPHICS_D3D11
-	ReleaseCOM(m_inputLayout);
-#else
-	glDeleteVertexArrays(1, &m_inputLayout);
-#endif
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+		ReleaseCOM(m_d3d11inputLayout);
+		break;
+	case RenderBackend::OPENGL4:
+		glDeleteVertexArrays(1, &m_glinputLayout);
+		SafeDelete(m_textureCB);
+		break;
+	}
 
 	SafeDelete(m_perObjectCB);
 	SafeDelete(m_perFrameCB);
+	
 }
 
 void DeferredGeometryPassEffect::PrepareBuffer()
 {
-#if GRAPHICS_D3D11
-	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	switch (Renderer::GetRenderBackend())
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-	};
+	case RenderBackend::D3D11:
+	{
+		D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		};
 
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 4, m_vsBlob->GetBufferPointer(),
-		m_vsBlob->GetBufferSize(), &m_inputLayout));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 4, m_vsBlob->GetBufferPointer(),
+			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
-	m_shaderResources = new ID3D11ShaderResourceView*[5];
+		m_shaderResources = new ID3D11ShaderResourceView*[5];
 
-	for (int i = 0; i < 5; i++) {
-		m_shaderResources[i] = 0;
+		for (int i = 0; i < 5; i++) {
+			m_shaderResources[i] = 0;
+		}
+
+		ReleaseCOM(m_vsBlob);
+		ReleaseCOM(m_psBlob);
+		ReleaseCOM(m_gsBlob);
+		ReleaseCOM(m_hsBlob);
+		ReleaseCOM(m_dsBlob);
+		ReleaseCOM(m_csBlob);
+		break;
 	}
+	case RenderBackend::OPENGL4:
+	{
+		glCreateVertexArrays(1, &m_glinputLayout);
 
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-#else
+		glEnableVertexArrayAttrib(m_glinputLayout, 0);
+		glEnableVertexArrayAttrib(m_glinputLayout, 1);
+		glEnableVertexArrayAttrib(m_glinputLayout, 2);
+		glEnableVertexArrayAttrib(m_glinputLayout, 3);
 
-	glCreateVertexArrays(1, &m_inputLayout);
+		glVertexArrayAttribFormat(m_glinputLayout, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Pos));
+		glVertexArrayAttribFormat(m_glinputLayout, 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Normal));
+		glVertexArrayAttribFormat(m_glinputLayout, 2, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Tangent));
+		glVertexArrayAttribFormat(m_glinputLayout, 3, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, TexUV));
 
-	glEnableVertexArrayAttrib(m_inputLayout, 0);
-	glEnableVertexArrayAttrib(m_inputLayout, 1);
-	glEnableVertexArrayAttrib(m_inputLayout, 2);
-	glEnableVertexArrayAttrib(m_inputLayout, 3);
+		glVertexArrayAttribBinding(m_glinputLayout, 0, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 1, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 2, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 3, 0);
 
-	glVertexArrayAttribFormat(m_inputLayout, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Pos));
-	glVertexArrayAttribFormat(m_inputLayout, 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Normal));
-	glVertexArrayAttribFormat(m_inputLayout, 2, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Tangent));
-	glVertexArrayAttribFormat(m_inputLayout, 3, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, TexUV));
+		GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
+		glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
 
-	glVertexArrayAttribBinding(m_inputLayout, 0, 0);
-	glVertexArrayAttribBinding(m_inputLayout, 1, 0);
-	glVertexArrayAttribBinding(m_inputLayout, 2, 0);
-	glVertexArrayAttribBinding(m_inputLayout, 3, 0);
+		GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
+		glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
 
-	GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
-	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
+		GLint texUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
+		glUniformBlockBinding(m_shaderProgram, texUBOPos, 2);
 
-	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
-	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
-#endif
+		m_textureCB = new GPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+
+		break;
+	}
+	}
 
 	m_perFrameCB = new GPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
@@ -572,18 +630,22 @@ DeferredSkinnedGeometryPassEffect::DeferredSkinnedGeometryPassEffect(const std::
 }
 
 DeferredSkinnedGeometryPassEffect::DeferredSkinnedGeometryPassEffect(const std::wstring& filename)
-	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT)
+	: Effect(filename + L"_vs" + GetExt(), filename + L"_ps" + GetExt())
 {
 	PrepareBuffer();
 }
 
 DeferredSkinnedGeometryPassEffect::~DeferredSkinnedGeometryPassEffect()
 {
-#if GRAPHICS_D3D11
-	ReleaseCOM(m_inputLayout);
-#else
-	glDeleteVertexArrays(1, &m_inputLayout);
-#endif
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+		ReleaseCOM(m_d3d11inputLayout);
+		break;
+	case RenderBackend::OPENGL4:
+		glDeleteVertexArrays(1, &m_glinputLayout);
+		break;
+	}
 
 	SafeDelete(m_perFrameCB);
 	SafeDelete(m_perObjectCB);
@@ -592,66 +654,71 @@ DeferredSkinnedGeometryPassEffect::~DeferredSkinnedGeometryPassEffect()
 
 void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
 {
-#if GRAPHICS_D3D11
-	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	switch (Renderer::GetRenderBackend())
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex::SkinnedMeshVertex, Pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex::SkinnedMeshVertex, Normal), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex::SkinnedMeshVertex, Tangent), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(Vertex::SkinnedMeshVertex, TexUV), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "JOINTWEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, offsetof(Vertex::SkinnedMeshVertex, JointWeights), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "JOINTINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, offsetof(Vertex::SkinnedMeshVertex, JointIndices), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
+	case RenderBackend::D3D11:
+	{
+		D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex::SkinnedMeshVertex, Pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex::SkinnedMeshVertex, Normal), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(Vertex::SkinnedMeshVertex, Tangent), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(Vertex::SkinnedMeshVertex, TexUV), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "JOINTWEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, offsetof(Vertex::SkinnedMeshVertex, JointWeights), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "JOINTINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, offsetof(Vertex::SkinnedMeshVertex, JointIndices), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
 
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 6, m_vsBlob->GetBufferPointer(),
-		m_vsBlob->GetBufferSize(), &m_inputLayout));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 6, m_vsBlob->GetBufferPointer(),
+			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-#else
+		ReleaseCOM(m_vsBlob);
+		ReleaseCOM(m_psBlob);
+		ReleaseCOM(m_gsBlob);
+		ReleaseCOM(m_hsBlob);
+		ReleaseCOM(m_dsBlob);
+		ReleaseCOM(m_csBlob);
+		break;
+	}
+	case RenderBackend::OPENGL4:
+	{
+		glCreateVertexArrays(1, &m_glinputLayout);
 
-	glCreateVertexArrays(1, &m_inputLayout);
+		glEnableVertexArrayAttrib(m_glinputLayout, 0);
+		glEnableVertexArrayAttrib(m_glinputLayout, 1);
+		glEnableVertexArrayAttrib(m_glinputLayout, 2);
+		glEnableVertexArrayAttrib(m_glinputLayout, 3);
+		glEnableVertexArrayAttrib(m_glinputLayout, 4);
+		glEnableVertexArrayAttrib(m_glinputLayout, 5);
 
-	glEnableVertexArrayAttrib(m_inputLayout, 0);
-	glEnableVertexArrayAttrib(m_inputLayout, 1);
-	glEnableVertexArrayAttrib(m_inputLayout, 2);
-	glEnableVertexArrayAttrib(m_inputLayout, 3);
-	glEnableVertexArrayAttrib(m_inputLayout, 4);
-	glEnableVertexArrayAttrib(m_inputLayout, 5);
+		glVertexArrayAttribFormat(m_glinputLayout, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::SkinnedMeshVertex, Pos));
+		glVertexArrayAttribFormat(m_glinputLayout, 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::SkinnedMeshVertex, Normal));
+		glVertexArrayAttribFormat(m_glinputLayout, 2, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::SkinnedMeshVertex, Tangent));
+		glVertexArrayAttribFormat(m_glinputLayout, 3, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex::SkinnedMeshVertex, TexUV));
+		glVertexArrayAttribFormat(m_glinputLayout, 4, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex::SkinnedMeshVertex, JointWeights));
+		glVertexArrayAttribIFormat(m_glinputLayout, 5, 4, GL_UNSIGNED_INT, offsetof(Vertex::SkinnedMeshVertex, JointIndices));
 
-	glVertexArrayAttribFormat(m_inputLayout, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::SkinnedMeshVertex, Pos));
-	glVertexArrayAttribFormat(m_inputLayout, 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::SkinnedMeshVertex, Normal));
-	glVertexArrayAttribFormat(m_inputLayout, 2, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::SkinnedMeshVertex, Tangent));
-	glVertexArrayAttribFormat(m_inputLayout, 3, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex::SkinnedMeshVertex, TexUV));
-	glVertexArrayAttribFormat(m_inputLayout, 4, 4, GL_FLOAT, GL_FALSE, offsetof(Vertex::SkinnedMeshVertex, JointWeights));
-	glVertexArrayAttribIFormat(m_inputLayout, 5, 4, GL_UNSIGNED_INT, offsetof(Vertex::SkinnedMeshVertex, JointIndices));
+		glVertexArrayAttribBinding(m_glinputLayout, 0, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 1, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 2, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 3, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 4, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 5, 0);
 
-	glVertexArrayAttribBinding(m_inputLayout, 0, 0);
-	glVertexArrayAttribBinding(m_inputLayout, 1, 0);
-	glVertexArrayAttribBinding(m_inputLayout, 2, 0);
-	glVertexArrayAttribBinding(m_inputLayout, 3, 0);
-	glVertexArrayAttribBinding(m_inputLayout, 4, 0);
-	glVertexArrayAttribBinding(m_inputLayout, 5, 0);
+		GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
+		glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
 
-	GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
-	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
-	
-	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
-	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
-	
-	//glCreateBuffers(1, &m_matrixPaletteSB);
-	//glNamedBufferStorage(m_matrixPaletteSB, sizeof(XMMATRIX) * 64, nullptr, GL_MAP_WRITE_BIT); // alloc a buffer of up to 64 joint;
+		GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
+		glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
 
-#endif
+		//glCreateBuffers(1, &m_matrixPaletteSB);
+		//glNamedBufferStorage(m_matrixPaletteSB, sizeof(XMMATRIX) * 64, nullptr, GL_MAP_WRITE_BIT); // alloc a buffer of up to 64 joint;
+		break;
+	}
+	}
 
 	m_perFrameCB = new GPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 	m_matrixPaletteSB = new GPUBuffer(sizeof(XMMATRIX) * 64, BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
-
 }
 
 
@@ -659,185 +726,93 @@ void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
 
 
 DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filename)
-	: Effect(std::wstring(L"FX/ScreenQuad_vs") + EXT, filename + L"_ps" + EXT)
+	: Effect(std::wstring(L"FX/ScreenQuad_vs") + GetExt(), filename + L"_ps" + GetExt())
 {
-#if GRAPHICS_D3D11
-	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	switch (Renderer::GetRenderBackend())
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
+	case RenderBackend::D3D11:
+	{
+		D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
 
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
-		m_vsBlob->GetBufferSize(), &m_inputLayout));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
-	m_shaderResources = new ID3D11ShaderResourceView*[5];
-	for (int i = 0; i < 5; i++) {
-		m_shaderResources[i] = 0;
+		m_shaderResources = new ID3D11ShaderResourceView*[5];
+		for (int i = 0; i < 5; i++) {
+			m_shaderResources[i] = 0;
+		}
+
+		ReleaseCOM(m_vsBlob);
+		ReleaseCOM(m_psBlob);
+		ReleaseCOM(m_gsBlob);
+		ReleaseCOM(m_hsBlob);
+		ReleaseCOM(m_dsBlob);
+		ReleaseCOM(m_csBlob);
+		break;
 	}
-
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-#else
-
-#endif
+	}
 
 	m_perFrameCB = new GPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 DeferredShadingPassEffect::~DeferredShadingPassEffect()
 {
-#if GRAPHICS_D3D11
-	ReleaseCOM(m_inputLayout);
-#endif
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+		ReleaseCOM(m_d3d11inputLayout);
+		break;
+	}
 
 	SafeDelete(m_perFrameCB);
 }
 
-//----------------------------------------------------------//
-
-
-GodRayEffect::GodRayEffect(const std::wstring& filename)
-	: Effect(std::wstring(L"FX/ScreenQuad_vs") + EXT, filename + L"_ps" + EXT)
-{
-#if GRAPHICS_D3D11
-	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
-		m_vsBlob->GetBufferSize(), &m_inputLayout));
-
-	m_shaderResources = new ID3D11ShaderResourceView*[1];
-	for (int i = 0; i < 1; i++) {
-		m_shaderResources[i] = 0;
-	}
-
-	{
-		// Fill in a buffer description.
-		D3D11_BUFFER_DESC cbDesc;
-		cbDesc.ByteWidth = sizeof(PERFRAME_CONSTANT_BUFFER);
-		cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-		cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbDesc.MiscFlags = 0;
-		cbDesc.StructureByteStride = 0;
-
-		// Fill in the subresource data.
-		D3D11_SUBRESOURCE_DATA InitData;
-		InitData.pSysMem = &m_perFrameConstantBuffer;
-		InitData.SysMemPitch = 0;
-		InitData.SysMemSlicePitch = 0;
-
-		HRESULT hr;
-		// Create the buffer.
-		hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&cbDesc, &InitData,
-			&m_perFrameCB);
-
-		assert(SUCCEEDED(hr));
-	}
-
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-#else
-	glGenBuffers(1, &m_perFrameUBO);
-	glBindBuffer(GL_UNIFORM_BUFFER, m_perFrameUBO);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(PERFRAME_UNIFORM_BUFFER), NULL, GL_DYNAMIC_DRAW);
-
-	OcclusionMapPosition = glGetUniformLocation(m_shaderProgram, "gOcclusionGMap");
-#endif
-}
-
-GodRayEffect::~GodRayEffect()
-{
-#if GRAPHICS_D3D11
-	ReleaseCOM(m_inputLayout);
-#endif
-}
-
-void GodRayEffect::UpdateConstantBuffer() {
-#if GRAPHICS_D3D11
-	{
-		D3D11_MAPPED_SUBRESOURCE ms;
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Map(m_perFrameCB, NULL, D3D11_MAP_WRITE_DISCARD, NULL, &ms);
-		memcpy(ms.pData, &m_perFrameConstantBuffer, sizeof(PERFRAME_CONSTANT_BUFFER));
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_perFrameCB, NULL);
-	}
-#else
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_perFrameUBO);
-	PERFRAME_UNIFORM_BUFFER* perFrameUBOPtr = (PERFRAME_UNIFORM_BUFFER*)glMapBufferRange(
-		GL_UNIFORM_BUFFER,
-		0,
-		sizeof(PERFRAME_UNIFORM_BUFFER),
-		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-		);
-	memcpy(perFrameUBOPtr, &m_perFrameUniformBuffer, sizeof(PERFRAME_UNIFORM_BUFFER));
-	glUnmapBuffer(GL_UNIFORM_BUFFER);
-#endif
-}
-
-void GodRayEffect::BindConstantBuffer() {
-#if GRAPHICS_D3D11
-	ID3D11Buffer* cbuf[] = { m_perFrameCB };
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(1, 1, cbuf);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(1, 1, cbuf);
-#endif
-}
-
-void GodRayEffect::BindShaderResource() {
-#if GRAPHICS_D3D11
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 1, m_shaderResources);
-#else
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, OcclusionMap);
-	glUniform1i(OcclusionMapPosition, 0);
-#endif
-}
-
-//----------------------------------------------------------//
-
 SkyboxEffect::SkyboxEffect(const std::wstring& filename)
-	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT)
+	: Effect(filename + L"_vs" + GetExt(), filename + L"_ps" + GetExt())
 {
-#if GRAPHICS_D3D11
-	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	switch (Renderer::GetRenderBackend())
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
+	case RenderBackend::D3D11:
+	{
+		D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
 
-	m_shaderResources = new ID3D11ShaderResourceView*[1];
-	for (int i = 0; i < 1; i++) {
-		m_shaderResources[i] = 0;
+		m_shaderResources = new ID3D11ShaderResourceView*[1];
+		for (int i = 0; i < 1; i++) {
+			m_shaderResources[i] = 0;
+		}
+
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
+
+		ReleaseCOM(m_vsBlob);
+		ReleaseCOM(m_psBlob);
+		ReleaseCOM(m_gsBlob);
+		ReleaseCOM(m_hsBlob);
+		ReleaseCOM(m_dsBlob);
+		ReleaseCOM(m_csBlob);
+		break;
+	}
 	}
 
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
-		m_vsBlob->GetBufferSize(), &m_inputLayout));
-
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-#else
-
-#endif
 	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 SkyboxEffect::~SkyboxEffect()
 {
-#if GRAPHICS_D3D11
-	ReleaseCOM(m_inputLayout);
-#endif
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		ReleaseCOM(m_d3d11inputLayout);
+		break;
+	}
+	}
 
 	SafeDelete(m_perObjectCB);
 }
@@ -851,36 +826,43 @@ DebugLineEffect::DebugLineEffect(const std::wstring& vsPath, const std::wstring&
 }
 
 DebugLineEffect::DebugLineEffect(const std::wstring& filename)
-	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT)
+	: Effect(filename + L"_vs" + GetExt(), filename + L"_ps" + GetExt())
 {
-#if GRAPHICS_D3D11
-	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	switch (Renderer::GetRenderBackend())
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
+	case RenderBackend::D3D11:
+	{
+		D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
 
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
-		m_vsBlob->GetBufferSize(), &m_inputLayout));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-#else
-
-#endif
+		ReleaseCOM(m_vsBlob);
+		ReleaseCOM(m_psBlob);
+		ReleaseCOM(m_gsBlob);
+		ReleaseCOM(m_hsBlob);
+		ReleaseCOM(m_dsBlob);
+		ReleaseCOM(m_csBlob);
+		break;
+	}
+	}
 
 	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
-
 }
 
 DebugLineEffect::~DebugLineEffect()
 {
-#if GRAPHICS_D3D11
-	ReleaseCOM(m_inputLayout);
-#endif
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		ReleaseCOM(m_d3d11inputLayout);
+		break;
+	}
+	}
 
 	SafeDelete(m_perObjectCB);
 }
@@ -890,81 +872,90 @@ DebugLineEffect::~DebugLineEffect()
 
 DeferredGeometryTessPassEffect::DeferredGeometryTessPassEffect(const std::wstring& filename)
 	: DeferredGeometryPassEffect(
-		filename + L"_vs" + EXT,
-		filename + L"_ps" + EXT,
+		filename + L"_vs" + GetExt(),
+		filename + L"_ps" + GetExt(),
 		L"",
-		filename + L"_hs" + EXT,
-		filename + L"_ds" + EXT)
+		filename + L"_hs" + GetExt(),
+		filename + L"_ds" + GetExt())
 {
 	PrepareBuffer();
 }
 
 DeferredGeometryTessPassEffect::~DeferredGeometryTessPassEffect()
 {
-#if GRAPHICS_D3D11
-	ReleaseCOM(m_inputLayout);
-#endif
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		ReleaseCOM(m_d3d11inputLayout);
+		break;
+	}
+	}
 }
 
 //----------------------------------------------------------//
 
 DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::wstring& filename)
 	: Effect(
-		filename + L"_vs" + EXT,
-		filename + L"_ps" + EXT,
+		filename + L"_vs" + GetExt(),
+		filename + L"_ps" + GetExt(),
 		L"",
-		filename + L"_hs" + EXT,
-		filename + L"_ds" + EXT)
+		filename + L"_hs" + GetExt(),
+		filename + L"_ds" + GetExt())
 {
-
-#if GRAPHICS_D3D11
-	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	switch (Renderer::GetRenderBackend())
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
+	case RenderBackend::D3D11:
+	{
+		D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
 
-	HRESULT hr = (static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
-		m_vsBlob->GetBufferSize(), &m_inputLayout));
+		HRESULT hr = (static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
+			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
-	m_shaderResources = new ID3D11ShaderResourceView*[8];
+		m_shaderResources = new ID3D11ShaderResourceView*[8];
 
-	for (int i = 0; i < 8; i++) {
-		m_shaderResources[i] = 0;
+		for (int i = 0; i < 8; i++) {
+			m_shaderResources[i] = 0;
+		}
+
+		ReleaseCOM(m_vsBlob);
+		ReleaseCOM(m_psBlob);
+		ReleaseCOM(m_gsBlob);
+		ReleaseCOM(m_hsBlob);
+		ReleaseCOM(m_dsBlob);
+		ReleaseCOM(m_csBlob);
+
+		break;
 	}
+	case RenderBackend::OPENGL4:
+	{
+		glCreateVertexArrays(1, &m_glinputLayout);
 
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
+		glEnableVertexArrayAttrib(m_glinputLayout, 0);
+		glEnableVertexArrayAttrib(m_glinputLayout, 1);
+		glEnableVertexArrayAttrib(m_glinputLayout, 2);
 
-#endif
+		glVertexArrayAttribFormat(m_glinputLayout, 0, 3, GL_FLOAT, GL_FALSE, 0);
+		glVertexArrayAttribFormat(m_glinputLayout, 1, 2, GL_FLOAT, GL_FALSE, 12);
+		glVertexArrayAttribFormat(m_glinputLayout, 2, 2, GL_FLOAT, GL_FALSE, 20);
 
-#if GRAPHICS_OPENGL
+		glVertexArrayAttribBinding(m_glinputLayout, 0, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 1, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 2, 0);
 
-	glCreateVertexArrays(1, &m_inputLayout);
+		GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
+		glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
 
-	glEnableVertexArrayAttrib(m_inputLayout, 0);
-	glEnableVertexArrayAttrib(m_inputLayout, 1);
-	glEnableVertexArrayAttrib(m_inputLayout, 2);
-
-	glVertexArrayAttribFormat(m_inputLayout, 0, 3, GL_FLOAT, GL_FALSE, 0);
-	glVertexArrayAttribFormat(m_inputLayout, 1, 2, GL_FLOAT, GL_FALSE, 12);
-	glVertexArrayAttribFormat(m_inputLayout, 2, 2, GL_FLOAT, GL_FALSE, 20);
-
-	glVertexArrayAttribBinding(m_inputLayout, 0, 0);
-	glVertexArrayAttribBinding(m_inputLayout, 1, 0);
-	glVertexArrayAttribBinding(m_inputLayout, 2, 0);
-
-	GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
-	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
-	
-	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
-	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
-#endif
+		GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
+		glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
+		break;
+	}
+	}
 
 	m_perFrameCB = new GPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
@@ -973,13 +964,19 @@ DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::
 
 DeferredGeometryTerrainPassEffect::~DeferredGeometryTerrainPassEffect()
 {
-#if GRAPHICS_D3D11
-	ReleaseCOM(m_inputLayout);
-#endif
-
-#if GRAPHICS_OPENGL
-	glDeleteVertexArrays(1, &m_inputLayout);
-#endif
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		ReleaseCOM(m_d3d11inputLayout);
+		break;
+	}
+	case RenderBackend::OPENGL4:
+	{
+		glDeleteVertexArrays(1, &m_glinputLayout);
+		break;
+	}
+	}
 
 	SafeDelete(m_perFrameCB);
 	SafeDelete(m_perObjectCB);
@@ -988,59 +985,65 @@ DeferredGeometryTerrainPassEffect::~DeferredGeometryTerrainPassEffect()
 
 TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
 	: Effect(
-		filename + L"_vs" + EXT,
+		filename + L"_vs" + GetExt(),
 		L"",
 		L"",
-		filename + L"_hs" + EXT,
-		filename + L"_ds" + EXT)
+		filename + L"_hs" + GetExt(),
+		filename + L"_ds" + GetExt())
 {
-#if GRAPHICS_D3D11
-	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	switch (Renderer::GetRenderBackend())
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
+	case RenderBackend::D3D11:
+	{
+		D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
 
-	HRESULT hr = (static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
-		m_vsBlob->GetBufferSize(), &m_inputLayout));
+		HRESULT hr = (static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
+			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
-	m_shaderResources = new ID3D11ShaderResourceView*[8];
+		m_shaderResources = new ID3D11ShaderResourceView*[8];
 
-	for (int i = 0; i < 8; i++) {
-		m_shaderResources[i] = 0;
+		for (int i = 0; i < 8; i++) {
+			m_shaderResources[i] = 0;
+		}
+
+		ReleaseCOM(m_vsBlob);
+		ReleaseCOM(m_psBlob);
+		ReleaseCOM(m_gsBlob);
+		ReleaseCOM(m_hsBlob);
+		ReleaseCOM(m_dsBlob);
+		ReleaseCOM(m_csBlob);
+		break;
 	}
+	case RenderBackend::OPENGL4:
+	{
 
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-#endif
+		glCreateVertexArrays(1, &m_glinputLayout);
 
-#if GRAPHICS_OPENGL
+		glEnableVertexArrayAttrib(m_glinputLayout, 0);
+		glEnableVertexArrayAttrib(m_glinputLayout, 1);
+		glEnableVertexArrayAttrib(m_glinputLayout, 2);
 
-	glCreateVertexArrays(1, &m_inputLayout);
+		glVertexArrayAttribFormat(m_glinputLayout, 0, 3, GL_FLOAT, GL_FALSE, 0);
+		glVertexArrayAttribFormat(m_glinputLayout, 1, 2, GL_FLOAT, GL_FALSE, 12);
+		glVertexArrayAttribFormat(m_glinputLayout, 2, 2, GL_FLOAT, GL_FALSE, 20);
 
-	glEnableVertexArrayAttrib(m_inputLayout, 0);
-	glEnableVertexArrayAttrib(m_inputLayout, 1);
-	glEnableVertexArrayAttrib(m_inputLayout, 2);
+		glVertexArrayAttribBinding(m_glinputLayout, 0, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 1, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 2, 0);
 
-	glVertexArrayAttribFormat(m_inputLayout, 0, 3, GL_FLOAT, GL_FALSE, 0);
-	glVertexArrayAttribFormat(m_inputLayout, 1, 2, GL_FLOAT, GL_FALSE, 12);
-	glVertexArrayAttribFormat(m_inputLayout, 2, 2, GL_FLOAT, GL_FALSE, 20);
+		GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
+		glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
 
-	glVertexArrayAttribBinding(m_inputLayout, 0, 0);
-	glVertexArrayAttribBinding(m_inputLayout, 1, 0);
-	glVertexArrayAttribBinding(m_inputLayout, 2, 0);
-
-	GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
-	glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
-
-	GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
-	glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
-#endif
+		GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
+		glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
+		break;
+	}
+	}
 
 	m_perFrameCB = new GPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
@@ -1049,13 +1052,20 @@ TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
 
 TerrainShadowMapEffect::~TerrainShadowMapEffect()
 {
-#if GRAPHICS_D3D11
-	ReleaseCOM(m_inputLayout);
-#endif
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		ReleaseCOM(m_d3d11inputLayout);
+		break;
+	}
+	case RenderBackend::OPENGL4:
+	{
+		glDeleteVertexArrays(1, &m_glinputLayout);
+		break;
+	}
+	}
 
-#if GRAPHICS_OPENGL
-	glDeleteVertexArrays(1, &m_inputLayout);
-#endif
 	SafeDelete(m_perObjectCB);
 	SafeDelete(m_perFrameCB);
 }
@@ -1063,7 +1073,7 @@ TerrainShadowMapEffect::~TerrainShadowMapEffect()
 //----------------------------------------------------------//
 
 VBlurEffect::VBlurEffect(const std::wstring& filename)
-	: Effect(L"", L"", L"", L"", L"", filename + L"_cs" + EXT)
+	: Effect(L"", L"", L"", L"", L"", filename + L"_cs" + GetExt())
 {
 
 }
@@ -1071,7 +1081,7 @@ VBlurEffect::VBlurEffect(const std::wstring& filename)
 //----------------------------------------------------------//
 
 HBlurEffect::HBlurEffect(const std::wstring& filename)
-	: Effect(L"", L"", L"", L"", L"", filename + L"_cs" + EXT)
+	: Effect(L"", L"", L"", L"", L"", filename + L"_cs" + GetExt())
 {
 
 }
@@ -1079,37 +1089,43 @@ HBlurEffect::HBlurEffect(const std::wstring& filename)
 //-------------------------------------------//
 
 ImGuiEffect::ImGuiEffect(const std::wstring& filename)
-	: Effect(filename + L"_vs" + EXT, filename + L"_ps" + EXT, L"", L"", L"", L"")
+	: Effect(filename + L"_vs" + GetExt(), filename + L"_ps" + GetExt(), L"", L"", L"", L"")
 {
-#if GRAPHICS_D3D11
-	D3D11_INPUT_ELEMENT_DESC localLayout[] = {
-		{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (size_t)(&((ImDrawVert*)0)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		D3D11_INPUT_ELEMENT_DESC localLayout[] = {
+			{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (size_t)(&((ImDrawVert*)0)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
 
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(localLayout, 3, m_vsBlob->GetBufferPointer(), m_vsBlob->GetBufferSize(), &m_inputLayout));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(localLayout, 3, m_vsBlob->GetBufferPointer(), m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
-#endif
+		break;
+	}
+	case RenderBackend::OPENGL4:
+	{
+		glCreateVertexArrays(1, &m_glinputLayout);
 
-#if GRAPHICS_OPENGL
-	glCreateVertexArrays(1, &m_inputLayout);
+		glEnableVertexArrayAttrib(m_glinputLayout, 0);
+		glEnableVertexArrayAttrib(m_glinputLayout, 1);
+		glEnableVertexArrayAttrib(m_glinputLayout, 2);
 
-	glEnableVertexArrayAttrib(m_inputLayout, 0);
-	glEnableVertexArrayAttrib(m_inputLayout, 1);
-	glEnableVertexArrayAttrib(m_inputLayout, 2);
+		glVertexArrayAttribFormat(m_glinputLayout, 0, 2, GL_FLOAT, GL_FALSE, offsetof(ImDrawVert, pos));
+		glVertexArrayAttribFormat(m_glinputLayout, 1, 2, GL_FLOAT, GL_FALSE, offsetof(ImDrawVert, uv));
+		glVertexArrayAttribFormat(m_glinputLayout, 2, 4, GL_UNSIGNED_BYTE, GL_TRUE, offsetof(ImDrawVert, col));
 
-	glVertexArrayAttribFormat(m_inputLayout, 0, 2, GL_FLOAT, GL_FALSE, offsetof(ImDrawVert, pos));
-	glVertexArrayAttribFormat(m_inputLayout, 1, 2, GL_FLOAT, GL_FALSE, offsetof(ImDrawVert, uv));
-	glVertexArrayAttribFormat(m_inputLayout, 2, 4, GL_UNSIGNED_BYTE, GL_TRUE, offsetof(ImDrawVert, col));
+		glVertexArrayAttribBinding(m_glinputLayout, 0, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 1, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 2, 0);
 
-	glVertexArrayAttribBinding(m_inputLayout, 0, 0);
-	glVertexArrayAttribBinding(m_inputLayout, 1, 0);
-	glVertexArrayAttribBinding(m_inputLayout, 2, 0);
-
-	GLint imguiUBOPos = glGetUniformBlockIndex(m_shaderProgram, "imGuiCB");
-	glUniformBlockBinding(m_shaderProgram, imguiUBOPos, 0);
-#endif
+		GLint imguiUBOPos = glGetUniformBlockIndex(m_shaderProgram, "imGuiCB");
+		glUniformBlockBinding(m_shaderProgram, imguiUBOPos, 0);
+		break;
+	}
+	}
 
 	m_imguiCB = new GPUBuffer(sizeof(IMGUI_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
@@ -1117,13 +1133,19 @@ ImGuiEffect::ImGuiEffect(const std::wstring& filename)
 
 ImGuiEffect::~ImGuiEffect()
 {
-#if GRAPHICS_D3D11
-	ReleaseCOM(m_inputLayout);
-#endif
-
-#if GRAPHICS_OPENGL
-	glDeleteVertexArrays(1, &m_inputLayout);
-#endif
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		ReleaseCOM(m_d3d11inputLayout);
+		break;
+	}
+	case RenderBackend::OPENGL4:
+	{
+		glDeleteVertexArrays(1, &m_glinputLayout);
+		break;
+	}
+	}
 
 	SafeDelete(m_imguiCB);
 }
@@ -1132,43 +1154,52 @@ ImGuiEffect::~ImGuiEffect()
 
 
 BlurEffect::BlurEffect(const std::wstring& filename)
-	: Effect(std::wstring(L"FX/ScreenQuad_vs") + EXT, filename + L"_ps" + EXT)
+	: Effect(std::wstring(L"FX/ScreenQuad_vs") + GetExt(), filename + L"_ps" + GetExt())
 {
-#if GRAPHICS_D3D11
-	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	switch (Renderer::GetRenderBackend())
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
+	case RenderBackend::D3D11:
+	{
+		D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
 
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
-		m_vsBlob->GetBufferSize(), &m_inputLayout));
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
-	ReleaseCOM(m_vsBlob);
-	ReleaseCOM(m_psBlob);
-	ReleaseCOM(m_gsBlob);
-	ReleaseCOM(m_hsBlob);
-	ReleaseCOM(m_dsBlob);
-	ReleaseCOM(m_csBlob);
-#endif
-
-#if GRAPHICS_OPENGL
-	GLint settingCBPos = glGetUniformBlockIndex(m_shaderProgram, "cbSettings");
-	glUniformBlockBinding(m_shaderProgram, settingCBPos, 0);
-#endif
+		ReleaseCOM(m_vsBlob);
+		ReleaseCOM(m_psBlob);
+		ReleaseCOM(m_gsBlob);
+		ReleaseCOM(m_hsBlob);
+		ReleaseCOM(m_dsBlob);
+		ReleaseCOM(m_csBlob);
+		break;
+	}
+	case RenderBackend::OPENGL4:
+	{
+		GLint settingCBPos = glGetUniformBlockIndex(m_shaderProgram, "cbSettings");
+		glUniformBlockBinding(m_shaderProgram, settingCBPos, 0);
+		break;
+	}
+	}
 
 	m_settingCB = new GPUBuffer(sizeof(SETTING_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 BlurEffect::~BlurEffect()
 {
-#if GRAPHICS_D3D11
-	ReleaseCOM(m_inputLayout);
-#endif
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		ReleaseCOM(m_d3d11inputLayout);
+		break;
+	}
+	}
 
 	SafeDelete(m_settingCB);
 }
-
-#if GRAPHICS_OPENGL
 
 /********************************************************************/
 
@@ -1194,9 +1225,6 @@ bool Effect::ReadShaderFile(std::wstring filename, char* shaderContent, int maxL
 	return true;
 }
 
-#endif
-
-
 
 //----------------------------------------------------------//
 
@@ -1210,7 +1238,6 @@ EffectsManager::EffectsManager()
 	, m_deferredGeometryTerrainPassEffect(nullptr)
 	, m_deferredGeometryTessPassEffect(nullptr)
 	, m_deferredShadingPassEffect(nullptr)
-	, m_godrayEffect(nullptr)
 	, m_skyboxEffect(nullptr)
 	, m_blurEffect(nullptr)
 	, m_vblurEffect(nullptr)
@@ -1225,7 +1252,6 @@ EffectsManager::EffectsManager()
 	m_deferredGeometryTessPassEffect = std::make_unique<DeferredGeometryTessPassEffect>(L"FX/DeferredGeometryTessPass");
 	m_skyboxEffect = std::make_unique<SkyboxEffect>(L"FX/Skybox");
 	m_debugLineEffect = std::make_unique<DebugLineEffect>(L"FX/DebugLine");
-	m_godrayEffect = std::make_unique<GodRayEffect>(L"FX/GodRay");
 	m_deferredGeometryTerrainPassEffect = std::make_unique<DeferredGeometryTerrainPassEffect>(L"FX/DeferredGeometryTerrainPass");
 	m_terrainShadowMapEffect = std::make_unique<TerrainShadowMapEffect>(L"FX/DeferredGeometryTerrainPass");
 	m_vblurEffect = std::make_unique<VBlurEffect>(L"FX/VBlur");

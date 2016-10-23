@@ -4,103 +4,118 @@
 #include "Mesh/MeshRenderer.h"
 #include "Math/MathHelper.h"
 
-#if GRAPHICS_OPENGL
 #include "Graphics/OpenGL/GLImageLoader.h"
-#endif
 
 namespace StenGine
 {
 
 Skybox::Skybox(std::wstring &cubeMapPath) {
-#if GRAPHICS_D3D11
-	CreateDDSTextureFromFile(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice()),
-		cubeMapPath.c_str(), nullptr, &m_cubeMapSRV);
-#else
-	std::string s(cubeMapPath.begin(), cubeMapPath.end());
-	GLuint cubemap = CreateGLTextureFromFile(s.c_str());
-	assert(cubemap != 0);
-	glTextureParameteri(cubemap, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTextureParameteri(cubemap, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTextureParameteri(cubemap, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glTextureParameteri(cubemap, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTextureParameteri(cubemap, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		CreateDDSTextureFromFile(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice()),
+			cubeMapPath.c_str(), nullptr, &m_cubeMapSRV);
+		break;
+	}
+	case RenderBackend::OPENGL4:
+	{
 
-	m_cubeMapTex = glGetTextureHandleARB(cubemap);
-	glMakeTextureHandleResidentARB(m_cubeMapTex);
+		std::string s(cubeMapPath.begin(), cubeMapPath.end());
+		GLuint cubemap = CreateGLTextureFromFile(s.c_str());
+		assert(cubemap != 0);
+		glTextureParameteri(cubemap, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTextureParameteri(cubemap, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTextureParameteri(cubemap, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(cubemap, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(cubemap, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	// generate VAO
-	std::vector<XMFLOAT3> skyboxVertexBuffer = {
-		XMFLOAT3(-1.0f, -1.0f, -1.0f),
-		XMFLOAT3(-1.0f, +1.0f, -1.0f),
-		XMFLOAT3(+1.0f, +1.0f, -1.0f),
-		XMFLOAT3(+1.0f, -1.0f, -1.0f),
-		XMFLOAT3(-1.0f, -1.0f, +1.0f),
-		XMFLOAT3(+1.0f, -1.0f, +1.0f),
-		XMFLOAT3(+1.0f, +1.0f, +1.0f),
-		XMFLOAT3(-1.0f, +1.0f, +1.0f),
-		XMFLOAT3(-1.0f, +1.0f, -1.0f),
-		XMFLOAT3(-1.0f, +1.0f, +1.0f),
-		XMFLOAT3(+1.0f, +1.0f, +1.0f),
-		XMFLOAT3(+1.0f, +1.0f, -1.0f),
-		XMFLOAT3(-1.0f, -1.0f, -1.0f),
-		XMFLOAT3(+1.0f, -1.0f, -1.0f),
-		XMFLOAT3(+1.0f, -1.0f, +1.0f),
-		XMFLOAT3(-1.0f, -1.0f, +1.0f),
-		XMFLOAT3(-1.0f, -1.0f, +1.0f),
-		XMFLOAT3(-1.0f, +1.0f, +1.0f),
-		XMFLOAT3(-1.0f, +1.0f, -1.0f),
-		XMFLOAT3(-1.0f, -1.0f, -1.0f),
-		XMFLOAT3(+1.0f, -1.0f, -1.0f),
-		XMFLOAT3(+1.0f, +1.0f, -1.0f),
-		XMFLOAT3(+1.0f, +1.0f, +1.0f),
-		XMFLOAT3(+1.0f, -1.0f, +1.0f),
-	};
+		m_cubeMapTex = glGetTextureHandleARB(cubemap);
+		glMakeTextureHandleResidentARB(m_cubeMapTex);
 
-	std::vector<UINT> skyboxIndexBuffer = {
-		1, 0, 2,
-		2, 0, 3,
+		// generate VAO
+		std::vector<XMFLOAT3> skyboxVertexBuffer = {
+			XMFLOAT3(-1.0f, -1.0f, -1.0f),
+			XMFLOAT3(-1.0f, +1.0f, -1.0f),
+			XMFLOAT3(+1.0f, +1.0f, -1.0f),
+			XMFLOAT3(+1.0f, -1.0f, -1.0f),
+			XMFLOAT3(-1.0f, -1.0f, +1.0f),
+			XMFLOAT3(+1.0f, -1.0f, +1.0f),
+			XMFLOAT3(+1.0f, +1.0f, +1.0f),
+			XMFLOAT3(-1.0f, +1.0f, +1.0f),
+			XMFLOAT3(-1.0f, +1.0f, -1.0f),
+			XMFLOAT3(-1.0f, +1.0f, +1.0f),
+			XMFLOAT3(+1.0f, +1.0f, +1.0f),
+			XMFLOAT3(+1.0f, +1.0f, -1.0f),
+			XMFLOAT3(-1.0f, -1.0f, -1.0f),
+			XMFLOAT3(+1.0f, -1.0f, -1.0f),
+			XMFLOAT3(+1.0f, -1.0f, +1.0f),
+			XMFLOAT3(-1.0f, -1.0f, +1.0f),
+			XMFLOAT3(-1.0f, -1.0f, +1.0f),
+			XMFLOAT3(-1.0f, +1.0f, +1.0f),
+			XMFLOAT3(-1.0f, +1.0f, -1.0f),
+			XMFLOAT3(-1.0f, -1.0f, -1.0f),
+			XMFLOAT3(+1.0f, -1.0f, -1.0f),
+			XMFLOAT3(+1.0f, +1.0f, -1.0f),
+			XMFLOAT3(+1.0f, +1.0f, +1.0f),
+			XMFLOAT3(+1.0f, -1.0f, +1.0f),
+		};
 
-		5, 4, 6,
-		6, 4, 7,
+		std::vector<UINT> skyboxIndexBuffer = {
+			1, 0, 2,
+			2, 0, 3,
 
-		9, 8, 10,
-		10, 8, 11,
+			5, 4, 6,
+			6, 4, 7,
 
-		13, 12, 14,
-		14, 12, 15,
+			9, 8, 10,
+			10, 8, 11,
 
-		17, 16, 18,
-		18, 16, 19,
+			13, 12, 14,
+			14, 12, 15,
 
-		21, 20, 22,
-		22, 20, 23
-	};
+			17, 16, 18,
+			18, 16, 19,
 
-	GLuint skyboxVertexVBO;
-	GLuint skyboxIndexVBO;
-	glCreateBuffers(1, &skyboxVertexVBO);
-	glNamedBufferStorage(skyboxVertexVBO, skyboxVertexBuffer.size() * sizeof(XMFLOAT3), &skyboxVertexBuffer[0], 0);
+			21, 20, 22,
+			22, 20, 23
+		};
 
-	glCreateBuffers(1, &skyboxIndexVBO);
-	glNamedBufferStorage(skyboxIndexVBO, skyboxIndexBuffer.size() * sizeof(UINT), &skyboxIndexBuffer[0], 0);
+		GLuint skyboxVertexVBO;
+		GLuint skyboxIndexVBO;
+		glCreateBuffers(1, &skyboxVertexVBO);
+		glNamedBufferStorage(skyboxVertexVBO, skyboxVertexBuffer.size() * sizeof(XMFLOAT3), &skyboxVertexBuffer[0], 0);
 
-	glCreateVertexArrays(1, &m_skyboxVAO);
+		glCreateBuffers(1, &skyboxIndexVBO);
+		glNamedBufferStorage(skyboxIndexVBO, skyboxIndexBuffer.size() * sizeof(UINT), &skyboxIndexBuffer[0], 0);
 
-	glEnableVertexArrayAttrib(m_skyboxVAO, 0);
-	glVertexArrayAttribFormat(m_skyboxVAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
-	glVertexArrayVertexBuffer(m_skyboxVAO, 0, skyboxVertexVBO, 0, sizeof(XMFLOAT3));
-	glVertexArrayAttribBinding(m_skyboxVAO, 0, 0);
-	glVertexArrayElementBuffer(m_skyboxVAO, skyboxIndexVBO);
+		glCreateVertexArrays(1, &m_skyboxVAO);
 
-#endif
+		glEnableVertexArrayAttrib(m_skyboxVAO, 0);
+		glVertexArrayAttribFormat(m_skyboxVAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
+		glVertexArrayVertexBuffer(m_skyboxVAO, 0, skyboxVertexVBO, 0, sizeof(XMFLOAT3));
+		glVertexArrayAttribBinding(m_skyboxVAO, 0, 0);
+		glVertexArrayElementBuffer(m_skyboxVAO, skyboxIndexVBO);
+
+		break;
+	}
+	}
 }
 
 Skybox::~Skybox() {
-#if GRAPHICS_D3D11
-	ReleaseCOM(m_cubeMapSRV);
-#else
-	glMakeTextureHandleNonResidentARB(m_cubeMapTex);
-#endif
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		ReleaseCOM(m_cubeMapSRV);
+		break;
+	}
+	case RenderBackend::OPENGL4:
+	{
+		glMakeTextureHandleNonResidentARB(m_cubeMapTex);
+		break;
+	}
+	}
 }
 
 void Skybox::Draw() {
@@ -121,21 +136,27 @@ void Skybox::Draw() {
 	cmd.type = PrimitiveTopology::TRIANGLELIST;
 	cmd.indexBuffer = 0;
 	cmd.vertexBuffer = 0;
-#if GRAPHICS_OPENGL
-	cmd.drawType = DrawType::INDEXED;
-	cmd.inputLayout = (void*)m_skyboxVAO;
-	perObjData->gCubeMap = m_cubeMapTex;
-#endif
+
+	if (Renderer::GetRenderBackend() == RenderBackend::OPENGL4)
+	{
+		cmd.drawType = DrawType::INDEXED;
+		cmd.inputLayout = (void*)m_skyboxVAO;
+		
+		// OPENGL_TEXTURE
+		//perObjData->gCubeMap = m_cubeMapTex;
+	}
+
 	cmd.offset = 0;
 	cmd.effect = skyboxEffect;
 	cmd.elementCount = 36;
 	cmd.cbuffers.push_back(std::move(cbuffer0));
 
-#if GRAPHICS_D3D11
-	cmd.drawType = DrawType::ARRAY;
-	cmd.srvs.AddSRV(m_cubeMapSRV, 0);
-	cmd.inputLayout = skyboxEffect->GetInputLayout();
-#endif
+	if (Renderer::GetRenderBackend() == RenderBackend::D3D11)
+	{
+		cmd.drawType = DrawType::ARRAY;
+		cmd.srvs.AddSRV(m_cubeMapSRV, 0);
+		cmd.inputLayout = skyboxEffect->GetInputLayout();
+	}
 
 	Renderer::Instance()->AddDeferredDrawCmd(cmd);
 }

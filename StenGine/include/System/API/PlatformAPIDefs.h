@@ -14,18 +14,6 @@
 #define GRAPHICS_D3D11 0
 #endif
 
-#ifdef WIN32
-#define PLATFORM_WIN32 1
-#elif 
-#define PLATFORM_WIN32 0
-#endif
-
-#ifdef _ANDROID_
-#define PLATFORM_ANDROID 1
-#else
-#define PLATFORM_ANDROID 0
-#endif
-
 #ifdef _DEBUG
 #define BUILD_DEBUG 1
 #else

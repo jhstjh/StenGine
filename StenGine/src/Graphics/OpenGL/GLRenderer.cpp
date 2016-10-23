@@ -169,24 +169,28 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		glMakeTextureHandleResidentARB(m_depthBufferTexHandle);
 
 		/****************deferred shading + ssao fb**********************/
-		glCreateFramebuffers(1, &m_deferredShadingRT);
+
+		GLuint deferredShadingRT;
+		glCreateFramebuffers(1, &deferredShadingRT);
 
 		GenerateColorTex(m_deferredShadingTex);
 		GenerateColorTex(m_ssaoTex);
 		GenerateDepthTex(m_deferredShadingDepthTex);
 
-		glNamedFramebufferTexture(m_deferredShadingRT, GL_DEPTH_ATTACHMENT, m_deferredShadingDepthTex, 0);
-		glNamedFramebufferTexture(m_deferredShadingRT, GL_COLOR_ATTACHMENT0, m_deferredShadingTex, 0);
-		glNamedFramebufferTexture(m_deferredShadingRT, GL_COLOR_ATTACHMENT1, m_ssaoTex, 0);
+		glNamedFramebufferTexture(deferredShadingRT, GL_DEPTH_ATTACHMENT, m_deferredShadingDepthTex, 0);
+		glNamedFramebufferTexture(deferredShadingRT, GL_COLOR_ATTACHMENT0, m_deferredShadingTex, 0);
+		glNamedFramebufferTexture(deferredShadingRT, GL_COLOR_ATTACHMENT1, m_ssaoTex, 0);
 
 		GLenum shading_bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-		glNamedFramebufferDrawBuffers(m_deferredShadingRT, 2, shading_bufs);
+		glNamedFramebufferDrawBuffers(deferredShadingRT, 2, shading_bufs);
 
-		status = glCheckNamedFramebufferStatus(m_deferredShadingRT, GL_FRAMEBUFFER);
+		status = glCheckNamedFramebufferStatus(deferredShadingRT, GL_FRAMEBUFFER);
 		if (GL_FRAMEBUFFER_COMPLETE != status) {
 			assert(false);
 			return false;
 		}
+
+		m_deferredShadingRT.Set(deferredShadingRT);
 
 		m_deferredShadingTexHandle = glGetTextureHandleARB(m_deferredShadingTex);
 		m_ssaoTexHandle = glGetTextureHandleARB(m_ssaoTex);
@@ -347,7 +351,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		{
 			if (cmd.flags & CmdFlag::BIND_FB)
 			{
-				glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)cmd.framebuffer.Get());
+				glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)cmd.framebuffer->Get());
 			}
 
 			if (cmd.flags & CmdFlag::SET_SS)
@@ -632,7 +636,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		DrawCmd shadowcmd;
 
 		shadowcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH;
-		shadowcmd.framebuffer = LightManager::Instance()->m_shadowMap->GetRenderTarget();
+		shadowcmd.framebuffer = &LightManager::Instance()->m_shadowMap->GetRenderTarget();
 		shadowcmd.viewport = { 0, 0, (float)width, (float)height, 0, 1 };
 
 		m_drawList.push_back(std::move(shadowcmd));
@@ -648,7 +652,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		DrawCmd drawcmd;
 
 		drawcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH;
-		drawcmd.framebuffer = m_deferredGBuffers;
+		drawcmd.framebuffer = &m_deferredGBuffers;
 		drawcmd.viewport = { 0.f, 0.f, (float)m_clientWidth, (float)m_clientHeight, 0.f, 1.f };
 
 		m_drawList.push_back(std::move(drawcmd));
@@ -688,7 +692,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		cmd.inputLayout = (void*)m_screenQuadVAO;
 		cmd.vertexBuffer = 0; // don't bind if 0
 		cmd.type = PrimitiveTopology::TRIANGLELIST;
-		cmd.framebuffer = m_deferredShadingRT;
+		cmd.framebuffer = &m_deferredShadingRT;
 		cmd.offset = (void*)(0);
 		cmd.effect = effect;
 		cmd.elementCount = 6;
@@ -742,8 +746,8 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		cmdV.threadGroupX = numGroupsX;
 		cmdV.threadGroupY = m_clientHeight;
 		cmdV.threadGroupZ = 1;
-		cmdV.uavs.AddUAV(blurImgSRV, 0);
-		cmdV.uavs.AddUAV(m_computeOutput[uavSlotIdx], 1);
+		cmdV.uavs.AddUAV(reinterpret_cast<void*>(blurImgSRV), 0);
+		cmdV.uavs.AddUAV(reinterpret_cast<void*>(m_computeOutput[uavSlotIdx]), 1);
 
 		AddDeferredDrawCmd(std::move(cmdV));
 
@@ -758,52 +762,10 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		cmdH.threadGroupX = m_clientWidth;
 		cmdH.threadGroupY = numGroupsY;
 		cmdH.threadGroupZ = 1;
-		cmdH.uavs.AddUAV(m_computeOutput[uavSlotIdx], 0);
-		cmdH.uavs.AddUAV(m_computeOutput[uavSlotIdx + 1], 1);
+		cmdH.uavs.AddUAV(reinterpret_cast<void*>(m_computeOutput[uavSlotIdx]), 0);
+		cmdH.uavs.AddUAV(reinterpret_cast<void*>(m_computeOutput[uavSlotIdx + 1]), 1);
 		
 		AddDeferredDrawCmd(std::move(cmdH));
-	}
-
-	void GLRenderer::DrawGodRay() {
-		glBlendFunc(GL_ONE, GL_ONE);
-		glEnable(GL_BLEND);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glDisable(GL_DEPTH_TEST);
-		glBindVertexArray(m_screenQuadVAO);
-
-		GodRayEffect* godRayFX = EffectsManager::Instance()->m_godrayEffect.get();
-
-		XMFLOAT3 lightDir = LightManager::Instance()->m_dirLights[0]->direction;
-		XMVECTOR lightPos = -400 * XMLoadFloat3(&lightDir);
-		XMVECTOR lightPosH = XMVector3Transform(lightPos, CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
-		XMFLOAT4 lightPosHf;
-		XMStoreFloat4(&lightPosHf, lightPosH);
-		lightPosHf.x /= lightPosHf.w;
-		lightPosHf.x = 0.5f + lightPosHf.x / 2;
-		lightPosHf.y /= lightPosHf.w;
-		lightPosHf.y = 0.5f + lightPosHf.y / 2;
-		lightPosHf.z /= lightPosHf.w;
-
-		godRayFX->OcclusionMap = m_normalBufferTex;
-		godRayFX->m_perFrameUniformBuffer.gLightPosH = lightPosHf;
-		godRayFX->SetShader();
-		godRayFX->UpdateConstantBuffer();
-		godRayFX->BindConstantBuffer();
-		godRayFX->BindShaderResource();
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		godRayFX->UnBindConstantBuffer();
-		godRayFX->UnBindShaderResource();
-		godRayFX->UnSetShader();
-
-		glDisable(GL_BLEND);
-		glEnable(GL_DEPTH_TEST);
 	}
 
 	void GLRenderer::DrawDebug() {

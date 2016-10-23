@@ -1,6 +1,7 @@
 #ifndef __EFFECTS_MANAGER__
 #define __EFFECTS_MANAGER__
 
+#include "Graphics/Abstraction/RendererBase.h"
 #include "System/API/PlatformAPIDefs.h"
 
 #include "Scene/LightManager.h"
@@ -13,10 +14,8 @@
 
 #include <memory>
 
-#if GRAPHICS_OPENGL
 #include "Graphics/OpenGL/GLBuffer.h"
 #include "glew.h"
-#endif
 
 #include "Graphics/D3DIncludes.h"
 
@@ -28,17 +27,19 @@ namespace StenGine
 {
 
 class Mesh;
+class Renderer;
 
 class Effect : public AlignedClass<16> {
 protected:
-#if PLATFORM_WIN32
-#if GRAPHICS_D3D11
-	ID3D11VertexShader* m_vertexShader;
-	ID3D11PixelShader* m_pixelShader;
-	ID3D11GeometryShader* m_geometryShader;
-	ID3D11HullShader* m_hullShader;
-	ID3D11DomainShader* m_domainShader;
-	ID3D11ComputeShader* m_computeShader;
+
+	/****TODO this is quite ugly here****/
+	/****either create a shader abstraction or Impl this****/
+	ID3D11VertexShader* m_d3d11vertexShader;
+	ID3D11PixelShader* m_d3d11pixelShader;
+	ID3D11GeometryShader* m_d3d11geometryShader;
+	ID3D11HullShader* m_d3d11hullShader;
+	ID3D11DomainShader* m_d3d11domainShader;
+	ID3D11ComputeShader* m_d3d11computeShader;
 
 	ID3DBlob *m_vsBlob;
 	ID3DBlob *m_psBlob;
@@ -47,28 +48,28 @@ protected:
 	ID3DBlob *m_dsBlob;
 	ID3DBlob *m_csBlob;
 
-	ID3D11InputLayout* m_inputLayout;
+	ID3D11InputLayout* m_d3d11inputLayout;
 	std::vector<D3D11_INPUT_ELEMENT_DESC> m_vertexDesc;
 	ID3D11ShaderResourceView** m_shaderResources;
 	ID3D11ShaderResourceView** m_outputShaderResources;
 	ID3D11UnorderedAccessView** m_unorderedAccessViews;
 
 	void ReadShaderFile(std::wstring filename, ID3DBlob **blob, char* target, char* entryPoint = "main");
-#else
-	// gl effect
-	GLuint m_vertexShader;
-	GLuint m_pixelShader;
-	GLuint m_geometryShader;
-	GLuint m_hullShader;
-	GLuint m_domainShader;
-	GLuint m_computeShader;
 
-	GLuint m_inputLayout;
+	// gl effect
+	GLuint m_glvertexShader;
+	GLuint m_glpixelShader;
+	GLuint m_glgeometryShader;
+	GLuint m_glhullShader;
+	GLuint m_gldomainShader;
+	GLuint m_glcomputeShader;
+
+	GLuint m_glinputLayout;
 
 	GLuint m_shaderProgram;
 	bool ReadShaderFile(std::wstring filename, char* shaderContent, int maxLength);
+	/*******************************************************/
 
-#endif
 public:
 	Effect(const std::wstring& filename);
 	Effect(const std::wstring& vsPath,
@@ -86,36 +87,13 @@ public:
 	virtual void UnBindShaderResource();
 	virtual void UnSetShader();
 
-	void* GetInputLayout()
-	{
-		return (void*)m_inputLayout;
-	}
-#if GRAPHICS_D3D11
+	void* GetInputLayout();
+
+	// TODO D3D specific
 	virtual void UnbindUnorderedAccessViews();
 	virtual void SetShaderResources(ID3D11ShaderResourceView* res, int idx);
 	virtual ID3D11ShaderResourceView* GetOutputShaderResource(int idx);
 	//virtual void GetUAVResources(ID3D11UnorderedAccessView* res, int idx) {}
-#else
-	// gl effect
-#endif
-
-#else
-protected:
-	GLuint m_vertexShader;
-	GLuint m_pixelShader;
-
-	GLuint m_shaderProgram;
-public:
-	Effect(const std::string vsPath, std::string psPath);
-
-	virtual void SetShader();
-	virtual void UpdateConstantBuffer() = 0;
-	virtual void BindConstantBuffer() = 0;
-	//virtual void BindShaderResource() {}
-	//virtual void UnBindConstantBuffer();
-	//virtual void UnBindShaderResource();
-	//virtual void UnSetShader();
-#endif
 
 	std::vector<Mesh*> m_associatedMeshes;
 };
@@ -133,7 +111,6 @@ public:
 
 	void PrepareBuffer();
 
-#if GRAPHICS_D3D11
 	struct PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX WorldViewProj;
@@ -147,21 +124,8 @@ public:
 		XMFLOAT4 DiffX_NormY_ShadZ;
 	};
 
-	struct PERFRAME_CONSTANT_BUFFER
+	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
 	{
-		XMFLOAT4 EyePosW;
-	};
-
-#else
-	struct PEROBJ_CONSTANT_BUFFER
-	{
-		XMMATRIX WorldViewProj;
-		XMMATRIX World;
-		XMMATRIX WorldView;
-		XMMATRIX ViewProj;
-		XMMATRIX ShadowTransform;
-		Material::MaterialAttrib Mat;
-		XMFLOAT4 DiffX_NormY_ShadZ;
 		uint64_t DiffuseMap;
 		uint64_t NormalMap;
 		uint64_t ShadowMapTex;
@@ -174,10 +138,10 @@ public:
 		XMFLOAT4 EyePosW;
 		DirectionalLight DirLight;
 	};
-#endif
 
 	GPUBuffer* m_perFrameCB;
 	GPUBuffer* m_perObjectCB;
+	GPUBuffer* m_textureCB;
 };
 
 
@@ -406,7 +370,7 @@ public:
 
 	struct
 #if GRAPHICS_D3D11		
-		PERFRAME_CONSTANT_BUFFER
+	PERFRAME_CONSTANT_BUFFER
 	{
 		DirectionalLight gDirLight;
 		XMFLOAT4 gEyePosV;
@@ -449,49 +413,6 @@ public:
 	};
 
 	GPUBuffer* m_perObjectCB;
-};
-
-
-//--------------------------------------------------------------------//
-
-
-class GodRayEffect : public Effect {
-private:
-#if GRAPHICS_D3D11
-	ID3D11Buffer* m_perFrameCB;
-#else
-	GLuint m_perFrameUBO;
-	GLint OcclusionMapPosition;
-#endif
-
-public:
-	GodRayEffect(const std::wstring& filename);
-	~GodRayEffect();
-
-	virtual void UpdateConstantBuffer();
-	virtual void BindConstantBuffer();
-	virtual void BindShaderResource();
-
-	struct
-#if GRAPHICS_D3D11		
-		PERFRAME_CONSTANT_BUFFER
-#else
-		PERFRAME_UNIFORM_BUFFER
-#endif
-	{
-		XMFLOAT4 gLightPosH;
-	}
-#if GRAPHICS_D3D11		
-	m_perFrameConstantBuffer;
-#else
-	m_perFrameUniformBuffer;
-#endif
-
-#if GRAPHICS_OPENGL
-	GLuint OcclusionMap;
-#endif
-
-
 };
 
 
@@ -624,7 +545,6 @@ public:
 	EffectsManager();
 	~EffectsManager();
 
-#if PLATFORM_WIN32
 	//StdMeshEffect* m_stdMeshEffect;
 	std::unique_ptr<ShadowMapEffect> m_shadowMapEffect;
 	std::unique_ptr<TerrainShadowMapEffect> m_terrainShadowMapEffect;
@@ -633,17 +553,12 @@ public:
 	std::unique_ptr<DeferredGeometryTerrainPassEffect> m_deferredGeometryTerrainPassEffect;
 	std::unique_ptr<DeferredGeometryTessPassEffect> m_deferredGeometryTessPassEffect;
 	std::unique_ptr<DeferredShadingPassEffect> m_deferredShadingPassEffect;
-	std::unique_ptr<GodRayEffect> m_godrayEffect;
 	std::unique_ptr<SkyboxEffect> m_skyboxEffect;
 	std::unique_ptr<BlurEffect> m_blurEffect;
 	std::unique_ptr<VBlurEffect> m_vblurEffect;
 	std::unique_ptr<HBlurEffect> m_hblurEffect;
 	std::unique_ptr<DebugLineEffect> m_debugLineEffect;
 	std::unique_ptr<ImGuiEffect> m_imguiEffect;
-#else
-	DebugLineEffect* m_debugLineEffect;
-	SimpleMeshEffect* m_simpleMeshEffect;
-#endif // !PLATFORM_ANDROID
 };
 
 }

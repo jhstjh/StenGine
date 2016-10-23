@@ -82,8 +82,6 @@ public:
 
 	void doCSBlur(GLuint blurImgSRV, int uavSlotIdx);
 
-	virtual void DrawGodRay() override;
-
 	virtual void DrawDebug() override;
 
 	virtual GLRenderer::~GLRenderer();
@@ -118,7 +116,7 @@ private:
 	GLuint m_specularBufferTex;
 	GLuint m_depthBufferTex;
 
-	GLuint m_deferredShadingRT;;
+	RenderTarget m_deferredShadingRT;;
 
 	GLuint m_ssaoTex;
 	GLuint m_deferredShadingTex;

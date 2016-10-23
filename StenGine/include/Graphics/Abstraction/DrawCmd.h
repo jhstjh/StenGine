@@ -2,15 +2,9 @@
 #define __DRAW_CMD_H_
 
 #include <vector>
-
-#if GRAPHICS_OPENGL
 #include "glew.h"
-#endif
 
-#if GRAPHICS_D3D11
 #include "Graphics/D3D11/D3D11SRVBinding.h"
-#endif
-
 #include "Graphics/Effect/EffectsManager.h"
 #include "Graphics/Abstraction/ConstantBuffer.h"
 #include "Graphics/Abstraction/Viewport.h"
@@ -84,14 +78,8 @@ struct DrawCmd {
 	RasterizerState		rasterizerState;
 	ScissorState		scissorState;
 
-#if GRAPHICS_D3D11
 	D3D11SRVBinding srvs;
 	ID3D11RasterizerState* rsState		= nullptr;
-#endif
-
-#if GRAPHICS_OPENGL
-	
-#endif
 };
 
 }

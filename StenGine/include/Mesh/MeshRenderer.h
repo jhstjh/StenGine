@@ -6,12 +6,9 @@
 #include "System/API/PlatformAPIDefs.h"
 #include "Scene/Drawable.h"
 
-#if (PLATFORM_WIN32) || (SG_TOOL)
 #include "Graphics/D3DIncludes.h"
 #include "Graphics/Abstraction/RendererBase.h"
-#elif  PLATFORM_ANDROID
-#include "AndroidType.h"
-#endif
+
 #include "Graphics/Effect/EffectsManager.h"
 
 #include "Scene/Component.h"

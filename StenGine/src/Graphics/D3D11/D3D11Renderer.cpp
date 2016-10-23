@@ -905,44 +905,6 @@ D3D11Renderer::~D3D11Renderer() {
 		AddDeferredDrawCmd(std::move(cmd));
 	}
 
-	void D3D11Renderer::DrawGodRay() {
-		//--------------------Post processing----------------------//
-		m_d3d11DeviceContext->OMSetBlendState(m_additiveAlphaAddBS, NULL, 0xFFFFFFFF);
-		m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, nullptr);
-		m_d3d11DeviceContext->PSSetSamplers(0, 1, &m_borderSamplerState);
-		//m_d3d11DeviceContext->ClearRenderTargetView(m_renderTargetView, reinterpret_cast<const float*>(&Colors::Black));
-		//m_d3d11DeviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-		GodRayEffect* godRayFX = EffectsManager::Instance()->m_godrayEffect.get();
-		m_d3d11DeviceContext->IASetInputLayout(NULL);
-
-		XMFLOAT3 lightDir = LightManager::Instance()->m_dirLights[0]->direction;
-		XMVECTOR lightPos = -400 * XMLoadFloat3(&lightDir);
-		XMVECTOR lightPosH = XMVector3Transform(lightPos, CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
-		XMFLOAT4 lightPosHf;
-		XMStoreFloat4(&lightPosHf, lightPosH);
-		lightPosHf.x /= lightPosHf.w;
-		lightPosHf.x = 0.5f + lightPosHf.x / 2;
-		lightPosHf.y /= lightPosHf.w;
-		lightPosHf.y = 1 - (0.5f + lightPosHf.y / 2.0f);
-		lightPosHf.z /= lightPosHf.w;
-
-		godRayFX->SetShaderResources(m_normalBufferSRV, 0);
-		godRayFX->m_perFrameConstantBuffer.gLightPosH = lightPosHf;
-		godRayFX->SetShader();
-		godRayFX->UpdateConstantBuffer();
-		godRayFX->BindConstantBuffer();
-		godRayFX->BindShaderResource();
-
-		m_d3d11DeviceContext->Draw(6, 0);
-
-		godRayFX->UnBindConstantBuffer();
-		godRayFX->UnBindShaderResource();
-		godRayFX->UnSetShader();
-
-		m_d3d11DeviceContext->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
-		m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
-	}
-
 	void D3D11Renderer::DrawDebug() {
 		UINT stride = sizeof(Vertex::DebugLine);
 		UINT offset = 0;

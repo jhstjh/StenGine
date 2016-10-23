@@ -7,6 +7,8 @@
 
 #include <stdint.h>
 
+#if 0
+
 namespace StenGine
 {
 
@@ -282,3 +284,5 @@ private:
 DEFINE_ABSTRACT_SINGLETON_CLASS(ImGuiMenu, ImGuiMenuImpl)
 
 }
+
+#endif

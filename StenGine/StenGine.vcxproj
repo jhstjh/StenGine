@@ -352,7 +352,6 @@
     <ClInclude Include="include\Graphics\Effect\Skybox.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLBuffer.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLConstantBuffer.h" />
-    <ClInclude Include="include\Graphics\OpenGL\GLESRenderer.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLImageLoader.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLRenderer.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLRenderTarget.h" />
@@ -395,6 +394,7 @@
     <ClCompile Include="src\Graphics\Abstraction\GPUBuffer.cpp" />
     <ClCompile Include="src\Graphics\Abstraction\RendererBase.cpp" />
     <ClCompile Include="src\Graphics\Abstraction\RenderTarget.cpp" />
+    <ClCompile Include="src\Graphics\Abstraction\Texture.cpp" />
     <ClCompile Include="src\Graphics\Abstraction\UAVBinding.cpp" />
     <ClCompile Include="src\Graphics\Animation\Animation.cpp" />
     <ClCompile Include="src\Graphics\Color.cpp" />
@@ -414,6 +414,7 @@
     <ClCompile Include="src\Graphics\OpenGL\GLTexture.cpp" />
     <ClCompile Include="src\Graphics\OpenGL\GLUAVBinding.cpp" />
     <ClCompile Include="src\Graphics\UI\D3D11ImGuiMenu.cpp" />
+    <ClCompile Include="src\Graphics\UI\GLImGuiMenu.cpp" />
     <ClCompile Include="src\Input\InputManager.cpp" />
     <ClCompile Include="src\Mesh\MeshPrimitives.cpp" />
     <ClCompile Include="src\Mesh\MeshRenderer.cpp" />

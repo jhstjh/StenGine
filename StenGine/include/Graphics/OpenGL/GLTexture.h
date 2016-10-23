@@ -1,18 +1,19 @@
 #pragma once
 #include "glew.h"
 #include <stdint.h>
+#include "Graphics/Abstraction/Texture.h"
 
 namespace StenGine
 {
 
-class GLTexture
+class GLTexture : public TextureImpl
 {
 public:
-	GLTexture(uint32_t width, uint32_t height, GLuint tex);
-	~GLTexture();
+	GLTexture(uint32_t width, uint32_t height, void* tex);
+	virtual ~GLTexture();
 
-	uint64_t GetTexture() { return m_textureHandle; }
-	void GetDimension(uint32_t &width, uint32_t &height) { width = m_width; height = m_height; }
+	virtual void* GetTexture() { return reinterpret_cast<void*>(m_textureHandle); }
+	virtual void GetDimension(uint32_t &width, uint32_t &height) { width = m_width; height = m_height; }
 
 private:
 	GLuint m_texture;
@@ -21,5 +22,4 @@ private:
 	uint32_t m_height;
 };
 
-using Texture = GLTexture;
 }

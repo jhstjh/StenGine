@@ -26,10 +26,8 @@ Mesh::Mesh(int type = 0)
 	, m_receiveShadow(true)
 	, m_associatedEffect(nullptr)
 	, m_associatedDeferredEffect(nullptr)
-#if GRAPHICS_D3D11
 	, m_vertexBufferGPU(nullptr)
 	, m_shadowMapVertexBufferGPU(nullptr)
-#endif
 {
 	//ObjReader::Read(L"Model/ball.obj", this);
 	if (type == 0)
@@ -120,13 +118,8 @@ void Mesh::DrawMenu()
 
 void Mesh::PrepareGPUBuffer()
 {
-#if PLATFORM_WIN32
 	m_associatedDeferredEffect = EffectsManager::Instance()->m_deferredGeometryPassEffect.get();
 	m_associatedDeferredEffect->m_associatedMeshes.push_back(this);
-#elif  PLATFORM_ANDROID
-	m_associatedEffect = EffectsManager::Instance()->m_simpleMeshEffect;
-	m_associatedEffect->m_associatedMeshes.push_back(this);
-#endif
 
 	std::vector<Vertex::StdMeshVertex> vertices(m_positionBufferCPU.size());
 	UINT k = 0;
@@ -188,59 +181,69 @@ void Mesh::GatherDrawCall() {
 			resourceMask.x = 0;
 			resourceMask.y = 0;
 
-#if GRAPHICS_D3D11
-			cmd.srvs.AddSRV(Renderer::Instance()->GetSkyBox()->m_cubeMapSRV, 4);
-			cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-			perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform())));
-			perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
-
-			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex) {
-				resourceMask.x = 1;
-				cmd.srvs.AddSRV(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture(), 0);
-			}
-			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex) {
-				resourceMask.y = 1;
-				cmd.srvs.AddSRV(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture(), 1);
-			}
-
-			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex) {
-				cmd.type = PrimitiveTopology::CONTROL_POINT_3_PATCHLIST;
-				cmd.srvs.AddSRV(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex->GetTexture(), 2);
-			}
-			else
+			switch (Renderer::GetRenderBackend())
 			{
-				cmd.type = PrimitiveTopology::TRIANGLELIST;
-			}
-
-			cmd.offset = (void*)(startIndex);
-#endif
-
-#if GRAPHICS_OPENGL
-			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex > 0)
+			case RenderBackend::D3D11:
 			{
-				resourceMask.x = 1;
-				perObjData->DiffuseMap = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture();
-			}
-			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex > 0)
-			{
-				resourceMask.y = 1;
-				perObjData->NormalMap = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture();
-			}
-			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex > 0)
-			{
-				cmd.type = PrimitiveTopology::CONTROL_POINT_3_PATCHLIST;
-				perObjData->BumpMapTex = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex->GetTexture();
-			}
-			else
-			{
-				cmd.type = PrimitiveTopology::TRIANGLELIST;
-			}
-			perObjData->ShadowMapTex = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
-			perObjData->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;
+				cmd.srvs.AddSRV(Renderer::Instance()->GetSkyBox()->m_cubeMapSRV, 4);
+				cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
+				perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform())));
+				perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
-			cmd.offset = (void*)(startIndex * sizeof(unsigned int));
+				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex) {
+					resourceMask.x = 1;
+					cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture()), 0);
+				}
+				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex) {
+					resourceMask.y = 1;
+					cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture()), 1);
+				}
 
-#endif
+				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex) {
+					cmd.type = PrimitiveTopology::CONTROL_POINT_3_PATCHLIST;
+					cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex->GetTexture()), 2);
+				}
+				else
+				{
+					cmd.type = PrimitiveTopology::TRIANGLELIST;
+				}
+
+				cmd.offset = (void*)(startIndex);
+				break;
+			}
+			case RenderBackend::OPENGL4:
+			{
+				ConstantBuffer cbuffer2(2, sizeof(DeferredGeometryPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), (void*)effect->m_textureCB->GetBuffer());
+				DeferredGeometryPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (DeferredGeometryPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer2.GetBuffer();
+
+				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex > 0)
+				{
+					resourceMask.x = 1;
+					textureData->DiffuseMap = reinterpret_cast<uint64_t>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture());
+				}
+				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex > 0)
+				{
+					resourceMask.y = 1;
+					textureData->NormalMap = reinterpret_cast<uint64_t>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture());
+				}
+				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex > 0)
+				{
+					cmd.type = PrimitiveTopology::CONTROL_POINT_3_PATCHLIST;
+					textureData->BumpMapTex = reinterpret_cast<uint64_t>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex->GetTexture());
+				}
+				else
+				{
+					cmd.type = PrimitiveTopology::TRIANGLELIST;
+				}
+				textureData->ShadowMapTex = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
+				textureData->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;
+
+				cmd.offset = (void*)(startIndex * sizeof(unsigned int));
+
+				cmd.cbuffers.push_back(std::move(cbuffer2));
+				break;
+			}
+			}
 
 			perObjData->DiffX_NormY_ShadZ = resourceMask;
 

@@ -114,53 +114,59 @@ void SkinnedMesh::GatherDrawCall()
 			resourceMask.x = 0;
 			resourceMask.y = 0;
 
-#if GRAPHICS_D3D11
-			cmd.srvs.AddSRV(Renderer::Instance()->GetSkyBox()->m_cubeMapSRV, 4);
-			cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-			perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform())));
-			perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
-
-			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex) {
-				resourceMask.x = 1;
-				cmd.srvs.AddSRV(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture(), 0);
-			}
-			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex) {
-				resourceMask.y = 1;
-				cmd.srvs.AddSRV(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture(), 1);
-			}
-
-			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex) {
-				cmd.type = PrimitiveTopology::CONTROL_POINT_3_PATCHLIST;
-				cmd.srvs.AddSRV(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex->GetTexture(), 2);
-			}
-			else
+			switch (Renderer::GetRenderBackend())
 			{
-				cmd.type = PrimitiveTopology::TRIANGLELIST;
-			}
-
-			cmd.offset = (void*)(startIndex);
-#endif
-
-#if GRAPHICS_OPENGL
-			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex > 0)
+			case RenderBackend::D3D11:
 			{
-				resourceMask.x = 1;
-				perObjData->DiffuseMap = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture();
-			}
-			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex > 0)
-			{
-				resourceMask.y = 1;
-				perObjData->NormalMap = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture();
-			}
-			{
-				cmd.type = PrimitiveTopology::TRIANGLELIST;
-			}
-			perObjData->ShadowMapTex = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
-			perObjData->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;
+				cmd.srvs.AddSRV(Renderer::Instance()->GetSkyBox()->m_cubeMapSRV, 4);
+				cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
+				perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform())));
+				perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
-			cmd.offset = (void*)(startIndex * sizeof(unsigned int));
+				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex) {
+					resourceMask.x = 1;
+					cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture()), 0);
+				}
+				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex) {
+					resourceMask.y = 1;
+					cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture()), 1);
+				}
 
-#endif
+				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex) {
+					cmd.type = PrimitiveTopology::CONTROL_POINT_3_PATCHLIST;
+					cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex->GetTexture()), 2);
+				}
+				else
+				{
+					cmd.type = PrimitiveTopology::TRIANGLELIST;
+				}
+
+				cmd.offset = (void*)(startIndex);
+				break;
+			}
+			case RenderBackend::OPENGL4:
+			{
+				// OPENGL_TEXTURE
+				// if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex > 0)
+				// {
+				// 	resourceMask.x = 1;
+				// 	perObjData->DiffuseMap = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture();
+				// }
+				// if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex > 0)
+				// {
+				// 	resourceMask.y = 1;
+				// 	perObjData->NormalMap = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture();
+				// }
+				// {
+				// 	cmd.type = PrimitiveTopology::TRIANGLELIST;
+				// }
+				// perObjData->ShadowMapTex = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
+				// perObjData->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;
+				// 
+				// cmd.offset = (void*)(startIndex * sizeof(unsigned int));
+				// break;
+			}
+			}
 
 			perObjData->DiffX_NormY_ShadZ = resourceMask;
 
@@ -215,30 +221,36 @@ void SkinnedMesh::GatherShadowDrawCall()
 			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
 			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
 
-#if GRAPHICS_D3D11
-			// TODO m_matrixPalette should not be in a cbuffer
-			ConstantBuffer cbuffer2(13, sizeof(DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER), (void*)effect->m_matrixPaletteSB->GetBuffer());
-			DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER* matrixPaletteData = (DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER*)cbuffer2.GetBuffer();
+			switch (Renderer::GetRenderBackend())
+			{
+			case RenderBackend::D3D11:
+			{
+				// TODO m_matrixPalette should not be in a cbuffer
+				ConstantBuffer cbuffer2(13, sizeof(DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER), (void*)effect->m_matrixPaletteSB->GetBuffer());
+				DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER* matrixPaletteData = (DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER*)cbuffer2.GetBuffer();
 
-			memcpy(matrixPaletteData, &m_matrixPalette[0], sizeof(XMMATRIX) * m_matrixPalette.size());
+				memcpy(matrixPaletteData, &m_matrixPalette[0], sizeof(XMMATRIX) * m_matrixPalette.size());
 
-			cmd.cbuffers.push_back(std::move(cbuffer2));
-#endif
+				cmd.cbuffers.push_back(std::move(cbuffer2));
+				break;
+			}
+			case RenderBackend::OPENGL4:
+			{
+				cmd.offset = (void*)(startIndex * sizeof(unsigned int));
 
-#if GRAPHICS_OPENGL
-			cmd.offset = (void*)(startIndex * sizeof(unsigned int));
-
-			// TODO !!!
-			glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 15, effect->m_matrixPaletteSB->GetBuffer(), 0, sizeof(XMMATRIX) * m_matrixPalette.size());
-			void* ssbo = glMapNamedBufferRange(
-				effect->m_matrixPaletteSB->GetBuffer(),
-				0,
-				sizeof(XMMATRIX) * m_matrixPalette.size(),
-				GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-			);
-			memcpy(ssbo, &m_matrixPalette[0], sizeof(XMMATRIX) * m_matrixPalette.size());
-			glUnmapNamedBuffer(effect->m_matrixPaletteSB->GetBuffer());
-#endif
+				// TODO !!!
+				glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 15, reinterpret_cast<GLuint>(effect->m_matrixPaletteSB->GetBuffer()), 0, sizeof(XMMATRIX) * m_matrixPalette.size());
+				void* ssbo = glMapNamedBufferRange(
+					reinterpret_cast<GLuint>(effect->m_matrixPaletteSB->GetBuffer()),
+					0,
+					sizeof(XMMATRIX) * m_matrixPalette.size(),
+					GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
+				);
+				memcpy(ssbo, &m_matrixPalette[0], sizeof(XMMATRIX) * m_matrixPalette.size());
+				glUnmapNamedBuffer(reinterpret_cast<GLuint>(effect->m_matrixPaletteSB->GetBuffer()));
+				break;
+			}
+			}
 
 			cmd.flags = CmdFlag::DRAW;
 			cmd.drawType = DrawType::INDEXED;

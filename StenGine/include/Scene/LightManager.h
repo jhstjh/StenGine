@@ -4,11 +4,7 @@
 #include "System/API/PlatformAPIDefs.h"
 #include "System/SingletonClass.h"
 
-#if PLATFORM_WIN32
 #include "Graphics/D3DIncludes.h"
-#elif  PLATFORM_ANDROID
-#include "AndroidType.h"
-#endif
 
 namespace StenGine
 {
@@ -28,9 +24,7 @@ public:
 	~LightManager();
 	std::vector<DirectionalLight*> m_dirLights;
 
-#if PLATFORM_WIN32
 	class ShadowMap* m_shadowMap;
-#endif
 };
 
 }

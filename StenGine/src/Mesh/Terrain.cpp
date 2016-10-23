@@ -11,9 +11,7 @@
 #include "Math/MathHelper.h"
 #include "imgui.h"
 
-#if GRAPHICS_OPENGL
 #include "Graphics/OpenGL/GLImageLoader.h"
-#endif
 
 namespace StenGine
 {
@@ -21,11 +19,9 @@ namespace StenGine
 Terrain::Terrain(InitInfo &info) :
 	m_quadPatchVB(0),
 	m_quadPatchIB(0),
-#if GRAPHICS_D3D11
 	m_layerMapArrayTex(0),
 	m_blendMapTex(0),
 	m_heightMapTex(0),
-#endif
 	m_numPatchVertices(0),
 	m_numPatchQuadFaces(0),
 	m_numPatchVertRows(0),
@@ -184,64 +180,71 @@ void Terrain::BuildHeightMapSRV() {
 	std::vector<HALF> hmap(m_heightMap.size());
 	std::transform(m_heightMap.begin(), m_heightMap.end(), hmap.begin(), XMConvertFloatToHalf);
 
-#if GRAPHICS_D3D11
-	D3D11_TEXTURE2D_DESC texDesc;
-	texDesc.Width = m_initInfo.HeightmapWidth;
-	texDesc.Height = m_initInfo.HeightmapHeight;
-	texDesc.MipLevels = 1;
-	texDesc.ArraySize = 1;
-	texDesc.Format = DXGI_FORMAT_R16_FLOAT;
-	texDesc.SampleDesc.Count = 1;
-	texDesc.SampleDesc.Quality = 0;
-	texDesc.Usage = D3D11_USAGE_DEFAULT;
-	texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	texDesc.CPUAccessFlags = 0;
-	texDesc.MiscFlags = 0;
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		D3D11_TEXTURE2D_DESC texDesc;
+		texDesc.Width = m_initInfo.HeightmapWidth;
+		texDesc.Height = m_initInfo.HeightmapHeight;
+		texDesc.MipLevels = 1;
+		texDesc.ArraySize = 1;
+		texDesc.Format = DXGI_FORMAT_R16_FLOAT;
+		texDesc.SampleDesc.Count = 1;
+		texDesc.SampleDesc.Quality = 0;
+		texDesc.Usage = D3D11_USAGE_DEFAULT;
+		texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		texDesc.CPUAccessFlags = 0;
+		texDesc.MiscFlags = 0;
 
-	D3D11_SUBRESOURCE_DATA data;
-	data.pSysMem = &hmap[0];
-	data.SysMemPitch = m_initInfo.HeightmapWidth * sizeof(HALF);
-	data.SysMemSlicePitch = 0;
+		D3D11_SUBRESOURCE_DATA data;
+		data.pSysMem = &hmap[0];
+		data.SysMemPitch = m_initInfo.HeightmapWidth * sizeof(HALF);
+		data.SysMemSlicePitch = 0;
 
-	ID3D11Texture2D* hmapTex = 0;
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateTexture2D(&texDesc, &data, &hmapTex));
+		ID3D11Texture2D* hmapTex = 0;
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateTexture2D(&texDesc, &data, &hmapTex));
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-	srvDesc.Format = texDesc.Format;
-	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MostDetailedMip = 0;
-	srvDesc.Texture2D.MipLevels = -1;
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		srvDesc.Format = texDesc.Format;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MostDetailedMip = 0;
+		srvDesc.Texture2D.MipLevels = -1;
 
-	ID3D11ShaderResourceView* heightMapSRV;
-	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateShaderResourceView(hmapTex, &srvDesc, &heightMapSRV));
+		ID3D11ShaderResourceView* heightMapSRV;
+		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateShaderResourceView(hmapTex, &srvDesc, &heightMapSRV));
 
-	m_heightMapTex = new Texture(m_initInfo.HeightmapWidth, m_initInfo.HeightmapHeight, heightMapSRV);
+		m_heightMapTex = new Texture(m_initInfo.HeightmapWidth, m_initInfo.HeightmapHeight, heightMapSRV);
 
-	// SRV saves reference.
-	ReleaseCOM(hmapTex);
-#endif
+		// SRV saves reference.
+		ReleaseCOM(hmapTex);
+		break;
+	}
+	case RenderBackend::OPENGL4:
+	{
 
-#if GRAPHICS_OPENGL
-	GLuint hmapTex;
-	glCreateTextures(GL_TEXTURE_2D, 1, &hmapTex);
-	glTextureStorage2D(hmapTex, 1, GL_R32F, m_initInfo.HeightmapWidth, m_initInfo.HeightmapHeight);
+		GLuint hmapTex;
+		glCreateTextures(GL_TEXTURE_2D, 1, &hmapTex);
+		glTextureStorage2D(hmapTex, 1, GL_R32F, m_initInfo.HeightmapWidth, m_initInfo.HeightmapHeight);
 
-	GLuint pbo;
-	glCreateBuffers(1, &pbo);
-	glNamedBufferData(pbo, sizeof(m_heightMap[0]) * m_heightMap.size(), nullptr, GL_STREAM_DRAW);
+		GLuint pbo;
+		glCreateBuffers(1, &pbo);
+		glNamedBufferData(pbo, sizeof(m_heightMap[0]) * m_heightMap.size(), nullptr, GL_STREAM_DRAW);
 
-	void* pboData = glMapNamedBuffer(pbo, GL_WRITE_ONLY);
-	memcpy(pboData, &m_heightMap[0], sizeof(m_heightMap[0]) * m_heightMap.size());
-	glUnmapNamedBuffer(pbo);
+		void* pboData = glMapNamedBuffer(pbo, GL_WRITE_ONLY);
+		memcpy(pboData, &m_heightMap[0], sizeof(m_heightMap[0]) * m_heightMap.size());
+		glUnmapNamedBuffer(pbo);
 
-	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
-	glTextureSubImage2D(hmapTex, 0, 0, 0, m_initInfo.HeightmapWidth, m_initInfo.HeightmapHeight, GL_RED, GL_FLOAT, 0);
-	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
+		glTextureSubImage2D(hmapTex, 0, 0, 0, m_initInfo.HeightmapWidth, m_initInfo.HeightmapHeight, GL_RED, GL_FLOAT, 0);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-	glDeleteBuffers(1, &pbo);
+		glDeleteBuffers(1, &pbo);
 
-	m_heightMapTex = new Texture(m_initInfo.HeightmapWidth, m_initInfo.HeightmapHeight, hmapTex);
-#endif
+		m_heightMapTex = new Texture(m_initInfo.HeightmapWidth, m_initInfo.HeightmapHeight, reinterpret_cast<void*>(hmapTex));
+		break;
+	}
+	}
 }
 
 float Terrain::GetWidth() const {
@@ -349,19 +352,26 @@ void Terrain::GatherDrawCall()
 	perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
 	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
-#if GRAPHICS_D3D11
-	cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-	cmd.srvs.AddSRV(m_heightMapTex->GetTexture(), 5);
-	cmd.srvs.AddSRV(m_layerMapArrayTex->GetTexture(), 6);
-	cmd.srvs.AddSRV(m_blendMapTex->GetTexture(), 7);
-#endif
-
-#if GRAPHICS_OPENGL
-	perObjData->gShadowMap = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
-	perObjData->gHeightMap = m_heightMapTex->GetTexture();
-	perObjData->gLayerMapArray = m_layerMapArrayTex->GetTexture();
-	perObjData->gBlendMap = m_blendMapTex->GetTexture();
-#endif
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(LightManager::Instance()->m_shadowMap->GetDepthSRV()), 3);
+		cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_heightMapTex->GetTexture()), 5);
+		cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_layerMapArrayTex->GetTexture()), 6);
+		cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_blendMapTex->GetTexture()), 7);
+		break;
+	}
+	case RenderBackend::OPENGL4:
+	{
+		// OPENGL_TEXTURE
+		// perObjData->gShadowMap = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
+		// perObjData->gHeightMap = m_heightMapTex->GetTexture();
+		// perObjData->gLayerMapArray = m_layerMapArrayTex->GetTexture();
+		// perObjData->gBlendMap = m_blendMapTex->GetTexture();
+		// break;
+	}
+	}
 
 	cmd.drawType = DrawType::INDEXED;
 	cmd.flags = CmdFlag::DRAW;
@@ -424,19 +434,26 @@ void Terrain::GatherShadowDrawCall() {
 	//perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
 	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
 
-#if GRAPHICS_D3D11
-	cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-	cmd.srvs.AddSRV(m_heightMapTex->GetTexture(), 5);
-	cmd.srvs.AddSRV(m_layerMapArrayTex->GetTexture(), 6);
-	cmd.srvs.AddSRV(m_blendMapTex->GetTexture(), 7);
-#endif
-
-#if GRAPHICS_OPENGL
-	perObjData->gShadowMap = LightManager::Instance()->m_shadowMap->GetDepthTex();
-	perObjData->gHeightMap = m_heightMapTex->GetTexture();
-	perObjData->gLayerMapArray = m_layerMapArrayTex->GetTexture();
-	perObjData->gBlendMap = m_blendMapTex->GetTexture();
-#endif
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(LightManager::Instance()->m_shadowMap->GetDepthSRV()), 3);
+		cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_heightMapTex->GetTexture()), 5);
+		cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_layerMapArrayTex->GetTexture()), 6);
+		cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_blendMapTex->GetTexture()), 7);
+		break;
+	}
+	case RenderBackend::OPENGL4:
+	{
+		// OPENGL_TEXTURE
+		//perObjData->gShadowMap = LightManager::Instance()->m_shadowMap->GetDepthTex();
+		//perObjData->gHeightMap = m_heightMapTex->GetTexture();
+		//perObjData->gLayerMapArray = m_layerMapArrayTex->GetTexture();
+		//perObjData->gBlendMap = m_blendMapTex->GetTexture();
+		//break;
+	}
+	}
 
 	cmd.drawType = DrawType::INDEXED;
 	cmd.flags = CmdFlag::DRAW;

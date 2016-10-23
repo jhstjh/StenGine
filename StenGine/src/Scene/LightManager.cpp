@@ -1,8 +1,6 @@
 #include "Scene/LightManager.h"
 
-#if PLATFORM_WIN32
 #include "Graphics/Effect/ShadowMap.h"
-#endif
 
 namespace StenGine
 {

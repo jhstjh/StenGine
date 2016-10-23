@@ -80,6 +80,7 @@ cbuffer cbPerFrame : register(b1) {
 	float4 gWorldFrustumPlanes[6];
 #else
 	float4 gEyePosW;
+	DirectionalLight pad;
 #endif
 };
 

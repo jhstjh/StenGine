@@ -1,16 +1,17 @@
 #pragma once
 #include "Graphics/D3DIncludes.h"
+#include "Graphics/Abstraction/Texture.h"
 
 namespace StenGine
 {
 
-class D3D11Texture
+class D3D11Texture : public TextureImpl
 {
 public:
-	D3D11Texture(uint32_t width, uint32_t height, ID3D11ShaderResourceView* srv);
+	D3D11Texture(uint32_t width, uint32_t height, void* srv);
 
-	ID3D11ShaderResourceView* GetTexture() { return m_textureSRV; }
-	void GetDimension(uint32_t &width, uint32_t &height) { width = m_width; height = m_height; }
+	virtual void* GetTexture() { return m_textureSRV; }
+	virtual void GetDimension(uint32_t &width, uint32_t &height) { width = m_width; height = m_height; }
 
 private:
 	ID3D11ShaderResourceView* m_textureSRV;
@@ -18,5 +19,4 @@ private:
 	uint32_t m_height;
 };
 
-using Texture = D3D11Texture;
 }

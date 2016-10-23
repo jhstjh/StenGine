@@ -4,9 +4,7 @@
 #include "System/API/PlatformAPIDefs.h"
 #include "Graphics/Abstraction/Texture.h"
 
-#if PLATFORM_WIN32
 #include "Graphics/D3DIncludes.h"
-#endif
 
 namespace StenGine
 {
@@ -25,7 +23,6 @@ public:
 	Texture* m_diffuseMapTex = nullptr;
 	Texture* m_normalMapTex = nullptr;
 	Texture* m_bumpMapTex = nullptr;
-
 };
 
 }

@@ -341,8 +341,12 @@
     <None Include="FX\ZOnly_ps.glsl">
       <Filter>FX\GLSL</Filter>
     </None>
-    <None Include="FX\DeferredGeometryPass_vs.hlsl" />
-    <None Include="FX\DeferredSkinnedGeometryPass_vs.hlsl" />
+    <None Include="FX\DeferredGeometryPass_vs.hlsl">
+      <Filter>FX\HLSL</Filter>
+    </None>
+    <None Include="FX\DeferredSkinnedGeometryPass_vs.hlsl">
+      <Filter>FX\HLSL</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\stdafx.h">
@@ -465,7 +469,6 @@
     <ClInclude Include="include\System\SingletonClass.h">
       <Filter>include\System</Filter>
     </ClInclude>
-    <ClInclude Include="include\Graphics\D3D11\D3D11UAVBinding.h" />
     <ClInclude Include="include\Graphics\Abstraction\UAVBinding.h">
       <Filter>include\Graphics\Abstraction</Filter>
     </ClInclude>
@@ -493,9 +496,6 @@
     <ClInclude Include="include\Engine\EventSystem.h">
       <Filter>include\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="include\Graphics\OpenGL\GLESRenderer.h">
-      <Filter>include\Graphics\OpenGL</Filter>
-    </ClInclude>
     <ClInclude Include="include\Graphics\OpenGL\GLImageLoader.h">
       <Filter>include\Graphics\OpenGL</Filter>
     </ClInclude>
@@ -519,6 +519,9 @@
     </ClInclude>
     <ClInclude Include="include\Graphics\OpenGL\GLRenderTarget.h">
       <Filter>include\Graphics\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\D3D11\D3D11UAVBinding.h">
+      <Filter>include\Graphics\D3D11</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -585,9 +588,6 @@
     <ClCompile Include="src\Utility\Timer.cpp">
       <Filter>src\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="src\Utility\FbxReaderSG.cpp">
-      <Filter>src\Utility</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\D3D11\D3D11ConstantBuffer.cpp">
       <Filter>src\Graphics\D3D11</Filter>
     </ClCompile>
@@ -606,7 +606,6 @@
     <ClCompile Include="src\System\GameObjectManager.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\D3D11\D3D11UAVBinding.cpp" />
     <ClCompile Include="src\Graphics\UI\D3D11ImGuiMenu.cpp">
       <Filter>src\Graphics\UI</Filter>
     </ClCompile>
@@ -660,6 +659,18 @@
     </ClCompile>
     <ClCompile Include="src\Graphics\Abstraction\RenderTarget.cpp">
       <Filter>src\Graphics\Abstraction</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Abstraction\Texture.cpp">
+      <Filter>src\Graphics\Abstraction</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\UI\GLImGuiMenu.cpp">
+      <Filter>src\Graphics\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\D3D11\D3D11UAVBinding.cpp">
+      <Filter>src\Graphics\D3D11</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utility\FbxReaderSG.cpp">
+      <Filter>src\Utility</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
