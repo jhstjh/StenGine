@@ -1,25 +1,19 @@
 #pragma once
 
-#include "Graphics/Abstraction/ConstantBufferBase.h"
+#include "Graphics/Abstraction/ConstantBuffer.h"
 #include <stdint.h>
 
 namespace StenGine
 {
 
-class GLConstantBuffer : public ConstantBufferBase<GLConstantBuffer>
+class GLConstantBuffer : public ConstantBufferImpl
 {
-	friend class ConstantBufferBase<GLConstantBuffer>;
-
 public:
 	GLConstantBuffer(uint32_t index, uint32_t size, void* bufferName);
 	~GLConstantBuffer();
 
-	GLConstantBuffer(GLConstantBuffer&& other);
-	GLConstantBuffer& operator=(GLConstantBuffer&& other);
-
-protected:
-	void* ImplGetBuffer();
-	void ImplBind();
+	virtual void* GetBuffer();
+	virtual void Bind();
 
 private:
 	void* m_data;
@@ -27,7 +21,5 @@ private:
 	int32_t m_bufferName;
 	uint32_t m_size;
 };
-
-using ConstantBuffer = GLConstantBuffer;
 
 }

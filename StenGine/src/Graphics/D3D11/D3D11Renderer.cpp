@@ -1,33 +1,11 @@
-#if GRAPHICS_D3D11
-
-#include "Graphics/Abstraction/RendererBase.h"
-#include "Graphics/Color.h"
-#include "Graphics/D3DIncludes.h"
-#include "Graphics/Effect/EffectsManager.h"
-#include "Graphics/Effect/ShadowMap.h"
-#include "Graphics/Effect/Skybox.h"
-#include "Mesh/MeshRenderer.h"
-#include "Mesh/Terrain.h"
-#include "Scene/LightManager.h"
-#include "Scene/CameraManager.h"
-#include "Math/MathHelper.h"
-#include "Engine/EventSystem.h"
-
-#include <unordered_map>
-#include <map>
-
-#include "Scene/GameObjectManager.h"
-#include "imgui.h"
+#include "Graphics/D3D11/D3D11Renderer.h"
 
 #pragma warning(disable: 4267 4244 4311 4302)
 
 namespace StenGine
 {
 
-class D3D11Renderer : public Renderer
-{
-public:
-	D3D11Renderer(HINSTANCE hInstance, HWND hMainWnd) :
+D3D11Renderer::D3D11Renderer(HINSTANCE hInstance, HWND hMainWnd) :
 		m_hInst(hInstance),
 		m_hMainWnd(hMainWnd),
 		m_d3dDriverType(D3D_DRIVER_TYPE_HARDWARE),
@@ -44,7 +22,7 @@ public:
 		ZeroMemory(&m_screenViewpot, sizeof(D3D11_VIEWPORT));
 	}
 
-	~D3D11Renderer() {
+D3D11Renderer::~D3D11Renderer() {
 
 		ReleaseCOM(m_renderTargetView);
 		ReleaseCOM(m_depthStencilView);
@@ -58,12 +36,12 @@ public:
 		ReleaseCOM(m_d3d11Device);
 	}
 
-	void Release() override {
+	void D3D11Renderer::Release()  {
 		_instance = nullptr;
 		delete this;
 	}
 
-	bool Init(int32_t width, int32_t height, CreateWindowCallback createWindow) override {
+	bool D3D11Renderer::Init(int32_t width, int32_t height, CreateWindowCallback createWindow)  {
 
 		if (!createWindow(width, height, m_hInst, m_hMainWnd))
 		{
@@ -540,10 +518,15 @@ public:
 			assert(SUCCEEDED(hr));
 		}
 
-		m_GBuffer.rtvs.push_back(m_diffuseBufferRTV);
-		m_GBuffer.rtvs.push_back(m_normalBufferRTV);
-		m_GBuffer.rtvs.push_back(m_specularBufferRTV);
-		m_GBuffer.dsv = m_deferredRenderDepthStencilView;
+		m_GBuffer.AddRenderTarget(m_diffuseBufferRTV);
+		m_GBuffer.AddRenderTarget(m_normalBufferRTV);
+		m_GBuffer.AddRenderTarget(m_specularBufferRTV);
+
+		m_GBuffer.AddClearColor(SGColors::LightSteelBlue);
+		m_GBuffer.AddClearColor(SGColors::Black);
+		m_GBuffer.AddClearColor(SGColors::Black);
+
+		m_GBuffer.AssignDepthStencil(m_deferredRenderDepthStencilView);
 
 		m_drawTopologyMap[PrimitiveTopology::POINTLIST] = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
 		m_drawTopologyMap[PrimitiveTopology::LINELIST] = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
@@ -551,6 +534,22 @@ public:
 		m_drawTopologyMap[PrimitiveTopology::CONTROL_POINT_3_PATCHLIST] = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
 		m_drawTopologyMap[PrimitiveTopology::CONTROL_POINT_4_PATCHLIST] = D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST;
 
+
+		m_deferredShadingRT.AddRenderTarget(m_deferredShadingRTV);
+		m_deferredShadingRT.AddRenderTarget(m_SSAORTV);
+		m_deferredShadingRT.AddClearColor(SGColors::LightSteelBlue);
+		m_deferredShadingRT.AddClearColor(SGColors::LightSteelBlue);
+		m_deferredShadingRT.AssignDepthStencil(m_depthStencilView);
+
+		m_defaultRTNoDepth.AddRenderTarget(m_renderTargetView);
+		m_defaultRTNoDepth.AssignDepthStencil(nullptr);
+
+		m_defaultRTWithDepth.AddRenderTarget(m_renderTargetView);
+		m_defaultRTWithDepth.AddClearColor(SGColors::LightSteelBlue);
+		m_defaultRTWithDepth.AssignDepthStencil(m_depthStencilView);
+
+		m_debugRT.AddRenderTarget(m_renderTargetView);
+		m_debugRT.AssignDepthStencil(m_deferredRenderDepthStencilView);
 
 		/*****************************uav***************************/
 
@@ -595,7 +594,7 @@ public:
 		return true;
 	}
 
-	void D3D11Renderer::Draw() override {
+	void D3D11Renderer::Draw()  {
 
 		m_GBuffer.ClearDepth(m_d3d11DeviceContext);
 
@@ -633,33 +632,33 @@ public:
 		HR(m_swapChain->Present(0, 0));
 	}
 
-	float GetAspectRatio() override {
+	float D3D11Renderer::GetAspectRatio()  {
 		return static_cast<float>(m_clientWidth) / static_cast<float>(m_clientHeight);
 	}
 
-	int GetScreenWidth() override {
+	int D3D11Renderer::GetScreenWidth()  {
 		return m_clientWidth;
 	}
 
-	int GetScreenHeight() override {
+	int D3D11Renderer::GetScreenHeight()  {
 		return m_clientHeight;
 	}
 
-	Skybox* GetSkyBox() override {
+	Skybox* D3D11Renderer::GetSkyBox()  {
 		return m_SkyBox.get();
 	}
 
-	void* GetDepthRS() override {
+	void* D3D11Renderer::GetDepthRS()  {
 		return m_depthRS;
 	}
 
-	void ExecuteCmdList()
+	void D3D11Renderer::ExecuteCmdList()
 	{
 		for (auto &cmd : m_drawList)
 		{
 			if (cmd.flags & CmdFlag::BIND_FB)
 			{
-				cmd.framebuffer.SetRenderTarget(m_d3d11DeviceContext);
+				cmd.framebuffer->SetRenderTarget(m_d3d11DeviceContext);
 			}
 
 			if (cmd.flags & CmdFlag::SET_SS)
@@ -677,12 +676,12 @@ public:
 
 			if (cmd.flags & CmdFlag::CLEAR_COLOR)
 			{
-				cmd.framebuffer.ClearColor(m_d3d11DeviceContext);
+				cmd.framebuffer->ClearColor(m_d3d11DeviceContext);
 			}
 
 			if (cmd.flags & CmdFlag::CLEAR_DEPTH)
 			{
-				cmd.framebuffer.ClearDepth(m_d3d11DeviceContext);
+				cmd.framebuffer->ClearDepth(m_d3d11DeviceContext);
 			}
 
 			if (cmd.flags & CmdFlag::SET_VP)
@@ -766,7 +765,7 @@ public:
 		m_drawList.clear();
 	}
 
-	void DrawShadowMap() override {
+	void D3D11Renderer::DrawShadowMap()  {
 		LightManager::Instance()->m_shadowMap->UpdateShadowMatrix();
 
 		// m_d3d11DeviceContext->RSSetState(m_depthRS);       // TODO !!!!!!!!!!!!!!!!!!!!!! 
@@ -777,7 +776,7 @@ public:
 		DrawCmd shadowcmd;
 
 		shadowcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_DEPTH | CmdFlag::SET_RSSTATE;
-		shadowcmd.framebuffer = LightManager::Instance()->m_shadowMap->GetRenderTarget();
+		shadowcmd.framebuffer = &LightManager::Instance()->m_shadowMap->GetRenderTarget();
 		shadowcmd.viewport = { 0, 0, (float)width, (float)height, 0, 1 };
 		shadowcmd.rsState = m_depthRS;
 
@@ -789,7 +788,7 @@ public:
 		}
 	}
 
-	void DrawGBuffer() {
+	void D3D11Renderer::DrawGBuffer() {
 // TODO
 //		m_d3d11DeviceContext->RSSetState(0);
 //
@@ -798,13 +797,8 @@ public:
 		DrawCmd drawcmd;
 
 		drawcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH | CmdFlag::SET_RSSTATE;
-		drawcmd.framebuffer.rtvs.push_back(m_diffuseBufferRTV);
-		drawcmd.framebuffer.rtvs.push_back(m_normalBufferRTV);
-		drawcmd.framebuffer.rtvs.push_back(m_specularBufferRTV);
-		drawcmd.framebuffer.clearColor.push_back(SGColors::LightSteelBlue);
-		drawcmd.framebuffer.clearColor.push_back(SGColors::Black);
-		drawcmd.framebuffer.clearColor.push_back(SGColors::Black);
-		drawcmd.framebuffer.dsv = m_deferredRenderDepthStencilView;
+		drawcmd.framebuffer = &m_GBuffer;
+
 		drawcmd.viewport = m_screenViewpot;
 		drawcmd.rsState = 0;
 
@@ -816,11 +810,10 @@ public:
 		}
 	}
 
-	void DrawDeferredShading() {
+	void D3D11Renderer::DrawDeferredShading() {
 		DrawCmd clearCmd;
 
 		clearCmd.flags = CmdFlag::BIND_FB;
-		clearCmd.framebuffer.dsv = nullptr;
 
 		//-------------- composite deferred render target views AND SSAO-------------------//
 		DrawCmd cmd;
@@ -858,10 +851,7 @@ public:
 		cmd.inputLayout = 0;
 		cmd.vertexBuffer = 0; // don't bind if 0
 		cmd.type = PrimitiveTopology::TRIANGLELIST;
-		cmd.framebuffer.rtvs.push_back(m_deferredShadingRTV);
-		cmd.framebuffer.rtvs.push_back(m_SSAORTV);
-		cmd.framebuffer.clearColor.resize(2, SGColors::LightSteelBlue);
-		cmd.framebuffer.dsv = m_depthStencilView;
+		cmd.framebuffer = &m_deferredShadingRT;
 		cmd.offset = (void*)(0);
 		cmd.effect = effect;
 		cmd.elementCount = 6;
@@ -870,7 +860,7 @@ public:
 		m_drawList.push_back(std::move(cmd));
 	}
 
-	void DrawBlurSSAOAndCombine() {
+	void D3D11Renderer::DrawBlurSSAOAndCombine() {
 		ID3D11ShaderResourceView* nullSRV[16] = { 0 };
 		ID3D11SamplerState* samplerState[] = { m_samplerState, m_shadowSamplerState };
 		// -------compute shader blur ----------//
@@ -880,8 +870,7 @@ public:
 
 		clearRTcmd.flags = CmdFlag::BIND_FB;
 
-		clearRTcmd.framebuffer.rtvs.push_back(m_renderTargetView);
-		clearRTcmd.framebuffer.dsv = nullptr;
+		clearRTcmd.framebuffer = &m_defaultRTNoDepth;
 
 		AddDeferredDrawCmd(std::move(clearRTcmd));
 
@@ -904,9 +893,7 @@ public:
 		cmd.inputLayout = 0;
 		cmd.vertexBuffer = 0; // don't bind if 0
 		cmd.type = PrimitiveTopology::TRIANGLELIST;
-		cmd.framebuffer.rtvs.push_back(m_renderTargetView);
-		cmd.framebuffer.clearColor.resize(1, SGColors::LightSteelBlue);
-		cmd.framebuffer.dsv = m_depthStencilView;
+		cmd.framebuffer = &m_defaultRTWithDepth;
 		cmd.offset = (void*)(0);
 		cmd.effect = blurEffect;
 		cmd.elementCount = 6;
@@ -918,7 +905,7 @@ public:
 		AddDeferredDrawCmd(std::move(cmd));
 	}
 
-	void DrawGodRay() {
+	void D3D11Renderer::DrawGodRay() {
 		//--------------------Post processing----------------------//
 		m_d3d11DeviceContext->OMSetBlendState(m_additiveAlphaAddBS, NULL, 0xFFFFFFFF);
 		m_d3d11DeviceContext->OMSetRenderTargets(1, &m_renderTargetView, nullptr);
@@ -956,7 +943,7 @@ public:
 		m_d3d11DeviceContext->OMSetDepthStencilState(0, 0);
 	}
 
-	void DrawDebug() {
+	void D3D11Renderer::DrawDebug() {
 		UINT stride = sizeof(Vertex::DebugLine);
 		UINT offset = 0;
 
@@ -984,8 +971,7 @@ public:
 		cmd.elementCount = 44;
 		cmd.vertexStride = stride;
 		cmd.vertexOffset = offset;
-		cmd.framebuffer.rtvs.push_back(m_renderTargetView);
-		cmd.framebuffer.dsv = m_deferredRenderDepthStencilView;
+		cmd.framebuffer = &m_debugRT;
 
 		DrawCmd cmd2;
 
@@ -1002,7 +988,7 @@ public:
 		AddDeferredDrawCmd(cmd2);
 	}
 
-	void doCSBlur(ID3D11ShaderResourceView* blurImgSRV, int uavSlotIdx) {
+	void D3D11Renderer::doCSBlur(ID3D11ShaderResourceView* blurImgSRV, int uavSlotIdx) {
 		// vblur
 		DrawCmd cmdV;
 
@@ -1036,7 +1022,7 @@ public:
 		AddDeferredDrawCmd(std::move(cmdH));
 	}
 
-	ID3D11BlendState* GetBlendState(BlendState& blendState)
+	ID3D11BlendState* D3D11Renderer::GetBlendState(BlendState& blendState)
 	{
 		auto entry = m_blendStateMap.find(blendState);
 		if (entry == m_blendStateMap.end())
@@ -1088,7 +1074,7 @@ public:
 		return m_blendStateMap[blendState];
 	}
 
-	ID3D11DepthStencilState* GetDepthState(DepthState& depthState)
+	ID3D11DepthStencilState* D3D11Renderer::GetDepthState(DepthState& depthState)
 	{
 		auto entry = m_depthStateMap.find(depthState);
 		if (entry == m_depthStateMap.end())
@@ -1140,7 +1126,7 @@ public:
 		return m_depthStateMap[depthState];
 	}
 
-	ID3D11RasterizerState* GetRasterizerState(RasterizerState & rasterizerState)
+	ID3D11RasterizerState* D3D11Renderer::GetRasterizerState(RasterizerState & rasterizerState)
 	{
 		auto entry = m_rasterizerStateMap.find(rasterizerState);
 		if (entry == m_rasterizerStateMap.end())
@@ -1181,129 +1167,53 @@ public:
 		return m_rasterizerStateMap[rasterizerState];
 	}
 
-	virtual void* GetDevice() override {
+	void* D3D11Renderer::GetDevice()  {
 		return m_d3d11Device;
 	}
 
-	virtual void* GetDeviceContext() override {
+	void* D3D11Renderer::GetDeviceContext()  {
 		return m_d3d11DeviceContext;
 	}
 
-	void UpdateTitle(const char* str) override {
+	void D3D11Renderer::D3D11Renderer::UpdateTitle(const char* str)  {
 		SetWindowTextA(m_hMainWnd, str);
 	}
 
-	void AddDeferredDrawCmd(DrawCmd &cmd)
+	void D3D11Renderer::AddDeferredDrawCmd(DrawCmd &cmd)
 	{
 		m_drawList.push_back(std::move(cmd));
 	}
 
-	void AddShadowDrawCmd(DrawCmd &cmd) override
+	void D3D11Renderer::AddShadowDrawCmd(DrawCmd &cmd) 
 	{
 		m_drawList.push_back(std::move(cmd));
 	}
 
-	RenderTarget GetGbuffer() override
+	RenderTarget &D3D11Renderer::GetGbuffer() 
 	{
 		return m_GBuffer;
 	}
 
-	void AddDraw(DrawEventHandler handler)
+	void D3D11Renderer::AddDraw(DrawEventHandler handler)
 	{
 		m_drawHandler.push_back(handler);
 	}
 
-	void AddShadowDraw(DrawEventHandler handler)
+	void D3D11Renderer::AddShadowDraw(DrawEventHandler handler)
 	{
 		m_shadowDrawHandler.push_back(handler);
 	}
 
-private:
-	int m_clientWidth;
-	int m_clientHeight;
-	std::unique_ptr<Skybox> m_SkyBox;
 
-	HINSTANCE	m_hInst;
-	HWND		m_hMainWnd;
 
-	UINT		m_4xMsaaQuality;
 
-	ID3D11Device* m_d3d11Device;
-	ID3D11DeviceContext* m_d3d11DeviceContext;
-	IDXGISwapChain* m_swapChain;
-	ID3D11Texture2D* m_depthStencilBuffer;
-	ID3D11RenderTargetView* m_renderTargetView;
-	ID3D11DepthStencilView* m_depthStencilView;
-	D3D_DRIVER_TYPE m_d3dDriverType;
-
-	D3D11_VIEWPORT m_screenViewpot;
-	D3D11_VIEWPORT m_screenSuperSampleViewpot;
-	ID3D11RasterizerState* m_wireFrameRS;
-	ID3D11SamplerState* m_samplerState;
-	ID3D11SamplerState* m_heightMapSamplerState;
-	ID3D11SamplerState* m_shadowSamplerState;
-	ID3D11SamplerState* m_borderSamplerState;
-
-	ID3D11DepthStencilState* m_noZWriteDSState;
-	ID3D11BlendState* m_additiveAlphaAddBS;
-
-#pragma region DEDERRED_RENDER
-	ID3D11RenderTargetView* m_diffuseBufferRTV;
-	ID3D11RenderTargetView* m_normalBufferRTV;
-	ID3D11RenderTargetView* m_specularBufferRTV;
-	ID3D11RenderTargetView* m_positionBufferRTV;
-	ID3D11RenderTargetView* m_edgeBufferRTV;
-	ID3D11RenderTargetView* m_SSAORTV;
-	ID3D11RenderTargetView* m_SSAORTV2;
-	ID3D11RenderTargetView* m_deferredShadingRTV;
-
-	ID3D11ShaderResourceView* m_randVecTexSRV;
-
-	ID3D11ShaderResourceView* m_diffuseBufferSRV;
-	ID3D11ShaderResourceView* m_normalBufferSRV;
-	ID3D11ShaderResourceView* m_specularBufferSRV;
-	ID3D11ShaderResourceView* m_positionBufferSRV;
-	ID3D11ShaderResourceView* m_edgeBufferSRV;
-	ID3D11ShaderResourceView* m_SSAOSRV;
-	ID3D11ShaderResourceView* m_SSAOSRV2;
-	ID3D11ShaderResourceView* m_deferredShadingSRV;
-
-	ID3D11DepthStencilView* m_deferredRenderDepthStencilView;
-	ID3D11ShaderResourceView* m_deferredRenderShaderResourceView;
-
-#pragma endregion
-
-	ID3D11ShaderResourceView* m_outputShaderResources[4];
-	ID3D11UnorderedAccessView* m_unorderedAccessViews[4];
-
-	bool m_enable4xMsaa;
-
-	ID3D11Buffer* m_gridCoordIndexBufferGPU;
-	ID3D11Buffer* m_gridCoordVertexBufferGPU;
-
-	ID3D11RasterizerState* m_depthRS;
-
-	std::vector<DrawCmd> m_drawList;
-
-	std::vector<DrawEventHandler> m_drawHandler;
-	std::vector<DrawEventHandler> m_shadowDrawHandler;
-
-	std::unordered_map<PrimitiveTopology, D3D_PRIMITIVE_TOPOLOGY> m_drawTopologyMap;
-	std::unordered_map<BlendState, ID3D11BlendState*> m_blendStateMap;
-	std::unordered_map<DepthState, ID3D11DepthStencilState*> m_depthStateMap;
-	std::unordered_map<RasterizerState, ID3D11RasterizerState*> m_rasterizerStateMap;
-
-	RenderTarget m_GBuffer;
-};
-
-Renderer* Renderer::_instance = nullptr;
-
-Renderer* Renderer::Create(HINSTANCE hInstance, HWND hMainWnd)
-{
-	D3D11Renderer* renderer = new D3D11Renderer(hInstance, hMainWnd);
-	_instance = static_cast<Renderer*>(renderer);
-	return _instance;
-}
+// Renderer* Renderer::_instance = nullptr;
+// 
+// Renderer* Renderer::Create(HINSTANCE hInstance, HWND hMainWnd)
+// {
+// 	D3D11Renderer* renderer = new D3D11Renderer(hInstance, hMainWnd);
+// 	_instance = static_cast<Renderer*>(renderer);
+// 	return _instance;
+// }
 
 }
-#endif

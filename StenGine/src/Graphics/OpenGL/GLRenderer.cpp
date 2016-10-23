@@ -1,29 +1,6 @@
-﻿#ifdef GRAPHICS_OPENGL
+﻿#if 0
 
-#include "glew.h"
-#include "wglew.h"
-
-#include "Graphics/Abstraction/RendererBase.h"
-#include "Graphics/D3DIncludes.h"
-#include "Graphics/Effect/EffectsManager.h"
-#include "Mesh/MeshRenderer.h"
-#include "Scene/LightManager.h"
-#include "Math/MathHelper.h"
-#include "Scene/CameraManager.h"
-#include "Graphics/Color.h"
-#include "Scene/LightManager.h"
-#include "Graphics/Effect/ShadowMap.h"
-#include "Graphics/Effect/Skybox.h"
-#include "Graphics/OpenGL/GLImageLoader.h"
-#include "Engine/EventSystem.h"
-#include "imgui.h"
-#include <vector>
-#include <memory>
-#include <iostream>
-#include <unordered_map>
-
-//TEST
-#include "Scene/GameObjectManager.h"
+#include "Graphics/OpenGL/GLRenderer.h"
 
 using namespace std;
 
@@ -34,7 +11,7 @@ extern "C"
 {
 	// somehow this are not in glew???
 	PFNGLDISPATCHCOMPUTEPROC glDispatchCompute​;
-	PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
+	//PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
 }
 
 namespace StenGine
@@ -85,12 +62,8 @@ void APIENTRY GLErrorCallback(GLenum source​, GLenum type​, GLuint id​, GL
 	cout << endl << endl;
 }
 
-Renderer* Renderer::_instance = nullptr;
 
-class GLRenderer : public Renderer
-{
-public:
-	GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
+GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		: m_hInst(hInstance)
 		, m_hMainWnd(hMainWnd)
 		, m_currentVao(0)
@@ -100,12 +73,12 @@ public:
 		_instance = this;
 	}
 
-	void Release() override {
+	void GLRenderer::Release() {
 		_instance = nullptr;
 		delete this;
 	}
 
-	bool Init(int32_t width, int32_t height, CreateWindowCallback createWindow) override {
+	bool GLRenderer::Init(int32_t width, int32_t height, CreateWindowCallback createWindow) {
 		m_clientWidth = width;
 		m_clientHeight = height;
 
@@ -162,25 +135,28 @@ public:
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 		
 		/***************GBUFFER FB*********************/
-		glCreateFramebuffers(1, &m_deferredGBuffers);
+		GLuint gbuffer;
+		glCreateFramebuffers(1, &gbuffer);
 		GenerateColorTex(m_diffuseBufferTex);
 		GenerateColorTex(m_normalBufferTex);
 		GenerateColorTex(m_specularBufferTex);
 		GenerateDepthTex(m_depthBufferTex);
 
-		glNamedFramebufferTexture(m_deferredGBuffers, GL_DEPTH_ATTACHMENT, m_depthBufferTex, 0);
-		glNamedFramebufferTexture(m_deferredGBuffers, GL_COLOR_ATTACHMENT0, m_normalBufferTex, 0);
-		glNamedFramebufferTexture(m_deferredGBuffers, GL_COLOR_ATTACHMENT1, m_diffuseBufferTex, 0);
-		glNamedFramebufferTexture(m_deferredGBuffers, GL_COLOR_ATTACHMENT2, m_specularBufferTex, 0);
+		glNamedFramebufferTexture(gbuffer, GL_DEPTH_ATTACHMENT, m_depthBufferTex, 0);
+		glNamedFramebufferTexture(gbuffer, GL_COLOR_ATTACHMENT0, m_normalBufferTex, 0);
+		glNamedFramebufferTexture(gbuffer, GL_COLOR_ATTACHMENT1, m_diffuseBufferTex, 0);
+		glNamedFramebufferTexture(gbuffer, GL_COLOR_ATTACHMENT2, m_specularBufferTex, 0);
 
 		GLenum draw_bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-		glNamedFramebufferDrawBuffers(m_deferredGBuffers, 3, draw_bufs);
+		glNamedFramebufferDrawBuffers(gbuffer, 3, draw_bufs);
 
-		GLenum status = glCheckNamedFramebufferStatus(m_deferredGBuffers, GL_FRAMEBUFFER);
+		GLenum status = glCheckNamedFramebufferStatus(gbuffer, GL_FRAMEBUFFER);
 		if (GL_FRAMEBUFFER_COMPLETE != status) {
 			assert(false);
 			return false;
 		}
+
+		m_deferredGBuffers.Set(gbuffer);
 
 		m_diffuseBufferTexHandle = glGetTextureHandleARB(m_diffuseBufferTex);
 		m_normalBufferTexHandle = glGetTextureHandleARB(m_normalBufferTex);
@@ -261,7 +237,7 @@ public:
 		return true;
 	}
 
-	bool initializeExtensions()
+	bool GLRenderer::initializeExtensions()
 	{
 		HDC deviceContext;
 		PIXELFORMATDESCRIPTOR pixelFormat;
@@ -310,7 +286,7 @@ public:
 		return true;
 	}
 
-	bool initializeOpenGL()
+	bool GLRenderer::initializeOpenGL()
 	{
 		int pixelFormat[1];
 		unsigned int formatCount;
@@ -365,13 +341,13 @@ public:
 		return true;
 	}
 
-	void ExecuteCmdList()
+	void GLRenderer::ExecuteCmdList()
 	{
 		for (auto &cmd : m_drawList)
 		{
 			if (cmd.flags & CmdFlag::BIND_FB)
 			{
-				glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)cmd.framebuffer);
+				glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)cmd.framebuffer.Get());
 			}
 
 			if (cmd.flags & CmdFlag::SET_SS)
@@ -567,7 +543,7 @@ public:
 		m_drawList.clear();
 	}
 
-	void Draw() override {
+	void GLRenderer::Draw()  {
 		EnterFrame();
 		
 		DrawShadowMap();
@@ -590,43 +566,43 @@ public:
 		EndFrame();
 	}
 
-	float GetAspectRatio() override {
+	float GLRenderer::GetAspectRatio()  {
 		return static_cast<float>(m_clientWidth) / static_cast<float>(m_clientHeight);
 	}
 
-	int GetScreenWidth() override {
+	int GLRenderer::GetScreenWidth()  {
 		return m_clientWidth;
 	}
 
-	int GetScreenHeight() override {
+	int GLRenderer::GetScreenHeight()  {
 		return m_clientHeight;
 	}
 
-	virtual Skybox* GetSkyBox() override {
+	Skybox* GLRenderer::GetSkyBox() {
 		return m_SkyBox.get();
 	}
 
-	virtual void* GetDevice() override {
+	void* GLRenderer::GetDevice() {
 		return nullptr;
 	}
 
-	virtual void* GetDeviceContext() override {
+	void* GLRenderer::GetDeviceContext() {
 		return nullptr;
 	}
 
-	void* GetDepthRS() override {
+	void* GLRenderer::GetDepthRS() {
 		return nullptr;
 	}
 
-	void UpdateTitle(const char* str) override {
+	void GLRenderer::UpdateTitle(const char* str) {
 		SetWindowTextA(m_hMainWnd, str);
 	}
 
-	RenderTarget GetGbuffer() override {
+	RenderTarget &GLRenderer::GetGbuffer() {
 		return m_deferredGBuffers;
 	}
 
-	void EnterFrame()
+	void GLRenderer::EnterFrame()
 	{
 		// reset state
 		DrawCmd cmd;
@@ -639,14 +615,14 @@ public:
 		AddDeferredDrawCmd(cmd);
 	}
 
-	void EndFrame()
+	void GLRenderer::EndFrame()
 	{
 		ExecuteCmdList();
 
 		SwapBuffers(m_deviceContext);
 	}
 
-	void DrawShadowMap() override
+	void GLRenderer::DrawShadowMap()
 	{
 		LightManager::Instance()->m_shadowMap->UpdateShadowMatrix();
 
@@ -656,7 +632,7 @@ public:
 		DrawCmd shadowcmd;
 
 		shadowcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH;
-		shadowcmd.framebuffer = (GLuint)LightManager::Instance()->m_shadowMap->GetRenderTarget();
+		shadowcmd.framebuffer = LightManager::Instance()->m_shadowMap->GetRenderTarget();
 		shadowcmd.viewport = { 0, 0, (float)width, (float)height, 0, 1 };
 
 		m_drawList.push_back(std::move(shadowcmd));
@@ -667,12 +643,12 @@ public:
 		}
 	}
 
-	void DrawGBuffer() override 
+	void GLRenderer::DrawGBuffer()
 	{
 		DrawCmd drawcmd;
 
 		drawcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH;
-		drawcmd.framebuffer = (GLuint)m_deferredGBuffers;
+		drawcmd.framebuffer = m_deferredGBuffers;
 		drawcmd.viewport = { 0.f, 0.f, (float)m_clientWidth, (float)m_clientHeight, 0.f, 1.f };
 
 		m_drawList.push_back(std::move(drawcmd));
@@ -683,7 +659,7 @@ public:
 		}
 	}
 
-	void DrawDeferredShading() override {
+	void GLRenderer::DrawDeferredShading() {
 		DrawCmd cmd;
 		DeferredShadingPassEffect* effect = EffectsManager::Instance()->m_deferredShadingPassEffect.get();
 
@@ -721,7 +697,7 @@ public:
 		m_drawList.push_back(std::move(cmd));
 	}
 
-	void DrawBlurSSAOAndCombine() override {
+	void GLRenderer::DrawBlurSSAOAndCombine() {
 		doCSBlur(m_ssaoTex, 0);
 
 		// ------ Screen Quad -------//
@@ -754,7 +730,7 @@ public:
 		AddDeferredDrawCmd(cmd);
 	}
 
-	void doCSBlur(GLuint blurImgSRV, int uavSlotIdx) {
+	void GLRenderer::doCSBlur(GLuint blurImgSRV, int uavSlotIdx) {
 		// vblur
 		DrawCmd cmdV;
 
@@ -788,7 +764,7 @@ public:
 		AddDeferredDrawCmd(std::move(cmdH));
 	}
 
-	void DrawGodRay() override {
+	void GLRenderer::DrawGodRay() {
 		glBlendFunc(GL_ONE, GL_ONE);
 		glEnable(GL_BLEND);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -830,7 +806,7 @@ public:
 		glEnable(GL_DEPTH_TEST);
 	}
 
-	void DrawDebug() override {
+	void GLRenderer::DrawDebug() {
 		DebugLineEffect* debugLineFX = EffectsManager::Instance()->m_debugLineEffect.get();
 
 		DrawCmd cmd;
@@ -874,7 +850,7 @@ public:
 		glMakeTextureHandleNonResidentARB(m_depthBufferTexHandle);
 	}
 
-	void GenerateColorTex(GLuint &bufferTex) {
+	void GLRenderer::GenerateColorTex(GLuint &bufferTex) {
 		glCreateTextures(GL_TEXTURE_2D, 1, &bufferTex);
 		glTextureStorage2D(bufferTex, 1, GL_RGBA16F, m_clientWidth, m_clientHeight);
 
@@ -884,7 +860,7 @@ public:
 		glTextureParameteri(bufferTex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	}
 
-	void GenerateDepthTex(GLuint &bufferTex) {
+	void GLRenderer::GenerateDepthTex(GLuint &bufferTex) {
 		glCreateTextures(GL_TEXTURE_2D, 1, &bufferTex);
 		glTextureStorage2D(bufferTex, 1, GL_DEPTH_COMPONENT32, m_clientWidth, m_clientHeight);
 
@@ -894,81 +870,29 @@ public:
 		glTextureParameteri(bufferTex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 
-	void AddDeferredDrawCmd(DrawCmd &cmd)
+	void GLRenderer::AddDeferredDrawCmd(DrawCmd &cmd)
 	{
 		//m_deferredDrawList.push_back(std::move(cmd));
 		m_drawList.push_back(std::move(cmd));
 	}
 
-	void AddShadowDrawCmd(DrawCmd &cmd)
+	void GLRenderer::AddShadowDrawCmd(DrawCmd &cmd)
 	{
 		//m_shadowMapDrawList.push_back(std::move(cmd));
 		m_drawList.push_back(std::move(cmd));
 	}
 
-	void AddDraw(DrawEventHandler handler)
+	void GLRenderer::AddDraw(DrawEventHandler handler)
 	{
 		m_drawHandler.push_back(handler);
 	}
 
-	void AddShadowDraw(DrawEventHandler handler)
+	void GLRenderer::AddShadowDraw(DrawEventHandler handler)
 	{
 		m_shadowDrawHandler.push_back(handler);
 	}
 
-private:
-	int m_clientWidth;
-	int m_clientHeight;
-	bool m_enable4xMsaa;
-	std::unique_ptr<Skybox> m_SkyBox;
-
-	HINSTANCE	m_hInst;
-	HWND		m_hMainWnd;
-	HDC			m_deviceContext;
-	HGLRC		m_renderingContext;
-
-	GLuint m_deferredGBuffers;
-
-	GLuint m_diffuseBufferTex;
-	GLuint m_normalBufferTex;
-	GLuint m_specularBufferTex;
-	GLuint m_depthBufferTex;
-
-	GLuint m_deferredShadingRT;;
-
-	GLuint m_ssaoTex;
-	GLuint m_deferredShadingTex;
-	GLuint m_deferredShadingDepthTex;
-
-	GLuint m_computeOutput[4];
-	uint64_t m_computeOutputHandle[4];
-
-	uint64_t m_randVecTexHandle;
-
-	uint64_t m_diffuseBufferTexHandle;
-	uint64_t m_normalBufferTexHandle;
-	uint64_t m_specularBufferTexHandle;
-	uint64_t m_depthBufferTexHandle;
-
-	uint64_t m_ssaoTexHandle;
-	uint64_t m_deferredShadingTexHandle;
-	uint64_t m_deferredShadingDepthTexHandle;
-
-	GLuint m_debugCoordVAO;
-	GLuint m_screenQuadVAO;
-
-	std::vector<DrawCmd> m_drawList;
-
-	uint64_t m_currentVao;
-	Effect* m_currentEffect;
-	uint64_t m_currentFbo;
-
-	std::vector<DrawEventHandler> m_drawHandler;
-	std::vector<DrawEventHandler> m_shadowDrawHandler;
-
-	std::unordered_map<PrimitiveTopology, GLenum> m_drawTopologyMap;
-
-	void InitScreenQuad()
+	void GLRenderer::InitScreenQuad()
 	{
 		// init screen quad vbo
 		std::vector<XMFLOAT4> quadVertexBuffer = {
@@ -1012,7 +936,7 @@ private:
 		glVertexArrayAttribBinding(m_screenQuadVAO, 1, 1);
 	}
 
-	void InitDebugCoord()
+	void GLRenderer::InitDebugCoord()
 	{
 		// init grid and coord debug draw
 		std::vector<XMFLOAT3> coordVertexBuffer = {
@@ -1052,14 +976,6 @@ private:
 		glVertexArrayVertexBuffer(m_debugCoordVAO, 0, debugDrawVertexVBO, 0, sizeof(XMFLOAT3));
 		glVertexArrayAttribBinding(m_debugCoordVAO, 0, 0);
 	}
-};
-
-Renderer* Renderer::Create(HINSTANCE hInstance, HWND hMainWnd)
-{
-	GLRenderer* renderer = new GLRenderer(hInstance, hMainWnd);
-	_instance = static_cast<Renderer*>(renderer);
-	return _instance;
-}
 
 }
 

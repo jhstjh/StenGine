@@ -167,7 +167,7 @@ void SkinnedMesh::GatherDrawCall()
 			cmd.flags = CmdFlag::DRAW;
 			cmd.drawType = DrawType::INDEXED;
 			cmd.inputLayout = effect->GetInputLayout();
-			cmd.framebuffer = Renderer::Instance()->GetGbuffer();
+			cmd.framebuffer = &Renderer::Instance()->GetGbuffer();
 			cmd.vertexBuffer = (void*)m_vertexBufferGPU->GetBuffer();
 			cmd.indexBuffer = (void*)m_indexBufferGPU->GetBuffer();
 			cmd.vertexStride = stride;
@@ -243,7 +243,7 @@ void SkinnedMesh::GatherShadowDrawCall()
 			cmd.flags = CmdFlag::DRAW;
 			cmd.drawType = DrawType::INDEXED;
 			cmd.inputLayout = effect->GetInputLayout();
-			cmd.framebuffer = Renderer::Instance()->GetGbuffer();
+			cmd.framebuffer = &Renderer::Instance()->GetGbuffer();
 			cmd.vertexBuffer = (void*)m_vertexBufferGPU->GetBuffer();
 			cmd.indexBuffer = (void*)m_indexBufferGPU->GetBuffer();
 			cmd.vertexStride = stride;

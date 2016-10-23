@@ -3,8 +3,6 @@
 
 #pragma warning(disable:4267)
 
-extern PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
-
 namespace StenGine
 {
 
@@ -13,9 +11,9 @@ GLUAVBinding::GLUAVBinding()
 	m_UAVs.fill(0);
 }
 
-void GLUAVBinding::AddUAV(GLuint UAV, uint32_t index)
+void GLUAVBinding::AddUAV(void* UAV, uint32_t index)
 {
-	m_UAVs[index] = UAV;
+	m_UAVs[index] = reinterpret_cast<GLuint>(UAV);
 }
 
 void GLUAVBinding::Bind()

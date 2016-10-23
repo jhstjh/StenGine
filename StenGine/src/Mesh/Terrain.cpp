@@ -368,7 +368,7 @@ void Terrain::GatherDrawCall()
 	cmd.offset = (void*)(0);
 	cmd.type = PrimitiveTopology::CONTROL_POINT_4_PATCHLIST;
 	cmd.inputLayout = effect->GetInputLayout();
-	cmd.framebuffer = Renderer::Instance()->GetGbuffer();
+	cmd.framebuffer = &Renderer::Instance()->GetGbuffer();
 	cmd.vertexBuffer = (void*)m_quadPatchVB->GetBuffer();
 	cmd.indexBuffer = (void*)m_quadPatchIB->GetBuffer();
 	cmd.vertexStride = stride;
@@ -443,7 +443,7 @@ void Terrain::GatherShadowDrawCall() {
 	cmd.offset = (void*)(0);
 	cmd.type = PrimitiveTopology::CONTROL_POINT_4_PATCHLIST;
 	cmd.inputLayout = effect->GetInputLayout();
-	cmd.framebuffer = Renderer::Instance()->GetGbuffer();
+	cmd.framebuffer = &Renderer::Instance()->GetGbuffer();
 	cmd.vertexBuffer = (void*)m_quadPatchVB->GetBuffer();
 	cmd.indexBuffer = (void*)m_quadPatchIB->GetBuffer();
 	cmd.vertexStride = stride;

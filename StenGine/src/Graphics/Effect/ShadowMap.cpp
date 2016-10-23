@@ -53,8 +53,8 @@ ShadowMap::ShadowMap(UINT width, UINT height)
 
 	ReleaseCOM(depthMap);
 
-	m_shadowTarget.rtvs.push_back(nullptr);
-	m_shadowTarget.dsv = m_depthDSV;
+	m_shadowTarget.AddRenderTarget(nullptr);
+	m_shadowTarget.AssignDepthStencil(m_depthDSV);
 
 #else
 	glCreateFramebuffers(1, &m_shadowTarget);
@@ -104,7 +104,7 @@ XMMATRIX ShadowMap::GetShadowMapTransform() {
 	return XMLoadFloat4x4(&m_shadowTransform);
 }
 
-RenderTarget ShadowMap::GetRenderTarget()
+RenderTarget &ShadowMap::GetRenderTarget()
 {
 	return m_shadowTarget;
 }

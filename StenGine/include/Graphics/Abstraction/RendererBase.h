@@ -10,6 +10,12 @@
 namespace StenGine
 {
 
+enum class RenderBackend
+{
+	OPENGL4,
+	D3D11,
+};
+
 namespace Vertex {
 struct StdMeshVertex {
 	DirectX::XMFLOAT3 Pos;
@@ -51,6 +57,13 @@ public:
 	static Renderer* Create(HINSTANCE hInstance, HWND hMainWnd);
 	static Renderer* Instance() { return _instance; }
 
+	static RenderBackend GetRenderBackend()
+	{
+		return RenderBackend::D3D11;
+	}
+
+	virtual ~Renderer() = default;
+
 	virtual void Release() = 0;
 	virtual bool Init(int32_t width, int32_t height, CreateWindowCallback callback) = 0;
 	virtual void Draw() = 0;
@@ -70,7 +83,7 @@ public:
 	virtual void UpdateTitle(const char*) = 0;
 	virtual void AddDeferredDrawCmd(DrawCmd &cmd) = 0;
 	virtual void AddShadowDrawCmd(DrawCmd &cmd) = 0;
-	virtual RenderTarget GetGbuffer() = 0;
+	virtual RenderTarget &GetGbuffer() = 0;
 	virtual void AddDraw(DrawEventHandler handler) = 0;
 	virtual void AddShadowDraw(DrawEventHandler handler) = 0;
 

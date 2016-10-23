@@ -126,9 +126,9 @@
     <None Include="FX\DeferredGeometryTerrainPass_hs.glsl" />
     <None Include="FX\DeferredGeometryTerrainPass_ps.glsl" />
     <None Include="FX\DeferredGeometryTerrainPass_vs.glsl" />
-    <None Include="FX\DeferredGeometryTessPass_ps.glsl" />
-    <None Include="FX\DeferredGeometryTessPass_hs.glsl" />
     <None Include="FX\DeferredGeometryTessPass_ds.glsl" />
+    <None Include="FX\DeferredGeometryTessPass_hs.glsl" />
+    <None Include="FX\DeferredGeometryTessPass_ps.glsl" />
     <None Include="FX\DeferredGeometryTessPass_vs.glsl" />
     <None Include="FX\DeferredShadingPass_ps.glsl" />
     <None Include="FX\DeferredSkinnedGeometryPass_ps.glsl" />
@@ -139,6 +139,8 @@
     <None Include="FX\imgui_vs.glsl" />
     <None Include="FX\ScreenQuad_vs.glsl" />
     <None Include="FX\ShadowMap_vs.glsl" />
+    <None Include="FX\simpleGLES_ps.glsl" />
+    <None Include="FX\simpleGLES_vs.glsl" />
     <None Include="FX\Skybox_ps.glsl" />
     <None Include="FX\Skybox_vs.glsl" />
     <None Include="FX\StdMesh_ps.glsl" />

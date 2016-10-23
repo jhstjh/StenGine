@@ -2,21 +2,22 @@
 
 #include "Graphics/D3DIncludes.h"
 #include <stdint.h>
-#include "Graphics/Abstraction/GPUBufferBase.h"
+#include "Graphics/Abstraction/GPUBuffer.h"
 
 namespace StenGine
 {
 
-class D3D11Buffer
+class D3D11Buffer : public GPUBufferImpl
 {
 public:
 	D3D11Buffer(size_t size, BufferUsage usage, void* data = nullptr, BufferType type = BufferType::GENERAL);
-	~D3D11Buffer();
+	virtual ~D3D11Buffer();
 
-	void* map();
-	void unmap();
+	virtual void* map();
+	virtual void unmap();
 
-	ID3D11Buffer* GetBuffer() { return m_buffer; };
+	virtual void* GetBuffer() { return m_buffer; };
+	virtual uint32_t GetFlags() { return m_flags; }
 
 private:
 	ID3D11Buffer* m_buffer;
@@ -25,7 +26,5 @@ private:
 	uint32_t m_flags;
 	bool m_mapped;
 };
-
-using GPUBuffer = D3D11Buffer;
 
 }

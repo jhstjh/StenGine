@@ -11,9 +11,9 @@ D3D11UAVBinding::D3D11UAVBinding()
 	m_UAVs.fill(nullptr);
 }
 
-void D3D11UAVBinding::AddUAV(ID3D11UnorderedAccessView * UAV, uint32_t index)
+void D3D11UAVBinding::AddUAV(void * UAV, uint32_t index)
 {
-	m_UAVs[index] = UAV;
+	m_UAVs[index] = reinterpret_cast<ID3D11UnorderedAccessView*>(UAV);
 }
 
 void D3D11UAVBinding::Bind()

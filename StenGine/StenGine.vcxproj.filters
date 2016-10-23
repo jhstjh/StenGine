@@ -98,6 +98,21 @@
     <Filter Include="src\Animation">
       <UniqueIdentifier>{3cfe2199-899a-4c46-8dbd-6c47d240db76}</UniqueIdentifier>
     </Filter>
+    <Filter Include="FX\HLSL">
+      <UniqueIdentifier>{4294f7df-5bd2-4d51-a544-e9b07db5716b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FX\GLSL">
+      <UniqueIdentifier>{0be6ca50-cdea-4e1d-b686-a0e00a696f50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Graphics\OpenGL">
+      <UniqueIdentifier>{7cf172c8-a786-4e4d-8027-d7ed1cd788eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Graphics\OpenGL">
+      <UniqueIdentifier>{cf4478b8-f903-4667-b2ec-6671367a5b3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Graphics\Abstraction">
+      <UniqueIdentifier>{4ad925aa-69d3-4e5f-9d94-82397125583a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -161,87 +176,173 @@
     <None Include="Model\plane.fbx">
       <Filter>Model</Filter>
     </None>
-    <None Include="FX\StandardConstant.fx">
-      <Filter>FX</Filter>
-    </None>
     <None Include="FX\Blur_ps.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\BrightnessFilter_ps.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\DebugLine_ps.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\DebugLine_vs.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\DeferredGeometryPass_ps.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\DeferredGeometrySkinnedPass_vs.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\DeferredGeometryTerrainPass_ds.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\DeferredGeometryTerrainPass_hs.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\DeferredGeometryTerrainPass_ps.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\DeferredGeometryTerrainPass_vs.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\DeferredGeometryTessPass_ds.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\DeferredGeometryTessPass_hs.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\DeferredGeometryTessPass_ps.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\DeferredGeometryTessPass_vs.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\DeferredShading_cs.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\DeferredShadingPass_ps.hlsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\GodRay_ps.hlsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\HBlur_cs.hlsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\ScreenQuad_vs.hlsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\ShadowMap_vs.hlsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\Skybox_ps.hlsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\Skybox_vs.hlsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\VBlur_cs.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\DeferredSkinnedGeometryPass_ps.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
+    </None>
+    <None Include="FX\GodRay_ps.hlsl">
+      <Filter>FX\HLSL</Filter>
+    </None>
+    <None Include="FX\HBlur_cs.hlsl">
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\imgui_ps.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
     <None Include="FX\imgui_vs.hlsl">
-      <Filter>FX</Filter>
+      <Filter>FX\HLSL</Filter>
     </None>
+    <None Include="FX\ScreenQuad_vs.hlsl">
+      <Filter>FX\HLSL</Filter>
+    </None>
+    <None Include="FX\ShadowMap_vs.hlsl">
+      <Filter>FX\HLSL</Filter>
+    </None>
+    <None Include="FX\Skybox_ps.hlsl">
+      <Filter>FX\HLSL</Filter>
+    </None>
+    <None Include="FX\Skybox_vs.hlsl">
+      <Filter>FX\HLSL</Filter>
+    </None>
+    <None Include="FX\StandardConstant.fx">
+      <Filter>FX\HLSL</Filter>
+    </None>
+    <None Include="FX\VBlur_cs.hlsl">
+      <Filter>FX\HLSL</Filter>
+    </None>
+    <None Include="FX\Blur_ps.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\DebugLine_ps.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\DebugLine_vs.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\DeferredGeometryPass_ps.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\DeferredGeometryPass_vs.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\DeferredGeometryTerrainPass_ds.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\DeferredGeometryTerrainPass_hs.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\DeferredGeometryTerrainPass_ps.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\DeferredGeometryTerrainPass_vs.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\DeferredGeometryTessPass_ds.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\DeferredGeometryTessPass_hs.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\DeferredGeometryTessPass_ps.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\DeferredGeometryTessPass_vs.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\DeferredShadingPass_ps.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\DeferredSkinnedGeometryPass_ps.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\DeferredSkinnedGeometryPass_vs.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\GodRay_ps.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\HBlur_cs.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\imgui_ps.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\imgui_vs.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\ScreenQuad_vs.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\ShadowMap_vs.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\Skybox_ps.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\Skybox_vs.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\StdMesh_ps.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\StdMesh_vs.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\VBlur_cs.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\ZOnly_ps.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\DeferredGeometryPass_vs.hlsl" />
+    <None Include="FX\DeferredSkinnedGeometryPass_vs.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\stdafx.h">
@@ -260,9 +361,6 @@
       <Filter>include\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="include\Graphics\Abstraction\ConstantBuffer.h">
-      <Filter>include\Graphics\Abstraction</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Graphics\Abstraction\ConstantBufferBase.h">
       <Filter>include\Graphics\Abstraction</Filter>
     </ClInclude>
     <ClInclude Include="include\Graphics\Abstraction\DrawCmd.h">
@@ -349,9 +447,6 @@
     <ClInclude Include="include\Graphics\Abstraction\GPUBuffer.h">
       <Filter>include\Graphics\Abstraction</Filter>
     </ClInclude>
-    <ClInclude Include="include\Graphics\Abstraction\GPUBufferBase.h">
-      <Filter>include\Graphics\Abstraction</Filter>
-    </ClInclude>
     <ClInclude Include="include\Scene\Drawable.h">
       <Filter>include\Scene</Filter>
     </ClInclude>
@@ -397,6 +492,33 @@
     </ClInclude>
     <ClInclude Include="include\Engine\EventSystem.h">
       <Filter>include\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\OpenGL\GLESRenderer.h">
+      <Filter>include\Graphics\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\OpenGL\GLImageLoader.h">
+      <Filter>include\Graphics\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\OpenGL\GLTexture.h">
+      <Filter>include\Graphics\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\OpenGL\GLUAVBinding.h">
+      <Filter>include\Graphics\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\OpenGL\GLBuffer.h">
+      <Filter>include\Graphics\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\OpenGL\GLConstantBuffer.h">
+      <Filter>include\Graphics\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\D3D11\D3D11Renderer.h">
+      <Filter>include\Graphics\D3D11</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\OpenGL\GLRenderer.h">
+      <Filter>include\Graphics\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\OpenGL\GLRenderTarget.h">
+      <Filter>include\Graphics\OpenGL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -506,13 +628,38 @@
     <ClCompile Include="src\Engine\EventSystem.cpp">
       <Filter>src\Engine</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="FX\DeferredGeometryPass_vs.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
-    <FxCompile Include="FX\DeferredSkinnedGeometryPass_vs.hlsl">
-      <Filter>FX</Filter>
-    </FxCompile>
+    <ClCompile Include="src\Graphics\OpenGL\GLBuffer.cpp">
+      <Filter>src\Graphics\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\OpenGL\GLConstantBuffer.cpp">
+      <Filter>src\Graphics\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\OpenGL\GLImageLoader.cpp">
+      <Filter>src\Graphics\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\OpenGL\GLRenderer.cpp">
+      <Filter>src\Graphics\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\OpenGL\GLTexture.cpp">
+      <Filter>src\Graphics\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\OpenGL\GLUAVBinding.cpp">
+      <Filter>src\Graphics\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Abstraction\UAVBinding.cpp">
+      <Filter>src\Graphics\Abstraction</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Abstraction\ConstantBuffer.cpp">
+      <Filter>src\Graphics\Abstraction</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Abstraction\GPUBuffer.cpp">
+      <Filter>src\Graphics\Abstraction</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Abstraction\RendererBase.cpp">
+      <Filter>src\Graphics\Abstraction</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Abstraction\RenderTarget.cpp">
+      <Filter>src\Graphics\Abstraction</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

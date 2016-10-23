@@ -43,7 +43,7 @@ public:
 	XMMATRIX GetViewProjMatrix();
 	XMMATRIX GetShadowMapTransform();
 
-	RenderTarget GetRenderTarget();
+	RenderTarget &GetRenderTarget();
 	void GetDimension(uint32_t &width, uint32_t &height) { width = m_width, height = m_height; }
 };
 

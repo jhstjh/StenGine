@@ -41,7 +41,7 @@ public:
 
 		DrawCmd stateCmd;
 
-		stateCmd.flags = CmdFlag::SET_BS | CmdFlag::SET_DS | CmdFlag::SET_CS | CmdFlag::SET_VP | /*CmdFlag::BIND_FB |*/ CmdFlag::CLEAR_DEPTH;
+		stateCmd.flags = CmdFlag::SET_BS | CmdFlag::SET_DS | CmdFlag::SET_CS | CmdFlag::SET_VP /*| CmdFlag::BIND_FB | CmdFlag::CLEAR_DEPTH*/;
 
 		// Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled
 		BlendState &blendState = stateCmd.blendState;

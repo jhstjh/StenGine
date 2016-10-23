@@ -46,7 +46,7 @@ GLuint CreateGLTextureFromFile(const char* filename, uint32_t* width, uint32_t* 
 		break;
 	case gli::TARGET_2D_ARRAY:
 	case gli::TARGET_3D:
-	case gli::TARGET_CUBE_ARRAY:	
+	case gli::TARGET_CUBE_ARRAY:
 		glTextureStorage3D(
 			TextureName, static_cast<GLint>(Texture.levels()), Format.Internal,
 			Extent.x, Extent.y,
@@ -70,7 +70,9 @@ GLuint CreateGLTextureFromFile(const char* filename, uint32_t* width, uint32_t* 
 	uint32_t pboSize = 0;
 
 	for (std::size_t Layer = 0; Layer < Texture.layers(); ++Layer)
+	{
 		for (std::size_t Face = 0; Face < Texture.faces(); ++Face)
+		{
 			for (std::size_t Level = 0; Level < Texture.levels(); ++Level)
 			{
 				GLsizei const LayerGL = static_cast<GLsizei>(Layer);
@@ -95,7 +97,7 @@ GLuint CreateGLTextureFromFile(const char* filename, uint32_t* width, uint32_t* 
 					break;
 				case gli::TARGET_1D_ARRAY:
 				case gli::TARGET_2D:
-				//case gli::TARGET_CUBE:
+					//case gli::TARGET_CUBE:
 					if (gli::is_compressed(Texture.format()))
 						glCompressedTextureSubImage2D(
 							TextureName, static_cast<GLint>(Level),
@@ -139,6 +141,8 @@ GLuint CreateGLTextureFromFile(const char* filename, uint32_t* width, uint32_t* 
 
 				pboSize += Texture.size(Level);
 			}
+		}
+	}
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	glDeleteBuffers(1, &pbo);
 

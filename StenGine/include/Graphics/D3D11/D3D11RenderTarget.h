@@ -3,32 +3,48 @@
 #include <vector>
 #include "Graphics/D3DIncludes.h"
 #include "Graphics/Color.h"
+#include "Graphics/Abstraction/RenderTarget.h"
 
 namespace StenGine
 {
 
-struct RenderTarget
+class D3D11RenderTarget : public RenderTargetImpl
 {
 	std::vector<ID3D11RenderTargetView*> rtvs;
 	std::vector<SGColors> clearColor;
 	ID3D11DepthStencilView* dsv = nullptr;
 
-	void SetRenderTarget(ID3D11DeviceContext* deviceContext)
+	void AddRenderTarget(void* renderTarget) 
 	{
-		deviceContext->OMSetRenderTargets((UINT)rtvs.size(), rtvs.data(), dsv);
+		rtvs.push_back(reinterpret_cast<ID3D11RenderTargetView*>(renderTarget));
 	}
 
-	void ClearColor(ID3D11DeviceContext* deviceContext)
+	void AddClearColor(SGColors color)
+	{
+		clearColor.push_back(color);
+	}
+
+	void AssignDepthStencil(void* depthStencil) 
+	{
+		dsv = reinterpret_cast<ID3D11DepthStencilView*>(depthStencil);
+	}
+
+	void SetRenderTarget(void* deviceContext) final
+	{
+		reinterpret_cast<ID3D11DeviceContext*>(deviceContext)->OMSetRenderTargets((UINT)rtvs.size(), rtvs.data(), dsv);
+	}
+
+	void ClearColor(void* deviceContext) final
 	{
 		for (uint32_t i = 0; i < rtvs.size(); i++)
 		{
-			deviceContext->ClearRenderTargetView(rtvs[i], reinterpret_cast<const float*>(&clearColor[i]));
+			reinterpret_cast<ID3D11DeviceContext*>(deviceContext)->ClearRenderTargetView(rtvs[i], reinterpret_cast<const float*>(&clearColor[i]));
 		}
 	}
 
-	void ClearDepth(ID3D11DeviceContext* deviceContext)
+	void ClearDepth(void* deviceContext) final
 	{
-		deviceContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		reinterpret_cast<ID3D11DeviceContext*>(deviceContext)->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	}
 };
 

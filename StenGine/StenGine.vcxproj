@@ -14,7 +14,7 @@
     <ProjectGuid>{673A993C-EA5A-4DDF-8876-620314770CDC}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>StenGine</RootNamespace>
-    <ProjectName>StenGine_D3D11</ProjectName>
+    <ProjectName>StenGine</ProjectName>
     <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -43,7 +43,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)lib;$(SolutionDir)External\FBXSDK\lib\vs2013\x64\debug;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\D3D11\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\D3D11\</IntDir>
@@ -52,7 +52,7 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\D3D11\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\D3D11\</IntDir>
-    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)lib;$(SolutionDir)External\FBXSDK\lib\vs2013\x64\release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -71,7 +71,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;D3DCompiler.lib;shlwapi.lib;dxgi.lib;dxguid.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;libfbxsdk.lib;assimp-vc130-mt.lib;zlibstatic.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;D3DCompiler.lib;shlwapi.lib;dxgi.lib;dxguid.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;libfbxsdk.lib;assimp-vc130-mt.lib;zlibstatic.lib;OpenGL32.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>
@@ -93,7 +93,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>d3d11.lib;D3DCompiler.lib;shlwapi.lib;dxgi.lib;dxguid.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;libfbxsdk.lib;assimp-vc130-mt.lib;zlibstatic.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;D3DCompiler.lib;shlwapi.lib;dxgi.lib;dxguid.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;libfbxsdk.lib;assimp-vc130-mt.lib;zlibstatic.lib;OpenGL32.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -118,6 +118,34 @@
     <Image Include="StenGine.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="FX\Blur_ps.glsl" />
+    <None Include="FX\DebugLine_ps.glsl" />
+    <None Include="FX\DebugLine_vs.glsl" />
+    <None Include="FX\DeferredGeometryPass_ps.glsl" />
+    <None Include="FX\DeferredGeometryPass_vs.glsl" />
+    <None Include="FX\DeferredGeometryTerrainPass_ds.glsl" />
+    <None Include="FX\DeferredGeometryTerrainPass_hs.glsl" />
+    <None Include="FX\DeferredGeometryTerrainPass_ps.glsl" />
+    <None Include="FX\DeferredGeometryTerrainPass_vs.glsl" />
+    <None Include="FX\DeferredGeometryTessPass_ds.glsl" />
+    <None Include="FX\DeferredGeometryTessPass_hs.glsl" />
+    <None Include="FX\DeferredGeometryTessPass_ps.glsl" />
+    <None Include="FX\DeferredGeometryTessPass_vs.glsl" />
+    <None Include="FX\DeferredShadingPass_ps.glsl" />
+    <None Include="FX\DeferredSkinnedGeometryPass_ps.glsl" />
+    <None Include="FX\DeferredSkinnedGeometryPass_vs.glsl" />
+    <None Include="FX\GodRay_ps.glsl" />
+    <None Include="FX\HBlur_cs.glsl" />
+    <None Include="FX\imgui_ps.glsl" />
+    <None Include="FX\imgui_vs.glsl" />
+    <None Include="FX\ScreenQuad_vs.glsl" />
+    <None Include="FX\ShadowMap_vs.glsl" />
+    <None Include="FX\Skybox_ps.glsl" />
+    <None Include="FX\Skybox_vs.glsl" />
+    <None Include="FX\StdMesh_ps.glsl" />
+    <None Include="FX\StdMesh_vs.glsl" />
+    <None Include="FX\VBlur_cs.glsl" />
+    <None Include="FX\ZOnly_ps.glsl" />
     <None Include="Model\ball.obj">
       <FileType>Document</FileType>
     </None>
@@ -217,14 +245,14 @@
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
       <FileType>Document</FileType>
     </None>
-    <FxCompile Include="FX\DeferredGeometryPass_vs.hlsl">
+    <None Include="FX\DeferredGeometryPass_vs.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(RelativeDir)%(Filename).cso</ObjectFileOutput>
       <DisableOptimizations Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DisableOptimizations>
       <EnableDebuggingInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</EnableDebuggingInformation>
       <FileType>Document</FileType>
-    </FxCompile>
+    </None>
     <None Include="FX\DeferredGeometryTessPass_ds.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -303,10 +331,8 @@
     <ClInclude Include="include\Engine\EngineBase.h" />
     <ClInclude Include="include\Engine\EventSystem.h" />
     <ClInclude Include="include\Graphics\Abstraction\ConstantBuffer.h" />
-    <ClInclude Include="include\Graphics\Abstraction\ConstantBufferBase.h" />
     <ClInclude Include="include\Graphics\Abstraction\DrawCmd.h" />
     <ClInclude Include="include\Graphics\Abstraction\GPUBuffer.h" />
-    <ClInclude Include="include\Graphics\Abstraction\GPUBufferBase.h" />
     <ClInclude Include="include\Graphics\Abstraction\RendererBase.h" />
     <ClInclude Include="include\Graphics\Abstraction\RenderTarget.h" />
     <ClInclude Include="include\Graphics\Abstraction\Texture.h" />
@@ -314,6 +340,7 @@
     <ClInclude Include="include\Graphics\Animation\Animation.h" />
     <ClInclude Include="include\Graphics\Color.h" />
     <ClInclude Include="include\Graphics\D3D11\D3D11ConstantBuffer.h" />
+    <ClInclude Include="include\Graphics\D3D11\D3D11Renderer.h" />
     <ClInclude Include="include\Graphics\D3D11\D3D11RenderTarget.h" />
     <ClInclude Include="include\Graphics\D3D11\D3D11SRVBinding.h" />
     <ClInclude Include="include\Graphics\D3D11\D3D11Texture.h" />
@@ -323,6 +350,14 @@
     <ClInclude Include="include\Graphics\Effect\Material.h" />
     <ClInclude Include="include\Graphics\Effect\ShadowMap.h" />
     <ClInclude Include="include\Graphics\Effect\Skybox.h" />
+    <ClInclude Include="include\Graphics\OpenGL\GLBuffer.h" />
+    <ClInclude Include="include\Graphics\OpenGL\GLConstantBuffer.h" />
+    <ClInclude Include="include\Graphics\OpenGL\GLESRenderer.h" />
+    <ClInclude Include="include\Graphics\OpenGL\GLImageLoader.h" />
+    <ClInclude Include="include\Graphics\OpenGL\GLRenderer.h" />
+    <ClInclude Include="include\Graphics\OpenGL\GLRenderTarget.h" />
+    <ClInclude Include="include\Graphics\OpenGL\GLTexture.h" />
+    <ClInclude Include="include\Graphics\OpenGL\GLUAVBinding.h" />
     <ClInclude Include="include\Graphics\UI\ImGuiMenu.h" />
     <ClInclude Include="include\Input\InputManager.h" />
     <ClInclude Include="include\Math\MathHelper.h" />
@@ -356,6 +391,11 @@
     <ClCompile Include="src\Engine\Console.cpp" />
     <ClCompile Include="src\Engine\EngineBase.cpp" />
     <ClCompile Include="src\Engine\EventSystem.cpp" />
+    <ClCompile Include="src\Graphics\Abstraction\ConstantBuffer.cpp" />
+    <ClCompile Include="src\Graphics\Abstraction\GPUBuffer.cpp" />
+    <ClCompile Include="src\Graphics\Abstraction\RendererBase.cpp" />
+    <ClCompile Include="src\Graphics\Abstraction\RenderTarget.cpp" />
+    <ClCompile Include="src\Graphics\Abstraction\UAVBinding.cpp" />
     <ClCompile Include="src\Graphics\Animation\Animation.cpp" />
     <ClCompile Include="src\Graphics\Color.cpp" />
     <ClCompile Include="src\Graphics\D3D11\D3D11Buffer.cpp" />
@@ -367,6 +407,12 @@
     <ClCompile Include="src\Graphics\Effect\EffectsManager.cpp" />
     <ClCompile Include="src\Graphics\Effect\ShadowMap.cpp" />
     <ClCompile Include="src\Graphics\Effect\Skybox.cpp" />
+    <ClCompile Include="src\Graphics\OpenGL\GLBuffer.cpp" />
+    <ClCompile Include="src\Graphics\OpenGL\GLConstantBuffer.cpp" />
+    <ClCompile Include="src\Graphics\OpenGL\GLImageLoader.cpp" />
+    <ClCompile Include="src\Graphics\OpenGL\GLRenderer.cpp" />
+    <ClCompile Include="src\Graphics\OpenGL\GLTexture.cpp" />
+    <ClCompile Include="src\Graphics\OpenGL\GLUAVBinding.cpp" />
     <ClCompile Include="src\Graphics\UI\D3D11ImGuiMenu.cpp" />
     <ClCompile Include="src\Input\InputManager.cpp" />
     <ClCompile Include="src\Mesh\MeshPrimitives.cpp" />
@@ -410,11 +456,11 @@
     <None Include="FX\DeferredSkinnedGeometryPass_ps.hlsl">
       <FileType>Document</FileType>
     </None>
-    <FxCompile Include="FX\DeferredSkinnedGeometryPass_vs.hlsl">
+    <None Include="FX\DeferredSkinnedGeometryPass_vs.hlsl">
       <FileType>Document</FileType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-    </FxCompile>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

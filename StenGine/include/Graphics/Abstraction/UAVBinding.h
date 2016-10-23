@@ -1,9 +1,29 @@
 #pragma once
+#include <memory>
 
-#if GRAPHICS_D3D11
-#include "Graphics/D3D11/D3D11UAVBinding.h"
-#endif
+namespace StenGine
+{
 
-#if GRAPHICS_OPENGL
-#include "Graphics/OpenGL/GLUAVBinding.h"
-#endif
+class UAVBindingImpl
+{
+public:
+	virtual ~UAVBindingImpl() = default;
+	virtual void AddUAV(void* UAV, uint32_t index) = 0;
+	virtual void Bind() = 0;
+	virtual void Unbind() = 0;
+};
+
+class UAVBinding
+{
+public:
+	UAVBinding();
+	void AddUAV(void* UAV, uint32_t index);
+	void Bind();
+	void Unbind();
+
+private:
+	std::unique_ptr<UAVBindingImpl> mImpl;
+};
+
+
+}

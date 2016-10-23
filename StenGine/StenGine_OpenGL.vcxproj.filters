@@ -161,34 +161,7 @@
     <None Include="Model\plane.fbx">
       <Filter>Model</Filter>
     </None>
-    <None Include="FX\StdMesh_vs.glsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\StdMesh_ps.glsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\DeferredGeometryPass_ps.glsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\DeferredGeometryPass_vs.glsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\ScreenQuad_vs.glsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\DeferredShadingPass_ps.glsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\ShadowMap_vs.glsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\ZOnly_ps.glsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\Skybox_vs.glsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\Skybox_ps.glsl">
+    <None Include="FX\Blur_ps.glsl">
       <Filter>FX</Filter>
     </None>
     <None Include="FX\DebugLine_ps.glsl">
@@ -197,19 +170,10 @@
     <None Include="FX\DebugLine_vs.glsl">
       <Filter>FX</Filter>
     </None>
-    <None Include="FX\GodRay_ps.glsl">
+    <None Include="FX\DeferredGeometryPass_ps.glsl">
       <Filter>FX</Filter>
     </None>
-    <None Include="FX\DeferredGeometryTessPass_vs.glsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\DeferredGeometryTessPass_ps.glsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\DeferredGeometryTessPass_hs.glsl">
-      <Filter>FX</Filter>
-    </None>
-    <None Include="FX\DeferredGeometryTessPass_ds.glsl">
+    <None Include="FX\DeferredGeometryPass_vs.glsl">
       <Filter>FX</Filter>
     </None>
     <None Include="FX\DeferredGeometryTerrainPass_ds.glsl">
@@ -224,25 +188,67 @@
     <None Include="FX\DeferredGeometryTerrainPass_vs.glsl">
       <Filter>FX</Filter>
     </None>
-    <None Include="FX\Blur_ps.glsl">
+    <None Include="FX\DeferredGeometryTessPass_ds.glsl">
       <Filter>FX</Filter>
     </None>
-    <None Include="FX\HBlur_cs.glsl">
+    <None Include="FX\DeferredGeometryTessPass_hs.glsl">
       <Filter>FX</Filter>
     </None>
-    <None Include="FX\VBlur_cs.glsl">
+    <None Include="FX\DeferredGeometryTessPass_ps.glsl">
       <Filter>FX</Filter>
     </None>
-    <None Include="FX\imgui_vs.glsl">
+    <None Include="FX\DeferredGeometryTessPass_vs.glsl">
       <Filter>FX</Filter>
     </None>
-    <None Include="FX\imgui_ps.glsl">
+    <None Include="FX\DeferredShadingPass_ps.glsl">
       <Filter>FX</Filter>
     </None>
     <None Include="FX\DeferredSkinnedGeometryPass_ps.glsl">
       <Filter>FX</Filter>
     </None>
     <None Include="FX\DeferredSkinnedGeometryPass_vs.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\GodRay_ps.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\HBlur_cs.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\imgui_ps.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\imgui_vs.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\ScreenQuad_vs.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\ShadowMap_vs.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\simpleGLES_ps.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\simpleGLES_vs.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\Skybox_ps.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\Skybox_vs.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\StdMesh_ps.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\StdMesh_vs.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\VBlur_cs.glsl">
+      <Filter>FX</Filter>
+    </None>
+    <None Include="FX\ZOnly_ps.glsl">
       <Filter>FX</Filter>
     </None>
   </ItemGroup>

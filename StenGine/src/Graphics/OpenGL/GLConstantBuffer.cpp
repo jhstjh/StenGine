@@ -23,39 +23,12 @@ GLConstantBuffer::~GLConstantBuffer()
 		_aligned_free(m_data);
 }
 
-GLConstantBuffer::GLConstantBuffer(GLConstantBuffer&& other)
-{
-	m_index = other.m_index;
-	m_bufferName = other.m_bufferName;
-	m_size = other.m_size;
-	m_data = other.m_data;
-
-	other.m_data = nullptr;
-}
-
-GLConstantBuffer& GLConstantBuffer::operator=(GLConstantBuffer&& other)
-{
-	if (this != &other)
-	{
-		if (m_data)
-			_aligned_free(m_data);
-
-		m_index = other.m_index;
-		m_bufferName = other.m_bufferName;
-		m_size = other.m_size;
-		m_data = other.m_data;
-
-		other.m_data = nullptr;
-	}
-	return *this;
-}
-
-void *GLConstantBuffer::ImplGetBuffer()
+void *GLConstantBuffer::GetBuffer()
 {
 	return m_data;
 }
 
-void GLConstantBuffer::ImplBind()
+void GLConstantBuffer::Bind()
 {
 	glBindBufferRange(GL_UNIFORM_BUFFER, m_index, m_bufferName, 0, m_size);
 	void* ubo = glMapNamedBufferRange(

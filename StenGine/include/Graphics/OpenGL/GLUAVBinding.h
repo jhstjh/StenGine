@@ -1,24 +1,25 @@
 #pragma once
 
 #include "glew.h"
+#include "Graphics/Abstraction/UAVBinding.h"
 #include "Graphics/D3DIncludes.h"
 #include <array>
 
 namespace StenGine
 {
 
-class GLUAVBinding
+class GLUAVBinding : public UAVBindingImpl
 {
 public:
 	GLUAVBinding();
-	void AddUAV(GLuint UAV, uint32_t index);
-	void Bind();
-	void Unbind();
+	virtual void AddUAV(void* UAV, uint32_t index);
+	virtual void Bind();
+	virtual void Unbind();
 
 private:
 	std::array<GLuint, 2> m_UAVs; // size todo
 };
 
-using UAVBinding = GLUAVBinding;
+//using UAVBinding = GLUAVBinding;
 
 }

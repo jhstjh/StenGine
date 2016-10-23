@@ -4,22 +4,22 @@
 #include "glew.h"
 #include <stdint.h>
 
-#include "Graphics/Abstraction/GPUBufferBase.h"
+#include "Graphics/Abstraction/GPUBuffer.h"
 
 namespace StenGine
 {
 
-class GLBuffer
+class GLBuffer : public GPUBufferImpl
 {
 public:
 	GLBuffer(size_t size, BufferUsage usage, void* data = nullptr, BufferType type = BufferType::GENERAL);
-	~GLBuffer();
+	virtual ~GLBuffer();
 
-	void* map();
-	void unmap();
+	virtual void* map();
+	virtual void unmap();
 
-	GLuint GetBuffer() { return m_buffer; }
-	uint32_t GetFlags() { return m_flags; }
+	virtual void* GetBuffer() { return reinterpret_cast<void*>(m_buffer); }
+	virtual uint32_t GetFlags() { return m_flags; }
 
 private:
 	GLuint m_buffer;
@@ -27,8 +27,6 @@ private:
 	uint32_t m_flags;
 	bool m_mapped;
 };
-
-using GPUBuffer = GLBuffer;
 
 }
 #endif
