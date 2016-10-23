@@ -47,7 +47,7 @@ void GameObjectManager::LoadScene()
 	SkinnedMesh* zombieMesh = ResourceManager::Instance()->GetResource<SkinnedMesh>(L"Model/vampire-animated.fbx");
 	zombie->AddComponent(zombieMesh);
 	m_gameObjects.push_back(zombie);
-
+	
 	Animation* animation = ResourceManager::Instance()->GetResource<Animation>(L"Model/vampire-animated.fbx");
 	zombieMesh->SetAnimation(animation);
 

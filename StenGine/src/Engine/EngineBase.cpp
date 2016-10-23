@@ -1,5 +1,6 @@
 #include "Engine/EngineBase.h"
 #include "Resource.h"
+#include "Utility/CommandlineParser.h"
 
 namespace StenGine
 {
@@ -78,6 +79,16 @@ void EngineBase::Init(HINSTANCE hInstance)
 	LoadString(hInstance, IDS_APP_TITLE, m_szTitle, MAX_LOADSTRING);
 	LoadString(hInstance, IDC_STENGINE, m_szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
+
+	auto backend = CommandlineParser::Instance()->GetCommand(L"-g");
+	if (_wcsicmp(backend, L"d3d11") == 0)
+	{
+		Renderer::SetRenderBackend(RenderBackend::D3D11);
+	}
+	else if (_wcsicmp(backend, L"gl4") == 0)
+	{
+		Renderer::SetRenderBackend(RenderBackend::OPENGL4);
+	}
 
 	m_console = std::make_unique<Console>();
 	m_eventSystem = std::unique_ptr<EventSystem>(EventSystem::Instance());

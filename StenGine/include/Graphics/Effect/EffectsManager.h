@@ -160,7 +160,6 @@ public:
 
 	void PrepareBuffer();
 
-#if GRAPHICS_D3D11
 	struct PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX WorldViewProj;
@@ -184,17 +183,8 @@ public:
 		XMMATRIX MatrixPalette[64];
 	};
 
-#else
-	struct PEROBJ_CONSTANT_BUFFER
+	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
 	{
-		XMMATRIX WorldViewProj;
-		XMMATRIX World;
-		XMMATRIX WorldView;
-		XMMATRIX ViewProj;
-		XMMATRIX ShadowTransform;
-		Material::MaterialAttrib Mat;
-		
-		XMFLOAT4 DiffX_NormY_ShadZ;
 		uint64_t DiffuseMap;
 		uint64_t NormalMap;
 		uint64_t ShadowMapTex;
@@ -202,15 +192,9 @@ public:
 		uint64_t CubeMapTex;
 	};
 
-	struct PERFRAME_CONSTANT_BUFFER
-	{
-		XMFLOAT4 EyePosW;
-		DirectionalLight DirLight;
-	};
-#endif
-
 	GPUBuffer* m_perFrameCB;
 	GPUBuffer* m_perObjectCB;
+	GPUBuffer* m_textureCB;
 	GPUBuffer* m_matrixPaletteSB;
 };
 
@@ -221,6 +205,7 @@ class DeferredGeometryTerrainPassEffect : public Effect {
 public:
 	GPUBuffer* m_perFrameCB;
 	GPUBuffer* m_perObjectCB;
+	GPUBuffer* m_textureCB;
 
 	DeferredGeometryTerrainPassEffect(const std::wstring& filename);
 	DeferredGeometryTerrainPassEffect(const std::wstring& vsPath,
@@ -242,14 +227,15 @@ public:
 		XMMATRIX View;
 		Material::MaterialAttrib Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
+	};
 
-#if GRAPHICS_OPENGL
+	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
+	{
 		uint64_t gShadowMap;
 		uint64_t gCubeMap;
 		uint64_t gHeightMap;
 		uint64_t gLayerMapArray;
 		uint64_t gBlendMap;
-#endif
 	};
 
 	struct PERFRAME_CONSTANT_BUFFER
@@ -287,6 +273,7 @@ class TerrainShadowMapEffect : public Effect {
 public:
 	GPUBuffer* m_perFrameCB;
 	GPUBuffer* m_perObjectCB;
+	GPUBuffer* m_textureCB;
 
 	TerrainShadowMapEffect(const std::wstring& filename);
 	TerrainShadowMapEffect(const std::wstring& vsPath,
@@ -308,14 +295,15 @@ public:
 		XMMATRIX View;
 		Material::MaterialAttrib Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
+	};
 
-#if GRAPHICS_OPENGL
+	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
+	{
 		uint64_t gShadowMap;
 		uint64_t gCubeMap;
 		uint64_t gHeightMap;
 		uint64_t gLayerMapArray;
 		uint64_t gBlendMap;
-#endif
 	};
 
 	struct PERFRAME_CONSTANT_BUFFER
@@ -364,35 +352,28 @@ public:
 class DeferredShadingPassEffect : public Effect {
 public:
 	GPUBuffer* m_perFrameCB;
+	GPUBuffer* m_textureCB;
 
 	DeferredShadingPassEffect(const std::wstring& filename);
 	~DeferredShadingPassEffect();
 
-	struct
-#if GRAPHICS_D3D11		
-	PERFRAME_CONSTANT_BUFFER
+	struct PERFRAME_CONSTANT_BUFFER
 	{
 		DirectionalLight gDirLight;
 		XMFLOAT4 gEyePosV;
 		XMMATRIX gProjInv;
 		XMMATRIX gProj;
 	};
-#endif
 
-#if GRAPHICS_OPENGL
-	PERFRAME_CONSTANT_BUFFER
+	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
 	{
-		DirectionalLight gDirLight;
-		XMFLOAT4 gEyePosV;
-		XMMATRIX gProjInv;
-		XMMATRIX gProj;
 		uint64_t NormalGMap;
 		uint64_t DiffuseGMap;
 		uint64_t SpecularGMap;
 		uint64_t DepthGMap;
 		uint64_t RandVectMap;
 	};
-#endif
+
 };
 
 
@@ -423,27 +404,21 @@ class SkyboxEffect : public Effect {
 public:
 
 	GPUBuffer* m_perObjectCB;
+	GPUBuffer* m_textureCB;
 
 public:
 	SkyboxEffect(const std::wstring& filename);
 	~SkyboxEffect();
 
-	struct
-#if GRAPHICS_D3D11
-		PEROBJ_CONSTANT_BUFFER
+	struct PEROBJ_CONSTANT_BUFFER
 	{
 		XMMATRIX gWorldViewProj;
 	};
-#endif
 
-#if GRAPHICS_OPENGL
-	PEROBJ_CONSTANT_BUFFER
+	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
 	{
-		XMMATRIX gWorldViewProj;
 		uint64_t gCubeMap;
 	};
-#endif
-
 };
 
 
@@ -454,6 +429,7 @@ class BlurEffect : public Effect {
 public:
 
 	GPUBuffer* m_settingCB;
+	GPUBuffer* m_textureCB;
 
 public:
 	BlurEffect(const std::wstring& filename);
@@ -463,14 +439,15 @@ public:
 	{
 		XMFLOAT2 texOffset;
 		XMFLOAT2 pad;
-#if GRAPHICS_OPENGL
+	} ;
+
+	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
+	{
 		uint64_t ScreenMap;
 		uint64_t SSAOMap;
 		uint64_t BloomMap;
 		uint64_t DepthMap;
-#endif
-	} ;
-
+	};
 };
 
 
@@ -500,6 +477,7 @@ class ImGuiEffect : public Effect {
 public:
 	
 	GPUBuffer* m_imguiCB;
+	GPUBuffer* m_textureCB;
 
 	ImGuiEffect(const std::wstring& filename);
 	~ImGuiEffect();
@@ -507,9 +485,11 @@ public:
 	struct IMGUI_CONSTANT_BUFFER
 	{
 		XMMATRIX ProjMtx;
-#if GRAPHICS_OPENGL
+	};
+
+	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
+	{
 		uint64_t Texture;
-#endif
 	};
 };
 

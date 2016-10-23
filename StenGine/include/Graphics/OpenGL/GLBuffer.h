@@ -6,6 +6,9 @@
 
 #include "Graphics/Abstraction/GPUBuffer.h"
 
+#pragma warning( push )
+#pragma warning(disable: 4312) // warning C4312: 'reinterpret_cast': conversion from 'GLuint' to 'void *' of greater size
+
 namespace StenGine
 {
 
@@ -27,6 +30,8 @@ private:
 	uint32_t m_flags;
 	bool m_mapped;
 };
+
+#pragma warning( pop )
 
 }
 #endif

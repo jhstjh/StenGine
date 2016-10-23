@@ -5,6 +5,9 @@ in vec3 pPosL;
 
 layout(std140) uniform ubPerObj{
 	mat4 gWorldViewProj;
+};
+
+layout(std140) uniform ubTextures{
 	samplerCube gCubeMap;
 };
 

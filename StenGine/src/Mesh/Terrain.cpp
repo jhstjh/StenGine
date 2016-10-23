@@ -364,12 +364,16 @@ void Terrain::GatherDrawCall()
 	}
 	case RenderBackend::OPENGL4:
 	{
-		// OPENGL_TEXTURE
-		// perObjData->gShadowMap = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
-		// perObjData->gHeightMap = m_heightMapTex->GetTexture();
-		// perObjData->gLayerMapArray = m_layerMapArrayTex->GetTexture();
-		// perObjData->gBlendMap = m_blendMapTex->GetTexture();
-		// break;
+		ConstantBuffer cbuffer2(2, sizeof(DeferredGeometryTerrainPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), (void*)effect->m_textureCB->GetBuffer());
+		DeferredGeometryTerrainPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (DeferredGeometryTerrainPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer2.GetBuffer();
+
+		textureData->gShadowMap = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
+		textureData->gHeightMap = reinterpret_cast<uint64_t>(m_heightMapTex->GetTexture());
+		textureData->gLayerMapArray = reinterpret_cast<uint64_t>(m_layerMapArrayTex->GetTexture());
+		textureData->gBlendMap = reinterpret_cast<uint64_t>(m_blendMapTex->GetTexture());
+
+		cmd.cbuffers.push_back(std::move(cbuffer2));
+		break;
 	}
 	}
 
@@ -446,12 +450,17 @@ void Terrain::GatherShadowDrawCall() {
 	}
 	case RenderBackend::OPENGL4:
 	{
-		// OPENGL_TEXTURE
-		//perObjData->gShadowMap = LightManager::Instance()->m_shadowMap->GetDepthTex();
-		//perObjData->gHeightMap = m_heightMapTex->GetTexture();
-		//perObjData->gLayerMapArray = m_layerMapArrayTex->GetTexture();
-		//perObjData->gBlendMap = m_blendMapTex->GetTexture();
-		//break;
+		ConstantBuffer cbuffer2(2, sizeof(TerrainShadowMapEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), (void*)effect->m_textureCB->GetBuffer());
+		TerrainShadowMapEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (TerrainShadowMapEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer2.GetBuffer();
+
+		textureData->gShadowMap = LightManager::Instance()->m_shadowMap->GetDepthTex();
+		textureData->gHeightMap = reinterpret_cast<uint64_t>(m_heightMapTex->GetTexture());
+		textureData->gLayerMapArray = reinterpret_cast<uint64_t>(m_layerMapArrayTex->GetTexture());
+		textureData->gBlendMap = reinterpret_cast<uint64_t>(m_blendMapTex->GetTexture());
+
+		cmd.cbuffers.push_back(std::move(cbuffer2));
+
+		break;
 	}
 	}
 

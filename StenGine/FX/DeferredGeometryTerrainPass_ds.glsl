@@ -44,12 +44,6 @@ layout(std140) uniform ubPerObj {
 
 	Material gMat;
 	vec4 DiffX_NormY_ShadZ;
-	
-	sampler2D		gShadowMap;
-	samplerCube		gCubeMap;
-	sampler2D		gHeightMap;
-	sampler2DArray	gLayerMapArray;
-	sampler2D		gBlendMap;
 };
 
 layout(std140) uniform ubPerFrame{
@@ -78,6 +72,14 @@ layout(std140) uniform ubPerFrame{
 
 	vec2 pad2;
 	vec4 gWorldFrustumPlanes[6];
+};
+
+layout(std140) uniform ubTextures {	
+	sampler2D		gShadowMap;
+	samplerCube		gCubeMap;
+	sampler2D		gHeightMap;
+	sampler2DArray	gLayerMapArray;
+	sampler2D		gBlendMap;
 };
 
 void main()

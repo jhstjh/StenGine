@@ -56,10 +56,11 @@ class Renderer {
 public:
 	static Renderer* Create(HINSTANCE hInstance, HWND hMainWnd);
 	static Renderer* Instance() { return _instance; }
+	static void SetRenderBackend(RenderBackend backend) { _backend = backend; }
 
 	static RenderBackend GetRenderBackend()
 	{
-		return RenderBackend::D3D11;
+		return _backend;
 	}
 
 	virtual ~Renderer() = default;
@@ -88,6 +89,7 @@ public:
 
 protected:
 	static Renderer* _instance;
+	static RenderBackend _backend;
 };
 
 }

@@ -7,15 +7,13 @@
 
 #include <stdint.h>
 
-#if 0
-
 namespace StenGine
 {
 
-class ImGuiMenuImpl : public ImGuiMenu
+class GLImGuiMenuImpl : public ImGuiMenu
 {
 public:
-	ImGuiMenuImpl()
+	GLImGuiMenuImpl()
 	{
 		CreateDeviceObjects();
 
@@ -27,7 +25,7 @@ public:
 		io.RenderDrawListsFn = _RenderDrawLists;
 	}
 
-	~ImGuiMenuImpl()
+	~GLImGuiMenuImpl()
 	{
 		InvalidateDeviceObjects();
 	}
@@ -68,7 +66,7 @@ public:
 		viewport.Width = static_cast<float>(fb_width);
 		viewport.Height = static_cast<float>(fb_height);
 
-		stateCmd.framebuffer = 0;
+		stateCmd.framebuffer = &m_defaultRT;
 
 		Renderer::Instance()->AddDeferredDrawCmd(stateCmd);
 
@@ -135,10 +133,14 @@ public:
 					ConstantBuffer cbuffer0(0, sizeof(ImGuiEffect::IMGUI_CONSTANT_BUFFER), (void*)effect->m_imguiCB->GetBuffer());
 					ImGuiEffect::IMGUI_CONSTANT_BUFFER* imguiData = (ImGuiEffect::IMGUI_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 
-					imguiData->Texture = (uint64_t)pcmd->TextureId;
+					ConstantBuffer cbuffer1(1, sizeof(ImGuiEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), (void*)effect->m_textureCB->GetBuffer());
+					ImGuiEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (ImGuiEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
+
+					textureData->Texture = (uint64_t)pcmd->TextureId;
 					imguiData->ProjMtx = ortho_projection;
 
 					cmd.cbuffers.push_back(std::move(cbuffer0));
+					cmd.cbuffers.push_back(std::move(cbuffer1));
 					cmd.drawType = DrawType::INDEXED;
 					cmd.type = PrimitiveTopology::TRIANGLELIST;
 					cmd.vertexBuffer = (void*)m_vbo;
@@ -210,6 +212,8 @@ private:
 		glCreateBuffers(1, &m_vbo);
 		glCreateBuffers(1, &m_ibo);
 
+		m_defaultRT.Set(0);
+
 		return true;
 	}
 
@@ -279,10 +283,17 @@ private:
 
 	GLuint		 m_vbo;
 	GLuint		 m_ibo;
+
+	RenderTarget m_defaultRT;
 };
 
-DEFINE_ABSTRACT_SINGLETON_CLASS(ImGuiMenu, ImGuiMenuImpl)
-
+namespace detail
+{
+ImGuiMenu* CreateOpenGLImGuiMenu()
+{
+	auto imguiMenu = new GLImGuiMenuImpl();
+	return static_cast<ImGuiMenu*>(imguiMenu);
+}
 }
 
-#endif
+}

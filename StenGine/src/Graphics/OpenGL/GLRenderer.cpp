@@ -1,4 +1,4 @@
-﻿#if 0
+﻿#if 1
 
 #include "Graphics/OpenGL/GLRenderer.h"
 
@@ -134,6 +134,8 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		glClearDepth(1.0f);
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 		
+		m_defaultRT.Set(0);
+
 		/***************GBUFFER FB*********************/
 		GLuint gbuffer;
 		glCreateFramebuffers(1, &gbuffer);
@@ -555,9 +557,9 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		DrawDeferredShading();
 		m_SkyBox->Draw();
 		DrawBlurSSAOAndCombine();
-		// TODO put every graphics call into cmdlist
-		
-		//DrawGodRay();
+		//// TODO put every graphics call into cmdlist
+		//
+		////DrawGodRay();
 		DrawDebug();
 		
 		// TEST
@@ -565,7 +567,6 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		//ImGui::ShowTestWindow();
 		GameObjectManager::Instance()->DrawMenu();
 		ImGui::Render();
-		
 		
 		EndFrame();
 	}
@@ -670,11 +671,15 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		ConstantBuffer cbuffer0(0, sizeof(DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB->GetBuffer());
 		DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER* perFrameData = (DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 
-		perFrameData->NormalGMap = m_normalBufferTexHandle;
-		perFrameData->DiffuseGMap = m_diffuseBufferTexHandle;//LightManager::Instance()->m_shadowMap->GetDepthTex();//
-		perFrameData->SpecularGMap = m_specularBufferTexHandle;
-		perFrameData->DepthGMap = m_depthBufferTexHandle;
-		perFrameData->RandVectMap = m_randVecTexHandle;
+		ConstantBuffer cbuffer1(1, sizeof(DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), (void*)effect->m_textureCB->GetBuffer());
+		DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
+
+
+		textureData->NormalGMap = m_normalBufferTexHandle;
+		textureData->DiffuseGMap = m_diffuseBufferTexHandle;//LightManager::Instance()->m_shadowMap->GetDepthTex();//
+		textureData->SpecularGMap = m_specularBufferTexHandle;
+		textureData->DepthGMap = m_depthBufferTexHandle;
+		textureData->RandVectMap = m_randVecTexHandle;
 
 		XMMATRIX &viewMat = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
 		XMMATRIX viewInvTranspose = MatrixHelper::InverseTranspose(viewMat);
@@ -697,6 +702,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		cmd.effect = effect;
 		cmd.elementCount = 6;
 		cmd.cbuffers.push_back(std::move(cbuffer0));
+		cmd.cbuffers.push_back(std::move(cbuffer1));
 
 		m_drawList.push_back(std::move(cmd));
 	}
@@ -717,7 +723,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		cmd.inputLayout = (void*)m_screenQuadVAO;
 		cmd.vertexBuffer = 0; // don't bind if 0
 		cmd.type = PrimitiveTopology::TRIANGLELIST;
-		cmd.framebuffer = 0;
+		cmd.framebuffer = &m_defaultRT;
 		cmd.offset = (void*)(0);
 		cmd.effect = blurEffect;
 		cmd.elementCount = 6;
@@ -725,11 +731,15 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		ConstantBuffer cbuffer0(0, sizeof(BlurEffect::SETTING_CONSTANT_BUFFER), (void*)blurEffect->m_settingCB->GetBuffer());
 		BlurEffect::SETTING_CONSTANT_BUFFER* settingData = (BlurEffect::SETTING_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 
-		settingData->ScreenMap = m_deferredShadingTexHandle;
-		settingData->SSAOMap = m_computeOutputHandle[1];
-		settingData->DepthMap = m_depthBufferTexHandle;
+		ConstantBuffer cbuffer1(1, sizeof(BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), (void*)blurEffect->m_textureCB->GetBuffer());
+		BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
+
+		textureData->ScreenMap = m_deferredShadingTexHandle;
+		textureData->SSAOMap = m_computeOutputHandle[1];
+		textureData->DepthMap = m_depthBufferTexHandle;
 		//settingData->BloomMap = NOT_USED;
 		cmd.cbuffers.push_back(std::move(cbuffer0));
+		cmd.cbuffers.push_back(std::move(cbuffer1));
 
 		AddDeferredDrawCmd(cmd);
 	}

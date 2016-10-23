@@ -146,25 +146,28 @@ void SkinnedMesh::GatherDrawCall()
 			}
 			case RenderBackend::OPENGL4:
 			{
-				// OPENGL_TEXTURE
-				// if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex > 0)
-				// {
-				// 	resourceMask.x = 1;
-				// 	perObjData->DiffuseMap = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture();
-				// }
-				// if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex > 0)
-				// {
-				// 	resourceMask.y = 1;
-				// 	perObjData->NormalMap = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture();
-				// }
-				// {
-				// 	cmd.type = PrimitiveTopology::TRIANGLELIST;
-				// }
-				// perObjData->ShadowMapTex = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
-				// perObjData->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;
-				// 
-				// cmd.offset = (void*)(startIndex * sizeof(unsigned int));
-				// break;
+				ConstantBuffer cbuffer2(2, sizeof(DeferredSkinnedGeometryPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), (void*)effect->m_textureCB->GetBuffer());
+				DeferredSkinnedGeometryPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (DeferredSkinnedGeometryPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer2.GetBuffer();
+
+				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex > 0)
+				{
+					resourceMask.x = 1;
+					textureData->DiffuseMap = reinterpret_cast<uint64_t>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture());
+				}
+				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex > 0)
+				{
+					resourceMask.y = 1;
+					textureData->NormalMap = reinterpret_cast<uint64_t>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture());
+				}
+				{
+					cmd.type = PrimitiveTopology::TRIANGLELIST;
+				}
+				textureData->ShadowMapTex = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
+				textureData->CubeMapTex = Renderer::Instance()->GetSkyBox()->m_cubeMapTex;
+
+				cmd.offset = (void*)(startIndex * sizeof(unsigned int));
+				cmd.cbuffers.push_back(std::move(cbuffer2));
+				break;
 			}
 			}
 

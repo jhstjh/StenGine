@@ -523,6 +523,9 @@
     <ClInclude Include="include\Graphics\D3D11\D3D11UAVBinding.h">
       <Filter>include\Graphics\D3D11</Filter>
     </ClInclude>
+    <ClInclude Include="include\Utility\CommandlineParser.h">
+      <Filter>include\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -670,6 +673,12 @@
       <Filter>src\Graphics\D3D11</Filter>
     </ClCompile>
     <ClCompile Include="src\Utility\FbxReaderSG.cpp">
+      <Filter>src\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\UI\ImGuiMenu.cpp">
+      <Filter>src\Graphics\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utility\CommandlineParser.cpp">
       <Filter>src\Utility</Filter>
     </ClCompile>
   </ItemGroup>

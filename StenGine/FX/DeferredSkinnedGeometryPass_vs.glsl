@@ -24,26 +24,29 @@ struct DirectionalLight {
 
 layout(std140) uniform ubPerObj
 {
-	//mat4 gMatrixpalette[64]; // TODO move to SSBO
 	mat4 gWorldViewProj;
-	mat4 gWorld;
+	mat4 pad0;
+	mat4 pad1;
 	mat4 gWorldView;
+	mat4 gWorld;
 	mat4 gViewProj;
 	mat4 gShadowTransform;
 	Material gMat;
 	vec4 DiffX_NormY_ShadZ;
-	
-	sampler2D gDiffuseMap;
-	sampler2D gNormalMap;
-	sampler2D gShadowMap;
-	sampler2D gBumpMap;
-	samplerCube gCubeMap;
 };
 
 layout(std140) uniform ubPerFrame
 {
 	vec4 gEyePosW;
-	DirectionalLight gDirLight;
+};
+
+layout(std140) uniform ubTextures
+{
+	sampler2D gDiffuseMap;
+	sampler2D gNormalMap;
+	sampler2D gShadowMap;
+	sampler2D gBumpMap;
+	samplerCube gCubeMap;
 };
 
 layout(std430, binding = 15) buffer MatrixPalette

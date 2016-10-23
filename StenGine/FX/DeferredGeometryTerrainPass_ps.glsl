@@ -41,7 +41,9 @@ layout(std140) uniform ubPerObj {
 
 	Material gMat;
 	vec4 DiffX_NormY_ShadZ;
-	
+};
+
+layout(std140) uniform ubTextures {	
 	sampler2D		gShadowMap;
 	samplerCube		gCubeMap;
 	sampler2D		gHeightMap;

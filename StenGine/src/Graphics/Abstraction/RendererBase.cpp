@@ -1,10 +1,12 @@
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Graphics/D3D11/D3D11Renderer.h"
+#include "Graphics/OpenGL/GLRenderer.h"
 
 namespace StenGine
 {
 
 Renderer* Renderer::_instance = nullptr;
+RenderBackend Renderer::_backend = RenderBackend::D3D11;
 
 Renderer* Renderer::Create(HINSTANCE hInstance, HWND hMainWnd)
 {
@@ -17,8 +19,11 @@ Renderer* Renderer::Create(HINSTANCE hInstance, HWND hMainWnd)
 		break;
 	}
 	case RenderBackend::OPENGL4:
-		//	mImpl = std::make_unique<GLConstantBuffer>(index, size, bufferName);
+	{
+		GLRenderer* renderer = new GLRenderer(hInstance, hMainWnd);
+		_instance = static_cast<Renderer*>(renderer);
 		break;
+	}
 	}
 	return _instance;
 }

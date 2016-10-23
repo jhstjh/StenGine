@@ -1,6 +1,5 @@
 #pragma once
 
-#include "System/SingletonClass.h"
 #include "Windows.h"
 
 struct ImDrawData;
@@ -8,11 +7,13 @@ struct ImDrawData;
 namespace StenGine
 {
 
-class ImGuiMenu : public AbstractSingletonClass<ImGuiMenu>
+class ImGuiMenu 
 {
 public:
 	virtual void RenderDrawLists(ImDrawData* draw_data) = 0;
 	static ImGuiMenu* Instance();
+	static bool Created() { return _instance != nullptr; }
+	static ImGuiMenu* _instance;
 
 	virtual bool HandleMsg(UINT msg, WPARAM wParam, LPARAM lParam) = 0;
 };

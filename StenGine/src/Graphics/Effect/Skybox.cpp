@@ -142,8 +142,12 @@ void Skybox::Draw() {
 		cmd.drawType = DrawType::INDEXED;
 		cmd.inputLayout = (void*)m_skyboxVAO;
 		
-		// OPENGL_TEXTURE
-		//perObjData->gCubeMap = m_cubeMapTex;
+		ConstantBuffer cbuffer1(1, sizeof(SkyboxEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), (void*)skyboxEffect->m_textureCB->GetBuffer());
+		SkyboxEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (SkyboxEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
+
+		textureData->gCubeMap = m_cubeMapTex;
+
+		cmd.cbuffers.push_back(std::move(cbuffer1));
 	}
 
 	cmd.offset = 0;

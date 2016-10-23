@@ -4,6 +4,10 @@
 layout(std140) uniform imGuiCB
 {
 	mat4	  ProjMtx;
+};
+
+layout(std140) uniform ubTextures
+{
 	sampler2D Texture;
 };
 

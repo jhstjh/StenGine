@@ -45,13 +45,13 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)lib;$(SolutionDir)External\FBXSDK\lib\vs2013\x64\debug;$(LibraryPath)</LibraryPath>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\D3D11\</OutDir>
-    <IntDir>$(Platform)\$(Configuration)\D3D11\</IntDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\D3D11\</OutDir>
-    <IntDir>$(Platform)\$(Configuration)\D3D11\</IntDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)lib;$(SolutionDir)External\FBXSDK\lib\vs2013\x64\release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
@@ -380,6 +380,7 @@
     <ClInclude Include="include\System\API\PlatformAPIDefs.h" />
     <ClInclude Include="include\System\SingletonClass.h" />
     <ClInclude Include="include\targetver.h" />
+    <ClInclude Include="include\Utility\CommandlineParser.h" />
     <ClInclude Include="include\Utility\FbxReaderSG.h" />
     <ClInclude Include="include\Utility\ObjReader.h" />
     <ClInclude Include="include\Utility\SgmReader.h" />
@@ -415,6 +416,7 @@
     <ClCompile Include="src\Graphics\OpenGL\GLUAVBinding.cpp" />
     <ClCompile Include="src\Graphics\UI\D3D11ImGuiMenu.cpp" />
     <ClCompile Include="src\Graphics\UI\GLImGuiMenu.cpp" />
+    <ClCompile Include="src\Graphics\UI\ImGuiMenu.cpp" />
     <ClCompile Include="src\Input\InputManager.cpp" />
     <ClCompile Include="src\Mesh\MeshPrimitives.cpp" />
     <ClCompile Include="src\Mesh\MeshRenderer.cpp" />
@@ -432,6 +434,7 @@
     <ClCompile Include="src\stdafx.cpp" />
     <ClCompile Include="src\StenGine.cpp" />
     <ClCompile Include="src\System\GameObjectManager.cpp" />
+    <ClCompile Include="src\Utility\CommandlineParser.cpp" />
     <ClCompile Include="src\Utility\FbxReaderSG.cpp" />
     <ClCompile Include="src\Utility\ObjReader.cpp" />
     <ClCompile Include="src\Utility\SgmReader.cpp" />

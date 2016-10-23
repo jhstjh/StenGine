@@ -42,6 +42,9 @@ layout(std140) uniform ubPerFrame {
 	vec4 gEyePosV;
 	mat4 gProjInv;
 	mat4 gProj;
+};
+
+layout(std140) uniform ubTextures {
 	sampler2D gNormalGMap;
 	sampler2D gDiffuseGMap;
 	sampler2D gSpecularGMap;

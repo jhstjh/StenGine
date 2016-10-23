@@ -9,10 +9,10 @@
 namespace StenGine
 {
 
-class ImGuiMenuImpl : public ImGuiMenu
+class D3D11ImGuiMenuImpl : public ImGuiMenu
 {
 public:
-	ImGuiMenuImpl()
+	D3D11ImGuiMenuImpl()
 	{
 		CreateDeviceObjects();
 
@@ -24,7 +24,7 @@ public:
 		io.RenderDrawListsFn = _RenderDrawLists;
 	}
 
-	~ImGuiMenuImpl()
+	~D3D11ImGuiMenuImpl()
 	{
 		InvalidateDeviceObjects();
 	}
@@ -324,6 +324,13 @@ private:
 	uint32_t			 m_ibSize = 0;
 };
 
-DEFINE_ABSTRACT_SINGLETON_CLASS(ImGuiMenu, ImGuiMenuImpl)
+namespace detail
+{
+ImGuiMenu* CreateD3D11ImGuiMenu()
+{
+	auto imguiMenu = new D3D11ImGuiMenuImpl();
+	return static_cast<ImGuiMenu*>(imguiMenu);
+}
+}
 
 }

@@ -146,10 +146,10 @@ Effect::Effect(const std::wstring& vsPath,
 		if (vsPath.length()) {
 			(ReadShaderFile(vsPath, shaderbuffer, 1024 * 256));
 			m_glvertexShader = glCreateShader(GL_VERTEX_SHADER);
+
 			p = (const GLchar*)shaderbuffer;
 			glShaderSource(m_glvertexShader, 1, &p, NULL);
 			glCompileShader(m_glvertexShader);
-
 			/* check for shader compile errors - very important! */
 
 			glGetShaderiv(m_glvertexShader, GL_COMPILE_STATUS, &params);
@@ -236,7 +236,6 @@ Effect::Effect(const std::wstring& vsPath,
 			p = (const GLchar*)shaderbuffer;
 			glShaderSource(m_glpixelShader, 1, &p, NULL);
 			glCompileShader(m_glpixelShader);
-
 			/* check for shader compile errors - very important! */
 
 			glGetShaderiv(m_glpixelShader, GL_COMPILE_STATUS, &params);
@@ -324,6 +323,7 @@ Effect::Effect(const std::wstring& vsPath,
 		}
 
 		glValidateProgram(m_shaderProgram);
+
 		glGetProgramiv(m_shaderProgram, GL_VALIDATE_STATUS, &params);
 		printf("program %i GL_VALIDATE_STATUS = %i\n", m_shaderProgram, params);
 		if (GL_TRUE != params) {
@@ -497,6 +497,10 @@ ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
 		glEnableVertexArrayAttrib(m_glinputLayout, 0);
 		glVertexArrayAttribFormat(m_glinputLayout, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Pos));
 		glVertexArrayAttribBinding(m_glinputLayout, 0, 0);
+
+		GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
+		glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
+
 		break;
 	}
 	}
@@ -644,6 +648,7 @@ DeferredSkinnedGeometryPassEffect::~DeferredSkinnedGeometryPassEffect()
 		break;
 	case RenderBackend::OPENGL4:
 		glDeleteVertexArrays(1, &m_glinputLayout);
+		SafeDelete(m_textureCB);
 		break;
 	}
 
@@ -710,8 +715,11 @@ void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
 		GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
 		glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
 
-		//glCreateBuffers(1, &m_matrixPaletteSB);
-		//glNamedBufferStorage(m_matrixPaletteSB, sizeof(XMMATRIX) * 64, nullptr, GL_MAP_WRITE_BIT); // alloc a buffer of up to 64 joint;
+		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
+		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 2);
+
+		m_textureCB = new GPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+
 		break;
 	}
 	}
@@ -753,6 +761,17 @@ DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filenam
 		ReleaseCOM(m_csBlob);
 		break;
 	}
+	case RenderBackend::OPENGL4:
+	{
+		GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
+		glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 0);
+
+		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
+		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 1);
+
+		m_textureCB = new GPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		break;
+	}
 	}
 
 	m_perFrameCB = new GPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
@@ -764,6 +783,9 @@ DeferredShadingPassEffect::~DeferredShadingPassEffect()
 	{
 	case RenderBackend::D3D11:
 		ReleaseCOM(m_d3d11inputLayout);
+		break;
+	case RenderBackend::OPENGL4:
+		SafeDelete(m_textureCB);
 		break;
 	}
 
@@ -798,6 +820,17 @@ SkyboxEffect::SkyboxEffect(const std::wstring& filename)
 		ReleaseCOM(m_csBlob);
 		break;
 	}
+	case RenderBackend::OPENGL4:
+	{
+		GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
+		glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
+
+		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
+		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 1);
+
+		m_textureCB = new GPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		break;
+	}
 	}
 
 	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
@@ -810,6 +843,11 @@ SkyboxEffect::~SkyboxEffect()
 	case RenderBackend::D3D11:
 	{
 		ReleaseCOM(m_d3d11inputLayout);
+		break;
+	}
+	case RenderBackend::OPENGL4:
+	{
+		SafeDelete(m_textureCB);
 		break;
 	}
 	}
@@ -953,6 +991,12 @@ DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::
 
 		GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
 		glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
+
+		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
+		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 2);
+
+		m_textureCB = new GPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+
 		break;
 	}
 	}
@@ -974,6 +1018,7 @@ DeferredGeometryTerrainPassEffect::~DeferredGeometryTerrainPassEffect()
 	case RenderBackend::OPENGL4:
 	{
 		glDeleteVertexArrays(1, &m_glinputLayout);
+		SafeDelete(m_textureCB);
 		break;
 	}
 	}
@@ -1041,6 +1086,12 @@ TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
 
 		GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
 		glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
+
+		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
+		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 2);
+
+		m_textureCB = new GPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+
 		break;
 	}
 	}
@@ -1061,6 +1112,7 @@ TerrainShadowMapEffect::~TerrainShadowMapEffect()
 	}
 	case RenderBackend::OPENGL4:
 	{
+		SafeDelete(m_textureCB);
 		glDeleteVertexArrays(1, &m_glinputLayout);
 		break;
 	}
@@ -1123,6 +1175,12 @@ ImGuiEffect::ImGuiEffect(const std::wstring& filename)
 
 		GLint imguiUBOPos = glGetUniformBlockIndex(m_shaderProgram, "imGuiCB");
 		glUniformBlockBinding(m_shaderProgram, imguiUBOPos, 0);
+
+		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
+		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 1);
+
+		m_textureCB = new GPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+
 		break;
 	}
 	}
@@ -1142,6 +1200,7 @@ ImGuiEffect::~ImGuiEffect()
 	}
 	case RenderBackend::OPENGL4:
 	{
+		SafeDelete(m_textureCB);
 		glDeleteVertexArrays(1, &m_glinputLayout);
 		break;
 	}
@@ -1180,6 +1239,12 @@ BlurEffect::BlurEffect(const std::wstring& filename)
 	{
 		GLint settingCBPos = glGetUniformBlockIndex(m_shaderProgram, "cbSettings");
 		glUniformBlockBinding(m_shaderProgram, settingCBPos, 0);
+
+		GLint texturesCBPos = glGetUniformBlockIndex(m_shaderProgram, "cbTextures");
+		glUniformBlockBinding(m_shaderProgram, texturesCBPos, 1);
+
+		m_textureCB = new GPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+
 		break;
 	}
 	}
@@ -1194,6 +1259,11 @@ BlurEffect::~BlurEffect()
 	case RenderBackend::D3D11:
 	{
 		ReleaseCOM(m_d3d11inputLayout);
+		break;
+	}
+	case RenderBackend::OPENGL4:
+	{
+		SafeDelete(m_textureCB);
 		break;
 	}
 	}

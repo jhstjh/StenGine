@@ -4,6 +4,7 @@
 #include "windowsX.h"
 #include "stdafx.h"
 #include "StenGine.h"
+#include "Utility/CommandlineParser.h"
 
 #include "Engine/EngineBase.h"
 
@@ -16,6 +17,9 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
+
+	std::unique_ptr<StenGine::CommandlineParser> cmdParser = std::unique_ptr<StenGine::CommandlineParser>(StenGine::CommandlineParser::Instance());
+	cmdParser->Init(lpCmdLine);
 
 	std::unique_ptr<StenGine::EngineBase> engine = std::make_unique<StenGine::EngineBase>();
 	

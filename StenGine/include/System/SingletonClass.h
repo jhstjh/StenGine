@@ -34,13 +34,16 @@ protected:
 	static T* _instance;
 
 public:
-	static T* Instance();
 
 	static bool Created()
 	{
 		return _instance != nullptr;
 	}
 };
+
+#define DECLARE_ABSTRACT_SINGLETON_CLASS(BASE) \
+	static BASE* _instance; \
+	static BASE* Instance();\
 
 
 #define DEFINE_ABSTRACT_SINGLETON_CLASS(BASE, DERIVED) \

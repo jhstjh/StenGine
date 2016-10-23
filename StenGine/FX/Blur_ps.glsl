@@ -7,6 +7,9 @@ out vec4 ps_color;
 layout(std140) uniform cbSettings {
 	vec2 texOffset;
 	vec2 pad;
+};
+
+layout(std140) uniform cbTextures {
 	sampler2D gScreenMap;
 	sampler2D gSSAOMap;
 	sampler2D gBloomMap;
