@@ -54,7 +54,7 @@ using DrawEventHandler = std::function<void()>;
 
 class Renderer {
 public:
-	static Renderer* Create(HINSTANCE hInstance, HWND hMainWnd);
+	static std::unique_ptr<Renderer> Create(HINSTANCE hInstance, HWND hMainWnd);
 	static Renderer* Instance() { return _instance; }
 	static void SetRenderBackend(RenderBackend backend) { _backend = backend; }
 

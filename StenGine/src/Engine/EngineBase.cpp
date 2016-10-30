@@ -12,9 +12,8 @@ EngineBase::EngineBase()
 
 EngineBase::~EngineBase()
 {
-	SafeRelease(m_renderer);
-}
 
+}
 
 BOOL EngineBase::CreateWindowInstance(int32_t w, int32_t h, HINSTANCE hInstance/*, int nCmdShow*/, HWND &hMainWnd)
 {
@@ -23,11 +22,13 @@ BOOL EngineBase::CreateWindowInstance(int32_t w, int32_t h, HINSTANCE hInstance/
 
 	m_hInstance = hInstance; // Store instance handle in our global variable
 
-	hMainWnd = CreateWindowEx(WS_EX_CLIENTEDGE, m_szWindowClass, m_szTitle, WS_OVERLAPPEDWINDOW,
+	hMainWnd = CreateWindowEx(WS_EX_CLIENTEDGE, L"StenGine"/*m_szWindowClass*/, L"SGGame"/*m_szTitle*/, WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT, wr.right - wr.left, wr.bottom - wr.top, NULL, NULL, hInstance, NULL);
 
 	if (!hMainWnd)
 	{
+		auto error = GetLastError();
+		assert(false);
 		return FALSE;
 	}
 
@@ -67,7 +68,7 @@ ATOM EngineBase::MyRegisterClass(HINSTANCE hInstance)
 	wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	wcex.lpszMenuName = 0;
-	wcex.lpszClassName = m_szWindowClass;
+	wcex.lpszClassName = L"StenGine";//m_szWindowClass;
 	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
 	return RegisterClassEx(&wcex);
@@ -78,16 +79,26 @@ void EngineBase::Init(HINSTANCE hInstance)
 	// Initialize global strings
 	LoadString(hInstance, IDS_APP_TITLE, m_szTitle, MAX_LOADSTRING);
 	LoadString(hInstance, IDC_STENGINE, m_szWindowClass, MAX_LOADSTRING);
-	MyRegisterClass(hInstance);
+	auto ret = MyRegisterClass(hInstance);
 
-	auto backend = CommandlineParser::Instance()->GetCommand(L"-g");
-	if (_wcsicmp(backend, L"d3d11") == 0)
+	if (!ret)
+	{
+		auto error = GetLastError();
+		assert(false);
+	}
+
+	auto backend = CommandlineParser::Instance()->GetCommand("-g");
+	if (_stricmp(backend, "d3d11") == 0)
 	{
 		Renderer::SetRenderBackend(RenderBackend::D3D11);
 	}
-	else if (_wcsicmp(backend, L"gl4") == 0)
+	else if (_stricmp(backend, "gl4") == 0)
 	{
 		Renderer::SetRenderBackend(RenderBackend::OPENGL4);
+	}
+	else
+	{
+		assert(false); // Invalid argument
 	}
 
 	m_console = std::make_unique<Console>();
@@ -109,9 +120,9 @@ void EngineBase::Init(HINSTANCE hInstance)
 	m_gameObjectManager = std::unique_ptr<GameObjectManager>(GameObjectManager::Instance());
 	m_imguiMenu = std::unique_ptr<ImGuiMenu>(ImGuiMenu::Instance());
 
-	m_gameObjectManager->LoadScene();
-
 	Timer::Init();
+
+	GameInit();
 }
 
 void EngineBase::Run()
@@ -135,7 +146,7 @@ void EngineBase::Run()
 
 				std::ostringstream outs;
 				outs.precision(6);
-				outs << "StenGine    "
+				outs << "SGGame(" << CommandlineParser::Instance()->GetCommand("-g") << ")    "
 					<< "FPS: " << m_fps << "    ";
 				m_renderer->UpdateTitle(outs.str().c_str());
 				m_elaspedFrame = 0;

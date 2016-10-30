@@ -12,30 +12,30 @@ namespace StenGine
 class CommandlineParserImpl : public CommandlineParser
 {
 public:
-	void Init(const wchar_t* cmdline) final
+	void Init(const char* cmdline) final
 	{
-		wchar_t scratch[256];
-		wcscpy(scratch, cmdline);
-		std::vector<std::wstring>* currCmd = nullptr;
-		wchar_t* pch = nullptr;
-		pch = wcstok(scratch, L" ");
+		char scratch[256];
+		strcpy(scratch, cmdline);
+		std::vector<std::string>* currCmd = nullptr;
+		char* pch = nullptr;
+		pch = strtok(scratch, " ");
 		while (pch != nullptr)
 		{
 			if (pch[0] == L'-')
 			{
-				currCmd = &mCmds[std::wstring(pch)];
+				currCmd = &mCmds[std::string(pch)];
 			}
 			else
 			{
-				currCmd->push_back(std::wstring(pch));
+				currCmd->push_back(std::string(pch));
 			}
-			pch = wcstok(nullptr, L" ");
+			pch = strtok(nullptr, " ");
 		}
 	}
 
-	const wchar_t* GetCommand(const wchar_t* cmd, uint32_t index /* = 0 */) final
+	const char* GetCommand(const char* cmd, uint32_t index /* = 0 */) final
 	{
-		auto entry = mCmds.find(std::wstring(cmd));
+		auto entry = mCmds.find(std::string(cmd));
 		if (entry != mCmds.end())
 		{
 			if (index >= entry->second.size())
@@ -46,7 +46,7 @@ public:
 	}
 
 private:
-	std::unordered_map<std::wstring, std::vector<std::wstring> > mCmds;
+	std::unordered_map<std::string, std::vector<std::string> > mCmds;
 };
 
 DEFINE_ABSTRACT_SINGLETON_CLASS(CommandlineParser, CommandlineParserImpl);

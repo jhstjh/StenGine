@@ -8,10 +8,9 @@
 
 #include "Engine/EngineBase.h"
 
-int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPTSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
+extern std::unique_ptr<StenGine::EngineBase> CreateGame();
+
+int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
 
@@ -21,10 +20,10 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	std::unique_ptr<StenGine::CommandlineParser> cmdParser = std::unique_ptr<StenGine::CommandlineParser>(StenGine::CommandlineParser::Instance());
 	cmdParser->Init(lpCmdLine);
 
-	std::unique_ptr<StenGine::EngineBase> engine = std::make_unique<StenGine::EngineBase>();
+	std::unique_ptr<StenGine::EngineBase> game = CreateGame();
 	
-	engine->Init(hInstance);
-	engine->Run();
+	game->Init(hInstance);
+	game->Run();
 
 	return 0;
 }

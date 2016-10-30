@@ -45,6 +45,7 @@ D3D11Renderer::~D3D11Renderer() {
 
 		if (!createWindow(width, height, m_hInst, m_hMainWnd))
 		{
+			assert(false);
 			return false;
 		}
 

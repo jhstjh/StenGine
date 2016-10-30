@@ -441,6 +441,9 @@ void Effect::UnbindUnorderedAccessViews() {
 
 void Effect::ReadShaderFile(std::wstring filename, ID3DBlob **blob, char* target, char* entryPoint) {
 	HRESULT hr;
+
+	wprintf(L"%s\n", filename.c_str());
+
 	hr = D3DCompileFromFile(
 		filename.c_str(),
 		nullptr,
@@ -734,7 +737,7 @@ void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
 
 
 DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filename)
-	: Effect(std::wstring(L"FX/ScreenQuad_vs") + GetExt(), filename + L"_ps" + GetExt())
+	: Effect(std::wstring(L"../StenGine/FX/ScreenQuad_vs") + GetExt(), filename + L"_ps" + GetExt())
 {
 	switch (Renderer::GetRenderBackend())
 	{
@@ -1213,7 +1216,7 @@ ImGuiEffect::~ImGuiEffect()
 
 
 BlurEffect::BlurEffect(const std::wstring& filename)
-	: Effect(std::wstring(L"FX/ScreenQuad_vs") + GetExt(), filename + L"_ps" + GetExt())
+	: Effect(std::wstring(L"../StenGine/FX/ScreenQuad_vs") + GetExt(), filename + L"_ps" + GetExt())
 {
 	switch (Renderer::GetRenderBackend())
 	{
@@ -1315,19 +1318,21 @@ EffectsManager::EffectsManager()
 	, m_debugLineEffect(nullptr)
 {
 
-	m_shadowMapEffect = std::make_unique<ShadowMapEffect>(L"FX/ShadowMap");
-	m_deferredGeometryPassEffect = std::make_unique<DeferredGeometryPassEffect>(L"FX/DeferredGeometryPass");
-	m_deferredSkinnedGeometryPassEffect = std::make_unique<DeferredSkinnedGeometryPassEffect>(L"FX/DeferredSkinnedGeometryPass");
-	m_deferredShadingPassEffect = std::make_unique<DeferredShadingPassEffect>(L"FX/DeferredShadingPass");
-	m_deferredGeometryTessPassEffect = std::make_unique<DeferredGeometryTessPassEffect>(L"FX/DeferredGeometryTessPass");
-	m_skyboxEffect = std::make_unique<SkyboxEffect>(L"FX/Skybox");
-	m_debugLineEffect = std::make_unique<DebugLineEffect>(L"FX/DebugLine");
-	m_deferredGeometryTerrainPassEffect = std::make_unique<DeferredGeometryTerrainPassEffect>(L"FX/DeferredGeometryTerrainPass");
-	m_terrainShadowMapEffect = std::make_unique<TerrainShadowMapEffect>(L"FX/DeferredGeometryTerrainPass");
-	m_vblurEffect = std::make_unique<VBlurEffect>(L"FX/VBlur");
-	m_hblurEffect = std::make_unique<HBlurEffect>(L"FX/HBlur");
-	m_blurEffect = std::make_unique<BlurEffect>(L"FX/Blur");
-	m_imguiEffect = std::make_unique<ImGuiEffect>(L"FX/imgui");
+	// TODO, add a function to get FX directory
+
+	m_shadowMapEffect = std::make_unique<ShadowMapEffect>(L"../StenGine/FX/ShadowMap");
+	m_deferredGeometryPassEffect = std::make_unique<DeferredGeometryPassEffect>(L"../StenGine/FX/DeferredGeometryPass");
+	m_deferredSkinnedGeometryPassEffect = std::make_unique<DeferredSkinnedGeometryPassEffect>(L"../StenGine/FX/DeferredSkinnedGeometryPass");
+	m_deferredShadingPassEffect = std::make_unique<DeferredShadingPassEffect>(L"../StenGine/FX/DeferredShadingPass");
+	m_deferredGeometryTessPassEffect = std::make_unique<DeferredGeometryTessPassEffect>(L"../StenGine/FX/DeferredGeometryTessPass");
+	m_skyboxEffect = std::make_unique<SkyboxEffect>(L"../StenGine/FX/Skybox");
+	m_debugLineEffect = std::make_unique<DebugLineEffect>(L"../StenGine/FX/DebugLine");
+	m_deferredGeometryTerrainPassEffect = std::make_unique<DeferredGeometryTerrainPassEffect>(L"../StenGine/FX/DeferredGeometryTerrainPass");
+	m_terrainShadowMapEffect = std::make_unique<TerrainShadowMapEffect>(L"../StenGine/FX/DeferredGeometryTerrainPass");
+	m_vblurEffect = std::make_unique<VBlurEffect>(L"../StenGine/FX/VBlur");
+	m_hblurEffect = std::make_unique<HBlurEffect>(L"../StenGine/FX/HBlur");
+	m_blurEffect = std::make_unique<BlurEffect>(L"../StenGine/FX/Blur");
+	m_imguiEffect = std::make_unique<ImGuiEffect>(L"../StenGine/FX/imgui");
 }
 
 EffectsManager::~EffectsManager()

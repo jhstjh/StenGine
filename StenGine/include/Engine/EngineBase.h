@@ -10,8 +10,10 @@
 #include "Utility/Timer.h"
 #include "Engine/Console.h"
 #include "Engine/EventSystem.h"
+#include "Mesh/Terrain.h"
 
 #include <Windows.h>
+
 
 namespace StenGine
 {
@@ -27,7 +29,9 @@ public:
 	void Init(HINSTANCE hInstance);
 	void Run();
 
-private:
+	virtual void GameInit() = 0;
+
+protected:
 	ATOM MyRegisterClass(HINSTANCE hInstance);
 	BOOL CreateWindowInstance(int32_t w, int32_t h, HINSTANCE hInstance/*, int nCmdShow*/, HWND &hMainWnd);
 
@@ -46,7 +50,7 @@ private:
 	std::unique_ptr<ImGuiMenu> m_imguiMenu;
 	std::unique_ptr<Console> m_console;
 
-	Renderer* m_renderer;
+	std::unique_ptr<Renderer> m_renderer;
 
 	float m_fps;
 	float m_elapsedTime = 0;

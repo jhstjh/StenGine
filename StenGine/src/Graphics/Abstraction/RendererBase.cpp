@@ -8,7 +8,7 @@ namespace StenGine
 Renderer* Renderer::_instance = nullptr;
 RenderBackend Renderer::_backend = RenderBackend::D3D11;
 
-Renderer* Renderer::Create(HINSTANCE hInstance, HWND hMainWnd)
+std::unique_ptr<Renderer> Renderer::Create(HINSTANCE hInstance, HWND hMainWnd)
 {
 	switch (Renderer::GetRenderBackend())
 	{
@@ -25,7 +25,8 @@ Renderer* Renderer::Create(HINSTANCE hInstance, HWND hMainWnd)
 		break;
 	}
 	}
-	return _instance;
+
+	return std::move(std::unique_ptr<Renderer>(_instance));
 }
 
 }

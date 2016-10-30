@@ -16,7 +16,7 @@ public:
 	void Update();
 
 	void DrawMenu();
-
+	void Add(GameObject* gameObject) { m_gameObjects.push_back(gameObject); }
 private:
 	std::vector<GameObject*> m_gameObjects;
 };
