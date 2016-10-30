@@ -132,9 +132,25 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\GameObject\Box.cpp" />
+    <ClCompile Include="src\GameObject\Dragon.cpp" />
+    <ClCompile Include="src\GameObject\GameTerrain.cpp" />
+    <ClCompile Include="src\GameObject\House.cpp" />
+    <ClCompile Include="src\GameObject\Plane.cpp" />
+    <ClCompile Include="src\GameObject\Plant.cpp" />
+    <ClCompile Include="src\GameObject\Sphere.cpp" />
+    <ClCompile Include="src\GameObject\zombie.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Game.h" />
+    <ClInclude Include="include\GameObject\box.h" />
+    <ClInclude Include="include\GameObject\Dragon.h" />
+    <ClInclude Include="include\GameObject\GameTerrain.h" />
+    <ClInclude Include="include\GameObject\House.h" />
+    <ClInclude Include="include\GameObject\Plane.h" />
+    <ClInclude Include="include\GameObject\Plant.h" />
+    <ClInclude Include="include\GameObject\sphere.h" />
+    <ClInclude Include="include\GameObject\zombie.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

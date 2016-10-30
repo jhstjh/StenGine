@@ -24,10 +24,58 @@
     <ClInclude Include="resource.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\GameObject\box.h">
+      <Filter>include\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GameObject\sphere.h">
+      <Filter>include\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GameObject\zombie.h">
+      <Filter>include\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GameObject\Plane.h">
+      <Filter>include\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GameObject\Plant.h">
+      <Filter>include\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GameObject\House.h">
+      <Filter>include\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GameObject\Dragon.h">
+      <Filter>include\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GameObject\GameTerrain.h">
+      <Filter>include\GameObject</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Game.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameObject\Box.cpp">
+      <Filter>src\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameObject\Sphere.cpp">
+      <Filter>src\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameObject\zombie.cpp">
+      <Filter>src\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameObject\Plane.cpp">
+      <Filter>src\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameObject\Plant.cpp">
+      <Filter>src\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameObject\House.cpp">
+      <Filter>src\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameObject\Dragon.cpp">
+      <Filter>src\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameObject\GameTerrain.cpp">
+      <Filter>src\GameObject</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
