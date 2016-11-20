@@ -21,6 +21,8 @@
 #include <memory>
 #include <iostream>
 #include <unordered_map>
+#include <atomic>
+#include <thread>
 
 //TEST
 #include "Scene/GameObjectManager.h"
@@ -70,7 +72,7 @@ public:
 
 	void EnterFrame();
 
-	void EndFrame();
+	virtual void EndFrame() override;
 
 	virtual void DrawShadowMap() override;
 
@@ -97,6 +99,10 @@ public:
 	virtual void AddDraw(DrawEventHandler handler) override;
 
 	virtual void AddShadowDraw(DrawEventHandler handler) override;
+
+	virtual void AcquireContext() override;
+
+	virtual void ReleaseContext() override;
 
 private:
 	int m_clientWidth;
@@ -140,7 +146,11 @@ private:
 	GLuint m_debugCoordVAO;
 	GLuint m_screenQuadVAO;
 
-	std::vector<DrawCmd> m_drawList;
+	std::vector<DrawCmd> m_drawList[2];
+	std::atomic<uint8_t> m_readIndex;
+	std::atomic<uint8_t> m_writeIndex;
+
+	std::thread::id m_contextThreadId;
 
 	uint64_t m_currentVao;
 	Effect* m_currentEffect;

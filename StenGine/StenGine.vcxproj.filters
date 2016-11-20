@@ -526,6 +526,9 @@
     <ClInclude Include="include\Utility\CommandlineParser.h">
       <Filter>include\Utility</Filter>
     </ClInclude>
+    <ClInclude Include="include\Utility\Semaphore.h">
+      <Filter>include\Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">

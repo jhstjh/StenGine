@@ -55,6 +55,9 @@ public:
 	virtual RenderTarget &GetGbuffer();
 	virtual void AddDraw(DrawEventHandler handler);
 	virtual void AddShadowDraw(DrawEventHandler handler);
+	virtual void EndFrame() {}
+	virtual void AcquireContext() {}
+	virtual void ReleaseContext() {}
 
 private:
 	int m_clientWidth;

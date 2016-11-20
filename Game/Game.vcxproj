@@ -69,11 +69,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(SolutionDir)StenGine\include\;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(SolutionDir)StenGine\include\;$(SolutionDir)External\mathfu\include\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\StenGine\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(SolutionDir)StenGine\include\;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(SolutionDir)StenGine\include\;$(SolutionDir)External\mathfu\include\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\StenGine\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

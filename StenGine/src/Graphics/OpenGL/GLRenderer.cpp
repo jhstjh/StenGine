@@ -1,6 +1,5 @@
-﻿#if 1
-
-#include "Graphics/OpenGL/GLRenderer.h"
+﻿#include "Graphics/OpenGL/GLRenderer.h"
+#include "Utility/Semaphore.h"
 
 using namespace std;
 
@@ -16,6 +15,10 @@ extern "C"
 
 namespace StenGine
 {
+
+Semaphore gPrepareDrawListSync;
+Semaphore gFinishedDrawListSync;
+
 
 void APIENTRY GLErrorCallback(GLenum source​, GLenum type​, GLuint id​, GLenum severity​, GLsizei length​, const GLchar* message​, const void* userParam​)
 {
@@ -240,6 +243,9 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 
 		EventSystem::Instance()->RegisterEventHandler(EventSystem::EventType::RENDER, [this]() {Draw(); });
 
+		m_readIndex = 0;
+		m_writeIndex = 1;
+
 		return true;
 	}
 
@@ -339,17 +345,55 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		m_renderingContext = wglCreateContextAttribsARB(m_deviceContext, 0, attributeList);
 		if (m_renderingContext == NULL)
 		{
+			assert(false);
 			return false;
 		}
 
-		wglMakeCurrent(m_deviceContext, m_renderingContext);
+		m_renderingContext = wglCreateContextAttribsARB(m_deviceContext, 0, attributeList);
+		if (m_renderingContext == NULL)
+		{
+			assert(false);
+			return false;
+		}
+
+		AcquireContext();
 
 		return true;
 	}
 
+	void GLRenderer::AcquireContext()
+	{
+		if (m_contextThreadId == std::this_thread::get_id())
+		{
+			return;
+		}
+		else
+		{
+			const std::thread::id zeroID;
+			if (m_contextThreadId == zeroID)
+			{
+				m_contextThreadId = std::this_thread::get_id();
+				wglMakeCurrent(m_deviceContext, m_renderingContext);
+			}
+			else
+			{
+				assert(0);
+			}
+		}
+
+	}
+
+	void GLRenderer::ReleaseContext()
+	{
+		assert(m_contextThreadId == std::this_thread::get_id());
+		const std::thread::id zeroID;
+		m_contextThreadId = zeroID;
+		wglMakeCurrent(nullptr, nullptr);
+	}
+
 	void GLRenderer::ExecuteCmdList()
 	{
-		for (auto &cmd : m_drawList)
+		for (auto &cmd : m_drawList[m_readIndex])
 		{
 			if (cmd.flags & CmdFlag::BIND_FB)
 			{
@@ -546,7 +590,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 			}
 		}
 
-		m_drawList.clear();
+		m_drawList[m_readIndex].clear();
 	}
 
 	void GLRenderer::Draw()  {
@@ -562,13 +606,28 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		////DrawGodRay();
 		DrawDebug();
 		
-		// TEST
-		ImGui::NewFrame();
-		//ImGui::ShowTestWindow();
-		GameObjectManager::Instance()->DrawMenu();
-		ImGui::Render();
+		// // TEST
+		// ImGui::NewFrame();
+		// //ImGui::ShowTestWindow();
+		// GameObjectManager::Instance()->DrawMenu();
+		// ImGui::Render();
+
+		// while (!gRenderFinished) {}
+
+		static bool wait = false;
+
+		if (wait)
+		{
+			gFinishedDrawListSync.wait();
+		}
+		else
+		{
+			wait = true;
+		}
 		
-		EndFrame();
+
+		m_writeIndex = std::atomic_exchange(&m_readIndex, m_writeIndex);
+		gPrepareDrawListSync.notify();
 	}
 
 	float GLRenderer::GetAspectRatio()  {
@@ -625,6 +684,8 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		ExecuteCmdList();
 
 		SwapBuffers(m_deviceContext);
+
+		gFinishedDrawListSync.notify();
 	}
 
 	void GLRenderer::DrawShadowMap()
@@ -640,7 +701,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		shadowcmd.framebuffer = &LightManager::Instance()->m_shadowMap->GetRenderTarget();
 		shadowcmd.viewport = { 0, 0, (float)width, (float)height, 0, 1 };
 
-		m_drawList.push_back(std::move(shadowcmd));
+		AddDeferredDrawCmd(std::move(shadowcmd));
 
 		for (auto &gatherShadowDrawCall : m_shadowDrawHandler)
 		{
@@ -656,7 +717,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		drawcmd.framebuffer = &m_deferredGBuffers;
 		drawcmd.viewport = { 0.f, 0.f, (float)m_clientWidth, (float)m_clientHeight, 0.f, 1.f };
 
-		m_drawList.push_back(std::move(drawcmd));
+		AddDeferredDrawCmd(std::move(drawcmd));
 
 		for (auto &gatherDrawCall : m_drawHandler)
 		{
@@ -704,7 +765,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		cmd.cbuffers.push_back(std::move(cbuffer0));
 		cmd.cbuffers.push_back(std::move(cbuffer1));
 
-		m_drawList.push_back(std::move(cmd));
+		AddDeferredDrawCmd(std::move(cmd));
 	}
 
 	void GLRenderer::DrawBlurSSAOAndCombine() {
@@ -845,13 +906,13 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 	void GLRenderer::AddDeferredDrawCmd(DrawCmd &cmd)
 	{
 		//m_deferredDrawList.push_back(std::move(cmd));
-		m_drawList.push_back(std::move(cmd));
+		m_drawList[m_writeIndex].push_back(std::move(cmd));
 	}
 
 	void GLRenderer::AddShadowDrawCmd(DrawCmd &cmd)
 	{
 		//m_shadowMapDrawList.push_back(std::move(cmd));
-		m_drawList.push_back(std::move(cmd));
+		m_drawList[m_writeIndex].push_back(std::move(cmd));
 	}
 
 	void GLRenderer::AddDraw(DrawEventHandler handler)
@@ -950,5 +1011,3 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 	}
 
 }
-
-#endif

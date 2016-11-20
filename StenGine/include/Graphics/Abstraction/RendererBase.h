@@ -86,6 +86,9 @@ public:
 	virtual RenderTarget &GetGbuffer() = 0;
 	virtual void AddDraw(DrawEventHandler handler) = 0;
 	virtual void AddShadowDraw(DrawEventHandler handler) = 0;
+	virtual void EndFrame() = 0;
+	virtual void AcquireContext() = 0;
+	virtual void ReleaseContext() = 0;
 
 protected:
 	static Renderer* _instance;

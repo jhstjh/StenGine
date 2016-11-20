@@ -43,7 +43,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(SolutionDir)External\mathfu\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)lib;$(SolutionDir)External\FBXSDK\lib\vs2013\x64\debug;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
@@ -52,7 +52,7 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(SolutionDir)External\mathfu\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)lib;$(SolutionDir)External\FBXSDK\lib\vs2013\x64\release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -389,6 +389,7 @@
     <ClInclude Include="include\Utility\CommandlineParser.h" />
     <ClInclude Include="include\Utility\FbxReaderSG.h" />
     <ClInclude Include="include\Utility\ObjReader.h" />
+    <ClInclude Include="include\Utility\Semaphore.h" />
     <ClInclude Include="include\Utility\SgmReader.h" />
     <ClInclude Include="include\Utility\Timer.h" />
   </ItemGroup>

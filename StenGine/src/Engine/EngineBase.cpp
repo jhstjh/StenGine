@@ -1,6 +1,8 @@
+#include <atomic>
 #include "Engine/EngineBase.h"
 #include "Resource.h"
 #include "Utility/CommandlineParser.h"
+#include "Utility/Semaphore.h"
 
 namespace StenGine
 {
@@ -14,6 +16,9 @@ EngineBase::~EngineBase()
 {
 
 }
+
+extern Semaphore gPrepareDrawListSync;
+extern Semaphore gFinishedDrawListSync;
 
 BOOL EngineBase::CreateWindowInstance(int32_t w, int32_t h, HINSTANCE hInstance/*, int nCmdShow*/, HWND &hMainWnd)
 {
@@ -123,11 +128,28 @@ void EngineBase::Init(HINSTANCE hInstance)
 	Timer::Init();
 
 	GameInit();
+	m_renderer->ReleaseContext();
 }
 
 void EngineBase::Run()
 {
 	MSG msg = { 0 };
+
+	std::thread renderThread{
+		[this]()
+	{
+		StenGine::Renderer::Instance()->AcquireContext();
+
+		for (;;)
+		{
+			gPrepareDrawListSync.wait();
+			if (!m_appIsRunning)
+				break;
+			StenGine::Renderer::Instance()->EndFrame();
+		}
+	}
+	};
+
 	while (!(m_appIsRunning && msg.message == WM_QUIT)) {
 		// If there are Window messages then process them.
 		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
@@ -157,6 +179,11 @@ void EngineBase::Run()
 			m_elaspedFrame++;
 		}
 	}
+
+	m_appIsRunning = false;
+	gPrepareDrawListSync.notify();
+
+	renderThread.join();
 }
 
 }
