@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "DrawCmd.h"
+#include "Utility/Semaphore.h"
 
 namespace StenGine
 {
@@ -54,7 +55,7 @@ using DrawEventHandler = std::function<void()>;
 
 class Renderer {
 public:
-	static std::unique_ptr<Renderer> Create(HINSTANCE hInstance, HWND hMainWnd);
+	static std::unique_ptr<Renderer> Create(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDrawListSync, Semaphore &finishedDrawListSync);
 	static Renderer* Instance() { return _instance; }
 	static void SetRenderBackend(RenderBackend backend) { _backend = backend; }
 

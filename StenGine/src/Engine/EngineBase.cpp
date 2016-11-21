@@ -17,8 +17,8 @@ EngineBase::~EngineBase()
 
 }
 
-extern Semaphore gPrepareDrawListSync;
-extern Semaphore gFinishedDrawListSync;
+Semaphore gPrepareDrawListSync;
+Semaphore gFinishedDrawListSync;
 
 BOOL EngineBase::CreateWindowInstance(int32_t w, int32_t h, HINSTANCE hInstance/*, int nCmdShow*/, HWND &hMainWnd)
 {
@@ -109,7 +109,7 @@ void EngineBase::Init(HINSTANCE hInstance)
 	m_console = std::make_unique<Console>();
 	m_eventSystem = std::unique_ptr<EventSystem>(EventSystem::Instance());
 
-	m_renderer = Renderer::Create(hInstance, m_hMainWnd);
+	m_renderer = Renderer::Create(hInstance, m_hMainWnd, gPrepareDrawListSync, gFinishedDrawListSync);
 
 	auto func = [this](int32_t w, int32_t h, HINSTANCE hInstance, /*int32_t,*/ HWND& hMainWnd) -> BOOL
 	{
@@ -134,6 +134,8 @@ void EngineBase::Init(HINSTANCE hInstance)
 void EngineBase::Run()
 {
 	MSG msg = { 0 };
+
+	gFinishedDrawListSync.notify();
 
 	std::thread renderThread{
 		[this]()

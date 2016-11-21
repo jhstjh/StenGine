@@ -16,10 +16,6 @@ extern "C"
 namespace StenGine
 {
 
-Semaphore gPrepareDrawListSync;
-Semaphore gFinishedDrawListSync;
-
-
 void APIENTRY GLErrorCallback(GLenum source​, GLenum type​, GLuint id​, GLenum severity​, GLsizei length​, const GLchar* message​, const void* userParam​)
 {
 	if (GL_DEBUG_TYPE_OTHER == type​)
@@ -66,12 +62,14 @@ void APIENTRY GLErrorCallback(GLenum source​, GLenum type​, GLuint id​, GL
 }
 
 
-GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
+GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDrawListSync, Semaphore &finishedDrawListSync)
 		: m_hInst(hInstance)
 		, m_hMainWnd(hMainWnd)
 		, m_currentVao(0)
 		, m_currentEffect(nullptr)
 		, m_currentFbo(0)
+		, gPrepareDrawListSync(prepareDrawListSync)
+		, gFinishedDrawListSync(finishedDrawListSync)
 	{
 		_instance = this;
 	}
@@ -614,18 +612,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 
 		// while (!gRenderFinished) {}
 
-		static bool wait = false;
-
-		if (wait)
-		{
-			gFinishedDrawListSync.wait();
-		}
-		else
-		{
-			wait = true;
-		}
-		
-
+		gFinishedDrawListSync.wait();
 		m_writeIndex = std::atomic_exchange(&m_readIndex, m_writeIndex);
 		gPrepareDrawListSync.notify();
 	}

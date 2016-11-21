@@ -38,7 +38,7 @@ namespace StenGine
 class GLRenderer : public Renderer
 {
 public:
-	GLRenderer(HINSTANCE hInstance, HWND hMainWnd);
+	GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDrawListSync, Semaphore &finishedDrawListSync);
 
 	virtual void Release() override;
 
@@ -149,6 +149,9 @@ private:
 	std::vector<DrawCmd> m_drawList[2];
 	std::atomic<uint8_t> m_readIndex;
 	std::atomic<uint8_t> m_writeIndex;
+
+	Semaphore &gPrepareDrawListSync;
+	Semaphore &gFinishedDrawListSync;
 
 	std::thread::id m_contextThreadId;
 

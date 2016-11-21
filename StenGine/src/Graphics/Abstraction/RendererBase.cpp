@@ -8,7 +8,7 @@ namespace StenGine
 Renderer* Renderer::_instance = nullptr;
 RenderBackend Renderer::_backend = RenderBackend::D3D11;
 
-std::unique_ptr<Renderer> Renderer::Create(HINSTANCE hInstance, HWND hMainWnd)
+std::unique_ptr<Renderer> Renderer::Create(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDrawListSync, Semaphore &finishedDrawListSync)
 {
 	switch (Renderer::GetRenderBackend())
 	{
@@ -20,7 +20,7 @@ std::unique_ptr<Renderer> Renderer::Create(HINSTANCE hInstance, HWND hMainWnd)
 	}
 	case RenderBackend::OPENGL4:
 	{
-		GLRenderer* renderer = new GLRenderer(hInstance, hMainWnd);
+		GLRenderer* renderer = new GLRenderer(hInstance, hMainWnd, prepareDrawListSync, finishedDrawListSync);
 		_instance = static_cast<Renderer*>(renderer);
 		break;
 	}
