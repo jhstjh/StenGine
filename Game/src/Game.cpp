@@ -29,7 +29,7 @@ void Game::GameInit()
 {
 	GameObject::Instantiate<Box>("box0", 0.f, 1.2f, 0.f, 0.f, PI / 5);
 	GameObject::Instantiate<Sphere>("sphere", 0.f, 3.7f, -0.5f);
-	// GameObject::Instantiate<Zombie>("Zombie", 7.f, -0.f, -0.5f, 0.f, PI, 0.f, 0.4f, 0.4f, 0.4f);
+	GameObject::Instantiate<Zombie>("Zombie", 7.f, -0.f, -0.5f, 0.f, PI, 0.f, 0.4f, 0.4f, 0.4f);
 
 #if !MIN_SCENE || BUILD_RELEASE
 	GameObject::Instantiate<Plane>("plane0", 4.f, 0.2f, 0.f);

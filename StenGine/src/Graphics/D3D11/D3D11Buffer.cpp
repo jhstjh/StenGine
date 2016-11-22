@@ -1,5 +1,6 @@
 #include "Graphics/D3D11/D3D11Buffer.h"
 #include "Graphics/Abstraction/RendererBase.h"
+#include <assert.h>
 
 namespace StenGine
 {
@@ -8,6 +9,7 @@ D3D11Buffer::D3D11Buffer(size_t size, BufferUsage usage, void* data, BufferType 
 	: m_size(size)
 	, m_mapped(false)
 	, m_flags(0)
+	, m_type(type)
 {
 	uint32_t misc = 0;
 	uint32_t stride = 0;
@@ -29,10 +31,20 @@ D3D11Buffer::D3D11Buffer(size_t size, BufferUsage usage, void* data, BufferType 
 		break;
 	}
 
+	const uint32_t d3d11BufferBindFlag[] =
+	{
+		0, 
+		D3D11_BIND_VERTEX_BUFFER,
+		D3D11_BIND_INDEX_BUFFER,
+		D3D11_BIND_CONSTANT_BUFFER,
+		D3D11_BIND_SHADER_RESOURCE,
+		D3D11_BIND_UNORDERED_ACCESS,
+	};
+
 	D3D11_BUFFER_DESC desc;
 	desc.Usage = (D3D11_USAGE)m_usage;
 	desc.ByteWidth = size;
-	desc.BindFlags = (UINT)type;
+	desc.BindFlags = (UINT)d3d11BufferBindFlag[(uint32_t)type];
 	desc.CPUAccessFlags = m_flags;
 	desc.MiscFlags = misc;
 	desc.StructureByteStride = stride;
@@ -61,6 +73,23 @@ void D3D11Buffer::unmap()
 	m_mapped = false;
 	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->Unmap(m_buffer, NULL);
 
+}
+
+void D3D11Buffer::bind(uint32_t bindpoint)
+{
+	switch (m_type)
+	{
+	case StenGine::BufferType::CONSTANT_BUFFER:
+		// TODO only set shader in interest
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(bindpoint, 1, &m_buffer);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(bindpoint, 1, &m_buffer);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetConstantBuffers(bindpoint, 1, &m_buffer);
+		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetConstantBuffers(bindpoint, 1, &m_buffer);
+		break;
+	default:
+		assert(0);
+		break;
+	}
 }
 
 }

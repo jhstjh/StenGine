@@ -24,13 +24,15 @@ public:
 	virtual void* GetBuffer() { return reinterpret_cast<void*>(m_buffer); }
 	virtual uint32_t GetFlags() { return m_flags; }
 
+	virtual void bind(uint32_t bindpoint);
+
 private:
 	GLuint m_buffer;
 	size_t m_size;
 	uint32_t m_flags;
 	bool m_mapped;
 	BufferUsage m_usage;
-	void* m_persistentData;
+	BufferType m_type;
 };
 
 #pragma warning( pop )

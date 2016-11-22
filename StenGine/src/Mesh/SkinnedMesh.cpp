@@ -241,16 +241,12 @@ void SkinnedMesh::GatherShadowDrawCall()
 			{
 				cmd.offset = (void*)(startIndex * sizeof(unsigned int));
 
-				// TODO !!!
-				glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 15, reinterpret_cast<GLuint>(effect->m_matrixPaletteSB->GetBuffer()), 0, sizeof(XMMATRIX) * m_matrixPalette.size());
-				void* ssbo = glMapNamedBufferRange(
-					reinterpret_cast<GLuint>(effect->m_matrixPaletteSB->GetBuffer()),
-					0,
-					sizeof(XMMATRIX) * m_matrixPalette.size(),
-					GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-				);
-				memcpy(ssbo, &m_matrixPalette[0], sizeof(XMMATRIX) * m_matrixPalette.size());
-				glUnmapNamedBuffer(reinterpret_cast<GLuint>(effect->m_matrixPaletteSB->GetBuffer()));
+				ConstantBuffer cbuffer2(15, sizeof(DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER), effect->m_matrixPaletteSB);
+				DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER* matrixPaletteData = (DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER*)cbuffer2.GetBuffer();
+
+				memcpy(matrixPaletteData, &m_matrixPalette[0], sizeof(XMMATRIX) * m_matrixPalette.size());
+
+				cmd.cbuffers.push_back(std::move(cbuffer2));
 				break;
 			}
 			}

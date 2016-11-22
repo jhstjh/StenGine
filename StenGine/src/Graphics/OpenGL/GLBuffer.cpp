@@ -1,4 +1,5 @@
 #include "Graphics/OpenGL/GLBuffer.h"
+#include <assert.h>
 
 namespace StenGine
 {
@@ -6,6 +7,7 @@ namespace StenGine
 GLBuffer::GLBuffer(size_t size, BufferUsage usage, void* data, BufferType type)
 	: m_size(size)
 	, m_mapped(false)
+	, m_type(type)
 {
 	switch (usage)
 	{
@@ -42,6 +44,22 @@ void GLBuffer::unmap()
 {
 	m_mapped = false;
 	glUnmapNamedBufferEXT(m_buffer);
+}
+
+void GLBuffer::bind(uint32_t bindpoint)
+{
+	switch (m_type)
+	{
+	case BufferType::CONSTANT_BUFFER:
+		glBindBufferRange(GL_UNIFORM_BUFFER, bindpoint, m_buffer, 0, m_size);
+		break;
+	case BufferType::SSBO:
+		glBindBufferRange(GL_SHADER_STORAGE_BUFFER, bindpoint, m_buffer, 0, m_size);
+		break;
+	default:
+		assert(0);
+		break;
+	}
 }
 
 }

@@ -31,7 +31,7 @@ void *GLConstantBuffer::GetBuffer()
 
 void GLConstantBuffer::Bind()
 {
-	glBindBufferRange(GL_UNIFORM_BUFFER, m_index, (GLuint)(m_buffer->GetBuffer()), 0, m_size);
+	m_buffer->bind(m_index);
 	void* ubo = m_buffer->map();
 	assert(ubo);
 	memcpy(ubo, m_data, m_size);

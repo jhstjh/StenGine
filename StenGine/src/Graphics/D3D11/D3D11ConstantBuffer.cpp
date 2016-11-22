@@ -38,13 +38,7 @@ void D3D11ConstantBuffer::Bind()
 	memcpy(cb, m_data, m_size);
 	m_buffer->unmap();
 
-	ID3D11Buffer* buffer = static_cast<ID3D11Buffer*>(m_buffer->GetBuffer());
-
-	// TODO only set shader in interest
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(m_index, 1, &buffer);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(m_index, 1, &buffer);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetConstantBuffers(m_index, 1, &buffer);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetConstantBuffers(m_index, 1, &buffer);
+	m_buffer->bind(m_index);
 }
 
 }

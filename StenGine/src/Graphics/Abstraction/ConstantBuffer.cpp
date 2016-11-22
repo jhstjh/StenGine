@@ -6,15 +6,15 @@
 namespace StenGine
 {
 
-ConstantBuffer::ConstantBuffer(uint32_t index, uint32_t size, GPUBuffer* bufferName)
+ConstantBuffer::ConstantBuffer(uint32_t index, uint32_t size, GPUBuffer* buffer)
 {
 	switch (Renderer::GetRenderBackend())
 	{
 	case RenderBackend::D3D11:
-		mImpl = std::make_unique<D3D11ConstantBuffer>(index, size, bufferName);
+		mImpl = std::make_unique<D3D11ConstantBuffer>(index, size, buffer);
 		break;
 	case RenderBackend::OPENGL4:
-		mImpl = std::make_unique<GLConstantBuffer>(index, size, bufferName);
+		mImpl = std::make_unique<GLConstantBuffer>(index, size, buffer);
 		break;
 	}
 }
