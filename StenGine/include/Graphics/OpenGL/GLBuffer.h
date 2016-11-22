@@ -29,6 +29,8 @@ private:
 	size_t m_size;
 	uint32_t m_flags;
 	bool m_mapped;
+	BufferUsage m_usage;
+	void* m_persistentData;
 };
 
 #pragma warning( pop )

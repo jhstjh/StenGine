@@ -6,7 +6,7 @@
 namespace StenGine
 {
 
-ConstantBuffer::ConstantBuffer(uint32_t index, uint32_t size, void* bufferName)
+ConstantBuffer::ConstantBuffer(uint32_t index, uint32_t size, GPUBuffer* bufferName)
 {
 	switch (Renderer::GetRenderBackend())
 	{

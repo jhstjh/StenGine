@@ -121,7 +121,7 @@ Skybox::~Skybox() {
 void Skybox::Draw() {
 	SkyboxEffect* skyboxEffect = EffectsManager::Instance()->m_skyboxEffect.get();
 
-	ConstantBuffer cbuffer0(0, sizeof(SkyboxEffect::PEROBJ_CONSTANT_BUFFER), (void*)skyboxEffect->m_perObjectCB->GetBuffer());
+	ConstantBuffer cbuffer0(0, sizeof(SkyboxEffect::PEROBJ_CONSTANT_BUFFER), skyboxEffect->m_perObjectCB);
 	SkyboxEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (SkyboxEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 
 	XMFLOAT4 eyePos = CameraManager::Instance()->GetActiveCamera()->GetPos();
@@ -142,7 +142,7 @@ void Skybox::Draw() {
 		cmd.drawType = DrawType::INDEXED;
 		cmd.inputLayout = (void*)m_skyboxVAO;
 		
-		ConstantBuffer cbuffer1(1, sizeof(SkyboxEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), (void*)skyboxEffect->m_textureCB->GetBuffer());
+		ConstantBuffer cbuffer1(1, sizeof(SkyboxEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), skyboxEffect->m_textureCB);
 		SkyboxEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (SkyboxEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
 
 		textureData->gCubeMap = m_cubeMapTex;
