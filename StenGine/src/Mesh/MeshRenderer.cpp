@@ -300,7 +300,7 @@ void Mesh::GatherShadowDrawCall() {
 		cmd.elementCount = (int64_t)m_indexBufferCPU.size();
 		cmd.cbuffers.push_back(std::move(cbuffer0));
 
-		Renderer::Instance()->AddShadowDrawCmd(cmd);
+		Renderer::Instance()->AddDeferredDrawCmd(cmd);
 	}
 }
 

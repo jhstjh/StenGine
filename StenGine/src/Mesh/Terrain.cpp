@@ -479,7 +479,7 @@ void Terrain::GatherShadowDrawCall() {
 	cmd.cbuffers.push_back(std::move(cbuffer0));
 	cmd.cbuffers.push_back(std::move(cbuffer1));
 
-	Renderer::Instance()->AddShadowDrawCmd(cmd);
+	Renderer::Instance()->AddDeferredDrawCmd(cmd);
 
 }
 

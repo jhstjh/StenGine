@@ -80,8 +80,10 @@ public:
 
 		ImGuiEffect* effect = EffectsManager::Instance()->m_imguiEffect.get();
 
-		ImVector<ImDrawIdx>     IdxBuffer;
-		ImVector<ImDrawVert>    VtxBuffer;
+		DrawCmd updateVBIBCmd;
+
+		std::vector<ImDrawIdx>     &IdxBuffer = updateVBIBCmd.imGuiIdxBuffer;
+		std::vector<ImDrawVert>    &VtxBuffer = updateVBIBCmd.imGuiVtxBuffer;
 
 		for (int n = 0; n < draw_data->CmdListsCount; n++)
 		{
@@ -99,8 +101,10 @@ public:
 			}
 		}
 
-		glNamedBufferData(m_vbo, VtxBuffer.size() * sizeof(ImDrawVert), &VtxBuffer.front(), GL_STREAM_DRAW);
-		glNamedBufferData(m_ibo, IdxBuffer.size() * sizeof(ImDrawIdx), &IdxBuffer.front(), GL_STREAM_DRAW);
+		updateVBIBCmd.imGuiVbo = m_vbo;
+		updateVBIBCmd.imGuiIbo = m_ibo;
+
+		Renderer::Instance()->AddDeferredDrawCmd(updateVBIBCmd);
 
 		uint32_t vertexOffset = 0;
 		uint32_t indexOffset = 0;

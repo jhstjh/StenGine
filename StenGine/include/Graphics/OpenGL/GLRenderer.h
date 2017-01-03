@@ -94,8 +94,6 @@ public:
 
 	virtual void AddDeferredDrawCmd(DrawCmd &cmd) override;
 
-	virtual void AddShadowDrawCmd(DrawCmd &cmd) override;
-
 	virtual void AddDraw(DrawEventHandler handler) override;
 
 	virtual void AddShadowDraw(DrawEventHandler handler) override;
@@ -167,6 +165,8 @@ private:
 	void InitScreenQuad();
 
 	void InitDebugCoord();
+
+	bool m_enableSSAO;
 };
 
 

@@ -529,6 +529,15 @@
     <ClInclude Include="include\Utility\Semaphore.h">
       <Filter>include\Utility</Filter>
     </ClInclude>
+    <ClInclude Include="include\Scene\SceneFileManager.h">
+      <Filter>include\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Scene\Savable.h">
+      <Filter>include\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Scene\GameObjectRegistry.h">
+      <Filter>include\Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -683,6 +692,12 @@
     </ClCompile>
     <ClCompile Include="src\Utility\CommandlineParser.cpp">
       <Filter>src\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\SceneFileManager.cpp">
+      <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Scene\GameObjectRegistry.cpp">
+      <Filter>src\Scene</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

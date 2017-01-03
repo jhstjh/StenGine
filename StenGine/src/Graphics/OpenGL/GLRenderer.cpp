@@ -1,6 +1,8 @@
 ﻿#include "Graphics/OpenGL/GLRenderer.h"
 #include "Utility/Semaphore.h"
 
+#include "Scene/SceneFileManager.h"
+
 using namespace std;
 
 #pragma warning(disable: 4244) // conversion from 'int64_t' to 'GLsizei', possible loss of data
@@ -10,7 +12,6 @@ extern "C"
 {
 	// somehow this are not in glew???
 	PFNGLDISPATCHCOMPUTEPROC glDispatchCompute​;
-	//PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
 }
 
 namespace StenGine
@@ -70,6 +71,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		, m_currentFbo(0)
 		, gPrepareDrawListSync(prepareDrawListSync)
 		, gFinishedDrawListSync(finishedDrawListSync)
+		, m_enableSSAO(true)
 	{
 		_instance = this;
 	}
@@ -127,6 +129,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		wglSwapIntervalEXT(0);
 
 #if !BUILD_RELEASE
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(GLErrorCallback, nullptr);
 		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 #endif
@@ -586,6 +589,15 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 					glDispatchCompute​(cmd.threadGroupX, cmd.threadGroupY, cmd.threadGroupZ);
 				}
 			}
+
+			if (cmd.imGuiIbo)
+			{
+				glNamedBufferData(cmd.imGuiIbo, cmd.imGuiIdxBuffer.size() * sizeof(ImDrawIdx), &cmd.imGuiIdxBuffer.front(), GL_STREAM_DRAW);
+			}
+			if (cmd.imGuiVbo)
+			{
+				glNamedBufferData(cmd.imGuiVbo, cmd.imGuiVtxBuffer.size() * sizeof(ImDrawVert), &cmd.imGuiVtxBuffer.front(), GL_STREAM_DRAW);
+			}
 		}
 
 		m_drawList[m_readIndex].clear();
@@ -604,13 +616,20 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		////DrawGodRay();
 		DrawDebug();
 		
-		// // TEST
-		// ImGui::NewFrame();
-		// //ImGui::ShowTestWindow();
-		// GameObjectManager::Instance()->DrawMenu();
-		// ImGui::Render();
+		// TEST
+		ImGui::NewFrame();
+		//ImGui::ShowTestWindow();
+		GameObjectManager::Instance()->DrawMenu();
+		SceneFileManager::Instance()->DrawMenu();
 
-		// while (!gRenderFinished) {}
+
+		if (ImGui::Begin("Render Settings"))
+		{
+			ImGui::Checkbox("SSAO", &m_enableSSAO);
+			ImGui::End();
+		}
+
+		ImGui::Render();
 
 		gFinishedDrawListSync.wait();
 		m_writeIndex = std::atomic_exchange(&m_readIndex, m_writeIndex);
@@ -756,9 +775,13 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 	}
 
 	void GLRenderer::DrawBlurSSAOAndCombine() {
-		doCSBlur(m_ssaoTex, 0);
+		if (m_enableSSAO)
+		{
+			doCSBlur(m_ssaoTex, 0);
+		}
 
 		// ------ Screen Quad -------//
+		// BADLY NAMED, this is actually just a shader to multiply SSAO effect
 		BlurEffect* blurEffect = EffectsManager::Instance()->m_blurEffect.get();
 
 		DrawCmd cmd;
@@ -783,9 +806,14 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
 
 		textureData->ScreenMap = m_deferredShadingTexHandle;
-		textureData->SSAOMap = m_computeOutputHandle[1];
-		textureData->DepthMap = m_depthBufferTexHandle;
+		if (m_enableSSAO)
+		{
+			textureData->SSAOMap = m_computeOutputHandle[1];
+			textureData->DepthMap = m_depthBufferTexHandle;
+		}
 		//settingData->BloomMap = NOT_USED;
+		settingData->xEnableSSAO.x = m_enableSSAO;
+
 		cmd.cbuffers.push_back(std::move(cbuffer0));
 		cmd.cbuffers.push_back(std::move(cbuffer1));
 
@@ -893,12 +921,6 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 	void GLRenderer::AddDeferredDrawCmd(DrawCmd &cmd)
 	{
 		//m_deferredDrawList.push_back(std::move(cmd));
-		m_drawList[m_writeIndex].push_back(std::move(cmd));
-	}
-
-	void GLRenderer::AddShadowDrawCmd(DrawCmd &cmd)
-	{
-		//m_shadowMapDrawList.push_back(std::move(cmd));
 		m_drawList[m_writeIndex].push_back(std::move(cmd));
 	}
 

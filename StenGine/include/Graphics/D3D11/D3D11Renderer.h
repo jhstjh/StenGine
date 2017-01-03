@@ -51,7 +51,6 @@ public:
 	virtual void* GetDeviceContext();
 	void UpdateTitle(const char* str);
 	virtual void AddDeferredDrawCmd(DrawCmd &cmd);
-	virtual void AddShadowDrawCmd(DrawCmd &cmd);
 	virtual RenderTarget &GetGbuffer();
 	virtual void AddDraw(DrawEventHandler handler);
 	virtual void AddShadowDraw(DrawEventHandler handler);

@@ -124,6 +124,7 @@ void EngineBase::Init(HINSTANCE hInstance)
 	m_inputManager = std::unique_ptr<InputManager>(InputManager::Instance());
 	m_gameObjectManager = std::unique_ptr<GameObjectManager>(GameObjectManager::Instance());
 	m_imguiMenu = std::unique_ptr<ImGuiMenu>(ImGuiMenu::Instance());
+	m_sceneFileManager = std::unique_ptr<SceneFileManager>(SceneFileManager::Instance());
 
 	Timer::Init();
 

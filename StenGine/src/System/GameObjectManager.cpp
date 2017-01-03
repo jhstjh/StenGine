@@ -23,7 +23,7 @@ GameObjectManager::GameObjectManager()
 
 GameObjectManager::~GameObjectManager()
 {
-	for (auto &gameObject : m_gameObjects)
+	for (auto &gameObject : mGameObjects)
 	{
 		delete gameObject;
 	}
@@ -36,7 +36,7 @@ void GameObjectManager::LoadScene()
 
 void GameObjectManager::Update()
 {
-	for (auto &gameObject : m_gameObjects)
+	for (auto &gameObject : mGameObjects)
 	{
 		gameObject->Update();
 	}
@@ -48,9 +48,9 @@ void GameObjectManager::DrawMenu()
 
 	static int32_t currentItem = -1;
 	std::vector<const char*> names;
-	for (size_t i = 0; i < m_gameObjects.size(); ++i)
+	for (size_t i = 0; i < mGameObjects.size(); ++i)
 	{
-		names.push_back(m_gameObjects[i]->m_name.c_str());
+		names.push_back(mGameObjects[i]->m_name.c_str());
 	}
 
 	ImGui::ListBox("", &currentItem, names.data(), (int32_t)names.size(), 10);
@@ -59,7 +59,7 @@ void GameObjectManager::DrawMenu()
 	if (currentItem != -1)
 	{
 		ImGui::Begin("Inspector");
-		m_gameObjects[currentItem]->DrawMenu();
+		mGameObjects[currentItem]->DrawMenu();
 		ImGui::End();
 	}
 }
