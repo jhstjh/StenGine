@@ -8,6 +8,8 @@
 
 #pragma once
 
+#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+
 #if !defined(IMGUI_DISABLE_INCLUDE_IMCONFIG_H) || defined(IMGUI_INCLUDE_IMCONFIG_H)
 #include "imconfig.h"       // User-editable configuration file
 #endif
