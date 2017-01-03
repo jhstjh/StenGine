@@ -6,7 +6,7 @@ out vec4 ps_color;
 
 layout(std140) uniform cbSettings {
 	vec2 texOffset;
-	vec2 pad;
+	vec2 xEnableSSAO;
 };
 
 layout(std140) uniform cbTextures {
@@ -31,7 +31,7 @@ void main()
 	//vec4 bloomColor = texture(gBloomMap, pTexUV);
 	gl_FragDepth = texture(gDepthMap, pTexUV).x;
 
-	ps_color = originalColor * texture(gSSAOMap, pTexUV);
+	ps_color = originalColor * texture(gSSAOMap, pTexUV) * xEnableSSAO.x + originalColor * (1 - xEnableSSAO.x);
 
 #if 0
 	return (1 - (1 -originalColor)*(1 - bloomColor)) * gSSAOMap.Sample(gSamplerStateLinear, input.Tex);

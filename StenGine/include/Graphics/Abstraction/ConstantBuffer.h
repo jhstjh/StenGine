@@ -15,7 +15,7 @@ public:
 class ConstantBuffer
 {
 public:
-	ConstantBuffer(uint32_t index, uint32_t size, void* bufferName);
+	ConstantBuffer(uint32_t index, uint32_t size, class GPUBuffer* buffer);
 	ConstantBuffer(ConstantBuffer &&other);
 	ConstantBuffer& operator=(ConstantBuffer&& other);
 	~ConstantBuffer();

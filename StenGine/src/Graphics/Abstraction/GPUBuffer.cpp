@@ -44,7 +44,10 @@ uint32_t GPUBuffer::GetFlags()
 	return mImpl->GetFlags();
 }
 
-
+void GPUBuffer::bind(uint32_t bindpoint)
+{
+	mImpl->bind(bindpoint);
+}
 
 
 }

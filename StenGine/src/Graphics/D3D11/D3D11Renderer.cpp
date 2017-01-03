@@ -820,7 +820,7 @@ D3D11Renderer::~D3D11Renderer() {
 		DrawCmd cmd;
 		DeferredShadingPassEffect* effect = EffectsManager::Instance()->m_deferredShadingPassEffect.get();
 
-		ConstantBuffer cbuffer0(0, sizeof(DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB->GetBuffer());
+		ConstantBuffer cbuffer0(0, sizeof(DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER), effect->m_perFrameCB);
 		DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER* perFrameData = (DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 
 
@@ -922,7 +922,7 @@ D3D11Renderer::~D3D11Renderer() {
 		cmd.indexBuffer = m_gridCoordIndexBufferGPU;
 		cmd.vertexBuffer = m_gridCoordVertexBufferGPU;
 
-		ConstantBuffer cbuffer0(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), (void*)debugLineFX->m_perObjectCB->GetBuffer());
+		ConstantBuffer cbuffer0(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), debugLineFX->m_perObjectCB);
 		DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 		perObjectData->ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
@@ -1094,13 +1094,6 @@ D3D11Renderer::~D3D11Renderer() {
 		auto entry = m_rasterizerStateMap.find(rasterizerState);
 		if (entry == m_rasterizerStateMap.end())
 		{
-			// static const uint32_t convertCull[] =
-			// {
-			// 	0,
-			// 	GL_CW,
-			// 	GL_CCW,
-			// };
-
 			static const D3D11_CULL_MODE convertType[] =
 			{
 				D3D11_CULL_NONE,
@@ -1147,11 +1140,6 @@ D3D11Renderer::~D3D11Renderer() {
 		m_drawList.push_back(std::move(cmd));
 	}
 
-	void D3D11Renderer::AddShadowDrawCmd(DrawCmd &cmd) 
-	{
-		m_drawList.push_back(std::move(cmd));
-	}
-
 	RenderTarget &D3D11Renderer::GetGbuffer() 
 	{
 		return m_GBuffer;
@@ -1166,17 +1154,5 @@ D3D11Renderer::~D3D11Renderer() {
 	{
 		m_shadowDrawHandler.push_back(handler);
 	}
-
-
-
-
-// Renderer* Renderer::_instance = nullptr;
-// 
-// Renderer* Renderer::Create(HINSTANCE hInstance, HWND hMainWnd)
-// {
-// 	D3D11Renderer* renderer = new D3D11Renderer(hInstance, hMainWnd);
-// 	_instance = static_cast<Renderer*>(renderer);
-// 	return _instance;
-// }
 
 }

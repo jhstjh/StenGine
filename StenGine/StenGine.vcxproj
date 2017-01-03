@@ -43,7 +43,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(SolutionDir)External\mathfu\include;$(SolutionDir)External\TinyXML2;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)lib;$(SolutionDir)External\FBXSDK\lib\vs2013\x64\debug;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
@@ -52,7 +52,7 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(SolutionDir)External\DirectXTex\DDSTextureLoader\include;$(SolutionDir)External\FBXSDK\include;$(SolutionDir)External\imgui\include;$(SolutionDir)External\assimp\include;$(SolutionDir)External\glew\include;$(SolutionDir)External\GLI\;$(SolutionDir)External\GLM\;$(SolutionDir)External\mathfu\include;$(SolutionDir)External\TinyXML2;$(IncludePath)</IncludePath>
     <LibraryPath>$(ProjectDir)lib;$(SolutionDir)External\FBXSDK\lib\vs2013\x64\release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -378,7 +378,10 @@
     <ClInclude Include="include\Scene\Drawable.h" />
     <ClInclude Include="include\Scene\GameObject.h" />
     <ClInclude Include="include\Scene\GameObjectManager.h" />
+    <ClInclude Include="include\Scene\GameObjectRegistry.h" />
     <ClInclude Include="include\Scene\LightManager.h" />
+    <ClInclude Include="include\Scene\Savable.h" />
+    <ClInclude Include="include\Scene\SceneFileManager.h" />
     <ClInclude Include="include\Scene\Transform.h" />
     <ClInclude Include="include\stdafx.h" />
     <ClInclude Include="include\StenGine.h" />
@@ -389,6 +392,7 @@
     <ClInclude Include="include\Utility\CommandlineParser.h" />
     <ClInclude Include="include\Utility\FbxReaderSG.h" />
     <ClInclude Include="include\Utility\ObjReader.h" />
+    <ClInclude Include="include\Utility\Semaphore.h" />
     <ClInclude Include="include\Utility\SgmReader.h" />
     <ClInclude Include="include\Utility\Timer.h" />
   </ItemGroup>
@@ -435,7 +439,9 @@
     <ClCompile Include="src\Scene\Component.cpp" />
     <ClCompile Include="src\Scene\Drawable.cpp" />
     <ClCompile Include="src\Scene\GameObject.cpp" />
+    <ClCompile Include="src\Scene\GameObjectRegistry.cpp" />
     <ClCompile Include="src\Scene\LightManager.cpp" />
+    <ClCompile Include="src\Scene\SceneFileManager.cpp" />
     <ClCompile Include="src\Scene\Transform.cpp" />
     <ClCompile Include="src\stdafx.cpp" />
     <ClCompile Include="src\StenGine.cpp" />
@@ -452,6 +458,9 @@
     </ProjectReference>
     <ProjectReference Include="..\External\imgui\imgui.vcxproj">
       <Project>{7285f681-9fe0-4280-9a8a-e8b8978c470e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\External\TinyXML2\TinyXML2.vcxproj">
+      <Project>{952e9af7-981f-444c-9b02-b3099d80be88}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

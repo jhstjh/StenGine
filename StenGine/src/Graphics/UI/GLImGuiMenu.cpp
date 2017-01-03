@@ -80,8 +80,10 @@ public:
 
 		ImGuiEffect* effect = EffectsManager::Instance()->m_imguiEffect.get();
 
-		ImVector<ImDrawIdx>     IdxBuffer;
-		ImVector<ImDrawVert>    VtxBuffer;
+		DrawCmd updateVBIBCmd;
+
+		std::vector<ImDrawIdx>     &IdxBuffer = updateVBIBCmd.imGuiIdxBuffer;
+		std::vector<ImDrawVert>    &VtxBuffer = updateVBIBCmd.imGuiVtxBuffer;
 
 		for (int n = 0; n < draw_data->CmdListsCount; n++)
 		{
@@ -99,8 +101,10 @@ public:
 			}
 		}
 
-		glNamedBufferData(m_vbo, VtxBuffer.size() * sizeof(ImDrawVert), &VtxBuffer.front(), GL_STREAM_DRAW);
-		glNamedBufferData(m_ibo, IdxBuffer.size() * sizeof(ImDrawIdx), &IdxBuffer.front(), GL_STREAM_DRAW);
+		updateVBIBCmd.imGuiVbo = m_vbo;
+		updateVBIBCmd.imGuiIbo = m_ibo;
+
+		Renderer::Instance()->AddDeferredDrawCmd(updateVBIBCmd);
 
 		uint32_t vertexOffset = 0;
 		uint32_t indexOffset = 0;
@@ -130,10 +134,10 @@ public:
 					scissorState.width = (int32_t)(pcmd->ClipRect.z - pcmd->ClipRect.x);
 					scissorState.height = (int32_t)(pcmd->ClipRect.w - pcmd->ClipRect.y);
 
-					ConstantBuffer cbuffer0(0, sizeof(ImGuiEffect::IMGUI_CONSTANT_BUFFER), (void*)effect->m_imguiCB->GetBuffer());
+					ConstantBuffer cbuffer0(0, sizeof(ImGuiEffect::IMGUI_CONSTANT_BUFFER), effect->m_imguiCB);
 					ImGuiEffect::IMGUI_CONSTANT_BUFFER* imguiData = (ImGuiEffect::IMGUI_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 
-					ConstantBuffer cbuffer1(1, sizeof(ImGuiEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), (void*)effect->m_textureCB->GetBuffer());
+					ConstantBuffer cbuffer1(1, sizeof(ImGuiEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), effect->m_textureCB);
 					ImGuiEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (ImGuiEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
 
 					textureData->Texture = (uint64_t)pcmd->TextureId;

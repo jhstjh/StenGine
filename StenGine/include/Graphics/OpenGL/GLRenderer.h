@@ -21,6 +21,8 @@
 #include <memory>
 #include <iostream>
 #include <unordered_map>
+#include <atomic>
+#include <thread>
 
 //TEST
 #include "Scene/GameObjectManager.h"
@@ -36,7 +38,7 @@ namespace StenGine
 class GLRenderer : public Renderer
 {
 public:
-	GLRenderer(HINSTANCE hInstance, HWND hMainWnd);
+	GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDrawListSync, Semaphore &finishedDrawListSync);
 
 	virtual void Release() override;
 
@@ -70,7 +72,7 @@ public:
 
 	void EnterFrame();
 
-	void EndFrame();
+	virtual void EndFrame() override;
 
 	virtual void DrawShadowMap() override;
 
@@ -92,11 +94,13 @@ public:
 
 	virtual void AddDeferredDrawCmd(DrawCmd &cmd) override;
 
-	virtual void AddShadowDrawCmd(DrawCmd &cmd) override;
-
 	virtual void AddDraw(DrawEventHandler handler) override;
 
 	virtual void AddShadowDraw(DrawEventHandler handler) override;
+
+	virtual void AcquireContext() override;
+
+	virtual void ReleaseContext() override;
 
 private:
 	int m_clientWidth;
@@ -140,7 +144,14 @@ private:
 	GLuint m_debugCoordVAO;
 	GLuint m_screenQuadVAO;
 
-	std::vector<DrawCmd> m_drawList;
+	std::vector<DrawCmd> m_drawList[2];
+	std::atomic<uint8_t> m_readIndex;
+	std::atomic<uint8_t> m_writeIndex;
+
+	Semaphore &gPrepareDrawListSync;
+	Semaphore &gFinishedDrawListSync;
+
+	std::thread::id m_contextThreadId;
 
 	uint64_t m_currentVao;
 	Effect* m_currentEffect;
@@ -154,6 +165,8 @@ private:
 	void InitScreenQuad();
 
 	void InitDebugCoord();
+
+	bool m_enableSSAO;
 };
 
 

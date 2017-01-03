@@ -2,16 +2,17 @@
 #include "Graphics/OpenGL/GLConstantBuffer.h"
 #include <malloc.h>
 #include <string.h>
+#include <assert.h>
 
 #pragma warning(disable: 4311  4302)
 
 namespace StenGine
 {
 
-GLConstantBuffer::GLConstantBuffer(uint32_t index, uint32_t size, void* bufferName)
+GLConstantBuffer::GLConstantBuffer(uint32_t index, uint32_t size, GPUBuffer* buffer)
 {
 	m_index = index;
-	m_bufferName = (uint32_t)bufferName;
+	m_buffer = buffer;
 	m_size = size;
 
 	m_data = _aligned_malloc(m_size, 16);
@@ -30,15 +31,11 @@ void *GLConstantBuffer::GetBuffer()
 
 void GLConstantBuffer::Bind()
 {
-	glBindBufferRange(GL_UNIFORM_BUFFER, m_index, m_bufferName, 0, m_size);
-	void* ubo = glMapNamedBufferRange(
-		m_bufferName,
-		0,
-		m_size,
-		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-	);
+	m_buffer->bind(m_index);
+	void* ubo = m_buffer->map();
+	assert(ubo);
 	memcpy(ubo, m_data, m_size);
-	glUnmapNamedBuffer(m_bufferName);
+	m_buffer->unmap();
 }
 
 }

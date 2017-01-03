@@ -1,6 +1,8 @@
+#include <atomic>
 #include "Engine/EngineBase.h"
 #include "Resource.h"
 #include "Utility/CommandlineParser.h"
+#include "Utility/Semaphore.h"
 
 namespace StenGine
 {
@@ -14,6 +16,9 @@ EngineBase::~EngineBase()
 {
 
 }
+
+Semaphore gPrepareDrawListSync;
+Semaphore gFinishedDrawListSync;
 
 BOOL EngineBase::CreateWindowInstance(int32_t w, int32_t h, HINSTANCE hInstance/*, int nCmdShow*/, HWND &hMainWnd)
 {
@@ -104,7 +109,7 @@ void EngineBase::Init(HINSTANCE hInstance)
 	m_console = std::make_unique<Console>();
 	m_eventSystem = std::unique_ptr<EventSystem>(EventSystem::Instance());
 
-	m_renderer = Renderer::Create(hInstance, m_hMainWnd);
+	m_renderer = Renderer::Create(hInstance, m_hMainWnd, gPrepareDrawListSync, gFinishedDrawListSync);
 
 	auto func = [this](int32_t w, int32_t h, HINSTANCE hInstance, /*int32_t,*/ HWND& hMainWnd) -> BOOL
 	{
@@ -119,15 +124,35 @@ void EngineBase::Init(HINSTANCE hInstance)
 	m_inputManager = std::unique_ptr<InputManager>(InputManager::Instance());
 	m_gameObjectManager = std::unique_ptr<GameObjectManager>(GameObjectManager::Instance());
 	m_imguiMenu = std::unique_ptr<ImGuiMenu>(ImGuiMenu::Instance());
+	m_sceneFileManager = std::unique_ptr<SceneFileManager>(SceneFileManager::Instance());
 
 	Timer::Init();
 
 	GameInit();
+	m_renderer->ReleaseContext();
 }
 
 void EngineBase::Run()
 {
 	MSG msg = { 0 };
+
+	gFinishedDrawListSync.notify();
+
+	std::thread renderThread{
+		[this]()
+	{
+		StenGine::Renderer::Instance()->AcquireContext();
+
+		for (;;)
+		{
+			gPrepareDrawListSync.wait();
+			if (!m_appIsRunning)
+				break;
+			StenGine::Renderer::Instance()->EndFrame();
+		}
+	}
+	};
+
 	while (!(m_appIsRunning && msg.message == WM_QUIT)) {
 		// If there are Window messages then process them.
 		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
@@ -157,6 +182,11 @@ void EngineBase::Run()
 			m_elaspedFrame++;
 		}
 	}
+
+	m_appIsRunning = false;
+	gPrepareDrawListSync.notify();
+
+	renderThread.join();
 }
 
 }

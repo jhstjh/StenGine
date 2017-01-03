@@ -1,6 +1,7 @@
-﻿#if 1
+﻿#include "Graphics/OpenGL/GLRenderer.h"
+#include "Utility/Semaphore.h"
 
-#include "Graphics/OpenGL/GLRenderer.h"
+#include "Scene/SceneFileManager.h"
 
 using namespace std;
 
@@ -11,7 +12,6 @@ extern "C"
 {
 	// somehow this are not in glew???
 	PFNGLDISPATCHCOMPUTEPROC glDispatchCompute​;
-	//PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
 }
 
 namespace StenGine
@@ -63,12 +63,15 @@ void APIENTRY GLErrorCallback(GLenum source​, GLenum type​, GLuint id​, GL
 }
 
 
-GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
+GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDrawListSync, Semaphore &finishedDrawListSync)
 		: m_hInst(hInstance)
 		, m_hMainWnd(hMainWnd)
 		, m_currentVao(0)
 		, m_currentEffect(nullptr)
 		, m_currentFbo(0)
+		, gPrepareDrawListSync(prepareDrawListSync)
+		, gFinishedDrawListSync(finishedDrawListSync)
+		, m_enableSSAO(true)
 	{
 		_instance = this;
 	}
@@ -126,6 +129,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		wglSwapIntervalEXT(0);
 
 #if !BUILD_RELEASE
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(GLErrorCallback, nullptr);
 		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 #endif
@@ -240,6 +244,9 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 
 		EventSystem::Instance()->RegisterEventHandler(EventSystem::EventType::RENDER, [this]() {Draw(); });
 
+		m_readIndex = 0;
+		m_writeIndex = 1;
+
 		return true;
 	}
 
@@ -339,17 +346,55 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		m_renderingContext = wglCreateContextAttribsARB(m_deviceContext, 0, attributeList);
 		if (m_renderingContext == NULL)
 		{
+			assert(false);
 			return false;
 		}
 
-		wglMakeCurrent(m_deviceContext, m_renderingContext);
+		m_renderingContext = wglCreateContextAttribsARB(m_deviceContext, 0, attributeList);
+		if (m_renderingContext == NULL)
+		{
+			assert(false);
+			return false;
+		}
+
+		AcquireContext();
 
 		return true;
 	}
 
+	void GLRenderer::AcquireContext()
+	{
+		if (m_contextThreadId == std::this_thread::get_id())
+		{
+			return;
+		}
+		else
+		{
+			const std::thread::id zeroID;
+			if (m_contextThreadId == zeroID)
+			{
+				m_contextThreadId = std::this_thread::get_id();
+				wglMakeCurrent(m_deviceContext, m_renderingContext);
+			}
+			else
+			{
+				assert(0);
+			}
+		}
+
+	}
+
+	void GLRenderer::ReleaseContext()
+	{
+		assert(m_contextThreadId == std::this_thread::get_id());
+		const std::thread::id zeroID;
+		m_contextThreadId = zeroID;
+		wglMakeCurrent(nullptr, nullptr);
+	}
+
 	void GLRenderer::ExecuteCmdList()
 	{
-		for (auto &cmd : m_drawList)
+		for (auto &cmd : m_drawList[m_readIndex])
 		{
 			if (cmd.flags & CmdFlag::BIND_FB)
 			{
@@ -544,9 +589,18 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 					glDispatchCompute​(cmd.threadGroupX, cmd.threadGroupY, cmd.threadGroupZ);
 				}
 			}
+
+			if (cmd.imGuiIbo)
+			{
+				glNamedBufferData(cmd.imGuiIbo, cmd.imGuiIdxBuffer.size() * sizeof(ImDrawIdx), &cmd.imGuiIdxBuffer.front(), GL_STREAM_DRAW);
+			}
+			if (cmd.imGuiVbo)
+			{
+				glNamedBufferData(cmd.imGuiVbo, cmd.imGuiVtxBuffer.size() * sizeof(ImDrawVert), &cmd.imGuiVtxBuffer.front(), GL_STREAM_DRAW);
+			}
 		}
 
-		m_drawList.clear();
+		m_drawList[m_readIndex].clear();
 	}
 
 	void GLRenderer::Draw()  {
@@ -566,9 +620,20 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		ImGui::NewFrame();
 		//ImGui::ShowTestWindow();
 		GameObjectManager::Instance()->DrawMenu();
+		SceneFileManager::Instance()->DrawMenu();
+
+
+		if (ImGui::Begin("Render Settings"))
+		{
+			ImGui::Checkbox("SSAO", &m_enableSSAO);
+			ImGui::End();
+		}
+
 		ImGui::Render();
-		
-		EndFrame();
+
+		gFinishedDrawListSync.wait();
+		m_writeIndex = std::atomic_exchange(&m_readIndex, m_writeIndex);
+		gPrepareDrawListSync.notify();
 	}
 
 	float GLRenderer::GetAspectRatio()  {
@@ -625,6 +690,8 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		ExecuteCmdList();
 
 		SwapBuffers(m_deviceContext);
+
+		gFinishedDrawListSync.notify();
 	}
 
 	void GLRenderer::DrawShadowMap()
@@ -640,7 +707,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		shadowcmd.framebuffer = &LightManager::Instance()->m_shadowMap->GetRenderTarget();
 		shadowcmd.viewport = { 0, 0, (float)width, (float)height, 0, 1 };
 
-		m_drawList.push_back(std::move(shadowcmd));
+		AddDeferredDrawCmd(std::move(shadowcmd));
 
 		for (auto &gatherShadowDrawCall : m_shadowDrawHandler)
 		{
@@ -656,7 +723,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		drawcmd.framebuffer = &m_deferredGBuffers;
 		drawcmd.viewport = { 0.f, 0.f, (float)m_clientWidth, (float)m_clientHeight, 0.f, 1.f };
 
-		m_drawList.push_back(std::move(drawcmd));
+		AddDeferredDrawCmd(std::move(drawcmd));
 
 		for (auto &gatherDrawCall : m_drawHandler)
 		{
@@ -668,10 +735,10 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		DrawCmd cmd;
 		DeferredShadingPassEffect* effect = EffectsManager::Instance()->m_deferredShadingPassEffect.get();
 
-		ConstantBuffer cbuffer0(0, sizeof(DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB->GetBuffer());
+		ConstantBuffer cbuffer0(0, sizeof(DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER), effect->m_perFrameCB);
 		DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER* perFrameData = (DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 
-		ConstantBuffer cbuffer1(1, sizeof(DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), (void*)effect->m_textureCB->GetBuffer());
+		ConstantBuffer cbuffer1(1, sizeof(DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), effect->m_textureCB);
 		DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
 
 
@@ -704,13 +771,17 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		cmd.cbuffers.push_back(std::move(cbuffer0));
 		cmd.cbuffers.push_back(std::move(cbuffer1));
 
-		m_drawList.push_back(std::move(cmd));
+		AddDeferredDrawCmd(std::move(cmd));
 	}
 
 	void GLRenderer::DrawBlurSSAOAndCombine() {
-		doCSBlur(m_ssaoTex, 0);
+		if (m_enableSSAO)
+		{
+			doCSBlur(m_ssaoTex, 0);
+		}
 
 		// ------ Screen Quad -------//
+		// BADLY NAMED, this is actually just a shader to multiply SSAO effect
 		BlurEffect* blurEffect = EffectsManager::Instance()->m_blurEffect.get();
 
 		DrawCmd cmd;
@@ -728,16 +799,21 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		cmd.effect = blurEffect;
 		cmd.elementCount = 6;
 
-		ConstantBuffer cbuffer0(0, sizeof(BlurEffect::SETTING_CONSTANT_BUFFER), (void*)blurEffect->m_settingCB->GetBuffer());
+		ConstantBuffer cbuffer0(0, sizeof(BlurEffect::SETTING_CONSTANT_BUFFER), blurEffect->m_settingCB);
 		BlurEffect::SETTING_CONSTANT_BUFFER* settingData = (BlurEffect::SETTING_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 
-		ConstantBuffer cbuffer1(1, sizeof(BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), (void*)blurEffect->m_textureCB->GetBuffer());
+		ConstantBuffer cbuffer1(1, sizeof(BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), blurEffect->m_textureCB);
 		BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
 
 		textureData->ScreenMap = m_deferredShadingTexHandle;
-		textureData->SSAOMap = m_computeOutputHandle[1];
-		textureData->DepthMap = m_depthBufferTexHandle;
+		if (m_enableSSAO)
+		{
+			textureData->SSAOMap = m_computeOutputHandle[1];
+			textureData->DepthMap = m_depthBufferTexHandle;
+		}
 		//settingData->BloomMap = NOT_USED;
+		settingData->xEnableSSAO.x = m_enableSSAO;
+
 		cmd.cbuffers.push_back(std::move(cbuffer0));
 		cmd.cbuffers.push_back(std::move(cbuffer1));
 
@@ -789,7 +865,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 		cmd.effect = debugLineFX;
 		cmd.inputLayout = (void*)m_debugCoordVAO;
 
-		ConstantBuffer cbuffer0(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), (void*)debugLineFX->m_perObjectCB->GetBuffer());
+		ConstantBuffer cbuffer0(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), debugLineFX->m_perObjectCB);
 		DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 		perObjectData->ViewProj = CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
 
@@ -845,13 +921,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 	void GLRenderer::AddDeferredDrawCmd(DrawCmd &cmd)
 	{
 		//m_deferredDrawList.push_back(std::move(cmd));
-		m_drawList.push_back(std::move(cmd));
-	}
-
-	void GLRenderer::AddShadowDrawCmd(DrawCmd &cmd)
-	{
-		//m_shadowMapDrawList.push_back(std::move(cmd));
-		m_drawList.push_back(std::move(cmd));
+		m_drawList[m_writeIndex].push_back(std::move(cmd));
 	}
 
 	void GLRenderer::AddDraw(DrawEventHandler handler)
@@ -950,5 +1020,3 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd)
 	}
 
 }
-
-#endif

@@ -9,3 +9,6 @@ doc
 test
 *.obj
 External
+/*.opendb
+/*.db
+/StenGine/imgui.ini

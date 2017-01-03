@@ -14,12 +14,14 @@ enum class BufferUsage
 
 enum class BufferType
 {
-	GENERAL = 0x00L,
-	VERTEX_BUFFER = 0x01L,
-	INDEX_BUFFER = 0x02L,
-	CONSTANT_BUFFER = 0x04L,
-	SHADER_RESOURCE = 0x08L,
-	UNORDERED_ACCESS = 0x80L,
+	GENERAL,
+	VERTEX_BUFFER,
+	INDEX_BUFFER,
+	CONSTANT_BUFFER,
+	SHADER_RESOURCE,
+	UNORDERED_ACCESS,
+
+	SSBO, // opengl specific
 };
 
 class GPUBufferImpl
@@ -30,6 +32,7 @@ public:
 	virtual void  unmap() = 0;
 	virtual void* GetBuffer() = 0;
 	virtual uint32_t GetFlags() = 0;
+	virtual void bind(uint32_t bindpoint) = 0;
 };
 
 
@@ -43,6 +46,7 @@ public:
 	void unmap();
 	void* GetBuffer();
 	uint32_t GetFlags();
+	void bind(uint32_t bindpoint);
 private:
 	std::unique_ptr<GPUBufferImpl> mImpl;
 };

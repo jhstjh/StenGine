@@ -4,6 +4,7 @@
 #include "Graphics/UI/ImGuiMenu.h"
 #include "Scene/LightManager.h"
 #include "Scene/CameraManager.h"
+#include "Scene/SceneFileManager.h"
 #include "Resource/ResourceManager.h"
 #include "Scene/GameObjectManager.h"
 #include "Input/InputManager.h"
@@ -49,6 +50,7 @@ protected:
 	std::unique_ptr<GameObjectManager> m_gameObjectManager;
 	std::unique_ptr<ImGuiMenu> m_imguiMenu;
 	std::unique_ptr<Console> m_console;
+	std::unique_ptr<SceneFileManager> m_sceneFileManager;
 
 	std::unique_ptr<Renderer> m_renderer;
 

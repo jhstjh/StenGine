@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "glew.h"
+#include "imgui.h"
 
 #include "Graphics/D3D11/D3D11SRVBinding.h"
 #include "Graphics/Effect/EffectsManager.h"
@@ -78,8 +79,15 @@ struct DrawCmd {
 	RasterizerState		rasterizerState;
 	ScissorState		scissorState;
 
+	// D3D11 specific, TODO remove
 	D3D11SRVBinding srvs;
 	ID3D11RasterizerState* rsState		= nullptr;
+
+	// GL4 specific, TODO remove
+	GLuint					imGuiVbo = 0;
+	std::vector<ImDrawIdx>     imGuiIdxBuffer;
+	GLuint					imGuiIbo = 0;
+	std::vector<ImDrawVert>    imGuiVtxBuffer;
 };
 
 }

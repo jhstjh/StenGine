@@ -1,6 +1,7 @@
 #ifndef __GAMEOBJECT__
 #define __GAMEOBJECT__
 
+#include <Rpc.h>
 #include "System/API/PlatformAPIDefs.h"
 #include "Graphics/D3DIncludes.h"
 #include "Scene/Component.h"
@@ -14,25 +15,9 @@ class GameObjectManager;
 
 class GameObject {
 public:
-	template <class T>
-	static GameObject* Instantiate(const char* name,
-		float tx = 0, float ty = 0, float tz = 0,
-		float rx = 0, float ry = 0, float rz = 0,
-		float sx = 1, float sy = 1, float sz = 1)
-	{
-		auto gameObject = new T();
-		gameObject->SetName(name);
-		auto transform = new Transform(tx, ty, tz, rx, ry, rz, sx, sy, sz); // will be cleanup in component
-
-		gameObject->m_components.push_back(transform);
-		gameObject->m_transform = transform;
-
-		GameObjectManager::Instance()->Add(gameObject);
-		return gameObject;
-	}
-
 	virtual ~GameObject();
 	void SetName(const char* name) { m_name = std::string(name); }
+	void SetUUID(UUID uuid) { m_uuid = uuid; }
 	void AddComponent(Component* c);
 	Component* GetComponentByIdx(int index) { return m_components[index]; }
 
@@ -57,6 +42,7 @@ protected:
 	Transform* m_transform;
 	std::vector<Component*> m_components;
 	std::string m_name;
+	UUID m_uuid;
 };
 
 }

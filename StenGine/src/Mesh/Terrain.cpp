@@ -318,8 +318,8 @@ void Terrain::GatherDrawCall()
 
 	DeferredGeometryTerrainPassEffect* effect = EffectsManager::Instance()->m_deferredGeometryTerrainPassEffect.get();
 
-	ConstantBuffer cbuffer0(1, sizeof(DeferredGeometryTerrainPassEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB->GetBuffer());
-	ConstantBuffer cbuffer1(0, sizeof(DeferredGeometryTerrainPassEffect::PEROBJ_CONSTANT_BUFFER), (void*)effect->m_perObjectCB->GetBuffer());
+	ConstantBuffer cbuffer0(1, sizeof(DeferredGeometryTerrainPassEffect::PERFRAME_CONSTANT_BUFFER), effect->m_perFrameCB);
+	ConstantBuffer cbuffer1(0, sizeof(DeferredGeometryTerrainPassEffect::PEROBJ_CONSTANT_BUFFER), effect->m_perObjectCB);
 
 	DeferredGeometryTerrainPassEffect::PERFRAME_CONSTANT_BUFFER* perframeData = (DeferredGeometryTerrainPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 	DeferredGeometryTerrainPassEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (DeferredGeometryTerrainPassEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
@@ -364,7 +364,7 @@ void Terrain::GatherDrawCall()
 	}
 	case RenderBackend::OPENGL4:
 	{
-		ConstantBuffer cbuffer2(2, sizeof(DeferredGeometryTerrainPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), (void*)effect->m_textureCB->GetBuffer());
+		ConstantBuffer cbuffer2(2, sizeof(DeferredGeometryTerrainPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), effect->m_textureCB);
 		DeferredGeometryTerrainPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (DeferredGeometryTerrainPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer2.GetBuffer();
 
 		textureData->gShadowMap = LightManager::Instance()->m_shadowMap->GetDepthTexHandle();
@@ -402,8 +402,8 @@ void Terrain::GatherShadowDrawCall() {
 
 	TerrainShadowMapEffect* effect = EffectsManager::Instance()->m_terrainShadowMapEffect.get();
 
-	ConstantBuffer cbuffer0(1, sizeof(TerrainShadowMapEffect::PERFRAME_CONSTANT_BUFFER), (void*)effect->m_perFrameCB->GetBuffer());
-	ConstantBuffer cbuffer1(0, sizeof(TerrainShadowMapEffect::PEROBJ_CONSTANT_BUFFER), (void*)effect->m_perObjectCB->GetBuffer());
+	ConstantBuffer cbuffer0(1, sizeof(TerrainShadowMapEffect::PERFRAME_CONSTANT_BUFFER), effect->m_perFrameCB);
+	ConstantBuffer cbuffer1(0, sizeof(TerrainShadowMapEffect::PEROBJ_CONSTANT_BUFFER), effect->m_perObjectCB);
 
 	TerrainShadowMapEffect::PERFRAME_CONSTANT_BUFFER* perframeData = (TerrainShadowMapEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 	TerrainShadowMapEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (TerrainShadowMapEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
@@ -450,7 +450,7 @@ void Terrain::GatherShadowDrawCall() {
 	}
 	case RenderBackend::OPENGL4:
 	{
-		ConstantBuffer cbuffer2(2, sizeof(TerrainShadowMapEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), (void*)effect->m_textureCB->GetBuffer());
+		ConstantBuffer cbuffer2(2, sizeof(TerrainShadowMapEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), effect->m_textureCB);
 		TerrainShadowMapEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (TerrainShadowMapEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer2.GetBuffer();
 
 		textureData->gShadowMap = LightManager::Instance()->m_shadowMap->GetDepthTex();
@@ -479,7 +479,7 @@ void Terrain::GatherShadowDrawCall() {
 	cmd.cbuffers.push_back(std::move(cbuffer0));
 	cmd.cbuffers.push_back(std::move(cbuffer1));
 
-	Renderer::Instance()->AddShadowDrawCmd(cmd);
+	Renderer::Instance()->AddDeferredDrawCmd(cmd);
 
 }
 

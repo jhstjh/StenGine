@@ -438,7 +438,7 @@ public:
 	struct SETTING_CONSTANT_BUFFER
 	{
 		XMFLOAT2 texOffset;
-		XMFLOAT2 pad;
+		XMFLOAT2 xEnableSSAO;
 	} ;
 
 	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
