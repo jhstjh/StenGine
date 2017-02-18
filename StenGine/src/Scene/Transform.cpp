@@ -14,30 +14,39 @@ const XMVECTOR AXIS_Y = XMLoadFloat3(&XMFLOAT3(0, 1, 0));
 const XMVECTOR AXIS_Z = XMLoadFloat3(&XMFLOAT3(0, 0, 1));
 
 Transform::Transform(float tx, float ty, float tz, float rx, float ry, float rz, float sx, float sy, float sz)
+	: mTx(tx)
+	, mTy(ty)
+	, mTz(tz)
+	, mRx(rx)
+	, mRy(ry)
+	, mRz(rz)
+	, mSx(sx)
+	, mSy(sy)
+	, mSz(sz)
 {
-	m_position = XMLoadFloat3(&XMFLOAT3(tx, ty, tz));
-	m_rotation = XMQuaternionRotationRollPitchYaw(rx, ry, rz);
-	m_scale = XMLoadFloat3(&XMFLOAT3(sx, sy, sz));
+	mPosition = XMLoadFloat3(&XMFLOAT3(tx, ty, tz));
+	mRotation = XMQuaternionRotationRollPitchYaw(rx, ry, rz);
+	mScale = XMLoadFloat3(&XMFLOAT3(sx, sy, sz));
 }
 
 const XMFLOAT4X4* Transform::GetWorldTransform()
 {
-	XMMATRIX worldTrans = XMMatrixTransformation(VEC3ZERO, QUATIDENT, m_scale, VEC3ZERO, m_rotation, m_position);
-	XMStoreFloat4x4(&m_worldTransform, worldTrans);
-	return &m_worldTransform;
+	XMMATRIX worldTrans = XMMatrixTransformation(VEC3ZERO, QUATIDENT, mScale, VEC3ZERO, mRotation, mPosition);
+	XMStoreFloat4x4(&mWorldTransform, worldTrans);
+	return &mWorldTransform;
 }
 
-XMFLOAT3 Transform::GetPosition()
+XMFLOAT3 Transform::GetPosition() const
 {
 	XMFLOAT3 pos;
-	XMStoreFloat3(&pos, m_position);
+	XMStoreFloat3(&pos, mPosition);
 	return pos;
 }
 
 void Transform::RotateAroundY(float radius)
 {
 	XMVECTOR rot = XMQuaternionRotationAxis(AXIS_Y, radius);
-	m_rotation = XMQuaternionMultiply(m_rotation, rot);
+	mRotation = XMQuaternionMultiply(mRotation, rot);
 }
 
 void Transform::DrawMenu()
@@ -55,11 +64,11 @@ void Transform::DrawMenu()
 		ImGui::Text("Z"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0));
 
 		ImGui::Text("Rotation");
-		sprintf(scratch, "%f", atan2(m_worldTransform._23, m_worldTransform._33) * 180 / PI);
+		sprintf(scratch, "%f", atan2(mWorldTransform._23, mWorldTransform._33) * 180 / PI);
 		ImGui::Text("X"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0)); ImGui::SameLine();
-		sprintf(scratch, "%f", atan2(-m_worldTransform._13, sqrt(m_worldTransform._23 * m_worldTransform._23 + m_worldTransform._33 * m_worldTransform._33)) * 180 / PI);
+		sprintf(scratch, "%f", atan2(-mWorldTransform._13, sqrt(mWorldTransform._23 * mWorldTransform._23 + mWorldTransform._33 * mWorldTransform._33)) * 180 / PI);
 		ImGui::Text("Y"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0)); ImGui::SameLine();
-		sprintf(scratch, "%f", atan2(m_worldTransform._12, m_worldTransform._11) * 180 / PI);
+		sprintf(scratch, "%f", atan2(mWorldTransform._12, mWorldTransform._11) * 180 / PI);
 		ImGui::Text("Z"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0));
 
 		ImGui::Text("Scale");
@@ -67,6 +76,31 @@ void Transform::DrawMenu()
 		ImGui::Text("Y"); ImGui::SameLine(); ImGui::Button("1.0", ImVec2(80, 0)); ImGui::SameLine();
 		ImGui::Text("Z"); ImGui::SameLine(); ImGui::Button("1.0", ImVec2(80, 0));
 	}
+}
+
+tinyxml2::XMLElement* Transform::Save(tinyxml2::XMLDocument &doc) const
+{
+	tinyxml2::XMLElement* pTransfrom = doc.NewElement("Transform");
+
+	tinyxml2::XMLElement* pPosition = doc.NewElement("Position");
+	pPosition->SetAttribute("x", mTx);
+	pPosition->SetAttribute("y", mTy);
+	pPosition->SetAttribute("z", mTz);
+	pTransfrom->InsertEndChild(pPosition);
+
+	tinyxml2::XMLElement* pRotation = doc.NewElement("Rotation");
+	pRotation->SetAttribute("x", mRx); 
+	pRotation->SetAttribute("y", mRy); 
+	pRotation->SetAttribute("z", mRz); 
+	pTransfrom->InsertEndChild(pRotation);
+
+	tinyxml2::XMLElement* pScale = doc.NewElement("Scale");
+	pScale->SetAttribute("x", mSx);
+	pScale->SetAttribute("y", mSy);
+	pScale->SetAttribute("z", mSz);
+	pTransfrom->InsertEndChild(pScale);
+
+	return pTransfrom;
 }
 
 }

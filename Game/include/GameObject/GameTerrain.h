@@ -10,6 +10,8 @@ namespace SGGame
 class GameTerrain : public GameObject
 {
 public:
+	DECLARE_TYPE(GameTerrain)
+
 	GameTerrain();
 };
 

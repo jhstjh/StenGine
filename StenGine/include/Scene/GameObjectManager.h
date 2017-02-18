@@ -22,6 +22,8 @@ public:
 	void Add(GameObject* gameObject) { mGameObjects.push_back(gameObject); }
 	GameObjectRegistry &GetRegistry() { return mRegistry; }
 
+	std::vector<GameObject*>& GetAllGameObjects() { return mGameObjects; }
+
 	GameObject* Instantiate(const char* objectType, UUID uuid, const char* name,
 		float tx = 0, float ty = 0, float tz = 0,
 		float rx = 0, float ry = 0, float rz = 0,
@@ -31,15 +33,15 @@ public:
 		gameObject->SetName(name);
 		auto transform = new Transform(tx, ty, tz, rx, ry, rz, sx, sy, sz); // will be cleanup in component
 
-		gameObject->m_components.push_back(transform);
-		gameObject->m_transform = transform;
+		gameObject->mComponents.push_back(transform);
+		gameObject->mTransform = transform;
 
 		RPC_STATUS status;
 		if (UuidIsNil(&uuid, &status))
 		{
 			UuidCreate(&uuid);
 		}
-		gameObject->m_uuid = uuid;
+		gameObject->mUuid = uuid;
 
 		Add(gameObject);
 		return gameObject;

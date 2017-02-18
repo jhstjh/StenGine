@@ -10,6 +10,8 @@ namespace SGGame
 class Plane : public GameObject
 {
 public:
+	DECLARE_TYPE(Plane)
+
 	Plane();
 };
 

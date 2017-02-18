@@ -10,6 +10,8 @@ namespace SGGame
 class House : public GameObject
 {
 public:
+	DECLARE_TYPE(House)
+
 	House();
 };
 

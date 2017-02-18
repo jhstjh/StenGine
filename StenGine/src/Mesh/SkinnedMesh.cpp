@@ -78,7 +78,7 @@ void SkinnedMesh::GatherDrawCall()
 		resourceMask.z = 1;
 
 	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
-		int startIndex = 0;
+		size_t startIndex = 0;
 		for (uint32_t iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
 
 			ConstantBuffer cbuffer0(1, sizeof(DeferredSkinnedGeometryPassEffect::PERFRAME_CONSTANT_BUFFER), effect->m_perFrameCB);
@@ -100,16 +100,6 @@ void SkinnedMesh::GatherDrawCall()
 
 			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
 			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
-
-			//glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, effect->m_matrixPaletteSB, 0, sizeof(XMMATRIX) * m_matrixPalette.size());
-			//void* ssbo = glMapNamedBufferRange(
-			//	effect->m_matrixPaletteSB,
-			//	0,
-			//	sizeof(XMMATRIX) * m_matrixPalette.size(),
-			//	GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-			//);
-			//memcpy(ssbo, &m_matrixPalette[0], sizeof(XMMATRIX) * m_matrixPalette.size());
-			//glUnmapNamedBuffer(effect->m_matrixPaletteSB);
 
 			resourceMask.x = 0;
 			resourceMask.y = 0;
@@ -201,7 +191,7 @@ void SkinnedMesh::GatherShadowDrawCall()
 	UINT offset = 0;
 
 	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
-		int startIndex = 0;
+		size_t startIndex = 0;
 		for (uint32_t iSubMesh = 0; iSubMesh < m_subMeshes.size(); iSubMesh++) {
 
 			ConstantBuffer cbuffer0(1, sizeof(DeferredSkinnedGeometryPassEffect::PERFRAME_CONSTANT_BUFFER), effect->m_perFrameCB);

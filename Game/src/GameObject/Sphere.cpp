@@ -13,7 +13,7 @@ Sphere::Sphere()
 
 void Sphere::Update()
 {
-	m_transform->RotateAroundY(-Timer::GetDeltaTime() * 3.14159f);
+	mTransform->RotateAroundY(-Timer::GetDeltaTime() * 3.14159f);
 }
 
 }

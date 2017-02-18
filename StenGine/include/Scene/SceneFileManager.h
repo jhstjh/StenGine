@@ -8,7 +8,7 @@ namespace StenGine
 class SceneFileManager : public AbstractSingletonClass<SceneFileManager>
 {
 public:
-	virtual void LoadScene(std::wstring path) = 0;
+	virtual void LoadScene() = 0;
 	virtual void Save() = 0;
 
 	virtual void DrawMenu() = 0;

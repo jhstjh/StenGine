@@ -50,7 +50,7 @@ void GameObjectManager::DrawMenu()
 	std::vector<const char*> names;
 	for (size_t i = 0; i < mGameObjects.size(); ++i)
 	{
-		names.push_back(mGameObjects[i]->m_name.c_str());
+		names.push_back(mGameObjects[i]->mName.c_str());
 	}
 
 	ImGui::ListBox("", &currentItem, names.data(), (int32_t)names.size(), 10);

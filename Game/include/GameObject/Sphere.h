@@ -10,6 +10,8 @@ namespace SGGame
 class Sphere : public GameObject
 {
 public:
+	DECLARE_TYPE(Sphere)
+
 	Sphere();
 
 	virtual void Update() override;

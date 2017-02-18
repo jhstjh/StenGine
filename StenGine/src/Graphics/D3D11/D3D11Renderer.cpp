@@ -1,4 +1,5 @@
 #include "Graphics/D3D11/D3D11Renderer.h"
+#include "Scene/SceneFileManager.h"
 
 #pragma warning(disable: 4267 4244 4311 4302)
 
@@ -620,6 +621,7 @@ D3D11Renderer::~D3D11Renderer() {
 		// TEST
 		ImGui::NewFrame();
 		GameObjectManager::Instance()->DrawMenu();
+		SceneFileManager::Instance()->DrawMenu();
 		ImGui::Render();
 
 		ExecuteCmdList();

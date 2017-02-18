@@ -10,6 +10,8 @@ namespace SGGame
 class Dragon : public GameObject
 {
 public:
+	DECLARE_TYPE(Dragon)
+
 	Dragon();
 };
 

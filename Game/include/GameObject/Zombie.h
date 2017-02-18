@@ -10,6 +10,8 @@ namespace SGGame
 class Zombie : public GameObject
 {
 public:
+	DECLARE_TYPE(Zombie)
+
 	Zombie();
 };
 

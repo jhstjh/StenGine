@@ -88,7 +88,7 @@ XMMATRIX Camera::GetProjMatrix()
 // 	float py = m_radius*cosf(m_phi);
 // 
 // 	XMVECTOR pos = XMVectorSet(px, py, pz, 0.0f);
-// 	XMStoreFloat4(&m_pos, pos);
+// 	XMStoreFloat4(&mPos, pos);
 // 
 // 	XMMATRIX V = XMMatrixLookAtLH(pos, m_target, m_up);
 // 	XMStoreFloat4x4(&m_view, V);

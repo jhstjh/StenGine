@@ -7,6 +7,8 @@
 #include "Scene/Component.h"
 #include "Scene/Transform.h"
 
+#define DECLARE_TYPE(Type) virtual const char* GetType() override { return #Type; }
+
 namespace StenGine
 {
 
@@ -15,34 +17,39 @@ class GameObjectManager;
 
 class GameObject {
 public:
-	virtual ~GameObject();
-	void SetName(const char* name) { m_name = std::string(name); }
-	void SetUUID(UUID uuid) { m_uuid = uuid; }
-	void AddComponent(Component* c);
-	Component* GetComponentByIdx(int index) { return m_components[index]; }
+	virtual					~GameObject();
+	void					SetName(const char* name) { mName = std::string(name); }
+	std::string				GetName() const { return mName; }
+	void					SetUUID(UUID uuid) { mUuid = uuid; }
+	UUID					GetUUID() const { return mUuid; }
+	void					AddComponent(Component* c);
+	Component*				GetComponentByIdx(int index) { return mComponents[index]; }
+	std::vector<Component*> GetAllComponents() { return mComponents; }
 
 	template <class T>
 	T* GetFirstComponentByType()
 	{
-		for (auto &comp : m_components)
+		for (auto &comp : mComponents)
 		{
 			if (dynamic_cast<T*>comp)
 				return comp;
 		}
 	}
 
-	Transform* GetTransform() { return m_transform; };
+	Transform* GetTransform() { return mTransform; };
 
 	virtual void Update();
 	virtual void DrawMenu();
 
+	virtual const char* GetType() = 0;
+
 	friend GameObjectManager;
 
 protected:
-	Transform* m_transform;
-	std::vector<Component*> m_components;
-	std::string m_name;
-	UUID m_uuid;
+	Transform*				mTransform;
+	std::vector<Component*> mComponents;
+	std::string				mName;
+	UUID					mUuid;
 };
 
 }
