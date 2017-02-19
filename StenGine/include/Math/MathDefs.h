@@ -8,6 +8,9 @@ namespace StenGine
 using Vec3 = mathfu::vec3;
 using Vec4 = mathfu::vec4;
 
+using Mat3 = mathfu::mat3;
 using Mat4 = mathfu::mat4;
+
+using Quat = mathfu::quat;
 
 }

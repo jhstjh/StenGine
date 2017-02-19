@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "Mesh/MeshRenderer.h"
 #include "Graphics/Effect/EffectsManager.h"
 #include "Scene/CameraManager.h"
@@ -81,7 +82,7 @@ void Mesh::DrawMenu()
 						uint32_t width, height;
 						m_materials[i].m_diffuseMapTex->GetDimension(width, height);
 
-						float scale = min(TEX_CUBE_SIZE / width, TEX_CUBE_SIZE / height);
+						float scale = std::min(TEX_CUBE_SIZE / width, TEX_CUBE_SIZE / height);
 						ImGui::ImageButton((ImTextureID)m_materials[i].m_diffuseMapTex->GetTexture(), ImVec2(width * scale, height * scale));
 					}
 					if (m_materials[i].m_normalMapTex)
@@ -92,7 +93,7 @@ void Mesh::DrawMenu()
 						uint32_t width, height;
 						m_materials[i].m_normalMapTex->GetDimension(width, height);
 
-						float scale = min(TEX_CUBE_SIZE / width, TEX_CUBE_SIZE / height);
+						float scale = std::min(TEX_CUBE_SIZE / width, TEX_CUBE_SIZE / height);
 						ImGui::ImageButton((ImTextureID)m_materials[i].m_normalMapTex->GetTexture(), ImVec2(width * scale, height * scale));
 					}
 					if (m_materials[i].m_bumpMapTex)
@@ -103,7 +104,7 @@ void Mesh::DrawMenu()
 						uint32_t width, height;
 						m_materials[i].m_bumpMapTex->GetDimension(width, height);
 
-						float scale = min(TEX_CUBE_SIZE / width, TEX_CUBE_SIZE / height);
+						float scale = std::min(TEX_CUBE_SIZE / width, TEX_CUBE_SIZE / height);
 						ImGui::ImageButton((ImTextureID)m_materials[i].m_bumpMapTex->GetTexture(), ImVec2(width * scale, height * scale));
 					}
 

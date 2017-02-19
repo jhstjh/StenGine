@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <fstream>
 
 #include "Mesh/Terrain.h"
@@ -70,8 +71,8 @@ void Terrain::CalcPatchBoundsY(UINT i, UINT j)
 		for (UINT x = x0; x <= x1; ++x)
 		{
 			UINT k = y*m_initInfo.HeightmapWidth + x;
-			minY = min(minY, m_heightMap[k]);
-			maxY = max(maxY, m_heightMap[k]);
+			minY = std::min(minY, m_heightMap[k]);
+			maxY = std::max(maxY, m_heightMap[k]);
 		}
 	}
 

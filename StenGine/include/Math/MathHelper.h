@@ -43,7 +43,30 @@ public:
 		mat._42 += offset.y * distance;
 		mat._43 += offset.z * distance;
 	}
+
+
+	inline static void SetPosition(Mat4 &mat, float x, float y, float z) { mat(0, 3) = x; mat(1, 3) = y; mat(2, 3) = z; }
+
+	inline static void MoveLeft(Mat4& mat, float distance) { MoveRight(mat, -distance); }
+
+	inline static Vec3 GetForward(const Mat4& mat) { return{ mat(0, 2), mat(1, 2), mat(2, 2) }; }
+	inline static Vec3 GetRight(const Mat4& mat) { return{ mat(0, 0), mat(1, 0), mat(2, 0) }; }
+
+	inline static void MoveForward(Mat4& mat, float distance) {
+		Vec3 offset = GetForward(mat);
+		mat(0, 3) += offset[0] * distance;
+		mat(1, 3) += offset[1] * distance;
+		mat(2, 3) += offset[2] * distance;
+	}
+	inline static void MoveBack(Mat4& mat, float distance) { MoveForward(mat, -distance); }
+	inline static void MoveRight(Mat4& mat, float distance) {
+		Vec3 offset = GetRight(mat);
+		mat(0, 3) += offset[0] * distance;
+		mat(1, 3) += offset[1] * distance;
+		mat(2, 3) += offset[2] * distance;
+	}
 	inline static void MoveLeft(XMFLOAT4X4& mat, float distance) { MoveRight(mat, -distance); }
+
 	inline static XMFLOAT3 NormalizeFloat3(XMFLOAT3& vec3) {
 		float len = sqrt(vec3.x * vec3.x + vec3.y * vec3.y + vec3.z * vec3.z);
 		vec3.x /= len;
