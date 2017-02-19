@@ -8,6 +8,7 @@
 #include "Graphics/Abstraction/ConstantBuffer.h"
 #include "Graphics/Abstraction/GPUBuffer.h"
 #include "Graphics/Effect/Material.h"
+#include "Math/MathDefs.h"
 #include "Mesh/MeshRenderer.h"
 #include "System/SingletonClass.h"
 #include "System/AlignedClass.h"
@@ -484,7 +485,7 @@ public:
 
 	struct IMGUI_CONSTANT_BUFFER
 	{
-		XMMATRIX ProjMtx;
+		Mat4 ProjMtx;
 	};
 
 	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
@@ -511,7 +512,7 @@ public:
 
 	struct PEROBJ_CONSTANT_BUFFER
 	{
-		XMMATRIX ViewProj;
+		Mat4 ViewProj;
 	};
 };
 

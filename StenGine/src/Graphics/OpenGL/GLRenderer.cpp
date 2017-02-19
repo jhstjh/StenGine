@@ -748,13 +748,13 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		textureData->DepthGMap = m_depthBufferTexHandle;
 		textureData->RandVectMap = m_randVecTexHandle;
 
-		XMMATRIX &viewMat = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
+		XMMATRIX viewMat = XMMATRIX(&CameraManager::Instance()->GetActiveCamera()->GetViewMatrix()[0]);
 		XMMATRIX viewInvTranspose = MatrixHelper::InverseTranspose(viewMat);
 
 		perFrameData->gDirLight = *LightManager::Instance()->m_dirLights[0];
 		XMStoreFloat3(&perFrameData->gDirLight.direction, XMVector3Transform(XMLoadFloat3(&perFrameData->gDirLight.direction), viewInvTranspose));
 
-		XMMATRIX &projMat = CameraManager::Instance()->GetActiveCamera()->GetProjMatrix();
+		XMMATRIX projMat = XMMATRIX(&CameraManager::Instance()->GetActiveCamera()->GetProjMatrix()[0]);
 		XMVECTOR det = XMMatrixDeterminant(projMat);
 		perFrameData->gProj = projMat;
 		perFrameData->gProjInv = XMMatrixInverse(&det, projMat);
@@ -867,6 +867,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 
 		ConstantBuffer cbuffer0(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), debugLineFX->m_perObjectCB);
 		DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+
 		perObjectData->ViewProj = CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
 
 		cmd.cbuffers.push_back(std::move(cbuffer0));

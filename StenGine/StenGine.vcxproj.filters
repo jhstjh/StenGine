@@ -538,6 +538,9 @@
     <ClInclude Include="include\Scene\GameObjectRegistry.h">
       <Filter>include\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="include\Math\MathDefs.h">
+      <Filter>include\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">

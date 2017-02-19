@@ -326,7 +326,7 @@ void Terrain::GatherDrawCall()
 
 	DrawCmd cmd;
 
-	perframeData->gEyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
+	perframeData->gEyePosW = XMFLOAT4(&CameraManager::Instance()->GetActiveCamera()->GetPos()[0]);
 
 	perframeData->gMaxDist = 500.00;
 	perframeData->gMinDist = 20;
@@ -338,19 +338,19 @@ void Terrain::GatherDrawCall()
 	perframeData->gWorldCellSpace = m_initInfo.CellSpacing;
 	perframeData->gWorldFrustumPlanes /********************/;
 
-	perObjData->View = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
-	perObjData->ViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+	perObjData->View = TRASNPOSE_API_CHOOSER(XMMATRIX(&CameraManager::Instance()->GetActiveCamera()->GetViewMatrix()[0]));
+	perObjData->ViewProj = TRASNPOSE_API_CHOOSER(XMMATRIX(&CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix()[0]));
 	perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()));
 	perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform())));
 
-	XMMATRIX worldView = XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
+	XMMATRIX worldView = XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()) * XMMATRIX(&CameraManager::Instance()->GetActiveCamera()->GetViewMatrix()[0]);
 	perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
 
 	XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
 	perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
 	perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
-	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()) * XMMATRIX(&CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix()[0]));
 
 	switch (Renderer::GetRenderBackend())
 	{
@@ -410,7 +410,7 @@ void Terrain::GatherShadowDrawCall() {
 
 	DrawCmd cmd;
 
-	perframeData->gEyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
+	perframeData->gEyePosW = XMFLOAT4(&CameraManager::Instance()->GetActiveCamera()->GetPos()[0]);
 
 	perframeData->gMaxDist = 500.00;
 	perframeData->gMinDist = 20;

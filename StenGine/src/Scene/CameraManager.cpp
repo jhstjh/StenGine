@@ -3,8 +3,6 @@
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Engine/EventSystem.h"
 
-using namespace DirectX;
-
 #include "Math/MathHelper.h"
 
 #define MOVE_SPEED 10
@@ -17,27 +15,24 @@ Camera::Camera(float px, float py, float pz,
 	float ux, float uy, float uz,
 	float fov, float np, float fp)
 {
-	XMVECTOR pos = XMVectorSet(px, py, pz, 0.0f);
-	m_target = XMVectorSet(tx, ty, tz, 0.0f);
-	m_up = XMVectorSet(ux, uy, uz, 0.0f);
-	XMStoreFloat4(&m_pos, pos);
+	m_pos = { px, py, pz };
+	m_target = { tx, ty, tz };
+	m_up = { ux, uy, uz };
 
-	XMMATRIX V = XMMatrixLookAtLH(pos, m_target, m_up);
-	XMStoreFloat4x4(&m_view, V);
-	XMMATRIX P = XMMatrixPerspectiveFovLH(fov, Renderer::Instance()->GetAspectRatio(), np, fp);
-	XMStoreFloat4x4(&m_proj, P);
+	m_view = Mat4::LookAt(m_target, m_pos, m_up, -1.0f);
+	m_proj = Mat4::Perspective(fov, Renderer::Instance()->GetAspectRatio(), np, fp, -1.0f);
 
-	if (Renderer::GetRenderBackend() == RenderBackend::OPENGL4)
-	{
-		m_proj.m[2][2] = (np + fp) / (fp - np);
-		m_proj.m[3][2] = -2 * (np * fp) / (fp - np);
-	}
+	// if (Renderer::GetRenderBackend() == RenderBackend::OPENGL4)
+	// {
+	// 	m_proj.m[2][2] = (np + fp) / (fp - np);
+	// 	m_proj.m[3][2] = -2 * (np * fp) / (fp - np);
+	// }
 
-	m_radius = XMVectorGetX(XMVector3Length(pos - m_target));
+	m_radius = (m_pos - m_target).Length();
 	m_phi = acosf((py - ty) / m_radius);
 	m_theta = asinf((pz - tz) / (m_radius * sinf(m_phi)));
 
-	XMStoreFloat4x4(&m_worldTransform, MatrixHelper::Inverse(V));
+	m_worldTransform = m_view.Inverse();
 }
 
 Camera::~Camera()
@@ -45,99 +40,65 @@ Camera::~Camera()
 
 }
 
-XMMATRIX Camera::GetViewProjMatrix() 
+Mat4 Camera::GetViewProjMatrix()
 {
-	return XMLoadFloat4x4(&m_view) * XMLoadFloat4x4(&m_proj);
+	return m_proj * m_view;
 }
 
-XMMATRIX Camera::GetViewMatrix() 
+Mat4 Camera::GetViewMatrix()
 {
-	return XMLoadFloat4x4(&m_view);
+	return m_view;
 }
 
-XMMATRIX Camera::GetProjMatrix() 
+Mat4 Camera::GetProjMatrix()
 {
-	return XMLoadFloat4x4(&m_proj);
+	return m_proj;
 }
-
-// void Camera::OnMouseDown(WPARAM btnState, int x, int y) {
-// 	m_lastMousePos.x = x;
-// 	m_lastMousePos.y = y;
-// }
-// 
-// void Camera::OnMouseUp(WPARAM btnState, int x, int y) {
-// 
-// }
-// 
-// void Camera::OnMouseMove(WPARAM btnState, int x, int y) {
-// 	if ((btnState & MK_LBUTTON)) {
-// 		float dx = XMConvertToRadians(0.25f*static_cast<float>(x - m_lastMousePos.x));
-// 		float dy = XMConvertToRadians(0.25f*static_cast<float>(y - m_lastMousePos.y));
-// 		m_theta -= dx;
-// 		m_phi -= dy;
-// 
-// 		m_phi = min(max(m_phi, 0.1f), 3.14159f - 0.1f);
-// 		
-// 	}
-// 	m_lastMousePos.x = x;
-// 	m_lastMousePos.y = y;
-// 
-// 
-// 	float px = m_radius*sinf(m_phi)*cosf(m_theta);
-// 	float pz = m_radius*sinf(m_phi)*sinf(m_theta);
-// 	float py = m_radius*cosf(m_phi);
-// 
-// 	XMVECTOR pos = XMVectorSet(px, py, pz, 0.0f);
-// 	XMStoreFloat4(&m_pos, pos);
-// 
-// 	XMMATRIX V = XMMatrixLookAtLH(pos, m_target, m_up);
-// 	XMStoreFloat4x4(&m_view, V);
-//}
 
 void Camera::Update() 
 {
-	if (InputManager::Instance()->GetKeyHold('W')) {
-		MatrixHelper::MoveForward(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
-		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
-	}
-	if (InputManager::Instance()->GetKeyHold('S')) {
-		MatrixHelper::MoveBack(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
-		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
-	}
-	if (InputManager::Instance()->GetKeyHold('A')) {
-		MatrixHelper::MoveLeft(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
-		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
-	}
-	if (InputManager::Instance()->GetKeyHold('D')) {
-		MatrixHelper::MoveRight(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
-		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
-	}
-	if (InputManager::Instance()->GetKeyHold(VK_UP)) {
-		XMMATRIX M = XMMatrixRotationX(-3.14159f / 3.0f * Timer::GetDeltaTime()) * XMLoadFloat4x4(&m_worldTransform);
-		XMStoreFloat4x4(&m_worldTransform, M);
-		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(M));
-	}
-	if (InputManager::Instance()->GetKeyHold(VK_DOWN)) {
-		XMMATRIX M = XMMatrixRotationX(3.14159f / 3.0f * Timer::GetDeltaTime()) * XMLoadFloat4x4(&m_worldTransform);
-		XMStoreFloat4x4(&m_worldTransform, M);
-		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(M));
-	}
-	if (InputManager::Instance()->GetKeyHold(VK_LEFT)) {
-		XMFLOAT4 pos = GetPos();
-		MatrixHelper::SetPosition(m_worldTransform, 0, 0, 0);
-		XMMATRIX M = XMLoadFloat4x4(&m_worldTransform) * XMMatrixRotationY(-3.14159f / 3.0f * Timer::GetDeltaTime());
-		M.r[3] = XMVectorSet(pos.x, pos.y, pos.z, 1.0);
-		XMStoreFloat4x4(&m_worldTransform, M);
-		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(M));
-	}
-	if (InputManager::Instance()->GetKeyHold(VK_RIGHT)) {
-		XMFLOAT4 pos = GetPos();
-		MatrixHelper::SetPosition(m_worldTransform, 0, 0, 0);
-		XMMATRIX M = XMLoadFloat4x4(&m_worldTransform) * XMMatrixRotationY(3.14159f / 3.0f * Timer::GetDeltaTime());
-		M.r[3] = XMVectorSet(pos.x, pos.y, pos.z, 1.0);
-		XMStoreFloat4x4(&m_worldTransform, M);
-		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(M));
-	}
+	// if (InputManager::Instance()->GetKeyHold('W')) {
+	// 	MatrixHelper::MoveForward(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
+	// 	XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
+	// }
+	// if (InputManager::Instance()->GetKeyHold('S')) {
+	// 	MatrixHelper::MoveBack(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
+	// 	XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
+	// }
+	// if (InputManager::Instance()->GetKeyHold('A')) {
+	// 	MatrixHelper::MoveLeft(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
+	// 	XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
+	// }
+	// if (InputManager::Instance()->GetKeyHold('D')) {
+	// 	MatrixHelper::MoveRight(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
+	// 	XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
+	// }
+	// if (InputManager::Instance()->GetKeyHold(VK_UP)) {
+	// 	XMMATRIX M = XMMatrixRotationX(-3.14159f / 3.0f * Timer::GetDeltaTime()) * XMLoadFloat4x4(&m_worldTransform);
+	// 	XMStoreFloat4x4(&m_worldTransform, M);
+	// 	XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(M));
+	// }
+	// if (InputManager::Instance()->GetKeyHold(VK_DOWN)) {
+	// 	XMMATRIX M = XMMatrixRotationX(3.14159f / 3.0f * Timer::GetDeltaTime()) * XMLoadFloat4x4(&m_worldTransform);
+	// 	XMStoreFloat4x4(&m_worldTransform, M);
+	// 	XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(M));
+	// }
+	// if (InputManager::Instance()->GetKeyHold(VK_LEFT)) {
+	// 	XMFLOAT4 pos = GetPos();
+	// 	MatrixHelper::SetPosition(m_worldTransform, 0, 0, 0);
+	// 	XMMATRIX M = XMLoadFloat4x4(&m_worldTransform) * XMMatrixRotationY(-3.14159f / 3.0f * Timer::GetDeltaTime());
+	// 	M.r[3] = XMVectorSet(pos.x, pos.y, pos.z, 1.0);
+	// 	XMStoreFloat4x4(&m_worldTransform, M);
+	// 	XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(M));
+	// }
+	// if (InputManager::Instance()->GetKeyHold(VK_RIGHT)) {
+	// 	XMFLOAT4 pos = GetPos();
+	// 	MatrixHelper::SetPosition(m_worldTransform, 0, 0, 0);
+	// 	XMMATRIX M = XMLoadFloat4x4(&m_worldTransform) * XMMatrixRotationY(3.14159f / 3.0f * Timer::GetDeltaTime());
+	// 	M.r[3] = XMVectorSet(pos.x, pos.y, pos.z, 1.0);
+	// 	XMStoreFloat4x4(&m_worldTransform, M);
+	// 	XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(M));
+	// }
 }
 
 CameraManager::CameraManager()

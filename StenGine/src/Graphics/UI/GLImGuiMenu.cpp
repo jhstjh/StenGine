@@ -1,11 +1,11 @@
+#include <stdint.h>
 #include "imgui.h"
 #include "Graphics/UI/ImGuiMenu.h"
-#include "glew.h"
 #include "Graphics/Abstraction/ContextState.h"
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Graphics/Effect/EffectsManager.h"
+#include "Math/MathDefs.h"
 
-#include <stdint.h>
 
 namespace StenGine
 {
@@ -70,7 +70,7 @@ public:
 
 		Renderer::Instance()->AddDeferredDrawCmd(stateCmd);
 
-		const DirectX::XMMATRIX ortho_projection =
+		const Mat4 ortho_projection =
 		{
 			{ 2.0f / io.DisplaySize.x, 0.0f,                   0.0f, 0.0f },
 			{ 0.0f,                  2.0f / -io.DisplaySize.y, 0.0f, 0.0f },

@@ -166,17 +166,17 @@ void Mesh::GatherDrawCall() {
 
 			DrawCmd cmd;
 
-			perframeData->EyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
+			perframeData->EyePosW = XMFLOAT4( &CameraManager::Instance()->GetActiveCamera()->GetPos()[0] );
 
 			perObjData->Mat = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_attributes;
-			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * XMMATRIX(&CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix()[0]));
 			perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()));
-			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
+			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * XMMATRIX(&CameraManager::Instance()->GetActiveCamera()->GetViewMatrix()[0]);
 			perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
 			XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
 
 			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
-			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(XMMATRIX(&CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix()[0]));
 
 			resourceMask.x = 0;
 			resourceMask.y = 0;

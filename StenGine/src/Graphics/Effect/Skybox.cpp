@@ -124,9 +124,9 @@ void Skybox::Draw() {
 	ConstantBuffer cbuffer0(0, sizeof(SkyboxEffect::PEROBJ_CONSTANT_BUFFER), skyboxEffect->m_perObjectCB);
 	SkyboxEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (SkyboxEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 
-	XMFLOAT4 eyePos = CameraManager::Instance()->GetActiveCamera()->GetPos();
+	XMFLOAT4 eyePos { &CameraManager::Instance()->GetActiveCamera()->GetPos()[0] };
 	XMMATRIX T = XMMatrixTranslation(eyePos.x, eyePos.y, eyePos.z);
-	XMMATRIX WVP = XMMatrixMultiply(T, CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+	XMMATRIX WVP = XMMatrixMultiply(T, XMMATRIX{ &CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix()[0] });
 
 	perObjData->gWorldViewProj = TRASNPOSE_API_CHOOSER(WVP);
 

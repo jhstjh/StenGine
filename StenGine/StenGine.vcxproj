@@ -67,6 +67,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <MinimalRebuild>false</MinimalRebuild>
       <ObjectFileName>$(IntDir)</ObjectFileName>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -90,6 +91,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;ENGINE_PATH=L“$(ProjectDir)”;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -366,6 +368,7 @@
     <ClInclude Include="include\Graphics\UI\ImGuiMenu.h" />
     <ClInclude Include="include\Input\InputManager.h" />
     <ClInclude Include="include\Math\MathHelper.h" />
+    <ClInclude Include="include\Math\MathDefs.h" />
     <ClInclude Include="include\Mesh\MeshRenderer.h" />
     <ClInclude Include="include\Mesh\Skeleton.h" />
     <ClInclude Include="include\Mesh\SkinnedMesh.h" />
