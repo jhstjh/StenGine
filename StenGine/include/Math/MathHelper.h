@@ -21,6 +21,18 @@ inline XMMATRIX TRASNPOSE_API_CHOOSER(const XMMATRIX& mat)
 	return mat;
 }
 
+inline Mat4 TRASNPOSE_API_CHOOSER(const Mat4& mat)
+{
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+		return mat.Transpose();
+	case RenderBackend::OPENGL4:
+		return mat;
+	}
+	return mat;
+}
+
 static const float PI = 3.1415926f;
 static const XMMATRIX IDENTITY_MAT = XMMatrixIdentity();
 

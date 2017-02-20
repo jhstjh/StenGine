@@ -92,14 +92,20 @@ void SkinnedMesh::GatherDrawCall()
 			perframeData->EyePosW = XMFLOAT4(&CameraManager::Instance()->GetActiveCamera()->GetPos()[0]);
 
 			perObjData->Mat = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_attributes;
-			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * XMMATRIX(&CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix()[0]));
-			perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()));
-			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * XMMATRIX(&CameraManager::Instance()->GetActiveCamera()->GetViewMatrix()[0]);
+			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * m_parents[iP]->GetTransform()->GetWorldTransform());
+			perObjData->World = TRASNPOSE_API_CHOOSER(m_parents[iP]->GetTransform()->GetWorldTransform());
+			Mat4 worldView = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix() * m_parents[iP]->GetTransform()->GetWorldTransform();
 			perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
-			XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
+			Mat4 worldViewInvTranspose = worldView.Inverse().Transpose();
 
-			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
-			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(XMMATRIX(&CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix()[0]));
+			// TODO FIX ME
+			auto shadowTrans = LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
+			XMFLOAT4X4 shadowTrans4x4;
+			XMStoreFloat4x4(&shadowTrans4x4, shadowTrans);
+			Mat4 shadowTransMat{ shadowTrans4x4.m[0] };
+
+			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(shadowTransMat * m_parents[iP]->GetTransform()->GetWorldTransform());
+			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
 			resourceMask.x = 0;
 			resourceMask.y = 0;
@@ -110,7 +116,7 @@ void SkinnedMesh::GatherDrawCall()
 			{
 				cmd.srvs.AddSRV(Renderer::Instance()->GetSkyBox()->m_cubeMapSRV, 4);
 				cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-				perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform())));
+				perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(m_parents[iP]->GetTransform()->GetWorldTransform().Inverse().Transpose());
 				perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
 				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex) {
@@ -204,15 +210,32 @@ void SkinnedMesh::GatherShadowDrawCall()
 
 			perframeData->EyePosW = XMFLOAT4(&CameraManager::Instance()->GetActiveCamera()->GetPos()[0]);
 
-			perObjData->Mat = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_attributes;
-			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
-			perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()));
-			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewMatrix();;
-			perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
-			XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
+			// TODO FIXME
+			auto shadowVPMat = LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
+			XMFLOAT4X4 shadowVPMat4x4;
+			XMStoreFloat4x4(&shadowVPMat4x4, shadowVPMat);
+			Mat4 shadowVPMatMat{ shadowVPMat4x4.m[0] };
 
-			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
-			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
+			auto shadowVMat = LightManager::Instance()->m_shadowMap->GetViewMatrix();
+			XMFLOAT4X4 shadowVMat4x4;
+			XMStoreFloat4x4(&shadowVMat4x4, shadowVMat);
+			Mat4 shadowVMatMat{ shadowVMat4x4.m[0] };
+
+			auto shadowTrans = LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
+			XMFLOAT4X4 shadowTrans4x4;
+			XMStoreFloat4x4(&shadowTrans4x4, shadowTrans);
+			Mat4 shadowTransMat{ shadowTrans4x4.m[0] };
+
+
+			perObjData->Mat = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_attributes;
+			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(shadowVPMatMat * m_parents[iP]->GetTransform()->GetWorldTransform());
+			perObjData->World = TRASNPOSE_API_CHOOSER(m_parents[iP]->GetTransform()->GetWorldTransform());
+			Mat4 worldView = shadowVMatMat * m_parents[iP]->GetTransform()->GetWorldTransform();
+			perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
+			Mat4 worldViewInvTranspose = worldView.Inverse().Transpose();
+
+			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(shadowTransMat * m_parents[iP]->GetTransform()->GetWorldTransform());
+			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(shadowVPMatMat);
 
 			switch (Renderer::GetRenderBackend())
 			{

@@ -18,7 +18,7 @@ class Camera : public AlignedClass<16>
 	Mat4 mView;
 	Mat4 mProj;
 	Mat4 mWorldTransform;
-	Vec3 mRotEuler;
+	Quat mRotQuat;
 
 public:
 	Camera(float px, float py, float pz,

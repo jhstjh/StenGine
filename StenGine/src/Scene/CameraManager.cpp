@@ -1,9 +1,8 @@
-#include "Scene/CameraManager.h"
-#include "Input/InputManager.h"
-#include "Graphics/Abstraction/RendererBase.h"
 #include "Engine/EventSystem.h"
-
+#include "Graphics/Abstraction/RendererBase.h"
+#include "Input/InputManager.h"
 #include "Math/MathHelper.h"
+#include "Scene/CameraManager.h"
 
 #define MOVE_SPEED 10
 
@@ -23,7 +22,7 @@ Camera::Camera(float px, float py, float pz,
 	mWorldTransform = mView.Inverse();
 	mRot = (mTrans.Inverse() * mWorldTransform);
 	auto rot3 = Mat3(mRot.GetColumn(0).xyz(), mRot.GetColumn(1).xyz(), mRot.GetColumn(2).xyz());
-	mRotEuler = Quat::FromMatrix(rot3).ToEulerAngles();
+	mRotQuat = Quat::FromMatrix(rot3);
 
 	// TODO FIXME
 	// if (Renderer::GetRenderBackend() == RenderBackend::OPENGL4)
@@ -81,36 +80,37 @@ void Camera::Update()
 	}
 	if (InputManager::Instance()->GetKeyHold(VK_UP))
 	{
-		mRotEuler.x() += -PI / 3.0f * Timer::GetDeltaTime();
-		auto rotQuat = Quat::FromEulerAngles(mRotEuler);
-		mRot = rotQuat.ToMatrix4();
+		auto rot = Quat::FromAngleAxis(-PI / 3.0f * Timer::GetDeltaTime(), { 1, 0, 0 });
+		mRotQuat = mRotQuat * rot;
+		mRot = mRotQuat.ToMatrix4();
+
 		mWorldTransform = mTrans * mRot;
 		mView = mWorldTransform.Inverse();
 	}
 	if (InputManager::Instance()->GetKeyHold(VK_DOWN))
 	{
-		mRotEuler.x() += PI / 3.0f * Timer::GetDeltaTime();
-		auto rotQuat = Quat::FromEulerAngles(mRotEuler);
+		auto rot = Quat::FromAngleAxis(PI / 3.0f * Timer::GetDeltaTime(), { 1, 0, 0 });
+		mRotQuat = mRotQuat * rot;
+		mRot = mRotQuat.ToMatrix4();
 
-		mRot = rotQuat.ToMatrix4();
 		mWorldTransform = mTrans * mRot;
 		mView = mWorldTransform.Inverse();
 	}
 	if (InputManager::Instance()->GetKeyHold(VK_LEFT)) 
 	{
-		mRotEuler.y() += -PI / 3.0f * Timer::GetDeltaTime();
-		auto rotQuat = Quat::FromEulerAngles(mRotEuler);
+		auto rot = Quat::FromAngleAxis(-PI / 3.0f * Timer::GetDeltaTime(), { 0, 1, 0 });
+		mRotQuat = rot * mRotQuat;
+		mRot = mRotQuat.ToMatrix4();
 
-		mRot = rotQuat.ToMatrix4();
 		mWorldTransform = mTrans * mRot;
 		mView = mWorldTransform.Inverse();
 	}
 	if (InputManager::Instance()->GetKeyHold(VK_RIGHT)) 
 	{
-		mRotEuler.y() += PI / 3.0f * Timer::GetDeltaTime();
-		auto rotQuat = Quat::FromEulerAngles(mRotEuler);
+		auto rot = Quat::FromAngleAxis(PI / 3.0f * Timer::GetDeltaTime(), { 0, 1, 0 });
+		mRotQuat = rot * mRotQuat;
+		mRot = mRotQuat.ToMatrix4();
 
-		mRot = rotQuat.ToMatrix4();
 		mWorldTransform = mTrans * mRot;
 		mView = mWorldTransform.Inverse();
 	}

@@ -114,13 +114,13 @@ public:
 
 	struct PEROBJ_CONSTANT_BUFFER
 	{
-		XMMATRIX WorldViewProj;
-		XMMATRIX WorldViewInvTranspose;
-		XMMATRIX WorldInvTranspose;
-		XMMATRIX WorldView;
-		XMMATRIX World;
-		XMMATRIX ViewProj;
-		XMMATRIX ShadowTransform;
+		Mat4 WorldViewProj;
+		Mat4 WorldViewInvTranspose;
+		Mat4 WorldInvTranspose;
+		Mat4 WorldView;
+		Mat4 World;
+		Mat4 ViewProj;
+		Mat4 ShadowTransform;
 		Material::MaterialAttrib Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
 	};
@@ -163,13 +163,13 @@ public:
 
 	struct PEROBJ_CONSTANT_BUFFER
 	{
-		XMMATRIX WorldViewProj;
-		XMMATRIX WorldViewInvTranspose;
-		XMMATRIX WorldInvTranspose;
-		XMMATRIX WorldView;
-		XMMATRIX World;
-		XMMATRIX ViewProj;
-		XMMATRIX ShadowTransform;
+		Mat4 WorldViewProj;
+		Mat4 WorldViewInvTranspose;
+		Mat4 WorldInvTranspose;
+		Mat4 WorldView;
+		Mat4 World;
+		Mat4 ViewProj;
+		Mat4 ShadowTransform;
 		Material::MaterialAttrib Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
 	};
@@ -218,14 +218,14 @@ public:
 
 	struct PEROBJ_CONSTANT_BUFFER
 	{
-		XMMATRIX WorldViewProj;
-		XMMATRIX WorldViewInvTranspose;
-		XMMATRIX WorldInvTranspose;
-		XMMATRIX WorldView;
-		XMMATRIX World;
-		XMMATRIX ViewProj;
-		XMMATRIX ShadowTransform;
-		XMMATRIX View;
+		Mat4 WorldViewProj;
+		Mat4 WorldViewInvTranspose;
+		Mat4 WorldInvTranspose;
+		Mat4 WorldView;
+		Mat4 World;
+		Mat4 ViewProj;
+		Mat4 ShadowTransform;
+		Mat4 View;
 		Material::MaterialAttrib Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
 	};
@@ -286,14 +286,14 @@ public:
 
 	struct PEROBJ_CONSTANT_BUFFER
 	{
-		XMMATRIX WorldViewProj;
-		XMMATRIX WorldViewInvTranspose;
-		XMMATRIX WorldInvTranspose;
-		XMMATRIX WorldView;
-		XMMATRIX World;
-		XMMATRIX ViewProj;
-		XMMATRIX ShadowTransform;
-		XMMATRIX View;
+		Mat4 WorldViewProj;
+		Mat4 WorldViewInvTranspose;
+		Mat4 WorldInvTranspose;
+		Mat4 WorldView;
+		Mat4 World;
+		Mat4 ViewProj;
+		Mat4 ShadowTransform;
+		Mat4 View;
 		Material::MaterialAttrib Mat;
 		XMFLOAT4 DiffX_NormY_ShadZ;
 	};
@@ -391,7 +391,7 @@ public:
 
 	struct PEROBJ_CONSTANT_BUFFER
 	{
-		XMMATRIX gWorldViewProj;
+		Mat4 gWorldViewProj;
 	};
 
 	GPUBuffer* m_perObjectCB;
