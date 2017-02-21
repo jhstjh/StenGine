@@ -1,10 +1,10 @@
 #ifndef __LIGHT_MANAGER__
 #define __LIGHT_MANAGER__
 
+#include "Graphics/D3DIncludes.h"
+#include "Math/MathDefs.h"
 #include "System/API/PlatformAPIDefs.h"
 #include "System/SingletonClass.h"
-
-#include "Graphics/D3DIncludes.h"
 
 namespace StenGine
 {
@@ -12,8 +12,8 @@ namespace StenGine
 struct DirectionalLight {
 	//DirectionalLight() { ZeroMemory(this, sizeof(this)); }
 
-	XMFLOAT4 intensity;
-	XMFLOAT3 direction;
+	Vec4 intensity;
+	Vec3Packed direction;
 	float castShadow;
 };
 

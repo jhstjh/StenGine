@@ -176,13 +176,7 @@ void Mesh::GatherDrawCall() {
 			perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
 			Mat4 worldViewInvTranspose = worldView.Inverse().Transpose();
 
-			// TODO FIX ME
-			auto shadowTrans = LightManager::Instance()->m_shadowMap->GetShadowMapTransform();
-			XMFLOAT4X4 shadowTrans4x4;
-			XMStoreFloat4x4(&shadowTrans4x4, shadowTrans);
-			Mat4 shadowTransMat{ shadowTrans4x4.m[0] };
-
-			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(shadowTransMat * m_parents[iP]->GetTransform()->GetWorldTransform());
+			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform() * m_parents[iP]->GetTransform()->GetWorldTransform());
 			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
 			resourceMask.x = 0;
@@ -283,15 +277,9 @@ void Mesh::GatherShadowDrawCall() {
 	UINT stride = sizeof(Vertex::ShadowMapVertex);
 	UINT offset = 0;
 
-	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
-
-		// TODO FIX ME
-		auto shadowVPMat = LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
-		XMFLOAT4X4 shadowVPMat4x4;
-		XMStoreFloat4x4(&shadowVPMat4x4, shadowVPMat);
-		Mat4 shadowVPMatMat{ shadowVPMat4x4.m[0] };
-
-		Mat4 worldViewProj = shadowVPMatMat * m_parents[iP]->GetTransform()->GetWorldTransform();
+	for (uint32_t iP = 0; iP < m_parents.size(); iP++) 
+	{
+		Mat4 worldViewProj = LightManager::Instance()->m_shadowMap->GetViewProjMatrix() * m_parents[iP]->GetTransform()->GetWorldTransform();
 
 		ConstantBuffer cbuffer0(0, sizeof(ShadowMapEffect::PEROBJ_CONSTANT_BUFFER), effect->m_perObjectCB);
 		ShadowMapEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (ShadowMapEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();

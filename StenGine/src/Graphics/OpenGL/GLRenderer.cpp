@@ -223,8 +223,8 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		glMakeTextureHandleResidentARB(m_randVecTexHandle);
 
 		DirectionalLight* dLight = new DirectionalLight();
-		dLight->intensity = XMFLOAT4(1.5f, 1.5f, 1.5f, 1);
-		dLight->direction = MatrixHelper::NormalizeFloat3(XMFLOAT3(-0.5, -2, 1));
+		dLight->intensity = { 1.5f, 1.5f, 1.5f, 1 };
+		dLight->direction = Vec3(-0.5, -2, 1).Normalized();
 		dLight->castShadow = 1;
 
 		LightManager::Instance()->m_dirLights.push_back(dLight);
@@ -752,7 +752,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		XMMATRIX viewInvTranspose = MatrixHelper::InverseTranspose(viewMat);
 
 		perFrameData->gDirLight = *LightManager::Instance()->m_dirLights[0];
-		XMStoreFloat3(&perFrameData->gDirLight.direction, XMVector3Transform(XMLoadFloat3(&perFrameData->gDirLight.direction), viewInvTranspose));
+		perFrameData->gDirLight.direction = (CameraManager::Instance()->GetActiveCamera()->GetViewMatrix().Inverse().Transpose() * Vec4(perFrameData->gDirLight.direction.data[0], perFrameData->gDirLight.direction.data[1], perFrameData->gDirLight.direction.data[2], 0)).xyz();
 
 		XMMATRIX projMat = XMMATRIX(&CameraManager::Instance()->GetActiveCamera()->GetProjMatrix()[0]);
 		XMVECTOR det = XMMatrixDeterminant(projMat);

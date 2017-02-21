@@ -11,7 +11,7 @@
 namespace StenGine
 {
 
-ShadowMap::ShadowMap(UINT width, UINT height)
+ShadowMap::ShadowMap(uint32_t width, uint32_t height)
 	:m_width(width), m_height(height)
 {
 	switch (Renderer::GetRenderBackend())
@@ -106,16 +106,19 @@ ShadowMap::~ShadowMap() {
 	}
 }
 
-XMMATRIX ShadowMap::GetViewMatrix() {
-	return XMLoadFloat4x4(&m_lightView);
+Mat4 ShadowMap::GetViewMatrix() const
+{
+	return m_lightView;
 }
 
-XMMATRIX ShadowMap::GetViewProjMatrix() {
-	return XMLoadFloat4x4(&m_lightView) * XMLoadFloat4x4(&m_lightProj);
+Mat4 ShadowMap::GetViewProjMatrix() const
+{
+	return m_lightProj * m_lightView;
 }
 
-XMMATRIX ShadowMap::GetShadowMapTransform() {
-	return XMLoadFloat4x4(&m_shadowTransform);
+Mat4 ShadowMap::GetShadowMapTransform() const
+{
+	return m_shadowTransform;
 }
 
 RenderTarget &ShadowMap::GetRenderTarget()
@@ -125,24 +128,25 @@ RenderTarget &ShadowMap::GetRenderTarget()
 
 void ShadowMap::UpdateShadowMatrix() {
 	// only build shadow map for first directional light for now
+	auto dir = LightManager::Instance()->m_dirLights[0]->direction;
 
-	XMVECTOR lightDir = XMLoadFloat3(&(LightManager::Instance()->m_dirLights[0]->direction));
-	XMVECTOR lightPos = -100 * XMLoadFloat3(&(LightManager::Instance()->m_dirLights[0]->direction));
-	XMVECTOR lightTarget = XMVectorZero();
-	XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	Vec3 lightDir{ dir.data };
+	Vec3 lightPos = lightDir * -100;
+	Vec3 lightTarget{ 0, 0, 0 };
+	Vec3 up{ 0, 1, 0 };
 
-	XMMATRIX V = XMMatrixLookAtLH(lightPos, lightTarget, up);
+	m_lightView = Mat4::LookAt(lightTarget, lightPos, up, -1.f);
 
-	XMFLOAT3 sphereCenterLS;
-	XMStoreFloat3(&sphereCenterLS, XMVector3TransformCoord(lightTarget, V));
+	Vec3 sphereCenterLS;
+	sphereCenterLS = m_lightView * lightTarget;
 
-	float l = sphereCenterLS.x - 50;
-	float b = sphereCenterLS.y - 50;
-	float n = sphereCenterLS.z - 50;
-	float r = sphereCenterLS.x + 50;
-	float t = sphereCenterLS.y + 50;
-	float f = sphereCenterLS.z + 50;
-	XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
+	float l = sphereCenterLS.x() - 50;
+	float b = sphereCenterLS.y() - 50;
+	float n = sphereCenterLS.z() - 50;
+	float r = sphereCenterLS.x() + 50;
+	float t = sphereCenterLS.y() + 50;
+	float f = sphereCenterLS.z() + 50;
+	m_lightProj = Mat4::Ortho(l, r, b, t, n, f, -1.f);
 
 	float yScale = -0.5;
 	float zScale = 1.0;
@@ -166,17 +170,13 @@ void ShadowMap::UpdateShadowMatrix() {
 	}
 	}
 
-	XMMATRIX T(
+	Mat4 T(
 		0.5f, 0.0f, 0.0f, 0.0f,
 		0.0f, yScale, 0.0f, 0.0f,
 		0.0f, 0.0f, zScale, 0.0f,
 		0.5f, 0.5f, zTrans, 1.0f);
 
-	XMMATRIX S = V*P*T;
-
-	XMStoreFloat4x4(&m_lightView, V);
-	XMStoreFloat4x4(&m_lightProj, P);
-	XMStoreFloat4x4(&m_shadowTransform, S);
+	m_shadowTransform = T * m_lightProj * m_lightView;
 }
 
 }

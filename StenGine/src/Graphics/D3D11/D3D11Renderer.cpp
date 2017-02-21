@@ -409,8 +409,8 @@ D3D11Renderer::~D3D11Renderer() {
 
 
 		DirectionalLight* dLight = new DirectionalLight();
-		dLight->intensity = XMFLOAT4(1.5f, 1.5f, 1.5f, 1);
-		dLight->direction = MatrixHelper::NormalizeFloat3(XMFLOAT3(-0.5, -2, 1));
+		dLight->intensity = { 1.5f, 1.5f, 1.5f, 1 };
+		dLight->direction = Vec3(-0.5, -2, 1).Normalized();
 		dLight->castShadow = 1;
 
 		LightManager::Instance()->m_dirLights.push_back(dLight);
@@ -830,7 +830,8 @@ D3D11Renderer::~D3D11Renderer() {
 		// TODO FIX ME!!
 		XMMATRIX mathfuViewMat{ &CameraManager::Instance()->GetActiveCamera()->GetViewMatrix()(0, 0) };
 		XMMATRIX ViewInvTranspose = MatrixHelper::InverseTranspose(mathfuViewMat);
-		XMStoreFloat3(&viewDirLight.direction, XMVector3Transform(XMLoadFloat3(&viewDirLight.direction), ViewInvTranspose));
+
+		viewDirLight.direction = (CameraManager::Instance()->GetActiveCamera()->GetViewMatrix().Inverse().Transpose() * Vec4(viewDirLight.direction.data[0], viewDirLight.direction.data[1], viewDirLight.direction.data[2], 0)).xyz();
 		perFrameData->gDirLight = viewDirLight;
 
 		XMFLOAT4 camPos { &CameraManager::Instance()->GetActiveCamera()->GetPos()[0] };

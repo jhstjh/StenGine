@@ -99,6 +99,14 @@ public:
 		XMVECTOR det = XMMatrixDeterminant(M);
 		return XMMatrixInverse(&det, M);
 	}
+
+	inline static Mat4 InverseTranspose(Mat4 &M)
+	{
+		Mat4 A = M;
+		//A.GetColumn(3) = { 0, 0, 0, 1 };
+
+		return A.Inverse().Transpose();
+	}
 };
 
 }
