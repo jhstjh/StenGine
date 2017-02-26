@@ -827,22 +827,16 @@ D3D11Renderer::~D3D11Renderer() {
 		DirectionalLight viewDirLight;
 		memcpy(&viewDirLight, LightManager::Instance()->m_dirLights[0], sizeof(DirectionalLight));
 
-		// TODO FIX ME!!
-		XMMATRIX mathfuViewMat{ &CameraManager::Instance()->GetActiveCamera()->GetViewMatrix()(0, 0) };
-		XMMATRIX ViewInvTranspose = MatrixHelper::InverseTranspose(mathfuViewMat);
+		Mat4 ViewInvTranspose = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix().Inverse().Transpose();
 
-		viewDirLight.direction = (CameraManager::Instance()->GetActiveCamera()->GetViewMatrix().Inverse().Transpose() * Vec4(viewDirLight.direction.data[0], viewDirLight.direction.data[1], viewDirLight.direction.data[2], 0)).xyz();
+		viewDirLight.direction = (ViewInvTranspose * Vec4(viewDirLight.direction.data[0], viewDirLight.direction.data[1], viewDirLight.direction.data[2], 0)).xyz();
 		perFrameData->gDirLight = viewDirLight;
 
-		XMFLOAT4 camPos { &CameraManager::Instance()->GetActiveCamera()->GetPos()[0] };
-		XMStoreFloat4(&camPos, XMVector3Transform(XMLoadFloat4(&camPos), mathfuViewMat));
+		Vec4 camPos = CameraManager::Instance()->GetActiveCamera()->GetPos();
+		camPos = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix() * camPos;
 		perFrameData->gEyePosV = camPos;
-
-		XMMATRIX projMat{ &CameraManager::Instance()->GetActiveCamera()->GetProjMatrix()[0] };
-		XMVECTOR det = XMMatrixDeterminant(projMat);
-		perFrameData->gProj = XMMatrixTranspose(projMat);
-
-		perFrameData->gProjInv = XMMatrixTranspose(XMMatrixInverse(&det, projMat));
+		perFrameData->gProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetProjMatrix());
+		perFrameData->gProjInv = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetProjMatrix().Inverse());
 
 		cmd.srvs.AddSRV(m_diffuseBufferSRV, 0);
 		cmd.srvs.AddSRV(m_normalBufferSRV, 1);

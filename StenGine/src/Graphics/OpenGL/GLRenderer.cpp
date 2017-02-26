@@ -748,16 +748,19 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		textureData->DepthGMap = m_depthBufferTexHandle;
 		textureData->RandVectMap = m_randVecTexHandle;
 
-		XMMATRIX viewMat = XMMATRIX(&CameraManager::Instance()->GetActiveCamera()->GetViewMatrix()[0]);
-		XMMATRIX viewInvTranspose = MatrixHelper::InverseTranspose(viewMat);
+		DirectionalLight viewDirLight;
+		memcpy(&viewDirLight, LightManager::Instance()->m_dirLights[0], sizeof(DirectionalLight));
 
-		perFrameData->gDirLight = *LightManager::Instance()->m_dirLights[0];
-		perFrameData->gDirLight.direction = (CameraManager::Instance()->GetActiveCamera()->GetViewMatrix().Inverse().Transpose() * Vec4(perFrameData->gDirLight.direction.data[0], perFrameData->gDirLight.direction.data[1], perFrameData->gDirLight.direction.data[2], 0)).xyz();
+		Mat4 ViewInvTranspose = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix().Inverse().Transpose();
 
-		XMMATRIX projMat = XMMATRIX(&CameraManager::Instance()->GetActiveCamera()->GetProjMatrix()[0]);
-		XMVECTOR det = XMMatrixDeterminant(projMat);
-		perFrameData->gProj = projMat;
-		perFrameData->gProjInv = XMMatrixInverse(&det, projMat);
+		viewDirLight.direction = (ViewInvTranspose * Vec4(viewDirLight.direction.data[0], viewDirLight.direction.data[1], viewDirLight.direction.data[2], 0)).xyz();
+		perFrameData->gDirLight = viewDirLight;
+
+		Vec4 camPos = CameraManager::Instance()->GetActiveCamera()->GetPos();
+		camPos = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix() * camPos;
+		perFrameData->gEyePosV = camPos;
+		perFrameData->gProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetProjMatrix());
+		perFrameData->gProjInv = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetProjMatrix().Inverse());
 
 		cmd.flags = CmdFlag::DRAW | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH | CmdFlag::BIND_FB;
 		cmd.drawType = DrawType::ARRAY;

@@ -361,9 +361,9 @@ public:
 	struct PERFRAME_CONSTANT_BUFFER
 	{
 		DirectionalLight gDirLight;
-		XMFLOAT4 gEyePosV;
-		XMMATRIX gProjInv;
-		XMMATRIX gProj;
+		Vec4 gEyePosV;
+		Mat4 gProjInv;
+		Mat4 gProj;
 	};
 
 	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
