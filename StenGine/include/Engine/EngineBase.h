@@ -13,9 +13,6 @@
 #include "Engine/EventSystem.h"
 #include "Mesh/Terrain.h"
 
-#include <Windows.h>
-
-
 namespace StenGine
 {
 

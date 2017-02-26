@@ -8,6 +8,7 @@
 #include "Graphics/Abstraction/ConstantBuffer.h"
 #include "Graphics/Abstraction/GPUBuffer.h"
 #include "Graphics/Effect/Material.h"
+#include "Math/MathDefs.h"
 #include "Mesh/MeshRenderer.h"
 #include "System/SingletonClass.h"
 #include "System/AlignedClass.h"
@@ -113,15 +114,15 @@ public:
 
 	struct PEROBJ_CONSTANT_BUFFER
 	{
-		XMMATRIX WorldViewProj;
-		XMMATRIX WorldViewInvTranspose;
-		XMMATRIX WorldInvTranspose;
-		XMMATRIX WorldView;
-		XMMATRIX World;
-		XMMATRIX ViewProj;
-		XMMATRIX ShadowTransform;
+		Mat4 WorldViewProj;
+		Mat4 WorldViewInvTranspose;
+		Mat4 WorldInvTranspose;
+		Mat4 WorldView;
+		Mat4 World;
+		Mat4 ViewProj;
+		Mat4 ShadowTransform;
 		Material::MaterialAttrib Mat;
-		XMFLOAT4 DiffX_NormY_ShadZ;
+		Vec4 DiffX_NormY_ShadZ;
 	};
 
 	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
@@ -135,7 +136,7 @@ public:
 
 	struct PERFRAME_CONSTANT_BUFFER
 	{
-		XMFLOAT4 EyePosW;
+		Vec4 EyePosW;
 		DirectionalLight DirLight;
 	};
 
@@ -162,25 +163,25 @@ public:
 
 	struct PEROBJ_CONSTANT_BUFFER
 	{
-		XMMATRIX WorldViewProj;
-		XMMATRIX WorldViewInvTranspose;
-		XMMATRIX WorldInvTranspose;
-		XMMATRIX WorldView;
-		XMMATRIX World;
-		XMMATRIX ViewProj;
-		XMMATRIX ShadowTransform;
+		Mat4 WorldViewProj;
+		Mat4 WorldViewInvTranspose;
+		Mat4 WorldInvTranspose;
+		Mat4 WorldView;
+		Mat4 World;
+		Mat4 ViewProj;
+		Mat4 ShadowTransform;
 		Material::MaterialAttrib Mat;
-		XMFLOAT4 DiffX_NormY_ShadZ;
+		Vec4 DiffX_NormY_ShadZ;
 	};
 
 	struct PERFRAME_CONSTANT_BUFFER
 	{
-		XMFLOAT4 EyePosW;
+		Vec4 EyePosW;
 	};
 
 	struct MATRIX_PALETTE_BUFFER
 	{
-		XMMATRIX MatrixPalette[64];
+		Mat4 MatrixPalette[64];
 	};
 
 	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
@@ -217,16 +218,16 @@ public:
 
 	struct PEROBJ_CONSTANT_BUFFER
 	{
-		XMMATRIX WorldViewProj;
-		XMMATRIX WorldViewInvTranspose;
-		XMMATRIX WorldInvTranspose;
-		XMMATRIX WorldView;
-		XMMATRIX World;
-		XMMATRIX ViewProj;
-		XMMATRIX ShadowTransform;
-		XMMATRIX View;
+		Mat4 WorldViewProj;
+		Mat4 WorldViewInvTranspose;
+		Mat4 WorldInvTranspose;
+		Mat4 WorldView;
+		Mat4 World;
+		Mat4 ViewProj;
+		Mat4 ShadowTransform;
+		Mat4 View;
 		Material::MaterialAttrib Mat;
-		XMFLOAT4 DiffX_NormY_ShadZ;
+		Vec4 DiffX_NormY_ShadZ;
 	};
 
 	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
@@ -240,7 +241,7 @@ public:
 
 	struct PERFRAME_CONSTANT_BUFFER
 	{
-		XMFLOAT4 gEyePosW;
+		Vec4 gEyePosW;
 
 		// When distance is minimum, the tessellation is maximum.
 		// When distance is maximum, the tessellation is minimum.
@@ -259,10 +260,10 @@ public:
 		float gWorldCellSpace;
 
 		float pad1;
-		XMFLOAT2 gTexScale;
+		Vec2 gTexScale;
 
-		XMFLOAT2 pad2;
-		XMFLOAT4 gWorldFrustumPlanes[6];
+		Vec2 pad2;
+		Vec4 gWorldFrustumPlanes[6];
 	};
 };
 
@@ -285,16 +286,16 @@ public:
 
 	struct PEROBJ_CONSTANT_BUFFER
 	{
-		XMMATRIX WorldViewProj;
-		XMMATRIX WorldViewInvTranspose;
-		XMMATRIX WorldInvTranspose;
-		XMMATRIX WorldView;
-		XMMATRIX World;
-		XMMATRIX ViewProj;
-		XMMATRIX ShadowTransform;
-		XMMATRIX View;
+		Mat4 WorldViewProj;
+		Mat4 WorldViewInvTranspose;
+		Mat4 WorldInvTranspose;
+		Mat4 WorldView;
+		Mat4 World;
+		Mat4 ViewProj;
+		Mat4 ShadowTransform;
+		Mat4 View;
 		Material::MaterialAttrib Mat;
-		XMFLOAT4 DiffX_NormY_ShadZ;
+		Vec4 DiffX_NormY_ShadZ;
 	};
 
 	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
@@ -308,7 +309,7 @@ public:
 
 	struct PERFRAME_CONSTANT_BUFFER
 	{
-		XMFLOAT4 gEyePosW;
+		Vec4 gEyePosW;
 
 		// When distance is minimum, the tessellation is maximum.
 		// When distance is maximum, the tessellation is minimum.
@@ -327,10 +328,10 @@ public:
 		float gWorldCellSpace;
 
 		float pad1;
-		XMFLOAT2 gTexScale;
+		Vec2 gTexScale;
 
-		XMFLOAT2 pad2;
-		XMFLOAT4 gWorldFrustumPlanes[6];
+		Vec2 pad2;
+		Vec4 gWorldFrustumPlanes[6];
 	};
 };
 
@@ -360,9 +361,9 @@ public:
 	struct PERFRAME_CONSTANT_BUFFER
 	{
 		DirectionalLight gDirLight;
-		XMFLOAT4 gEyePosV;
-		XMMATRIX gProjInv;
-		XMMATRIX gProj;
+		Vec4 gEyePosV;
+		Mat4 gProjInv;
+		Mat4 gProj;
 	};
 
 	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
@@ -390,7 +391,7 @@ public:
 
 	struct PEROBJ_CONSTANT_BUFFER
 	{
-		XMMATRIX gWorldViewProj;
+		Mat4 gWorldViewProj;
 	};
 
 	GPUBuffer* m_perObjectCB;
@@ -412,7 +413,7 @@ public:
 
 	struct PEROBJ_CONSTANT_BUFFER
 	{
-		XMMATRIX gWorldViewProj;
+		Mat4 gWorldViewProj;
 	};
 
 	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
@@ -437,8 +438,8 @@ public:
 
 	struct SETTING_CONSTANT_BUFFER
 	{
-		XMFLOAT2 texOffset;
-		XMFLOAT2 xEnableSSAO;
+		Vec2 texOffset;
+		Vec2 xEnableSSAO;
 	} ;
 
 	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
@@ -484,7 +485,7 @@ public:
 
 	struct IMGUI_CONSTANT_BUFFER
 	{
-		XMMATRIX ProjMtx;
+		Mat4 ProjMtx;
 	};
 
 	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
@@ -511,7 +512,7 @@ public:
 
 	struct PEROBJ_CONSTANT_BUFFER
 	{
-		XMMATRIX ViewProj;
+		Mat4 ViewProj;
 	};
 };
 

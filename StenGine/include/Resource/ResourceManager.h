@@ -147,7 +147,7 @@ public:
 			{
 				ID3D11ShaderResourceView* texSRV;
 				ID3D11Texture2D* texRes;
-				HR(CreateDDSTextureFromFile(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice()),
+				HR(DirectX::CreateDDSTextureFromFile(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice()),
 					path.c_str(), (ID3D11Resource**)(&texRes), &texSRV));
 
 				D3D11_TEXTURE2D_DESC texElementDesc;
@@ -193,7 +193,7 @@ public:
 				auto device = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice());
 				for (UINT i = 0; i < size; ++i)
 				{
-					HR(CreateDDSTextureFromFileEx(device, filenames[i].c_str(), 0u, D3D11_USAGE_STAGING, 0, D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ, 0, false, (ID3D11Resource**)&srcTex[i], nullptr, nullptr));
+					HR(DirectX::CreateDDSTextureFromFileEx(device, filenames[i].c_str(), 0u, D3D11_USAGE_STAGING, 0, D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ, 0, false, (ID3D11Resource**)&srcTex[i], nullptr, nullptr));
 				}
 
 				//

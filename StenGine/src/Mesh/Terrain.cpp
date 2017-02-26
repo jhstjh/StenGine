@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <fstream>
 
 #include "Mesh/Terrain.h"
@@ -53,30 +54,30 @@ Terrain::~Terrain() {
 	SafeDelete(m_quadPatchVB);
 }
 
-void Terrain::CalcPatchBoundsY(UINT i, UINT j)
+void Terrain::CalcPatchBoundsY(uint32_t i, uint32_t j)
 {
 	// Scan the heightmap values this patch covers and compute the min/max height.
 
-	UINT x0 = j*CellsPerPatch;
-	UINT x1 = (j + 1)*CellsPerPatch;
+	uint32_t x0 = j*CellsPerPatch;
+	uint32_t x1 = (j + 1)*CellsPerPatch;
 
-	UINT y0 = i*CellsPerPatch;
-	UINT y1 = (i + 1)*CellsPerPatch;
+	uint32_t y0 = i*CellsPerPatch;
+	uint32_t y1 = (i + 1)*CellsPerPatch;
 
 	float minY = FLT_MAX;
 	float maxY = -FLT_MAX;
-	for (UINT y = y0; y <= y1; ++y)
+	for (uint32_t y = y0; y <= y1; ++y)
 	{
-		for (UINT x = x0; x <= x1; ++x)
+		for (uint32_t x = x0; x <= x1; ++x)
 		{
-			UINT k = y*m_initInfo.HeightmapWidth + x;
-			minY = min(minY, m_heightMap[k]);
-			maxY = max(maxY, m_heightMap[k]);
+			uint32_t k = y*m_initInfo.HeightmapWidth + x;
+			minY = std::min(minY, m_heightMap[k]);
+			maxY = std::max(maxY, m_heightMap[k]);
 		}
 	}
 
-	UINT patchID = i*(m_numPatchVertCols - 1) + j;
-	m_patchBoundsY[patchID] = XMFLOAT2(minY, maxY);
+	uint32_t patchID = i*(m_numPatchVertCols - 1) + j;
+	m_patchBoundsY[patchID] = Vec2(minY, maxY);
 }
 
 void Terrain::CalcAllPatchBoundsY()
@@ -84,9 +85,9 @@ void Terrain::CalcAllPatchBoundsY()
 	m_patchBoundsY.resize(m_numPatchQuadFaces);
 
 	// For each patch
-	for (UINT i = 0; i < m_numPatchVertRows - 1; ++i)
+	for (uint32_t i = 0; i < m_numPatchVertRows - 1; ++i)
 	{
-		for (UINT j = 0; j < m_numPatchVertCols - 1; ++j)
+		for (uint32_t j = 0; j < m_numPatchVertCols - 1; ++j)
 		{
 			CalcPatchBoundsY(i, j);
 		}
@@ -111,7 +112,7 @@ void Terrain::LoadHeightmap() {
 
 	// Copy the array data into a float array and scale it.
 	m_heightMap.resize(m_initInfo.HeightmapHeight * m_initInfo.HeightmapWidth, 0);
-	for (UINT i = 0; i < m_initInfo.HeightmapHeight * m_initInfo.HeightmapWidth; ++i) {
+	for (uint32_t i = 0; i < m_initInfo.HeightmapHeight * m_initInfo.HeightmapWidth; ++i) {
 		m_heightMap[i] = (in[i] / 255.0f)*m_initInfo.HeightScale;
 	}
 }
@@ -120,9 +121,9 @@ void Terrain::Smooth()
 {
 	std::vector<float> dest(m_heightMap.size());
 
-	for (UINT i = 0; i < m_initInfo.HeightmapHeight; ++i)
+	for (uint32_t i = 0; i < m_initInfo.HeightmapHeight; ++i)
 	{
-		for (UINT j = 0; j < m_initInfo.HeightmapWidth; ++j)
+		for (uint32_t j = 0; j < m_initInfo.HeightmapWidth; ++j)
 		{
 			dest[i*m_initInfo.HeightmapWidth + j] = Average(i, j);
 		}
@@ -158,7 +159,7 @@ float Terrain::Average(int i, int j)
 	float avg = 0.0f;
 	float num = 0.0f;
 
-	// Use int to allow negatives.  If we use UINT, @ i=0, m=i-1=UINT_MAX
+	// Use int to allow negatives.  If we use uint32_t, @ i=0, m=i-1=uint32_t_MAX
 	// and no iterations of the outer for loop occur.
 	for (int m = i - 1; m <= i + 1; ++m)
 	{
@@ -177,9 +178,6 @@ float Terrain::Average(int i, int j)
 
 void Terrain::BuildHeightMapSRV() {
 
-	std::vector<HALF> hmap(m_heightMap.size());
-	std::transform(m_heightMap.begin(), m_heightMap.end(), hmap.begin(), XMConvertFloatToHalf);
-
 	switch (Renderer::GetRenderBackend())
 	{
 	case RenderBackend::D3D11:
@@ -189,7 +187,7 @@ void Terrain::BuildHeightMapSRV() {
 		texDesc.Height = m_initInfo.HeightmapHeight;
 		texDesc.MipLevels = 1;
 		texDesc.ArraySize = 1;
-		texDesc.Format = DXGI_FORMAT_R16_FLOAT;
+		texDesc.Format = DXGI_FORMAT_R32_FLOAT;
 		texDesc.SampleDesc.Count = 1;
 		texDesc.SampleDesc.Quality = 0;
 		texDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -198,8 +196,8 @@ void Terrain::BuildHeightMapSRV() {
 		texDesc.MiscFlags = 0;
 
 		D3D11_SUBRESOURCE_DATA data;
-		data.pSysMem = &hmap[0];
-		data.SysMemPitch = m_initInfo.HeightmapWidth * sizeof(HALF);
+		data.pSysMem = &m_heightMap[0];
+		data.SysMemPitch = m_initInfo.HeightmapWidth * sizeof(float);
 		data.SysMemSlicePitch = 0;
 
 		ID3D11Texture2D* hmapTex = 0;
@@ -271,21 +269,21 @@ void Terrain::BuildQuadPatchVB() {
 	float du = 1.0f / (m_numPatchVertCols - 1);
 	float dv = 1.0f / (m_numPatchVertRows - 1);
 
-	for (UINT i = 0; i < m_numPatchVertRows; ++i) {
+	for (uint32_t i = 0; i < m_numPatchVertRows; ++i) {
 		float z = halfDepth - i * patchDepth;
-		for (UINT j = 0; j < m_numPatchVertCols; ++j) {
+		for (uint32_t j = 0; j < m_numPatchVertCols; ++j) {
 			float x = -halfWidth + j * patchWidth;
 
-			patchVertices[i * m_numPatchVertCols + j].Pos = XMFLOAT3(x, 0.f, z);
+			patchVertices[i * m_numPatchVertCols + j].Pos = Vec3(x, 0.f, z);
 
-			patchVertices[i * m_numPatchVertCols + j].TexUV.x = j * du;
-			patchVertices[i * m_numPatchVertCols + j].TexUV.y = i * dv;
+			patchVertices[i * m_numPatchVertCols + j].TexUV.data[0] = j * du;
+			patchVertices[i * m_numPatchVertCols + j].TexUV.data[1] = i * dv;
 		}
 	}
 
-	for (UINT i = 0; i < m_numPatchVertRows - 1; ++i) {
-		for (UINT j = 0; j < m_numPatchVertCols - 1; ++j) {
-			UINT patchID = i * (m_numPatchVertCols - 1) + j;
+	for (uint32_t i = 0; i < m_numPatchVertRows - 1; ++i) {
+		for (uint32_t j = 0; j < m_numPatchVertCols - 1; ++j) {
+			uint32_t patchID = i * (m_numPatchVertCols - 1) + j;
 			patchVertices[i * m_numPatchVertCols + j].BoundsY = m_patchBoundsY[patchID];
 		}
 	}
@@ -294,11 +292,11 @@ void Terrain::BuildQuadPatchVB() {
 }
 
 void Terrain::BuildQuadPatchIB() {
-	std::vector<UINT> indices(m_numPatchQuadFaces * 4);
+	std::vector<uint32_t> indices(m_numPatchQuadFaces * 4);
 
 	int k = 0;
-	for (UINT i = 0; i < m_numPatchVertRows - 1; ++i) {
-		for (UINT j = 0; j < m_numPatchVertCols - 1; ++j) {
+	for (uint32_t i = 0; i < m_numPatchVertRows - 1; ++i) {
+		for (uint32_t j = 0; j < m_numPatchVertCols - 1; ++j) {
 			indices[k] = i * m_numPatchVertCols + j;
 			indices[k + 1] = i * m_numPatchVertCols + j + 1;
 
@@ -308,13 +306,13 @@ void Terrain::BuildQuadPatchIB() {
 			k += 4;
 		}
 	}
-	m_quadPatchIB = new GPUBuffer(indices.size() * sizeof(UINT), BufferUsage::IMMUTABLE, (void*)&indices.front(), BufferType::INDEX_BUFFER);
+	m_quadPatchIB = new GPUBuffer(indices.size() * sizeof(uint32_t), BufferUsage::IMMUTABLE, (void*)&indices.front(), BufferType::INDEX_BUFFER);
 }
 
 void Terrain::GatherDrawCall() 
 {
-	UINT stride = sizeof(Vertex::TerrainVertex);
-	UINT offset = 0;
+	uint32_t stride = sizeof(Vertex::TerrainVertex);
+	uint32_t offset = 0;
 
 	DeferredGeometryTerrainPassEffect* effect = EffectsManager::Instance()->m_deferredGeometryTerrainPassEffect.get();
 
@@ -326,7 +324,7 @@ void Terrain::GatherDrawCall()
 
 	DrawCmd cmd;
 
-	perframeData->gEyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
+	perframeData->gEyePosW = CameraManager::Instance()->GetActiveCamera()->GetPos();
 
 	perframeData->gMaxDist = 500.00;
 	perframeData->gMinDist = 20;
@@ -334,23 +332,23 @@ void Terrain::GatherDrawCall()
 	perframeData->gMinTess = 0.f;
 	perframeData->gTexelCellSpaceU = 1.0f / m_initInfo.HeightmapWidth;
 	perframeData->gTexelCellSpaceV = 1.0f / m_initInfo.HeightmapHeight;
-	perframeData->gTexScale = XMFLOAT2(50.f, 50.f);
+	perframeData->gTexScale = Vec2(50.f, 50.f);
 	perframeData->gWorldCellSpace = m_initInfo.CellSpacing;
 	perframeData->gWorldFrustumPlanes /********************/;
 
 	perObjData->View = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
 	perObjData->ViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
-	perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()));
-	perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform())));
+	perObjData->World = TRASNPOSE_API_CHOOSER(m_parents[0]->GetTransform()->GetWorldTransform());
+	perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(m_parents[0]->GetTransform()->GetWorldTransform().Inverse().Transpose());
 
-	XMMATRIX worldView = XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
+	Mat4 worldView = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix() * m_parents[0]->GetTransform()->GetWorldTransform();
 	perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
 
-	XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
+	Mat4 worldViewInvTranspose = worldView.Inverse().Transpose();
 	perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
 	perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
-	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * m_parents[0]->GetTransform()->GetWorldTransform());
 
 	switch (Renderer::GetRenderBackend())
 	{
@@ -397,8 +395,8 @@ void Terrain::GatherDrawCall()
 
 void Terrain::GatherShadowDrawCall() {
 
-	UINT stride = sizeof(Vertex::TerrainVertex);
-	UINT offset = 0;
+	uint32_t stride = sizeof(Vertex::TerrainVertex);
+	uint32_t offset = 0;
 
 	TerrainShadowMapEffect* effect = EffectsManager::Instance()->m_terrainShadowMapEffect.get();
 
@@ -410,7 +408,7 @@ void Terrain::GatherShadowDrawCall() {
 
 	DrawCmd cmd;
 
-	perframeData->gEyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
+	perframeData->gEyePosW = CameraManager::Instance()->GetActiveCamera()->GetPos();
 
 	perframeData->gMaxDist = 500.00;
 	perframeData->gMinDist = 20;
@@ -418,25 +416,25 @@ void Terrain::GatherShadowDrawCall() {
 	perframeData->gMinTess = 0.f;
 	perframeData->gTexelCellSpaceU = 1.0f / m_initInfo.HeightmapWidth;
 	perframeData->gTexelCellSpaceV = 1.0f / m_initInfo.HeightmapHeight;
-	perframeData->gTexScale = XMFLOAT2(50.f, 50.f);
+	perframeData->gTexScale = Vec2(50.f, 50.f);
 	perframeData->gWorldCellSpace = m_initInfo.CellSpacing;
 	perframeData->gWorldFrustumPlanes /********************/;
 
 	perObjData->View = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetViewMatrix());
 	perObjData->ViewProj = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
-	perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()));
-	perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform())));
+	perObjData->World = TRASNPOSE_API_CHOOSER(m_parents[0]->GetTransform()->GetWorldTransform());
+	perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(m_parents[0]->GetTransform()->GetWorldTransform().Inverse().Transpose());
 
-	XMFLOAT4 resourceMask(0, 0, 0, 0);
+	Vec4 resourceMask(0, 0, 0, 0);
 
-	XMMATRIX worldView = XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewMatrix();
+	Mat4 worldView = LightManager::Instance()->m_shadowMap->GetViewMatrix() * m_parents[0]->GetTransform()->GetWorldTransform();
 	perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
 
-	XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
+	Mat4 worldViewInvTranspose = worldView.Inverse().Transpose();
 	perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
 	//perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
-	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[0]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
+	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetViewProjMatrix() * m_parents[0]->GetTransform()->GetWorldTransform());
 
 	switch (Renderer::GetRenderBackend())
 	{

@@ -409,8 +409,8 @@ D3D11Renderer::~D3D11Renderer() {
 
 
 		DirectionalLight* dLight = new DirectionalLight();
-		dLight->intensity = XMFLOAT4(1.5f, 1.5f, 1.5f, 1);
-		dLight->direction = MatrixHelper::NormalizeFloat3(XMFLOAT3(-0.5, -2, 1));
+		dLight->intensity = { 1.5f, 1.5f, 1.5f, 1 };
+		dLight->direction = Vec3(-0.5, -2, 1).Normalized();
 		dLight->castShadow = 1;
 
 		LightManager::Instance()->m_dirLights.push_back(dLight);
@@ -420,17 +420,17 @@ D3D11Renderer::~D3D11Renderer() {
 
 		m_d3d11DeviceContext->RSSetState(m_wireFrameRS);
 
-		CreateDDSTextureFromFile(m_d3d11Device,
+		DirectX::CreateDDSTextureFromFile(m_d3d11Device,
 			L"./Model/RandNorm.dds", nullptr, &m_randVecTexSRV);
 
 		// init grid and coord debug draw
-		std::vector<XMFLOAT3> coordVertexBuffer = {
-			XMFLOAT3(0, 0, 0),
-			XMFLOAT3(5, 0, 0),
-			XMFLOAT3(0, 0, 0),
-			XMFLOAT3(0, 5, 0),
-			XMFLOAT3(0, 0, 0),
-			XMFLOAT3(0, 0, 5),
+		std::vector<Vec3Packed> coordVertexBuffer = {
+			Vec3Packed({ 0, 0, 0 }),
+			Vec3Packed({ 5, 0, 0 }),
+			Vec3Packed({ 0, 0, 0 }),
+			Vec3Packed({ 0, 5, 0 }),
+			Vec3Packed({ 0, 0, 0 }),
+			Vec3Packed({ 0, 0, 5 }),
 		};
 
 		std::vector<UINT> coordIndexBuffer = { 0, 1, 2, 3, 4, 5 };
@@ -438,15 +438,15 @@ D3D11Renderer::~D3D11Renderer() {
 
 		int initIdx = 6;
 		for (int i = 0; i <= 10; i++) {
-			coordVertexBuffer.push_back(XMFLOAT3(-5.f, 0.f, -5.f + i));
-			coordVertexBuffer.push_back(XMFLOAT3(5.f, 0.f, -5.f + i));
+			coordVertexBuffer.emplace_back(Vec3(-5.f, 0.f, -5.f + i));
+			coordVertexBuffer.emplace_back(Vec3(5.f, 0.f, -5.f + i));
 			coordIndexBuffer.push_back(initIdx++);
 			coordIndexBuffer.push_back(initIdx++);
 		}
 
 		for (int i = 0; i <= 10; i++) {
-			coordVertexBuffer.push_back(XMFLOAT3(-5.f + i, 0.f, -5.f));
-			coordVertexBuffer.push_back(XMFLOAT3(-5.f + i, 0.f, 5.f));
+			coordVertexBuffer.emplace_back(Vec3(-5.f + i, 0.f, -5.f));
+			coordVertexBuffer.emplace_back(Vec3(-5.f + i, 0.f, 5.f));
 			coordIndexBuffer.push_back(initIdx++);
 			coordIndexBuffer.push_back(initIdx++);
 		}
@@ -827,19 +827,16 @@ D3D11Renderer::~D3D11Renderer() {
 		DirectionalLight viewDirLight;
 		memcpy(&viewDirLight, LightManager::Instance()->m_dirLights[0], sizeof(DirectionalLight));
 
-		XMMATRIX ViewInvTranspose = MatrixHelper::InverseTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
-		XMStoreFloat3(&viewDirLight.direction, XMVector3Transform(XMLoadFloat3(&viewDirLight.direction), ViewInvTranspose));
+		Mat4 ViewInvTranspose = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix().Inverse().Transpose();
+
+		viewDirLight.direction = (ViewInvTranspose * Vec4(viewDirLight.direction.data[0], viewDirLight.direction.data[1], viewDirLight.direction.data[2], 0)).xyz();
 		perFrameData->gDirLight = viewDirLight;
 
-		XMFLOAT4 camPos = CameraManager::Instance()->GetActiveCamera()->GetPos();
-		XMStoreFloat4(&camPos, XMVector3Transform(XMLoadFloat4(&camPos), CameraManager::Instance()->GetActiveCamera()->GetViewMatrix()));
+		Vec4 camPos = CameraManager::Instance()->GetActiveCamera()->GetPos();
+		camPos = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix() * camPos;
 		perFrameData->gEyePosV = camPos;
-
-		XMMATRIX projMat = CameraManager::Instance()->GetActiveCamera()->GetProjMatrix();
-		XMVECTOR det = XMMatrixDeterminant(projMat);
-		perFrameData->gProj = XMMatrixTranspose(projMat);
-
-		perFrameData->gProjInv = XMMatrixTranspose(XMMatrixInverse(&det, projMat));
+		perFrameData->gProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetProjMatrix());
+		perFrameData->gProjInv = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetProjMatrix().Inverse());
 
 		cmd.srvs.AddSRV(m_diffuseBufferSRV, 0);
 		cmd.srvs.AddSRV(m_normalBufferSRV, 1);
@@ -924,7 +921,8 @@ D3D11Renderer::~D3D11Renderer() {
 
 		ConstantBuffer cbuffer0(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), debugLineFX->m_perObjectCB);
 		DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
-		perObjectData->ViewProj = XMMatrixTranspose(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+
+		perObjectData->ViewProj = CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix().Transpose();
 
 		cmd.cbuffers.push_back(std::move(cbuffer0));
 		cmd.type = PrimitiveTopology::LINELIST;

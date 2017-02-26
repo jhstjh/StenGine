@@ -1,11 +1,8 @@
-#include "Scene/CameraManager.h"
-#include "Input/InputManager.h"
-#include "Graphics/Abstraction/RendererBase.h"
 #include "Engine/EventSystem.h"
-
-using namespace DirectX;
-
+#include "Graphics/Abstraction/RendererBase.h"
+#include "Input/InputManager.h"
 #include "Math/MathHelper.h"
+#include "Scene/CameraManager.h"
 
 #define MOVE_SPEED 10
 
@@ -17,27 +14,21 @@ Camera::Camera(float px, float py, float pz,
 	float ux, float uy, float uz,
 	float fov, float np, float fp)
 {
-	XMVECTOR pos = XMVectorSet(px, py, pz, 0.0f);
-	m_target = XMVectorSet(tx, ty, tz, 0.0f);
-	m_up = XMVectorSet(ux, uy, uz, 0.0f);
-	XMStoreFloat4(&m_pos, pos);
+	mTrans = Mat4::FromTranslationVector(Vec3( px, py, pz ));
 
-	XMMATRIX V = XMMatrixLookAtLH(pos, m_target, m_up);
-	XMStoreFloat4x4(&m_view, V);
-	XMMATRIX P = XMMatrixPerspectiveFovLH(fov, Renderer::Instance()->GetAspectRatio(), np, fp);
-	XMStoreFloat4x4(&m_proj, P);
+	mView = Mat4::LookAt({ tx, ty, tz }, { px, py, pz }, { ux, uy, uz }, -1.0f);
+	mProj = Mat4::Perspective(fov, Renderer::Instance()->GetAspectRatio(), np, fp, -1.0f);
+
+	mWorldTransform = mView.Inverse();
+	mRot = (mTrans.Inverse() * mWorldTransform);
+	auto rot3 = Mat3(mRot.GetColumn(0).xyz(), mRot.GetColumn(1).xyz(), mRot.GetColumn(2).xyz());
+	mRotQuat = Quat::FromMatrix(rot3);
 
 	if (Renderer::GetRenderBackend() == RenderBackend::OPENGL4)
 	{
-		m_proj.m[2][2] = (np + fp) / (fp - np);
-		m_proj.m[3][2] = -2 * (np * fp) / (fp - np);
+		mProj(2, 2) = (np + fp) / (fp - np);
+		mProj(2, 3) = -2 * (np * fp) / (fp - np);
 	}
-
-	m_radius = XMVectorGetX(XMVector3Length(pos - m_target));
-	m_phi = acosf((py - ty) / m_radius);
-	m_theta = asinf((pz - tz) / (m_radius * sinf(m_phi)));
-
-	XMStoreFloat4x4(&m_worldTransform, MatrixHelper::Inverse(V));
 }
 
 Camera::~Camera()
@@ -45,109 +36,93 @@ Camera::~Camera()
 
 }
 
-XMMATRIX Camera::GetViewProjMatrix() 
+Mat4 Camera::GetViewProjMatrix()
 {
-	return XMLoadFloat4x4(&m_view) * XMLoadFloat4x4(&m_proj);
+	return mProj * mView;
 }
 
-XMMATRIX Camera::GetViewMatrix() 
+Mat4 Camera::GetViewMatrix()
 {
-	return XMLoadFloat4x4(&m_view);
+	return mView;
 }
 
-XMMATRIX Camera::GetProjMatrix() 
+Mat4 Camera::GetProjMatrix()
 {
-	return XMLoadFloat4x4(&m_proj);
+	return mProj;
 }
-
-// void Camera::OnMouseDown(WPARAM btnState, int x, int y) {
-// 	m_lastMousePos.x = x;
-// 	m_lastMousePos.y = y;
-// }
-// 
-// void Camera::OnMouseUp(WPARAM btnState, int x, int y) {
-// 
-// }
-// 
-// void Camera::OnMouseMove(WPARAM btnState, int x, int y) {
-// 	if ((btnState & MK_LBUTTON)) {
-// 		float dx = XMConvertToRadians(0.25f*static_cast<float>(x - m_lastMousePos.x));
-// 		float dy = XMConvertToRadians(0.25f*static_cast<float>(y - m_lastMousePos.y));
-// 		m_theta -= dx;
-// 		m_phi -= dy;
-// 
-// 		m_phi = min(max(m_phi, 0.1f), 3.14159f - 0.1f);
-// 		
-// 	}
-// 	m_lastMousePos.x = x;
-// 	m_lastMousePos.y = y;
-// 
-// 
-// 	float px = m_radius*sinf(m_phi)*cosf(m_theta);
-// 	float pz = m_radius*sinf(m_phi)*sinf(m_theta);
-// 	float py = m_radius*cosf(m_phi);
-// 
-// 	XMVECTOR pos = XMVectorSet(px, py, pz, 0.0f);
-// 	XMStoreFloat4(&m_pos, pos);
-// 
-// 	XMMATRIX V = XMMatrixLookAtLH(pos, m_target, m_up);
-// 	XMStoreFloat4x4(&m_view, V);
-//}
 
 void Camera::Update() 
 {
-	if (InputManager::Instance()->GetKeyHold('W')) {
-		MatrixHelper::MoveForward(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
-		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
+	if (InputManager::Instance()->GetKeyHold('W')) 
+	{
+		MatrixHelper::MoveForward(mWorldTransform, MOVE_SPEED * Timer::GetDeltaTime());
+		mTrans = mWorldTransform * mRot.Inverse();
+		mView = mWorldTransform.Inverse();
 	}
-	if (InputManager::Instance()->GetKeyHold('S')) {
-		MatrixHelper::MoveBack(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
-		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
+	if (InputManager::Instance()->GetKeyHold('S')) 
+	{
+		MatrixHelper::MoveBack(mWorldTransform, MOVE_SPEED * Timer::GetDeltaTime());
+		mTrans = mWorldTransform * mRot.Inverse();
+		mView = mWorldTransform.Inverse();
 	}
-	if (InputManager::Instance()->GetKeyHold('A')) {
-		MatrixHelper::MoveLeft(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
-		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
+	if (InputManager::Instance()->GetKeyHold('A'))
+	{
+		MatrixHelper::MoveLeft(mWorldTransform, MOVE_SPEED * Timer::GetDeltaTime());
+		mTrans = mWorldTransform * mRot.Inverse();
+		mView = mWorldTransform.Inverse();
 	}
-	if (InputManager::Instance()->GetKeyHold('D')) {
-		MatrixHelper::MoveRight(m_worldTransform, MOVE_SPEED * Timer::GetDeltaTime());
-		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(XMLoadFloat4x4(&m_worldTransform)));
+	if (InputManager::Instance()->GetKeyHold('D'))
+	{
+		MatrixHelper::MoveRight(mWorldTransform, MOVE_SPEED * Timer::GetDeltaTime());
+		mTrans = mWorldTransform * mRot.Inverse();
+		mView = mWorldTransform.Inverse();
 	}
-	if (InputManager::Instance()->GetKeyHold(VK_UP)) {
-		XMMATRIX M = XMMatrixRotationX(-3.14159f / 3.0f * Timer::GetDeltaTime()) * XMLoadFloat4x4(&m_worldTransform);
-		XMStoreFloat4x4(&m_worldTransform, M);
-		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(M));
+	if (InputManager::Instance()->GetKeyHold(VK_UP))
+	{
+		auto rot = Quat::FromAngleAxis(-PI / 3.0f * Timer::GetDeltaTime(), { 1, 0, 0 });
+		mRotQuat = mRotQuat * rot;
+		mRot = mRotQuat.ToMatrix4();
+
+		mWorldTransform = mTrans * mRot;
+		mView = mWorldTransform.Inverse();
 	}
-	if (InputManager::Instance()->GetKeyHold(VK_DOWN)) {
-		XMMATRIX M = XMMatrixRotationX(3.14159f / 3.0f * Timer::GetDeltaTime()) * XMLoadFloat4x4(&m_worldTransform);
-		XMStoreFloat4x4(&m_worldTransform, M);
-		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(M));
+	if (InputManager::Instance()->GetKeyHold(VK_DOWN))
+	{
+		auto rot = Quat::FromAngleAxis(PI / 3.0f * Timer::GetDeltaTime(), { 1, 0, 0 });
+		mRotQuat = mRotQuat * rot;
+		mRot = mRotQuat.ToMatrix4();
+
+		mWorldTransform = mTrans * mRot;
+		mView = mWorldTransform.Inverse();
 	}
-	if (InputManager::Instance()->GetKeyHold(VK_LEFT)) {
-		XMFLOAT4 pos = GetPos();
-		MatrixHelper::SetPosition(m_worldTransform, 0, 0, 0);
-		XMMATRIX M = XMLoadFloat4x4(&m_worldTransform) * XMMatrixRotationY(-3.14159f / 3.0f * Timer::GetDeltaTime());
-		M.r[3] = XMVectorSet(pos.x, pos.y, pos.z, 1.0);
-		XMStoreFloat4x4(&m_worldTransform, M);
-		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(M));
+	if (InputManager::Instance()->GetKeyHold(VK_LEFT)) 
+	{
+		auto rot = Quat::FromAngleAxis(-PI / 3.0f * Timer::GetDeltaTime(), { 0, 1, 0 });
+		mRotQuat = rot * mRotQuat;
+		mRot = mRotQuat.ToMatrix4();
+
+		mWorldTransform = mTrans * mRot;
+		mView = mWorldTransform.Inverse();
 	}
-	if (InputManager::Instance()->GetKeyHold(VK_RIGHT)) {
-		XMFLOAT4 pos = GetPos();
-		MatrixHelper::SetPosition(m_worldTransform, 0, 0, 0);
-		XMMATRIX M = XMLoadFloat4x4(&m_worldTransform) * XMMatrixRotationY(3.14159f / 3.0f * Timer::GetDeltaTime());
-		M.r[3] = XMVectorSet(pos.x, pos.y, pos.z, 1.0);
-		XMStoreFloat4x4(&m_worldTransform, M);
-		XMStoreFloat4x4(&m_view, MatrixHelper::Inverse(M));
+	if (InputManager::Instance()->GetKeyHold(VK_RIGHT)) 
+	{
+		auto rot = Quat::FromAngleAxis(PI / 3.0f * Timer::GetDeltaTime(), { 0, 1, 0 });
+		mRotQuat = rot * mRotQuat;
+		mRot = mRotQuat.ToMatrix4();
+
+		mWorldTransform = mTrans * mRot;
+		mView = mWorldTransform.Inverse();
 	}
 }
 
 CameraManager::CameraManager()
 {
-	m_debugCamera = new Camera(4.0f, 11.f, -11.f, 0.0f, 5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.25f * 3.14159f, 1.0f, 1000.0f);
-	m_activeCamera = m_debugCamera;
+	mDebugCamera = new Camera(4.0f, 11.f, -11.f, 0.0f, 5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.25f * 3.14159f, 1.0f, 1000.0f);
+	mActiveCamera = mDebugCamera;
 
 	auto updateCam = [this]()
 	{
-		m_activeCamera->Update();
+		mActiveCamera->Update();
 	};
 
 	EventSystem::Instance()->RegisterEventHandler(EventSystem::EventType::UPDATE, updateCam);
@@ -155,7 +130,8 @@ CameraManager::CameraManager()
 
 CameraManager::~CameraManager() 
 {
-	SafeDelete(m_debugCamera);
+	mActiveCamera = nullptr;
+	SafeDelete(mDebugCamera);
 }
 
 DEFINE_SINGLETON_CLASS(CameraManager)

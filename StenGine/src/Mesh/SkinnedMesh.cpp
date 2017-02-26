@@ -38,8 +38,10 @@ void SkinnedMesh::PrepareMatrixPalette()
 
 	for (int64_t i = m_joints.size() - 1; i >= 0; --i)
 	{
-		m_toRootTransform[i] = m_animation->GetTransform(m_joints[i].m_name + "_$AssimpFbx$_Rotation") * m_jointPreRotationBufferCPU[i] * m_animation->GetTransform(m_joints[i].m_name) * (m_joints[i].m_parentIdx == -1? IDENTITY_MAT : m_toRootTransform[m_joints[i].m_parentIdx]);
-		m_matrixPalette[i] = TRASNPOSE_API_CHOOSER(m_joints[i].m_inverseBindPosMat * m_toRootTransform[i]);
+		// m_toRootTransform[i] = m_animation->GetTransform(m_joints[i].m_name + "_$AssimpFbx$_Rotation") * m_jointPreRotationBufferCPU[i] * m_animation->GetTransform(m_joints[i].m_name) * (m_joints[i].m_parentIdx == -1? Mat4::Identity() : m_toRootTransform[m_joints[i].m_parentIdx]);
+		m_toRootTransform[i] = (m_joints[i].m_parentIdx == -1 ? Mat4::Identity() : m_toRootTransform[m_joints[i].m_parentIdx]) * m_animation->GetTransform(m_joints[i].m_name) * m_jointPreRotationBufferCPU[i] * m_animation->GetTransform(m_joints[i].m_name + "_$AssimpFbx$_Rotation");
+		// m_matrixPalette[i] = TRASNPOSE_API_CHOOSER(m_joints[i].m_inverseBindPosMat * m_toRootTransform[i]);
+		m_matrixPalette[i] = TRASNPOSE_API_CHOOSER(m_toRootTransform[i] * m_joints[i].m_inverseBindPosMat);
 	}
 }
 
@@ -53,8 +55,8 @@ void SkinnedMesh::PrepareGPUBuffer()
 		vertices[k].Normal = m_normalBufferCPU[i];
 		vertices[k].Tangent = m_tangentBufferCPU[i];
 		vertices[k].TexUV = m_texUVBufferCPU[i];
-		vertices[k].JointWeights = XMFLOAT4(&m_jointWeightsBufferCPU[i][0]);
-		vertices[k].JointIndices = XMUINT4(&m_jointIndicesBufferCPU[i][0]);
+		vertices[k].JointWeights = Vec4(&m_jointWeightsBufferCPU[i][0]);
+		vertices[k].JointIndices = Vec4uiPacked(Vec4ui(&m_jointIndicesBufferCPU[i][0]));
 	}
 
 	m_vertexBufferGPU = new GPUBuffer(vertices.size() * sizeof(Vertex::SkinnedMeshVertex), BufferUsage::IMMUTABLE, (void*)&vertices.front(), BufferType::VERTEX_BUFFER);
@@ -72,10 +74,10 @@ void SkinnedMesh::GatherDrawCall()
 	UINT stride = sizeof(Vertex::SkinnedMeshVertex);
 	UINT offset = 0;
 
-	XMFLOAT4 resourceMask(0, 0, 0, 0);
+	Vec4 resourceMask(0, 0, 0, 0);
 
 	if (m_receiveShadow)
-		resourceMask.z = 1;
+		resourceMask.z() = 1;
 
 	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
 		int startIndex = 0;
@@ -89,30 +91,20 @@ void SkinnedMesh::GatherDrawCall()
 
 			DrawCmd cmd;
 
-			perframeData->EyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
+			perframeData->EyePosW = CameraManager::Instance()->GetActiveCamera()->GetPos();
 
 			perObjData->Mat = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_attributes;
-			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
-			perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()));
-			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
+			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * m_parents[iP]->GetTransform()->GetWorldTransform());
+			perObjData->World = TRASNPOSE_API_CHOOSER(m_parents[iP]->GetTransform()->GetWorldTransform());
+			Mat4 worldView = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix() * m_parents[iP]->GetTransform()->GetWorldTransform();
 			perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
-			XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
+			Mat4 worldViewInvTranspose = worldView.Inverse().Transpose();
 
-			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
+			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform() * m_parents[iP]->GetTransform()->GetWorldTransform());
 			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
-			//glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, effect->m_matrixPaletteSB, 0, sizeof(XMMATRIX) * m_matrixPalette.size());
-			//void* ssbo = glMapNamedBufferRange(
-			//	effect->m_matrixPaletteSB,
-			//	0,
-			//	sizeof(XMMATRIX) * m_matrixPalette.size(),
-			//	GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT
-			//);
-			//memcpy(ssbo, &m_matrixPalette[0], sizeof(XMMATRIX) * m_matrixPalette.size());
-			//glUnmapNamedBuffer(effect->m_matrixPaletteSB);
-
-			resourceMask.x = 0;
-			resourceMask.y = 0;
+			resourceMask.x() = 0;
+			resourceMask.y() = 0;
 
 			switch (Renderer::GetRenderBackend())
 			{
@@ -120,15 +112,15 @@ void SkinnedMesh::GatherDrawCall()
 			{
 				cmd.srvs.AddSRV(Renderer::Instance()->GetSkyBox()->m_cubeMapSRV, 4);
 				cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-				perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform())));
+				perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(m_parents[iP]->GetTransform()->GetWorldTransform().Inverse().Transpose());
 				perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
 				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex) {
-					resourceMask.x = 1;
+					resourceMask.x() = 1;
 					cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture()), 0);
 				}
 				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex) {
-					resourceMask.y = 1;
+					resourceMask.y() = 1;
 					cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture()), 1);
 				}
 
@@ -151,12 +143,12 @@ void SkinnedMesh::GatherDrawCall()
 
 				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex > 0)
 				{
-					resourceMask.x = 1;
+					resourceMask.x() = 1;
 					textureData->DiffuseMap = reinterpret_cast<uint64_t>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture());
 				}
 				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex > 0)
 				{
-					resourceMask.y = 1;
+					resourceMask.y() = 1;
 					textureData->NormalMap = reinterpret_cast<uint64_t>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture());
 				}
 				{
@@ -212,16 +204,16 @@ void SkinnedMesh::GatherShadowDrawCall()
 
 			DrawCmd cmd;
 
-			perframeData->EyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
+			perframeData->EyePosW = CameraManager::Instance()->GetActiveCamera()->GetPos();
 
 			perObjData->Mat = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_attributes;
-			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
-			perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()));
-			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewMatrix();;
+			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetViewProjMatrix() * m_parents[iP]->GetTransform()->GetWorldTransform());
+			perObjData->World = TRASNPOSE_API_CHOOSER(m_parents[iP]->GetTransform()->GetWorldTransform());
+			Mat4 worldView = LightManager::Instance()->m_shadowMap->GetViewMatrix() * m_parents[iP]->GetTransform()->GetWorldTransform();
 			perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
-			XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
+			Mat4 worldViewInvTranspose = worldView.Inverse().Transpose();
 
-			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
+			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform() * m_parents[iP]->GetTransform()->GetWorldTransform());
 			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
 
 			switch (Renderer::GetRenderBackend())
@@ -232,7 +224,7 @@ void SkinnedMesh::GatherShadowDrawCall()
 				ConstantBuffer cbuffer2(13, sizeof(DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER), effect->m_matrixPaletteSB);
 				DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER* matrixPaletteData = (DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER*)cbuffer2.GetBuffer();
 
-				memcpy(matrixPaletteData, &m_matrixPalette[0], sizeof(XMMATRIX) * m_matrixPalette.size());
+				memcpy(matrixPaletteData, &m_matrixPalette[0], sizeof(Mat4) * m_matrixPalette.size());
 
 				cmd.cbuffers.push_back(std::move(cbuffer2));
 				break;
@@ -244,7 +236,7 @@ void SkinnedMesh::GatherShadowDrawCall()
 				ConstantBuffer cbuffer2(15, sizeof(DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER), effect->m_matrixPaletteSB);
 				DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER* matrixPaletteData = (DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER*)cbuffer2.GetBuffer();
 
-				memcpy(matrixPaletteData, &m_matrixPalette[0], sizeof(XMMATRIX) * m_matrixPalette.size());
+				memcpy(matrixPaletteData, &m_matrixPalette[0], sizeof(Mat4) * m_matrixPalette.size());
 
 				cmd.cbuffers.push_back(std::move(cbuffer2));
 				break;

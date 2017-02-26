@@ -1,10 +1,11 @@
+#include <stdint.h>
 #include "imgui.h"
 #include "Graphics/UI/ImGuiMenu.h"
 #include "Graphics/Abstraction/ContextState.h"
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Graphics/Effect/EffectsManager.h"
 #include "Graphics/D3DIncludes.h"
-#include <stdint.h>
+
 
 namespace StenGine
 {
@@ -74,7 +75,7 @@ public:
 		const float R = ImGui::GetIO().DisplaySize.x;
 		const float B = ImGui::GetIO().DisplaySize.y;
 		const float T = 0.0f;
-		const DirectX::XMMATRIX ortho_projection =
+		const Mat4 ortho_projection =
 		{
             { 2.0f/(R-L),   0.0f,           0.0f,       0.0f },
             { 0.0f,         2.0f/(T-B),     0.0f,       0.0f },

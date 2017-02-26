@@ -1,8 +1,9 @@
 #include "Utility/FbxReaderSG.h"
-#include <fbxsdk.h>
+#include <algorithm>
 #include "Resource/ResourceManager.h"
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Graphics/Animation/Animation.h"
+#include "Math/MathDefs.h"
 #include "Mesh/SkinnedMesh.h"
 #include "Shlwapi.h"
 #include <sys/stat.h>
@@ -19,9 +20,11 @@
 namespace StenGine
 {
 
+#if 0
 void ReadFbxMesh(FbxNode* node, Mesh* mesh, const std::wstring& filename);
 void ReadFbxMaterial(FbxNode* node, Mesh* mesh, const std::wstring& filename);
 bool ReadModelCache(Mesh* mesh, const std::wstring& filename);
+#endif
 
 bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 
@@ -111,10 +114,10 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 
 		for (uint32_t j = 0; j < fMesh->mNumVertices; j++)
 		{
-			mesh->m_positionBufferCPU.push_back(XMFLOAT3(fMesh->mVertices[j].x, fMesh->mVertices[j].y, fMesh->mVertices[j].z));
-			mesh->m_texUVBufferCPU.push_back(XMFLOAT2(fMesh->mTextureCoords[0][j].x, fMesh->mTextureCoords[0][j].y)); // load first uv set for now
-			mesh->m_normalBufferCPU.push_back(XMFLOAT3(fMesh->mNormals[j].x, fMesh->mNormals[j].y, fMesh->mNormals[j].z));
-			mesh->m_tangentBufferCPU.push_back(XMFLOAT3(fMesh->mTangents[j].x, fMesh->mTangents[j].y, fMesh->mTangents[j].z));
+			mesh->m_positionBufferCPU.emplace_back(Vec3{ fMesh->mVertices[j].x, fMesh->mVertices[j].y, fMesh->mVertices[j].z });
+			mesh->m_texUVBufferCPU.emplace_back(Vec2{ fMesh->mTextureCoords[0][j].x, fMesh->mTextureCoords[0][j].y }); // load first uv set for now
+			mesh->m_normalBufferCPU.emplace_back(Vec3{ fMesh->mNormals[j].x, fMesh->mNormals[j].y, fMesh->mNormals[j].z });
+			mesh->m_tangentBufferCPU.emplace_back(Vec3{ fMesh->mTangents[j].x, fMesh->mTangents[j].y, fMesh->mTangents[j].z });
 		}
 		
 		if (fMesh->HasBones())
@@ -137,10 +140,7 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 					skinnedMesh->m_joints[j].m_name = std::string(bone->mName.C_Str());
 					mJointNameIndexMap.emplace(bone->mName.C_Str(), j);
 					skinnedMesh->m_joints[j].m_inverseBindPosMat =
-						DirectX::XMMATRIX(bone->mOffsetMatrix[0][0], bone->mOffsetMatrix[1][0], bone->mOffsetMatrix[2][0], bone->mOffsetMatrix[3][0], 
-										  bone->mOffsetMatrix[0][1], bone->mOffsetMatrix[1][1], bone->mOffsetMatrix[2][1], bone->mOffsetMatrix[3][1], 
-										  bone->mOffsetMatrix[0][2], bone->mOffsetMatrix[1][2], bone->mOffsetMatrix[2][2], bone->mOffsetMatrix[3][2], 
-										  bone->mOffsetMatrix[0][3], bone->mOffsetMatrix[1][3], bone->mOffsetMatrix[2][3], bone->mOffsetMatrix[3][3]);
+						Mat4(&bone->mOffsetMatrix[0][0]).Transpose();
 					for (uint32_t k = 0; k < bone->mNumWeights; k++)
 					{
 						auto weight = bone->mWeights[k];
@@ -160,9 +160,7 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 
 			auto assimp_node = scene->mRootNode;
 
-			const XMMATRIX identityMat = XMMatrixIdentity();
-
-			skinnedMesh->m_jointPreRotationBufferCPU.resize(fMesh->mNumBones, identityMat);
+			skinnedMesh->m_jointPreRotationBufferCPU.resize(fMesh->mNumBones, Mat4::Identity());
 			std::function<void(aiNode*, int32_t)> IndexJoint;
 			IndexJoint = [&](aiNode* node, int32_t parentIdx)
 			{
@@ -181,10 +179,7 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 					if (isPreRotation)
 					{
 						skinnedMesh->m_jointPreRotationBufferCPU[entry->second] = 
-							DirectX::XMMATRIX(node->mTransformation[0][0], node->mTransformation[1][0], node->mTransformation[2][0], node->mTransformation[3][0],
-								node->mTransformation[0][1], node->mTransformation[1][1], node->mTransformation[2][1], node->mTransformation[3][1],
-								node->mTransformation[0][2], node->mTransformation[1][2], node->mTransformation[2][2], node->mTransformation[3][2],
-								node->mTransformation[0][3], node->mTransformation[1][3], node->mTransformation[2][3], node->mTransformation[3][3]);
+							Mat4(&node->mTransformation[0][0]).Transpose();
 					}
 					else
 					{
@@ -257,36 +252,33 @@ bool FbxReaderSG::Read(const std::wstring& filename, Animation* animation) {
 			const auto &channel = fAnimation->mChannels[ichannel];
 			AnimationNode &animationNode = animation->m_animations[std::string(channel->mNodeName.C_Str())];
 
-			animationNode.length = max(animationNode.length, channel->mNumPositionKeys);
+			animationNode.length = std::max(animationNode.length, channel->mNumPositionKeys);
 			animationNode.position.resize(channel->mNumPositionKeys);
 			animationNode.positionTime.resize(channel->mNumPositionKeys);
 			for (uint32_t iPos = 0; iPos < channel->mNumPositionKeys; iPos++)
 			{
 				const auto &position = channel->mPositionKeys[iPos];
-				XMFLOAT3 xmpos(position.mValue.x, position.mValue.y, position.mValue.z);
-				animationNode.position[iPos] = XMLoadFloat3(&xmpos);
+				animationNode.position[iPos] = { position.mValue.x, position.mValue.y, position.mValue.z };
 				animationNode.positionTime[iPos] = position.mTime;
 			}
 
-			animationNode.length = max(animationNode.length, channel->mNumRotationKeys);
+			animationNode.length = std::max(animationNode.length, channel->mNumRotationKeys);
 			animationNode.rotation.resize(channel->mNumRotationKeys);
 			animationNode.rotationTime.resize(channel->mNumRotationKeys);
 			for (uint32_t iRot = 0; iRot < channel->mNumRotationKeys; iRot++)
 			{
 				const auto &rotation = channel->mRotationKeys[iRot];
-				XMFLOAT4 xmrot(rotation.mValue.x, rotation.mValue.y, rotation.mValue.z, rotation.mValue.w);
-				animationNode.rotation[iRot] = XMLoadFloat4(&xmrot);
+				animationNode.rotation[iRot] = Quat(rotation.mValue.w, rotation.mValue.x, rotation.mValue.y, rotation.mValue.z);
 				animationNode.rotationTime[iRot] = rotation.mTime;
 			}
 
-			animationNode.length = max(animationNode.length, channel->mNumScalingKeys);
+			animationNode.length = std::max(animationNode.length, channel->mNumScalingKeys);
 			animationNode.scale.resize(channel->mNumScalingKeys);
 			animationNode.scaleTime.resize(channel->mNumScalingKeys);
 			for (uint32_t iScale = 0; iScale < channel->mNumScalingKeys; iScale++)
 			{
 				const auto &scale = channel->mScalingKeys[iScale];
-				XMFLOAT3 xmscale(scale.mValue.x, scale.mValue.y, scale.mValue.z);
-				animationNode.scale[iScale] = XMLoadFloat3(&xmscale);
+				animationNode.scale[iScale] = { scale.mValue.x, scale.mValue.y, scale.mValue.z };
 				animationNode.scaleTime[iScale] = scale.mTime;
 			}
 		}

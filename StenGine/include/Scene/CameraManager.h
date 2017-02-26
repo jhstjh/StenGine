@@ -1,61 +1,55 @@
 #ifndef __CAMERA_MANAGER__
 #define __CAMERA_MANAGER__
 
+#include "Math/MathDefs.h"
+#include "System/AlignedClass.h"
 #include "System/API/PlatformAPIDefs.h"
 #include "System/SingletonClass.h"
-
-#include <DirectXMath.h>
-#include <windows.h>
-using namespace DirectX;
-
-#include "System/AlignedClass.h"
 
 namespace StenGine
 {
 
-class Camera : public AlignedClass<16> {
-	XMFLOAT4 m_pos;
-	XMFLOAT4X4 m_view;
-	XMFLOAT4X4 m_proj;
-	XMFLOAT4X4 m_worldTransform;
-	XMVECTOR m_target;
-	XMVECTOR m_up;
-
-	float m_radius;
-	float m_phi;
-	float m_theta;
-	POINT m_lastMousePos;
+class Camera : public AlignedClass<16> 
+{
+	// TODO Make this a generic GameObject and use Transform !
+	Mat4 mTrans;
+	Mat4 mRot;
+	// Mat4 mScale; // Identity
+	Mat4 mView;
+	Mat4 mProj;
+	Mat4 mWorldTransform;
+	Quat mRotQuat;
 
 public:
 	Camera(float px, float py, float pz,
 		   float tx, float ty, float tz,
 		   float ux, float uy, float uz,
 		   float fov, float np, float fp);
-	//Camera(XMFLOAT4X4 worldTransform;)
+
 	~Camera();
-	XMMATRIX GetViewProjMatrix();
-	XMMATRIX GetViewMatrix();
-	XMMATRIX GetProjMatrix();
-	XMFLOAT4 GetPos() { 
-		return XMFLOAT4(m_worldTransform._41, m_worldTransform._42, m_worldTransform._43, 0.0); 
+	Mat4 GetViewProjMatrix();
+	Mat4 GetViewMatrix();
+	Mat4 GetProjMatrix();
+	Vec4 GetPos() 
+	{
+		return{ mWorldTransform(0, 3), mWorldTransform(1, 3), mWorldTransform(2, 3), 0.0 };
 	}
-// 	void OnMouseDown(WPARAM btnState, int x, int y);
-// 	void OnMouseUp(WPARAM btnState, int x, int y);
-// 	void OnMouseMove(WPARAM btnState, int x, int y);
+
 	void Update();
 };
 
-class CameraManager : public SingletonClass<CameraManager> {
+class CameraManager : public SingletonClass<CameraManager>
+{
 private:
-	Camera* m_debugCamera;
-	Camera* m_activeCamera;
+	Camera* mDebugCamera;
+	Camera* mActiveCamera;
 
 public:
 
 	CameraManager();
 	~CameraManager();
 
-	Camera* GetActiveCamera() { return m_activeCamera; }
+	Camera* GetActiveCamera() { return mActiveCamera; }
 
 };
 

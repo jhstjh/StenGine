@@ -7,37 +7,34 @@
 namespace StenGine
 {
 
-const XMVECTOR VEC3ZERO = XMLoadFloat3(&XMFLOAT3(0, 0, 0));
-const XMVECTOR QUATIDENT = XMQuaternionIdentity();
-const XMVECTOR AXIS_X = XMLoadFloat3(&XMFLOAT3(1, 0, 0));
-const XMVECTOR AXIS_Y = XMLoadFloat3(&XMFLOAT3(0, 1, 0));
-const XMVECTOR AXIS_Z = XMLoadFloat3(&XMFLOAT3(0, 0, 1));
+const Vec3 VEC3ZERO{ 0, 0, 0 };
+const Quat QUATIDENT = Quat::identity;
+const Vec3 AXIS_X{ 1, 0, 0 };
+const Vec3 AXIS_Y{ 0, 1, 0 };
+const Vec3 AXIS_Z{ 0, 0, 1 };
 
 Transform::Transform(float tx, float ty, float tz, float rx, float ry, float rz, float sx, float sy, float sz)
 {
-	m_position = XMLoadFloat3(&XMFLOAT3(tx, ty, tz));
-	m_rotation = XMQuaternionRotationRollPitchYaw(rx, ry, rz);
-	m_scale = XMLoadFloat3(&XMFLOAT3(sx, sy, sz));
+	mPosition = { tx, ty, tz };
+	mRotation = Quat::FromEulerAngles({ rx, ry, rz });
+	mScale = { sx, sy, sz };
 }
 
-const XMFLOAT4X4* Transform::GetWorldTransform()
+const Mat4 &Transform::GetWorldTransform()
 {
-	XMMATRIX worldTrans = XMMatrixTransformation(VEC3ZERO, QUATIDENT, m_scale, VEC3ZERO, m_rotation, m_position);
-	XMStoreFloat4x4(&m_worldTransform, worldTrans);
-	return &m_worldTransform;
+	mWorldTransform = Mat4::FromTranslationVector(mPosition) * mRotation.ToMatrix4() * Mat4::FromScaleVector(mScale);
+	return mWorldTransform;
 }
 
-XMFLOAT3 Transform::GetPosition()
+Vec3 Transform::GetPosition() const
 {
-	XMFLOAT3 pos;
-	XMStoreFloat3(&pos, m_position);
-	return pos;
+	return mPosition;
 }
 
 void Transform::RotateAroundY(float radius)
 {
-	XMVECTOR rot = XMQuaternionRotationAxis(AXIS_Y, radius);
-	m_rotation = XMQuaternionMultiply(m_rotation, rot);
+	Quat rot = Quat::FromAngleAxis(radius, AXIS_Y);
+	mRotation = mRotation * rot;
 }
 
 void Transform::DrawMenu()
@@ -45,21 +42,21 @@ void Transform::DrawMenu()
 	if (ImGui::CollapsingHeader("Transform", nullptr, true, true))
 	{
 		ImGui::Text("Position");
-		XMFLOAT3 pos = GetPosition();
+		Vec3 pos = GetPosition();
 		char scratch[16];
-		sprintf(scratch, "%f", pos.x);
+		sprintf(scratch, "%f", pos.x());
 		ImGui::Text("X"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0)); ImGui::SameLine();
-		sprintf(scratch, "%f", pos.y);
+		sprintf(scratch, "%f", pos.y());
 		ImGui::Text("Y"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0)); ImGui::SameLine();
-		sprintf(scratch, "%f", pos.z);
+		sprintf(scratch, "%f", pos.z());
 		ImGui::Text("Z"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0));
 
 		ImGui::Text("Rotation");
-		sprintf(scratch, "%f", atan2(m_worldTransform._23, m_worldTransform._33) * 180 / PI);
+		sprintf(scratch, "%f", atan2(mWorldTransform(2, 1), mWorldTransform(2, 2)) * 180 / PI);
 		ImGui::Text("X"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0)); ImGui::SameLine();
-		sprintf(scratch, "%f", atan2(-m_worldTransform._13, sqrt(m_worldTransform._23 * m_worldTransform._23 + m_worldTransform._33 * m_worldTransform._33)) * 180 / PI);
+		sprintf(scratch, "%f", atan2(-mWorldTransform(2, 0), sqrt(mWorldTransform(2, 1) * mWorldTransform(2, 1) + mWorldTransform(2, 2) * mWorldTransform(2, 2))) * 180 / PI);
 		ImGui::Text("Y"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0)); ImGui::SameLine();
-		sprintf(scratch, "%f", atan2(m_worldTransform._12, m_worldTransform._11) * 180 / PI);
+		sprintf(scratch, "%f", atan2(mWorldTransform(1, 0), mWorldTransform(0, 0)) * 180 / PI);
 		ImGui::Text("Z"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0));
 
 		ImGui::Text("Scale");

@@ -29,7 +29,7 @@ void ObjReader::Read(const std::wstring& filename, Mesh* mesh) {
 				idx++;
 				ptr++;
 			}
-			mesh->m_positionBufferCPU.push_back(XMFLOAT3(std::stof(numString[0]), std::stof(numString[1]), std::stof(numString[2])));
+			mesh->m_positionBufferCPU.emplace_back(Vec3{ std::stof(numString[0]), std::stof(numString[1]), std::stof(numString[2]) });
 			ZeroMemory(line, 256);
 		}
 		else if (line[1] == 't') { // uv buffer
@@ -46,7 +46,7 @@ void ObjReader::Read(const std::wstring& filename, Mesh* mesh) {
 				idx++;
 				ptr++;
 			}
-			mesh->m_colorBufferCPU.push_back(XMFLOAT4(std::stof(numString[0]), std::stof(numString[1]), std::stof(numString[2]), 1.0f));
+			mesh->m_colorBufferCPU.emplace_back(Vec4(std::stof(numString[0]), std::stof(numString[1]), std::stof(numString[2]), 1.0f));
 			//mesh->m_colorBufferCPU.push_back((const float*)&Colors::Red);
 			ZeroMemory(line, 256);
 		}

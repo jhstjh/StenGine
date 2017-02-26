@@ -223,8 +223,8 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		glMakeTextureHandleResidentARB(m_randVecTexHandle);
 
 		DirectionalLight* dLight = new DirectionalLight();
-		dLight->intensity = XMFLOAT4(1.5f, 1.5f, 1.5f, 1);
-		dLight->direction = MatrixHelper::NormalizeFloat3(XMFLOAT3(-0.5, -2, 1));
+		dLight->intensity = { 1.5f, 1.5f, 1.5f, 1 };
+		dLight->direction = Vec3(-0.5, -2, 1).Normalized();
 		dLight->castShadow = 1;
 
 		LightManager::Instance()->m_dirLights.push_back(dLight);
@@ -748,16 +748,19 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		textureData->DepthGMap = m_depthBufferTexHandle;
 		textureData->RandVectMap = m_randVecTexHandle;
 
-		XMMATRIX &viewMat = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
-		XMMATRIX viewInvTranspose = MatrixHelper::InverseTranspose(viewMat);
+		DirectionalLight viewDirLight;
+		memcpy(&viewDirLight, LightManager::Instance()->m_dirLights[0], sizeof(DirectionalLight));
 
-		perFrameData->gDirLight = *LightManager::Instance()->m_dirLights[0];
-		XMStoreFloat3(&perFrameData->gDirLight.direction, XMVector3Transform(XMLoadFloat3(&perFrameData->gDirLight.direction), viewInvTranspose));
+		Mat4 ViewInvTranspose = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix().Inverse().Transpose();
 
-		XMMATRIX &projMat = CameraManager::Instance()->GetActiveCamera()->GetProjMatrix();
-		XMVECTOR det = XMMatrixDeterminant(projMat);
-		perFrameData->gProj = projMat;
-		perFrameData->gProjInv = XMMatrixInverse(&det, projMat);
+		viewDirLight.direction = (ViewInvTranspose * Vec4(viewDirLight.direction.data[0], viewDirLight.direction.data[1], viewDirLight.direction.data[2], 0)).xyz();
+		perFrameData->gDirLight = viewDirLight;
+
+		Vec4 camPos = CameraManager::Instance()->GetActiveCamera()->GetPos();
+		camPos = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix() * camPos;
+		perFrameData->gEyePosV = camPos;
+		perFrameData->gProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetProjMatrix());
+		perFrameData->gProjInv = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetProjMatrix().Inverse());
 
 		cmd.flags = CmdFlag::DRAW | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH | CmdFlag::BIND_FB;
 		cmd.drawType = DrawType::ARRAY;
@@ -812,7 +815,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 			textureData->DepthMap = m_depthBufferTexHandle;
 		}
 		//settingData->BloomMap = NOT_USED;
-		settingData->xEnableSSAO.x = m_enableSSAO;
+		settingData->xEnableSSAO.x() = m_enableSSAO;
 
 		cmd.cbuffers.push_back(std::move(cbuffer0));
 		cmd.cbuffers.push_back(std::move(cbuffer1));
@@ -867,6 +870,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 
 		ConstantBuffer cbuffer0(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), debugLineFX->m_perObjectCB);
 		DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+
 		perObjectData->ViewProj = CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
 
 		cmd.cbuffers.push_back(std::move(cbuffer0));
@@ -937,39 +941,39 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 	void GLRenderer::InitScreenQuad()
 	{
 		// init screen quad vbo
-		std::vector<XMFLOAT4> quadVertexBuffer = {
-			XMFLOAT4(-1.0, -1.0, -1.0, 1.0),
-			XMFLOAT4(-1.0, 1.0, -1.0, 1.0),
-			XMFLOAT4(1.0, 1.0, -1.0, 1.0),
-			XMFLOAT4(1.0, 1.0, -1.0, 1.0),
-			XMFLOAT4(1.0, -1.0, -1.0, 1.0),
-			XMFLOAT4(-1.0, -1.0, -1.0, 1.0),
+		std::vector<Vec4> quadVertexBuffer = {
+			Vec4(-1.0, -1.0, -1.0, 1.0),
+			Vec4(-1.0, 1.0, -1.0, 1.0),
+			Vec4(1.0, 1.0, -1.0, 1.0),
+			Vec4(1.0, 1.0, -1.0, 1.0),
+			Vec4(1.0, -1.0, -1.0, 1.0),
+			Vec4(-1.0, -1.0, -1.0, 1.0),
 		};
 
-		std::vector<XMFLOAT2> quadUvVertexBuffer = {
-			XMFLOAT2(0, 0),
-			XMFLOAT2(0, 1),
-			XMFLOAT2(1, 1),
-			XMFLOAT2(1, 1),
-			XMFLOAT2(1, 0),
-			XMFLOAT2(0, 0),
+		std::vector<Vec2> quadUvVertexBuffer = {
+			Vec2(0, 0),
+			Vec2(0, 1),
+			Vec2(1, 1),
+			Vec2(1, 1),
+			Vec2(1, 0),
+			Vec2(0, 0),
 		};
 
 		GLuint screenQuadVertexVBO;
 		GLuint screenQuadUVVBO;
 		glCreateBuffers(1, &screenQuadVertexVBO);
-		glNamedBufferStorage(screenQuadVertexVBO, quadVertexBuffer.size() * sizeof(XMFLOAT4), &quadVertexBuffer[0], 0);
+		glNamedBufferStorage(screenQuadVertexVBO, quadVertexBuffer.size() * sizeof(Vec4), &quadVertexBuffer[0], 0);
 
 		glCreateBuffers(1, &screenQuadUVVBO);
-		glNamedBufferStorage(screenQuadUVVBO, quadUvVertexBuffer.size() * sizeof(XMFLOAT2), &quadUvVertexBuffer[0], 0);
+		glNamedBufferStorage(screenQuadUVVBO, quadUvVertexBuffer.size() * sizeof(Vec2), &quadUvVertexBuffer[0], 0);
 
 		glCreateVertexArrays(1, &m_screenQuadVAO);
 
 		glEnableVertexArrayAttrib(m_screenQuadVAO, 0);
 		glEnableVertexArrayAttrib(m_screenQuadVAO, 1);
 
-		glVertexArrayVertexBuffer(m_screenQuadVAO, 0, screenQuadVertexVBO, 0, sizeof(XMFLOAT4));
-		glVertexArrayVertexBuffer(m_screenQuadVAO, 1, screenQuadUVVBO, 0, sizeof(XMFLOAT2));
+		glVertexArrayVertexBuffer(m_screenQuadVAO, 0, screenQuadVertexVBO, 0, sizeof(Vec4));
+		glVertexArrayVertexBuffer(m_screenQuadVAO, 1, screenQuadUVVBO, 0, sizeof(Vec2));
 
 		glVertexArrayAttribFormat(m_screenQuadVAO, 0, 4, GL_FLOAT, GL_FALSE, 0);
 		glVertexArrayAttribFormat(m_screenQuadVAO, 1, 2, GL_FLOAT, GL_FALSE, 0);
@@ -981,41 +985,41 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 	void GLRenderer::InitDebugCoord()
 	{
 		// init grid and coord debug draw
-		std::vector<XMFLOAT3> coordVertexBuffer = {
-			XMFLOAT3(0, 0, 0),
-			XMFLOAT3(5, 0, 0),
-			XMFLOAT3(0, 0, 0),
-			XMFLOAT3(0, 5, 0),
-			XMFLOAT3(0, 0, 0),
-			XMFLOAT3(0, 0, 5),
+		std::vector<Vec3Packed> coordVertexBuffer = {
+			Vec3Packed({0, 0, 0}),
+			Vec3Packed({5, 0, 0}),
+			Vec3Packed({0, 0, 0}),
+			Vec3Packed({0, 5, 0}),
+			Vec3Packed({0, 0, 0}),
+			Vec3Packed({0, 0, 5}),
 		};
 
 		std::vector<UINT> coordIndexBuffer = { 0, 1, 2, 3, 4, 5 };
 
 		int initIdx = 6;
 		for (int i = 0; i <= 10; i++) {
-			coordVertexBuffer.push_back(XMFLOAT3(-5.f, 0.f, -5.f + i));
-			coordVertexBuffer.push_back(XMFLOAT3(5.f, 0.f, -5.f + i));
+			coordVertexBuffer.emplace_back(Vec3(-5.f, 0.f, -5.f + i));
+			coordVertexBuffer.emplace_back(Vec3(5.f, 0.f, -5.f + i));
 			coordIndexBuffer.push_back(initIdx++);
 			coordIndexBuffer.push_back(initIdx++);
 		}
 
 		for (int i = 0; i <= 10; i++) {
-			coordVertexBuffer.push_back(XMFLOAT3(-5.f + i, 0.f, -5.f));
-			coordVertexBuffer.push_back(XMFLOAT3(-5.f + i, 0.f, 5.f));
+			coordVertexBuffer.emplace_back(Vec3(-5.f + i, 0.f, -5.f));
+			coordVertexBuffer.emplace_back(Vec3(-5.f + i, 0.f, 5.f));
 			coordIndexBuffer.push_back(initIdx++);
 			coordIndexBuffer.push_back(initIdx++);
 		}
 
 		GLuint debugDrawVertexVBO;
 		glCreateBuffers(1, &debugDrawVertexVBO);
-		glNamedBufferStorage(debugDrawVertexVBO, coordVertexBuffer.size() * sizeof(XMFLOAT3), &coordVertexBuffer[0], 0);
+		glNamedBufferStorage(debugDrawVertexVBO, coordVertexBuffer.size() * sizeof(Vec3Packed), &coordVertexBuffer[0], 0);
 
 		glCreateVertexArrays(1, &m_debugCoordVAO);
 
 		glEnableVertexArrayAttrib(m_debugCoordVAO, 0);
 		glVertexArrayAttribFormat(m_debugCoordVAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
-		glVertexArrayVertexBuffer(m_debugCoordVAO, 0, debugDrawVertexVBO, 0, sizeof(XMFLOAT3));
+		glVertexArrayVertexBuffer(m_debugCoordVAO, 0, debugDrawVertexVBO, 0, sizeof(Vec3Packed));
 		glVertexArrayAttribBinding(m_debugCoordVAO, 0, 0);
 	}
 

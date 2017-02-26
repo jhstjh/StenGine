@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "Mesh/MeshRenderer.h"
 #include "Graphics/Effect/EffectsManager.h"
 #include "Scene/CameraManager.h"
@@ -69,7 +70,7 @@ void Mesh::DrawMenu()
 				{
 					ImGui::DragFloat3("Diffuse", reinterpret_cast<float*>(&m_materials[i].m_attributes.diffuse), 0.01f, 0.0f, 1.0f);
 					ImGui::DragFloat3("Roughness/Metalic/c/DoubleSided", reinterpret_cast<float*>(&m_materials[i].m_attributes.roughness_metalic_c_doublesided), 0.01f, 0.0f, 1.0f);
-					ImGui::DragFloat("DoubleSided", &m_materials[i].m_attributes.roughness_metalic_c_doublesided.w, 1.0f, 0.0f, 1.0f);
+					ImGui::DragFloat("DoubleSided", &m_materials[i].m_attributes.roughness_metalic_c_doublesided.data[3], 1.0f, 0.0f, 1.0f);
 
 					static const float TEX_CUBE_SIZE = 64.f;
 
@@ -81,7 +82,7 @@ void Mesh::DrawMenu()
 						uint32_t width, height;
 						m_materials[i].m_diffuseMapTex->GetDimension(width, height);
 
-						float scale = min(TEX_CUBE_SIZE / width, TEX_CUBE_SIZE / height);
+						float scale = std::min(TEX_CUBE_SIZE / width, TEX_CUBE_SIZE / height);
 						ImGui::ImageButton((ImTextureID)m_materials[i].m_diffuseMapTex->GetTexture(), ImVec2(width * scale, height * scale));
 					}
 					if (m_materials[i].m_normalMapTex)
@@ -92,7 +93,7 @@ void Mesh::DrawMenu()
 						uint32_t width, height;
 						m_materials[i].m_normalMapTex->GetDimension(width, height);
 
-						float scale = min(TEX_CUBE_SIZE / width, TEX_CUBE_SIZE / height);
+						float scale = std::min(TEX_CUBE_SIZE / width, TEX_CUBE_SIZE / height);
 						ImGui::ImageButton((ImTextureID)m_materials[i].m_normalMapTex->GetTexture(), ImVec2(width * scale, height * scale));
 					}
 					if (m_materials[i].m_bumpMapTex)
@@ -103,7 +104,7 @@ void Mesh::DrawMenu()
 						uint32_t width, height;
 						m_materials[i].m_bumpMapTex->GetDimension(width, height);
 
-						float scale = min(TEX_CUBE_SIZE / width, TEX_CUBE_SIZE / height);
+						float scale = std::min(TEX_CUBE_SIZE / width, TEX_CUBE_SIZE / height);
 						ImGui::ImageButton((ImTextureID)m_materials[i].m_bumpMapTex->GetTexture(), ImVec2(width * scale, height * scale));
 					}
 
@@ -146,10 +147,10 @@ void Mesh::GatherDrawCall() {
 	UINT stride = sizeof(Vertex::StdMeshVertex);
 	UINT offset = 0;
 
-	XMFLOAT4 resourceMask(0, 0, 0, 0);
+	Vec4 resourceMask(0, 0, 0, 0);
 
 	if (m_receiveShadow)
-		resourceMask.z = 1;
+		resourceMask.z() = 1;
 
 	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
 		int startIndex = 0;
@@ -166,20 +167,20 @@ void Mesh::GatherDrawCall() {
 
 			DrawCmd cmd;
 
-			perframeData->EyePosW = (CameraManager::Instance()->GetActiveCamera()->GetPos());
+			perframeData->EyePosW = CameraManager::Instance()->GetActiveCamera()->GetPos();
 
 			perObjData->Mat = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_attributes;
-			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
-			perObjData->World = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()));
-			XMMATRIX worldView = XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * CameraManager::Instance()->GetActiveCamera()->GetViewMatrix();
+			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * m_parents[iP]->GetTransform()->GetWorldTransform());
+			perObjData->World = TRASNPOSE_API_CHOOSER(m_parents[iP]->GetTransform()->GetWorldTransform());
+			Mat4 worldView = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix() * m_parents[iP]->GetTransform()->GetWorldTransform();
 			perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
-			XMMATRIX worldViewInvTranspose = MatrixHelper::InverseTranspose(worldView);
+			Mat4 worldViewInvTranspose = worldView.Inverse().Transpose();
 
-			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetShadowMapTransform());
+			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform() * m_parents[iP]->GetTransform()->GetWorldTransform());
 			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
-			resourceMask.x = 0;
-			resourceMask.y = 0;
+			resourceMask.x() = 0;
+			resourceMask.y() = 0;
 
 			switch (Renderer::GetRenderBackend())
 			{
@@ -187,15 +188,15 @@ void Mesh::GatherDrawCall() {
 			{
 				cmd.srvs.AddSRV(Renderer::Instance()->GetSkyBox()->m_cubeMapSRV, 4);
 				cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-				perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(MatrixHelper::InverseTranspose(XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform())));
+				perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(m_parents[iP]->GetTransform()->GetWorldTransform().Inverse().Transpose());
 				perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
 				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex) {
-					resourceMask.x = 1;
+					resourceMask.x() = 1;
 					cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture()), 0);
 				}
 				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex) {
-					resourceMask.y = 1;
+					resourceMask.y() = 1;
 					cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture()), 1);
 				}
 
@@ -218,12 +219,12 @@ void Mesh::GatherDrawCall() {
 
 				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex > 0)
 				{
-					resourceMask.x = 1;
+					resourceMask.x() = 1;
 					textureData->DiffuseMap = reinterpret_cast<uint64_t>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture());
 				}
 				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex > 0)
 				{
-					resourceMask.y = 1;
+					resourceMask.y() = 1;
 					textureData->NormalMap = reinterpret_cast<uint64_t>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture());
 				}
 				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex > 0)
@@ -276,9 +277,9 @@ void Mesh::GatherShadowDrawCall() {
 	UINT stride = sizeof(Vertex::ShadowMapVertex);
 	UINT offset = 0;
 
-	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
-
-		XMMATRIX worldViewProj = XMLoadFloat4x4(m_parents[iP]->GetTransform()->GetWorldTransform()) * LightManager::Instance()->m_shadowMap->GetViewProjMatrix();
+	for (uint32_t iP = 0; iP < m_parents.size(); iP++) 
+	{
+		Mat4 worldViewProj = LightManager::Instance()->m_shadowMap->GetViewProjMatrix() * m_parents[iP]->GetTransform()->GetWorldTransform();
 
 		ConstantBuffer cbuffer0(0, sizeof(ShadowMapEffect::PEROBJ_CONSTANT_BUFFER), effect->m_perObjectCB);
 		ShadowMapEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (ShadowMapEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();

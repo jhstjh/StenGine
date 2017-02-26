@@ -4,6 +4,7 @@
 #include "Graphics/D3DIncludes.h"
 #include "Graphics/Abstraction/RenderTarget.h"
 #include "Graphics/Abstraction/Texture.h"
+#include "Math/MathDefs.h"
 
 #include "glew.h"
 
@@ -12,8 +13,8 @@ namespace StenGine
 
 class ShadowMap {
 private:
-	UINT m_width;
-	UINT m_height;
+	uint32_t m_width;
+	uint32_t m_height;
 
 	// TODO unify D3D/GL member 
 	ID3D11ShaderResourceView* m_depthSRV;
@@ -24,14 +25,14 @@ private:
 	uint64_t m_depthTexHandle;
 
 
-	XMFLOAT4X4 m_lightView;
-	XMFLOAT4X4 m_lightProj;
-	XMFLOAT4X4 m_shadowTransform;
+	Mat4 m_lightView;
+	Mat4 m_lightProj;
+	Mat4 m_shadowTransform;
 
 	RenderTarget m_shadowTarget;
 
 public:
-	ShadowMap(UINT width, UINT height);
+	ShadowMap(uint32_t width, uint32_t height);
 	~ShadowMap();
 
 	ID3D11ShaderResourceView* GetDepthSRV() { return m_depthSRV; }
@@ -39,9 +40,9 @@ public:
 	uint64_t GetDepthTexHandle() { return m_depthTexHandle; }
 
 	void UpdateShadowMatrix();
-	XMMATRIX GetViewMatrix();
-	XMMATRIX GetViewProjMatrix();
-	XMMATRIX GetShadowMapTransform();
+	Mat4 GetViewMatrix() const;
+	Mat4 GetViewProjMatrix() const;
+	Mat4 GetShadowMapTransform() const;
 
 	RenderTarget &GetRenderTarget();
 	void GetDimension(uint32_t &width, uint32_t &height) { width = m_width, height = m_height; }

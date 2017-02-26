@@ -1,17 +1,16 @@
 #pragma once
 
-#include "Scene/Component.h"
-#include "Mesh/MeshRenderer.h"
-#include "Mesh/Skeleton.h"
 #include "Graphics/Animation/Animation.h"
-
-using namespace DirectX;
+#include "Mesh/MeshRenderer.h"
+#include "Math/MathDefs.h"
+#include "Mesh/Skeleton.h"
+#include "Scene/Component.h"
 
 namespace StenGine
 {
 
 struct Joint {
-	XMMATRIX m_inverseBindPosMat;
+	Mat4 m_inverseBindPosMat;
 	int32_t m_index;
 	int32_t m_parentIdx;
 	std::string m_name;
@@ -25,10 +24,10 @@ public:
 	std::vector<std::vector<float> > m_jointWeightsBufferCPU;
 	std::vector<std::vector<uint32_t> > m_jointIndicesBufferCPU;
 
-	std::vector<XMMATRIX> m_jointPreRotationBufferCPU;
-	std::vector<XMMATRIX> m_jointOffsetTransformCPU;
-	std::vector<XMMATRIX> m_toRootTransform;
-	std::vector<XMMATRIX> m_matrixPalette;
+	std::vector<Mat4> m_jointPreRotationBufferCPU;
+	std::vector<Mat4> m_jointOffsetTransformCPU;
+	std::vector<Mat4> m_toRootTransform;
+	std::vector<Mat4> m_matrixPalette;
 	std::vector<Joint> m_joints;
 
 	virtual void GatherDrawCall() override;

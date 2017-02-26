@@ -2,6 +2,7 @@
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Scene/CameraManager.h"
 #include "Mesh/MeshRenderer.h"
+#include "Math/MathDefs.h"
 #include "Math/MathHelper.h"
 
 #include "Graphics/OpenGL/GLImageLoader.h"
@@ -14,7 +15,7 @@ Skybox::Skybox(std::wstring &cubeMapPath) {
 	{
 	case RenderBackend::D3D11:
 	{
-		CreateDDSTextureFromFile(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice()),
+		DirectX::CreateDDSTextureFromFile(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice()),
 			cubeMapPath.c_str(), nullptr, &m_cubeMapSRV);
 		break;
 	}
@@ -34,34 +35,34 @@ Skybox::Skybox(std::wstring &cubeMapPath) {
 		glMakeTextureHandleResidentARB(m_cubeMapTex);
 
 		// generate VAO
-		std::vector<XMFLOAT3> skyboxVertexBuffer = {
-			XMFLOAT3(-1.0f, -1.0f, -1.0f),
-			XMFLOAT3(-1.0f, +1.0f, -1.0f),
-			XMFLOAT3(+1.0f, +1.0f, -1.0f),
-			XMFLOAT3(+1.0f, -1.0f, -1.0f),
-			XMFLOAT3(-1.0f, -1.0f, +1.0f),
-			XMFLOAT3(+1.0f, -1.0f, +1.0f),
-			XMFLOAT3(+1.0f, +1.0f, +1.0f),
-			XMFLOAT3(-1.0f, +1.0f, +1.0f),
-			XMFLOAT3(-1.0f, +1.0f, -1.0f),
-			XMFLOAT3(-1.0f, +1.0f, +1.0f),
-			XMFLOAT3(+1.0f, +1.0f, +1.0f),
-			XMFLOAT3(+1.0f, +1.0f, -1.0f),
-			XMFLOAT3(-1.0f, -1.0f, -1.0f),
-			XMFLOAT3(+1.0f, -1.0f, -1.0f),
-			XMFLOAT3(+1.0f, -1.0f, +1.0f),
-			XMFLOAT3(-1.0f, -1.0f, +1.0f),
-			XMFLOAT3(-1.0f, -1.0f, +1.0f),
-			XMFLOAT3(-1.0f, +1.0f, +1.0f),
-			XMFLOAT3(-1.0f, +1.0f, -1.0f),
-			XMFLOAT3(-1.0f, -1.0f, -1.0f),
-			XMFLOAT3(+1.0f, -1.0f, -1.0f),
-			XMFLOAT3(+1.0f, +1.0f, -1.0f),
-			XMFLOAT3(+1.0f, +1.0f, +1.0f),
-			XMFLOAT3(+1.0f, -1.0f, +1.0f),
+		std::vector<Vec3Packed> skyboxVertexBuffer = {
+			Vec3Packed({-1.0f, -1.0f, -1.0f}),
+			Vec3Packed({-1.0f, +1.0f, -1.0f}),
+			Vec3Packed({+1.0f, +1.0f, -1.0f}),
+			Vec3Packed({+1.0f, -1.0f, -1.0f}),
+			Vec3Packed({-1.0f, -1.0f, +1.0f}),
+			Vec3Packed({+1.0f, -1.0f, +1.0f}),
+			Vec3Packed({+1.0f, +1.0f, +1.0f}),
+			Vec3Packed({-1.0f, +1.0f, +1.0f}),
+			Vec3Packed({-1.0f, +1.0f, -1.0f}),
+			Vec3Packed({-1.0f, +1.0f, +1.0f}),
+			Vec3Packed({+1.0f, +1.0f, +1.0f}),
+			Vec3Packed({+1.0f, +1.0f, -1.0f}),
+			Vec3Packed({-1.0f, -1.0f, -1.0f}),
+			Vec3Packed({+1.0f, -1.0f, -1.0f}),
+			Vec3Packed({+1.0f, -1.0f, +1.0f}),
+			Vec3Packed({-1.0f, -1.0f, +1.0f}),
+			Vec3Packed({-1.0f, -1.0f, +1.0f}),
+			Vec3Packed({-1.0f, +1.0f, +1.0f}),
+			Vec3Packed({-1.0f, +1.0f, -1.0f}),
+			Vec3Packed({-1.0f, -1.0f, -1.0f}),
+			Vec3Packed({+1.0f, -1.0f, -1.0f}),
+			Vec3Packed({+1.0f, +1.0f, -1.0f}),
+			Vec3Packed({+1.0f, +1.0f, +1.0f}),
+			Vec3Packed({+1.0f, -1.0f, +1.0f}),
 		};
 
-		std::vector<UINT> skyboxIndexBuffer = {
+		std::vector<uint32_t> skyboxIndexBuffer = {
 			1, 0, 2,
 			2, 0, 3,
 
@@ -84,16 +85,16 @@ Skybox::Skybox(std::wstring &cubeMapPath) {
 		GLuint skyboxVertexVBO;
 		GLuint skyboxIndexVBO;
 		glCreateBuffers(1, &skyboxVertexVBO);
-		glNamedBufferStorage(skyboxVertexVBO, skyboxVertexBuffer.size() * sizeof(XMFLOAT3), &skyboxVertexBuffer[0], 0);
+		glNamedBufferStorage(skyboxVertexVBO, skyboxVertexBuffer.size() * sizeof(Vec3Packed), &skyboxVertexBuffer[0], 0);
 
 		glCreateBuffers(1, &skyboxIndexVBO);
-		glNamedBufferStorage(skyboxIndexVBO, skyboxIndexBuffer.size() * sizeof(UINT), &skyboxIndexBuffer[0], 0);
+		glNamedBufferStorage(skyboxIndexVBO, skyboxIndexBuffer.size() * sizeof(uint32_t), &skyboxIndexBuffer[0], 0);
 
 		glCreateVertexArrays(1, &m_skyboxVAO);
 
 		glEnableVertexArrayAttrib(m_skyboxVAO, 0);
 		glVertexArrayAttribFormat(m_skyboxVAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
-		glVertexArrayVertexBuffer(m_skyboxVAO, 0, skyboxVertexVBO, 0, sizeof(XMFLOAT3));
+		glVertexArrayVertexBuffer(m_skyboxVAO, 0, skyboxVertexVBO, 0, sizeof(Vec3Packed));
 		glVertexArrayAttribBinding(m_skyboxVAO, 0, 0);
 		glVertexArrayElementBuffer(m_skyboxVAO, skyboxIndexVBO);
 
@@ -124,9 +125,8 @@ void Skybox::Draw() {
 	ConstantBuffer cbuffer0(0, sizeof(SkyboxEffect::PEROBJ_CONSTANT_BUFFER), skyboxEffect->m_perObjectCB);
 	SkyboxEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (SkyboxEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 
-	XMFLOAT4 eyePos = CameraManager::Instance()->GetActiveCamera()->GetPos();
-	XMMATRIX T = XMMatrixTranslation(eyePos.x, eyePos.y, eyePos.z);
-	XMMATRIX WVP = XMMatrixMultiply(T, CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
+	Mat4 T = Mat4::FromTranslationVector(CameraManager::Instance()->GetActiveCamera()->GetPos().xyz());
+	Mat4 WVP = CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * T;
 
 	perObjData->gWorldViewProj = TRASNPOSE_API_CHOOSER(WVP);
 
