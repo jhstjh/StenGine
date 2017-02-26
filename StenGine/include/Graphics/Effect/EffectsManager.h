@@ -122,7 +122,7 @@ public:
 		Mat4 ViewProj;
 		Mat4 ShadowTransform;
 		Material::MaterialAttrib Mat;
-		XMFLOAT4 DiffX_NormY_ShadZ;
+		Vec4 DiffX_NormY_ShadZ;
 	};
 
 	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
@@ -136,7 +136,7 @@ public:
 
 	struct PERFRAME_CONSTANT_BUFFER
 	{
-		XMFLOAT4 EyePosW;
+		Vec4 EyePosW;
 		DirectionalLight DirLight;
 	};
 
@@ -171,12 +171,12 @@ public:
 		Mat4 ViewProj;
 		Mat4 ShadowTransform;
 		Material::MaterialAttrib Mat;
-		XMFLOAT4 DiffX_NormY_ShadZ;
+		Vec4 DiffX_NormY_ShadZ;
 	};
 
 	struct PERFRAME_CONSTANT_BUFFER
 	{
-		XMFLOAT4 EyePosW;
+		Vec4 EyePosW;
 	};
 
 	struct MATRIX_PALETTE_BUFFER
@@ -227,7 +227,7 @@ public:
 		Mat4 ShadowTransform;
 		Mat4 View;
 		Material::MaterialAttrib Mat;
-		XMFLOAT4 DiffX_NormY_ShadZ;
+		Vec4 DiffX_NormY_ShadZ;
 	};
 
 	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
@@ -241,7 +241,7 @@ public:
 
 	struct PERFRAME_CONSTANT_BUFFER
 	{
-		XMFLOAT4 gEyePosW;
+		Vec4 gEyePosW;
 
 		// When distance is minimum, the tessellation is maximum.
 		// When distance is maximum, the tessellation is minimum.
@@ -260,10 +260,10 @@ public:
 		float gWorldCellSpace;
 
 		float pad1;
-		XMFLOAT2 gTexScale;
+		Vec2 gTexScale;
 
-		XMFLOAT2 pad2;
-		XMFLOAT4 gWorldFrustumPlanes[6];
+		Vec2 pad2;
+		Vec4 gWorldFrustumPlanes[6];
 	};
 };
 
@@ -295,7 +295,7 @@ public:
 		Mat4 ShadowTransform;
 		Mat4 View;
 		Material::MaterialAttrib Mat;
-		XMFLOAT4 DiffX_NormY_ShadZ;
+		Vec4 DiffX_NormY_ShadZ;
 	};
 
 	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
@@ -309,7 +309,7 @@ public:
 
 	struct PERFRAME_CONSTANT_BUFFER
 	{
-		XMFLOAT4 gEyePosW;
+		Vec4 gEyePosW;
 
 		// When distance is minimum, the tessellation is maximum.
 		// When distance is maximum, the tessellation is minimum.
@@ -328,10 +328,10 @@ public:
 		float gWorldCellSpace;
 
 		float pad1;
-		XMFLOAT2 gTexScale;
+		Vec2 gTexScale;
 
-		XMFLOAT2 pad2;
-		XMFLOAT4 gWorldFrustumPlanes[6];
+		Vec2 pad2;
+		Vec4 gWorldFrustumPlanes[6];
 	};
 };
 
@@ -438,8 +438,8 @@ public:
 
 	struct SETTING_CONSTANT_BUFFER
 	{
-		XMFLOAT2 texOffset;
-		XMFLOAT2 xEnableSSAO;
+		Vec2 texOffset;
+		Vec2 xEnableSSAO;
 	} ;
 
 	struct BINDLESS_TEXTURE_CONSTANT_BUFFER

@@ -3,18 +3,17 @@
 
 #include <vector>
 
+#include "Graphics/Abstraction/GPUBuffer.h"
+#include "Graphics/Abstraction/RendererBase.h"
+#include "Graphics/D3DIncludes.h"
+#include "Graphics/Effect/EffectsManager.h"
+#include "Graphics/Effect/Material.h"
+#include "Math/MathDefs.h"
+#include "Mesh/SubMesh.h"
 #include "System/API/PlatformAPIDefs.h"
+#include "Scene/Component.h"
 #include "Scene/Drawable.h"
 
-#include "Graphics/D3DIncludes.h"
-#include "Graphics/Abstraction/RendererBase.h"
-
-#include "Graphics/Effect/EffectsManager.h"
-
-#include "Scene/Component.h"
-#include "Graphics/Effect/Material.h"
-#include "Mesh/SubMesh.h"
-#include "Graphics/Abstraction/GPUBuffer.h"
 
 namespace StenGine
 {
@@ -38,11 +37,11 @@ protected:
 
 public:
 	std::vector<UINT> m_indexBufferCPU;
-	std::vector<XMFLOAT3> m_positionBufferCPU;
-	std::vector<XMFLOAT3> m_normalBufferCPU;
-	std::vector<XMFLOAT2> m_texUVBufferCPU;
-	std::vector<XMFLOAT4> m_colorBufferCPU;
-	std::vector<XMFLOAT3> m_tangentBufferCPU;
+	std::vector<Vec3Packed> m_positionBufferCPU;
+	std::vector<Vec3Packed> m_normalBufferCPU;
+	std::vector<Vec2Packed> m_texUVBufferCPU;
+	std::vector<Vec4Packed> m_colorBufferCPU;
+	std::vector<Vec3Packed> m_tangentBufferCPU;
 
 	std::vector<SubMesh> m_subMeshes;
 	std::vector<Material> m_materials;

@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "DrawCmd.h"
+#include "Math/MathDefs.h"
 #include "Utility/Semaphore.h"
 
 namespace StenGine
@@ -19,34 +20,33 @@ enum class RenderBackend
 
 namespace Vertex {
 struct StdMeshVertex {
-	DirectX::XMFLOAT3 Pos;
-	DirectX::XMFLOAT3 Normal;
-	DirectX::XMFLOAT3 Tangent;
-	DirectX::XMFLOAT2 TexUV;
+	Vec3Packed Pos;
+	Vec3Packed Normal;
+	Vec3Packed Tangent;
+	Vec2Packed TexUV;
 };
 
 struct ShadowMapVertex {
-	DirectX::XMFLOAT3 Pos;
+	Vec3Packed Pos;
 };
 
 struct DebugLine {
-	DirectX::XMFLOAT3 Pos;
-	//XMFLOAT4 Color;
+	Vec3Packed Pos;
 };
 
 struct SkinnedMeshVertex {
-	DirectX::XMFLOAT3 Pos;
-	DirectX::XMFLOAT3 Normal;
-	DirectX::XMFLOAT3 Tangent;
-	DirectX::XMFLOAT2 TexUV;
-	DirectX::XMFLOAT4 JointWeights;
-	DirectX::XMUINT4  JointIndices;
+	Vec3Packed Pos;
+	Vec3Packed Normal;
+	Vec3Packed Tangent;
+	Vec2Packed TexUV;
+	Vec4Packed JointWeights;
+	Vec4uiPacked JointIndices;
 };
 
 struct TerrainVertex {
-	DirectX::XMFLOAT3 Pos;
-	DirectX::XMFLOAT2 TexUV;
-	DirectX::XMFLOAT2 BoundsY;
+	Vec3Packed Pos;
+	Vec2Packed TexUV;
+	Vec2Packed BoundsY;
 };
 }
 

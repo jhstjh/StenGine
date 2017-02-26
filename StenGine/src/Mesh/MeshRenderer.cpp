@@ -147,10 +147,10 @@ void Mesh::GatherDrawCall() {
 	UINT stride = sizeof(Vertex::StdMeshVertex);
 	UINT offset = 0;
 
-	XMFLOAT4 resourceMask(0, 0, 0, 0);
+	Vec4 resourceMask(0, 0, 0, 0);
 
 	if (m_receiveShadow)
-		resourceMask.z = 1;
+		resourceMask.z() = 1;
 
 	for (uint32_t iP = 0; iP < m_parents.size(); iP++) {
 		int startIndex = 0;
@@ -167,7 +167,7 @@ void Mesh::GatherDrawCall() {
 
 			DrawCmd cmd;
 
-			perframeData->EyePosW = XMFLOAT4( &CameraManager::Instance()->GetActiveCamera()->GetPos()[0] );
+			perframeData->EyePosW = CameraManager::Instance()->GetActiveCamera()->GetPos();
 
 			perObjData->Mat = m_materials[m_subMeshes[iSubMesh].m_matIndex].m_attributes;
 			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * m_parents[iP]->GetTransform()->GetWorldTransform());
@@ -179,8 +179,8 @@ void Mesh::GatherDrawCall() {
 			perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform() * m_parents[iP]->GetTransform()->GetWorldTransform());
 			perObjData->ViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
-			resourceMask.x = 0;
-			resourceMask.y = 0;
+			resourceMask.x() = 0;
+			resourceMask.y() = 0;
 
 			switch (Renderer::GetRenderBackend())
 			{
@@ -192,11 +192,11 @@ void Mesh::GatherDrawCall() {
 				perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
 				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex) {
-					resourceMask.x = 1;
+					resourceMask.x() = 1;
 					cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture()), 0);
 				}
 				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex) {
-					resourceMask.y = 1;
+					resourceMask.y() = 1;
 					cmd.srvs.AddSRV(reinterpret_cast<ID3D11ShaderResourceView*>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture()), 1);
 				}
 
@@ -219,12 +219,12 @@ void Mesh::GatherDrawCall() {
 
 				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex > 0)
 				{
-					resourceMask.x = 1;
+					resourceMask.x() = 1;
 					textureData->DiffuseMap = reinterpret_cast<uint64_t>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex->GetTexture());
 				}
 				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex > 0)
 				{
-					resourceMask.y = 1;
+					resourceMask.y() = 1;
 					textureData->NormalMap = reinterpret_cast<uint64_t>(m_materials[m_subMeshes[iSubMesh].m_matIndex].m_normalMapTex->GetTexture());
 				}
 				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex > 0)

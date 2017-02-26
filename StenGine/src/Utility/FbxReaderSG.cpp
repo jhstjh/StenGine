@@ -112,10 +112,10 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 
 		for (uint32_t j = 0; j < fMesh->mNumVertices; j++)
 		{
-			mesh->m_positionBufferCPU.push_back(XMFLOAT3(fMesh->mVertices[j].x, fMesh->mVertices[j].y, fMesh->mVertices[j].z));
-			mesh->m_texUVBufferCPU.push_back(XMFLOAT2(fMesh->mTextureCoords[0][j].x, fMesh->mTextureCoords[0][j].y)); // load first uv set for now
-			mesh->m_normalBufferCPU.push_back(XMFLOAT3(fMesh->mNormals[j].x, fMesh->mNormals[j].y, fMesh->mNormals[j].z));
-			mesh->m_tangentBufferCPU.push_back(XMFLOAT3(fMesh->mTangents[j].x, fMesh->mTangents[j].y, fMesh->mTangents[j].z));
+			mesh->m_positionBufferCPU.emplace_back(Vec3{ fMesh->mVertices[j].x, fMesh->mVertices[j].y, fMesh->mVertices[j].z });
+			mesh->m_texUVBufferCPU.emplace_back(Vec2{ fMesh->mTextureCoords[0][j].x, fMesh->mTextureCoords[0][j].y }); // load first uv set for now
+			mesh->m_normalBufferCPU.emplace_back(Vec3{ fMesh->mNormals[j].x, fMesh->mNormals[j].y, fMesh->mNormals[j].z });
+			mesh->m_tangentBufferCPU.emplace_back(Vec3{ fMesh->mTangents[j].x, fMesh->mTangents[j].y, fMesh->mTangents[j].z });
 		}
 		
 		if (fMesh->HasBones())

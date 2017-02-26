@@ -8,134 +8,134 @@ namespace StenGine
 void Mesh::CreateBoxPrimitive() {
 	m_positionBufferCPU.resize(24);
 	m_positionBufferCPU = {
-		XMFLOAT3(-1.0f, -1.0f, -1.0f),
-		XMFLOAT3(-1.0f, +1.0f, -1.0f),
-		XMFLOAT3(+1.0f, +1.0f, -1.0f),
-		XMFLOAT3(+1.0f, -1.0f, -1.0f),
+		Vec3Packed({-1.0f, -1.0f, -1.0f}),
+		Vec3Packed({-1.0f, +1.0f, -1.0f}),
+		Vec3Packed({+1.0f, +1.0f, -1.0f}),
+		Vec3Packed({+1.0f, -1.0f, -1.0f}),
 
-		XMFLOAT3(-1.0f, -1.0f, +1.0f),
-		XMFLOAT3(+1.0f, -1.0f, +1.0f),
-		XMFLOAT3(+1.0f, +1.0f, +1.0f),
-		XMFLOAT3(-1.0f, +1.0f, +1.0f),
+		Vec3Packed({-1.0f, -1.0f, +1.0f}),
+		Vec3Packed({+1.0f, -1.0f, +1.0f}),
+		Vec3Packed({+1.0f, +1.0f, +1.0f}),
+		Vec3Packed({-1.0f, +1.0f, +1.0f}),
 
-		XMFLOAT3(-1.0f, +1.0f, -1.0f),
-		XMFLOAT3(-1.0f, +1.0f, +1.0f),
-		XMFLOAT3(+1.0f, +1.0f, +1.0f),
-		XMFLOAT3(+1.0f, +1.0f, -1.0f),
+		Vec3Packed({-1.0f, +1.0f, -1.0f}),
+		Vec3Packed({-1.0f, +1.0f, +1.0f}),
+		Vec3Packed({+1.0f, +1.0f, +1.0f}),
+		Vec3Packed({+1.0f, +1.0f, -1.0f}),
 
-		XMFLOAT3(-1.0f, -1.0f, -1.0f),
-		XMFLOAT3(+1.0f, -1.0f, -1.0f),
-		XMFLOAT3(+1.0f, -1.0f, +1.0f),
-		XMFLOAT3(-1.0f, -1.0f, +1.0f),
+		Vec3Packed({-1.0f, -1.0f, -1.0f}),
+		Vec3Packed({+1.0f, -1.0f, -1.0f}),
+		Vec3Packed({+1.0f, -1.0f, +1.0f}),
+		Vec3Packed({-1.0f, -1.0f, +1.0f}),
 
-		XMFLOAT3(-1.0f, -1.0f, +1.0f),
-		XMFLOAT3(-1.0f, +1.0f, +1.0f),
-		XMFLOAT3(-1.0f, +1.0f, -1.0f),
-		XMFLOAT3(-1.0f, -1.0f, -1.0f),
+		Vec3Packed({-1.0f, -1.0f, +1.0f}),
+		Vec3Packed({-1.0f, +1.0f, +1.0f}),
+		Vec3Packed({-1.0f, +1.0f, -1.0f}),
+		Vec3Packed({-1.0f, -1.0f, -1.0f}),
 
-		XMFLOAT3(+1.0f, -1.0f, -1.0f),
-		XMFLOAT3(+1.0f, +1.0f, -1.0f),
-		XMFLOAT3(+1.0f, +1.0f, +1.0f),
-		XMFLOAT3(+1.0f, -1.0f, +1.0f),
+		Vec3Packed({+1.0f, -1.0f, -1.0f}),
+		Vec3Packed({+1.0f, +1.0f, -1.0f}),
+		Vec3Packed({+1.0f, +1.0f, +1.0f}),
+		Vec3Packed({+1.0f, -1.0f, +1.0f}),
 	};
 
 	m_normalBufferCPU.resize(24);
 	m_normalBufferCPU = {
-		XMFLOAT3(0.0f, 0.0f, -1.0f),
-		XMFLOAT3(0.0f, 0.0f, -1.0f),
-		XMFLOAT3(0.0f, 0.0f, -1.0f),
-		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		Vec3Packed({0.0f, 0.0f, -1.0f}),
+		Vec3Packed({0.0f, 0.0f, -1.0f}),
+		Vec3Packed({0.0f, 0.0f, -1.0f}),
+		Vec3Packed({0.0f, 0.0f, -1.0f}),
 
-		XMFLOAT3(0.0f, 0.0f, 1.0f),
-		XMFLOAT3(0.0f, 0.0f, 1.0f),
-		XMFLOAT3(0.0f, 0.0f, 1.0f),
-		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		Vec3Packed({0.0f, 0.0f, 1.0f}),
+		Vec3Packed({0.0f, 0.0f, 1.0f}),
+		Vec3Packed({0.0f, 0.0f, 1.0f}),
+		Vec3Packed({0.0f, 0.0f, 1.0f}),
 
-		XMFLOAT3(0.0f, 1.0f, 0.0f),
-		XMFLOAT3(0.0f, 1.0f, 0.0f),
-		XMFLOAT3(0.0f, 1.0f, 0.0f),
-		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		Vec3Packed({0.0f, 1.0f, 0.0f}),
+		Vec3Packed({0.0f, 1.0f, 0.0f}),
+		Vec3Packed({0.0f, 1.0f, 0.0f}),
+		Vec3Packed({0.0f, 1.0f, 0.0f}),
 
-		XMFLOAT3(0.0f, -1.0f, 0.0f),
-		XMFLOAT3(0.0f, -1.0f, 0.0f),
-		XMFLOAT3(0.0f, -1.0f, 0.0f),
-		XMFLOAT3(0.0f, -1.0f, 0.0f),
+		Vec3Packed({0.0f, -1.0f, 0.0f}),
+		Vec3Packed({0.0f, -1.0f, 0.0f}),
+		Vec3Packed({0.0f, -1.0f, 0.0f}),
+		Vec3Packed({0.0f, -1.0f, 0.0f}),
 
-		XMFLOAT3(-1.0f, 0.0f, 0.0f),
-		XMFLOAT3(-1.0f, 0.0f, 0.0f),
-		XMFLOAT3(-1.0f, 0.0f, 0.0f),
-		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		Vec3Packed({-1.0f, 0.0f, 0.0f}),
+		Vec3Packed({-1.0f, 0.0f, 0.0f}),
+		Vec3Packed({-1.0f, 0.0f, 0.0f}),
+		Vec3Packed({-1.0f, 0.0f, 0.0f}),
 
-		XMFLOAT3(1.0f, 0.0f, 0.0f),
-		XMFLOAT3(1.0f, 0.0f, 0.0f),
-		XMFLOAT3(1.0f, 0.0f, 0.0f),
-		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		Vec3Packed({1.0f, 0.0f, 0.0f}),
+		Vec3Packed({1.0f, 0.0f, 0.0f}),
+		Vec3Packed({1.0f, 0.0f, 0.0f}),
+		Vec3Packed({1.0f, 0.0f, 0.0f}),
 	};
 
 	m_tangentBufferCPU.resize(24);
 	m_tangentBufferCPU = {
-		XMFLOAT3(1.0f, 0.0f, 0.0f),
-		XMFLOAT3(1.0f, 0.0f, 0.0f),
-		XMFLOAT3(1.0f, 0.0f, 0.0f),
-		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		Vec3Packed({1.0f, 0.0f, 0.0f}),
+		Vec3Packed({1.0f, 0.0f, 0.0f}),
+		Vec3Packed({1.0f, 0.0f, 0.0f}),
+		Vec3Packed({1.0f, 0.0f, 0.0f}),
 
-		XMFLOAT3(-1.0f, 0.0f, 0.0f),
-		XMFLOAT3(-1.0f, 0.0f, 0.0f),
-		XMFLOAT3(-1.0f, 0.0f, 0.0f),
-		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		Vec3Packed({-1.0f, 0.0f, 0.0f}),
+		Vec3Packed({-1.0f, 0.0f, 0.0f}),
+		Vec3Packed({-1.0f, 0.0f, 0.0f}),
+		Vec3Packed({-1.0f, 0.0f, 0.0f}),
 
-		XMFLOAT3(1.0f, 0.0f, 0.0f),
-		XMFLOAT3(1.0f, 0.0f, 0.0f),
-		XMFLOAT3(1.0f, 0.0f, 0.0f),
-		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		Vec3Packed({1.0f, 0.0f, 0.0f}),
+		Vec3Packed({1.0f, 0.0f, 0.0f}),
+		Vec3Packed({1.0f, 0.0f, 0.0f}),
+		Vec3Packed({1.0f, 0.0f, 0.0f}),
 
-		XMFLOAT3(-1.0f, 0.0f, 0.0f),
-		XMFLOAT3(-1.0f, 0.0f, 0.0f),
-		XMFLOAT3(-1.0f, 0.0f, 0.0f),
-		XMFLOAT3(-1.0f, 0.0f, 0.0f),
+		Vec3Packed({-1.0f, 0.0f, 0.0f}),
+		Vec3Packed({-1.0f, 0.0f, 0.0f}),
+		Vec3Packed({-1.0f, 0.0f, 0.0f}),
+		Vec3Packed({-1.0f, 0.0f, 0.0f}),
 
-		XMFLOAT3(0.0f, 0.0f, -1.0f),
-		XMFLOAT3(0.0f, 0.0f, -1.0f),
-		XMFLOAT3(0.0f, 0.0f, -1.0f),
-		XMFLOAT3(0.0f, 0.0f, -1.0f),
+		Vec3Packed({0.0f, 0.0f, -1.0f}),
+		Vec3Packed({0.0f, 0.0f, -1.0f}),
+		Vec3Packed({0.0f, 0.0f, -1.0f}),
+		Vec3Packed({0.0f, 0.0f, -1.0f}),
 
-		XMFLOAT3(0.0f, 0.0f, 1.0f),
-		XMFLOAT3(0.0f, 0.0f, 1.0f),
-		XMFLOAT3(0.0f, 0.0f, 1.0f),
-		XMFLOAT3(0.0f, 0.0f, 1.0f),
+		Vec3Packed({0.0f, 0.0f, 1.0f}),
+		Vec3Packed({0.0f, 0.0f, 1.0f}),
+		Vec3Packed({0.0f, 0.0f, 1.0f}),
+		Vec3Packed({0.0f, 0.0f, 1.0f}),
 	};
 
 	m_texUVBufferCPU.resize(24);
 	m_texUVBufferCPU = {
-		XMFLOAT2(0.0f, 1.0f),
-		XMFLOAT2(0.0f, 0.0f),
-		XMFLOAT2(1.0f, 0.0f),
-		XMFLOAT2(1.0f, 1.0f),
+		Vec2Packed({0.0f, 1.0f}),
+		Vec2Packed({0.0f, 0.0f}),
+		Vec2Packed({1.0f, 0.0f}),
+		Vec2Packed({1.0f, 1.0f}),
 
-		XMFLOAT2(1.0f, 1.0f),
-		XMFLOAT2(0.0f, 1.0f),
-		XMFLOAT2(0.0f, 0.0f),
-		XMFLOAT2(1.0f, 0.0f),
+		Vec2Packed({1.0f, 1.0f}),
+		Vec2Packed({0.0f, 1.0f}),
+		Vec2Packed({0.0f, 0.0f}),
+		Vec2Packed({1.0f, 0.0f}),
 
-		XMFLOAT2(0.0f, 1.0f),
-		XMFLOAT2(0.0f, 0.0f),
-		XMFLOAT2(1.0f, 0.0f),
-		XMFLOAT2(1.0f, 1.0f),
+		Vec2Packed({0.0f, 1.0f}),
+		Vec2Packed({0.0f, 0.0f}),
+		Vec2Packed({1.0f, 0.0f}),
+		Vec2Packed({1.0f, 1.0f}),
 
-		XMFLOAT2(1.0f, 1.0f),
-		XMFLOAT2(0.0f, 1.0f),
-		XMFLOAT2(0.0f, 0.0f),
-		XMFLOAT2(1.0f, 0.0f),
+		Vec2Packed({1.0f, 1.0f}),
+		Vec2Packed({0.0f, 1.0f}),
+		Vec2Packed({0.0f, 0.0f}),
+		Vec2Packed({1.0f, 0.0f}),
 
-		XMFLOAT2(0.0f, 1.0f),
-		XMFLOAT2(0.0f, 0.0f),
-		XMFLOAT2(1.0f, 0.0f),
-		XMFLOAT2(1.0f, 1.0f),
+		Vec2Packed({0.0f, 1.0f}),
+		Vec2Packed({0.0f, 0.0f}),
+		Vec2Packed({1.0f, 0.0f}),
+		Vec2Packed({1.0f, 1.0f}),
 
-		XMFLOAT2(0.0f, 1.0f),
-		XMFLOAT2(0.0f, 0.0f),
-		XMFLOAT2(1.0f, 0.0f),
-		XMFLOAT2(1.0f, 1.0f),
+		Vec2Packed({0.0f, 1.0f}),
+		Vec2Packed({0.0f, 0.0f}),
+		Vec2Packed({1.0f, 0.0f}),
+		Vec2Packed({1.0f, 1.0f}),
 	};
 
 	m_indexBufferCPU.resize(36);
@@ -176,34 +176,34 @@ void Mesh::CreateBoxPrimitive() {
 void Mesh::CreatePlanePrimitive() {
 	m_positionBufferCPU.resize(4);
 	m_positionBufferCPU = {
-		XMFLOAT3(-4.0f, -1.0f, -4.0f),
-		XMFLOAT3(+4.0f, -1.0f, -4.0f),
-		XMFLOAT3(+4.0f, -1.0f, +4.0f),
-		XMFLOAT3(-4.0f, -1.0f, +4.0f),
+		Vec3Packed({-4.0f, -1.0f, -4.0f}),
+		Vec3Packed({+4.0f, -1.0f, -4.0f}),
+		Vec3Packed({+4.0f, -1.0f, +4.0f}),
+		Vec3Packed({-4.0f, -1.0f, +4.0f}),
 	};
 
 	m_normalBufferCPU.resize(4);
 	m_normalBufferCPU = {
-		XMFLOAT3(0.0f, 1.0f, 0.0f),
-		XMFLOAT3(0.0f, 1.0f, 0.0f),
-		XMFLOAT3(0.0f, 1.0f, 0.0f),
-		XMFLOAT3(0.0f, 1.0f, 0.0f),
+		Vec3Packed({0.0f, 1.0f, 0.0f}),
+		Vec3Packed({0.0f, 1.0f, 0.0f}),
+		Vec3Packed({0.0f, 1.0f, 0.0f}),
+		Vec3Packed({0.0f, 1.0f, 0.0f}),
 	};
 
 	m_tangentBufferCPU.resize(4);
 	m_tangentBufferCPU = {
-		XMFLOAT3(1.0f, 0.0f, 0.0f),
-		XMFLOAT3(1.0f, 0.0f, 0.0f),
-		XMFLOAT3(1.0f, 0.0f, 0.0f),
-		XMFLOAT3(1.0f, 0.0f, 0.0f),
+		Vec3Packed({1.0f, 0.0f, 0.0f}),
+		Vec3Packed({1.0f, 0.0f, 0.0f}),
+		Vec3Packed({1.0f, 0.0f, 0.0f}),
+		Vec3Packed({1.0f, 0.0f, 0.0f}),
 	};
 
 	m_texUVBufferCPU.resize(24);
 	m_texUVBufferCPU = {
-		XMFLOAT2(1.0f, 1.0f),
-		XMFLOAT2(0.0f, 1.0f),
-		XMFLOAT2(0.0f, 0.0f),
-		XMFLOAT2(1.0f, 0.0f),
+		Vec2Packed({1.0f, 1.0f}),
+		Vec2Packed({0.0f, 1.0f}),
+		Vec2Packed({0.0f, 0.0f}),
+		Vec2Packed({1.0f, 0.0f}),
 	};
 
 	m_indexBufferCPU.resize(6);

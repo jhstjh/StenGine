@@ -815,7 +815,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 			textureData->DepthMap = m_depthBufferTexHandle;
 		}
 		//settingData->BloomMap = NOT_USED;
-		settingData->xEnableSSAO.x = m_enableSSAO;
+		settingData->xEnableSSAO.x() = m_enableSSAO;
 
 		cmd.cbuffers.push_back(std::move(cbuffer0));
 		cmd.cbuffers.push_back(std::move(cbuffer1));
