@@ -6,8 +6,6 @@
 #include "Mesh/Skeleton.h"
 #include "Scene/Component.h"
 
-using namespace DirectX;
-
 namespace StenGine
 {
 

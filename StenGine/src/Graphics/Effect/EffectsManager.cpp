@@ -1,8 +1,5 @@
 ﻿#include "Graphics/Effect/EffectsManager.h"
 #include "Graphics/Abstraction/RendererBase.h"
-
-#include <Windows.h>
-
 #include "D3DCompiler.h"
 #include "imgui.h"
 

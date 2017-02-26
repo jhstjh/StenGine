@@ -420,17 +420,17 @@ D3D11Renderer::~D3D11Renderer() {
 
 		m_d3d11DeviceContext->RSSetState(m_wireFrameRS);
 
-		CreateDDSTextureFromFile(m_d3d11Device,
+		DirectX::CreateDDSTextureFromFile(m_d3d11Device,
 			L"./Model/RandNorm.dds", nullptr, &m_randVecTexSRV);
 
 		// init grid and coord debug draw
-		std::vector<XMFLOAT3> coordVertexBuffer = {
-			XMFLOAT3(0, 0, 0),
-			XMFLOAT3(5, 0, 0),
-			XMFLOAT3(0, 0, 0),
-			XMFLOAT3(0, 5, 0),
-			XMFLOAT3(0, 0, 0),
-			XMFLOAT3(0, 0, 5),
+		std::vector<Vec3Packed> coordVertexBuffer = {
+			Vec3Packed({ 0, 0, 0 }),
+			Vec3Packed({ 5, 0, 0 }),
+			Vec3Packed({ 0, 0, 0 }),
+			Vec3Packed({ 0, 5, 0 }),
+			Vec3Packed({ 0, 0, 0 }),
+			Vec3Packed({ 0, 0, 5 }),
 		};
 
 		std::vector<UINT> coordIndexBuffer = { 0, 1, 2, 3, 4, 5 };
@@ -438,15 +438,15 @@ D3D11Renderer::~D3D11Renderer() {
 
 		int initIdx = 6;
 		for (int i = 0; i <= 10; i++) {
-			coordVertexBuffer.push_back(XMFLOAT3(-5.f, 0.f, -5.f + i));
-			coordVertexBuffer.push_back(XMFLOAT3(5.f, 0.f, -5.f + i));
+			coordVertexBuffer.emplace_back(Vec3(-5.f, 0.f, -5.f + i));
+			coordVertexBuffer.emplace_back(Vec3(5.f, 0.f, -5.f + i));
 			coordIndexBuffer.push_back(initIdx++);
 			coordIndexBuffer.push_back(initIdx++);
 		}
 
 		for (int i = 0; i <= 10; i++) {
-			coordVertexBuffer.push_back(XMFLOAT3(-5.f + i, 0.f, -5.f));
-			coordVertexBuffer.push_back(XMFLOAT3(-5.f + i, 0.f, 5.f));
+			coordVertexBuffer.emplace_back(Vec3(-5.f + i, 0.f, -5.f));
+			coordVertexBuffer.emplace_back(Vec3(-5.f + i, 0.f, 5.f));
 			coordIndexBuffer.push_back(initIdx++);
 			coordIndexBuffer.push_back(initIdx++);
 		}

@@ -941,39 +941,39 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 	void GLRenderer::InitScreenQuad()
 	{
 		// init screen quad vbo
-		std::vector<XMFLOAT4> quadVertexBuffer = {
-			XMFLOAT4(-1.0, -1.0, -1.0, 1.0),
-			XMFLOAT4(-1.0, 1.0, -1.0, 1.0),
-			XMFLOAT4(1.0, 1.0, -1.0, 1.0),
-			XMFLOAT4(1.0, 1.0, -1.0, 1.0),
-			XMFLOAT4(1.0, -1.0, -1.0, 1.0),
-			XMFLOAT4(-1.0, -1.0, -1.0, 1.0),
+		std::vector<Vec4> quadVertexBuffer = {
+			Vec4(-1.0, -1.0, -1.0, 1.0),
+			Vec4(-1.0, 1.0, -1.0, 1.0),
+			Vec4(1.0, 1.0, -1.0, 1.0),
+			Vec4(1.0, 1.0, -1.0, 1.0),
+			Vec4(1.0, -1.0, -1.0, 1.0),
+			Vec4(-1.0, -1.0, -1.0, 1.0),
 		};
 
-		std::vector<XMFLOAT2> quadUvVertexBuffer = {
-			XMFLOAT2(0, 0),
-			XMFLOAT2(0, 1),
-			XMFLOAT2(1, 1),
-			XMFLOAT2(1, 1),
-			XMFLOAT2(1, 0),
-			XMFLOAT2(0, 0),
+		std::vector<Vec2> quadUvVertexBuffer = {
+			Vec2(0, 0),
+			Vec2(0, 1),
+			Vec2(1, 1),
+			Vec2(1, 1),
+			Vec2(1, 0),
+			Vec2(0, 0),
 		};
 
 		GLuint screenQuadVertexVBO;
 		GLuint screenQuadUVVBO;
 		glCreateBuffers(1, &screenQuadVertexVBO);
-		glNamedBufferStorage(screenQuadVertexVBO, quadVertexBuffer.size() * sizeof(XMFLOAT4), &quadVertexBuffer[0], 0);
+		glNamedBufferStorage(screenQuadVertexVBO, quadVertexBuffer.size() * sizeof(Vec4), &quadVertexBuffer[0], 0);
 
 		glCreateBuffers(1, &screenQuadUVVBO);
-		glNamedBufferStorage(screenQuadUVVBO, quadUvVertexBuffer.size() * sizeof(XMFLOAT2), &quadUvVertexBuffer[0], 0);
+		glNamedBufferStorage(screenQuadUVVBO, quadUvVertexBuffer.size() * sizeof(Vec2), &quadUvVertexBuffer[0], 0);
 
 		glCreateVertexArrays(1, &m_screenQuadVAO);
 
 		glEnableVertexArrayAttrib(m_screenQuadVAO, 0);
 		glEnableVertexArrayAttrib(m_screenQuadVAO, 1);
 
-		glVertexArrayVertexBuffer(m_screenQuadVAO, 0, screenQuadVertexVBO, 0, sizeof(XMFLOAT4));
-		glVertexArrayVertexBuffer(m_screenQuadVAO, 1, screenQuadUVVBO, 0, sizeof(XMFLOAT2));
+		glVertexArrayVertexBuffer(m_screenQuadVAO, 0, screenQuadVertexVBO, 0, sizeof(Vec4));
+		glVertexArrayVertexBuffer(m_screenQuadVAO, 1, screenQuadUVVBO, 0, sizeof(Vec2));
 
 		glVertexArrayAttribFormat(m_screenQuadVAO, 0, 4, GL_FLOAT, GL_FALSE, 0);
 		glVertexArrayAttribFormat(m_screenQuadVAO, 1, 2, GL_FLOAT, GL_FALSE, 0);
@@ -985,41 +985,41 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 	void GLRenderer::InitDebugCoord()
 	{
 		// init grid and coord debug draw
-		std::vector<XMFLOAT3> coordVertexBuffer = {
-			XMFLOAT3(0, 0, 0),
-			XMFLOAT3(5, 0, 0),
-			XMFLOAT3(0, 0, 0),
-			XMFLOAT3(0, 5, 0),
-			XMFLOAT3(0, 0, 0),
-			XMFLOAT3(0, 0, 5),
+		std::vector<Vec3Packed> coordVertexBuffer = {
+			Vec3Packed({0, 0, 0}),
+			Vec3Packed({5, 0, 0}),
+			Vec3Packed({0, 0, 0}),
+			Vec3Packed({0, 5, 0}),
+			Vec3Packed({0, 0, 0}),
+			Vec3Packed({0, 0, 5}),
 		};
 
 		std::vector<UINT> coordIndexBuffer = { 0, 1, 2, 3, 4, 5 };
 
 		int initIdx = 6;
 		for (int i = 0; i <= 10; i++) {
-			coordVertexBuffer.push_back(XMFLOAT3(-5.f, 0.f, -5.f + i));
-			coordVertexBuffer.push_back(XMFLOAT3(5.f, 0.f, -5.f + i));
+			coordVertexBuffer.emplace_back(Vec3(-5.f, 0.f, -5.f + i));
+			coordVertexBuffer.emplace_back(Vec3(5.f, 0.f, -5.f + i));
 			coordIndexBuffer.push_back(initIdx++);
 			coordIndexBuffer.push_back(initIdx++);
 		}
 
 		for (int i = 0; i <= 10; i++) {
-			coordVertexBuffer.push_back(XMFLOAT3(-5.f + i, 0.f, -5.f));
-			coordVertexBuffer.push_back(XMFLOAT3(-5.f + i, 0.f, 5.f));
+			coordVertexBuffer.emplace_back(Vec3(-5.f + i, 0.f, -5.f));
+			coordVertexBuffer.emplace_back(Vec3(-5.f + i, 0.f, 5.f));
 			coordIndexBuffer.push_back(initIdx++);
 			coordIndexBuffer.push_back(initIdx++);
 		}
 
 		GLuint debugDrawVertexVBO;
 		glCreateBuffers(1, &debugDrawVertexVBO);
-		glNamedBufferStorage(debugDrawVertexVBO, coordVertexBuffer.size() * sizeof(XMFLOAT3), &coordVertexBuffer[0], 0);
+		glNamedBufferStorage(debugDrawVertexVBO, coordVertexBuffer.size() * sizeof(Vec3Packed), &coordVertexBuffer[0], 0);
 
 		glCreateVertexArrays(1, &m_debugCoordVAO);
 
 		glEnableVertexArrayAttrib(m_debugCoordVAO, 0);
 		glVertexArrayAttribFormat(m_debugCoordVAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
-		glVertexArrayVertexBuffer(m_debugCoordVAO, 0, debugDrawVertexVBO, 0, sizeof(XMFLOAT3));
+		glVertexArrayVertexBuffer(m_debugCoordVAO, 0, debugDrawVertexVBO, 0, sizeof(Vec3Packed));
 		glVertexArrayAttribBinding(m_debugCoordVAO, 0, 0);
 	}
 

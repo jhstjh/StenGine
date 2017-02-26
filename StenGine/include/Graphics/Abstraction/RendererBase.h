@@ -1,8 +1,6 @@
 #ifndef __RENDERERBASE__
 #define __RENDERERBASE__
 
-#include <Windows.h>
-#include <DirectXMath.h>
 #include <functional>
 
 #include "DrawCmd.h"

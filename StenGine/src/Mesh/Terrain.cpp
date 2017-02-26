@@ -178,9 +178,6 @@ float Terrain::Average(int i, int j)
 
 void Terrain::BuildHeightMapSRV() {
 
-	std::vector<HALF> hmap(m_heightMap.size());
-	std::transform(m_heightMap.begin(), m_heightMap.end(), hmap.begin(), XMConvertFloatToHalf);
-
 	switch (Renderer::GetRenderBackend())
 	{
 	case RenderBackend::D3D11:
@@ -190,7 +187,7 @@ void Terrain::BuildHeightMapSRV() {
 		texDesc.Height = m_initInfo.HeightmapHeight;
 		texDesc.MipLevels = 1;
 		texDesc.ArraySize = 1;
-		texDesc.Format = DXGI_FORMAT_R16_FLOAT;
+		texDesc.Format = DXGI_FORMAT_R32_FLOAT;
 		texDesc.SampleDesc.Count = 1;
 		texDesc.SampleDesc.Quality = 0;
 		texDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -199,8 +196,8 @@ void Terrain::BuildHeightMapSRV() {
 		texDesc.MiscFlags = 0;
 
 		D3D11_SUBRESOURCE_DATA data;
-		data.pSysMem = &hmap[0];
-		data.SysMemPitch = m_initInfo.HeightmapWidth * sizeof(HALF);
+		data.pSysMem = &m_heightMap[0];
+		data.SysMemPitch = m_initInfo.HeightmapWidth * sizeof(float);
 		data.SysMemSlicePitch = 0;
 
 		ID3D11Texture2D* hmapTex = 0;
@@ -428,7 +425,7 @@ void Terrain::GatherShadowDrawCall() {
 	perObjData->World = TRASNPOSE_API_CHOOSER(m_parents[0]->GetTransform()->GetWorldTransform());
 	perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(m_parents[0]->GetTransform()->GetWorldTransform().Inverse().Transpose());
 
-	XMFLOAT4 resourceMask(0, 0, 0, 0);
+	Vec4 resourceMask(0, 0, 0, 0);
 
 	Mat4 worldView = LightManager::Instance()->m_shadowMap->GetViewMatrix() * m_parents[0]->GetTransform()->GetWorldTransform();
 	perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);

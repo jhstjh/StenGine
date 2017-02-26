@@ -3,7 +3,6 @@
 
 #include <d3d11.h>
 #include "Utility/Timer.h"
-#include <DirectXMath.h>
 #include <assert.h>
 #include <string>
 #include <vector>
@@ -15,10 +14,6 @@
 #include <algorithm>
 
 #include "DDSTextureLoader.h"
-#include "DirectXPackedVector.h"
-
-using namespace DirectX;
-using namespace DirectX::PackedVector;
 
 #define SafeDelete(x)	\
 {						\

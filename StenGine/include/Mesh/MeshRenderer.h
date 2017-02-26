@@ -36,7 +36,7 @@ protected:
 	void PrepareSRV(int type);
 
 public:
-	std::vector<UINT> m_indexBufferCPU;
+	std::vector<uint32_t> m_indexBufferCPU;
 	std::vector<Vec3Packed> m_positionBufferCPU;
 	std::vector<Vec3Packed> m_normalBufferCPU;
 	std::vector<Vec2Packed> m_texUVBufferCPU;
@@ -45,7 +45,7 @@ public:
 
 	std::vector<SubMesh> m_subMeshes;
 	std::vector<Material> m_materials;
-	XMFLOAT4X4 m_worldTransform;
+
 	bool m_castShadow;
 	bool m_receiveShadow;
 	Mesh(int type);
