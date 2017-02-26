@@ -38,8 +38,10 @@ void SkinnedMesh::PrepareMatrixPalette()
 
 	for (int64_t i = m_joints.size() - 1; i >= 0; --i)
 	{
-		m_toRootTransform[i] = m_animation->GetTransform(m_joints[i].m_name + "_$AssimpFbx$_Rotation") * m_jointPreRotationBufferCPU[i] * m_animation->GetTransform(m_joints[i].m_name) * (m_joints[i].m_parentIdx == -1? IDENTITY_MAT : m_toRootTransform[m_joints[i].m_parentIdx]);
-		m_matrixPalette[i] = TRASNPOSE_API_CHOOSER(m_joints[i].m_inverseBindPosMat * m_toRootTransform[i]);
+		// m_toRootTransform[i] = m_animation->GetTransform(m_joints[i].m_name + "_$AssimpFbx$_Rotation") * m_jointPreRotationBufferCPU[i] * m_animation->GetTransform(m_joints[i].m_name) * (m_joints[i].m_parentIdx == -1? Mat4::Identity() : m_toRootTransform[m_joints[i].m_parentIdx]);
+		m_toRootTransform[i] = (m_joints[i].m_parentIdx == -1 ? Mat4::Identity() : m_toRootTransform[m_joints[i].m_parentIdx]) * m_animation->GetTransform(m_joints[i].m_name) * m_jointPreRotationBufferCPU[i] * m_animation->GetTransform(m_joints[i].m_name + "_$AssimpFbx$_Rotation");
+		// m_matrixPalette[i] = TRASNPOSE_API_CHOOSER(m_joints[i].m_inverseBindPosMat * m_toRootTransform[i]);
+		m_matrixPalette[i] = TRASNPOSE_API_CHOOSER(m_toRootTransform[i] * m_joints[i].m_inverseBindPosMat);
 	}
 }
 

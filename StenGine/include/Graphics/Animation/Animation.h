@@ -3,20 +3,21 @@
 #include <unordered_map>
 #include <vector>
 #include "Scene/Transform.h"
+#include "Math/MathDefs.h"
 #include "Math/MathHelper.h"
 
 namespace StenGine
 {
 
-const XMVECTOR VEC3ZERO = XMLoadFloat3(&XMFLOAT3(0, 0, 0));
-const XMVECTOR QUATIDENT = XMQuaternionIdentity();
+const Vec3 VEC3ZERO{ 0, 0, 0 };
+const Quat QUATIDENT = Quat::identity;
 const float FRAME_RATE = 30.f;
 
 struct AnimationNode
 {
-	std::vector<XMVECTOR> position;
-	std::vector<XMVECTOR> rotation;
-	std::vector<XMVECTOR> scale;
+	std::vector<Vec3> position;
+	std::vector<Quat> rotation;
+	std::vector<Vec3> scale;
 
 	std::vector<float> positionTime;
 	std::vector<float> rotationTime;
@@ -48,18 +49,23 @@ struct AnimationNode
 		}
 	}
 
-	XMMATRIX GetTransform()
+	Mat4 GetTransform()
 	{
 		if (dirty)
 		{
-			transformMatrix = XMMatrixTransformation(VEC3ZERO, QUATIDENT, scale[scaleIndex], VEC3ZERO, rotation[rotationIndex], position[positionIndex]);
+			Mat4 t = Mat4::FromTranslationVector(position[positionIndex]);
+			Mat4 q = rotation[rotationIndex].ToMatrix4();
+			Mat4 s = Mat4::FromScaleVector(scale[scaleIndex]);
+
+			transformMatrix = t * s * q;
+
 			dirty = false;
 		}
 		return transformMatrix;
 	}
 
 	float playbackTime = 0;
-	XMMATRIX transformMatrix = XMMatrixIdentity();
+	Mat4 transformMatrix = Mat4::Identity();
 	bool dirty = true;
 	uint32_t length = 0;
 };
@@ -78,14 +84,14 @@ public:
 		}
 	}
 
-	XMMATRIX GetTransform(std::string name)
+	Mat4 GetTransform(std::string name)
 	{
 		auto find = m_animations.find(name);
 		if (find != m_animations.end())
 		{
 			return find->second.GetTransform();
 		}
-		return IDENTITY_MAT;
+		return Mat4::Identity();
 	}
 };
 
