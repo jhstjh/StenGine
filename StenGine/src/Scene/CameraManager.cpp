@@ -24,12 +24,11 @@ Camera::Camera(float px, float py, float pz,
 	auto rot3 = Mat3(mRot.GetColumn(0).xyz(), mRot.GetColumn(1).xyz(), mRot.GetColumn(2).xyz());
 	mRotQuat = Quat::FromMatrix(rot3);
 
-	// TODO FIXME
-	// if (Renderer::GetRenderBackend() == RenderBackend::OPENGL4)
-	// {
-	// 	m_proj.m[2][2] = (np + fp) / (fp - np);
-	// 	m_proj.m[3][2] = -2 * (np * fp) / (fp - np);
-	// }
+	if (Renderer::GetRenderBackend() == RenderBackend::OPENGL4)
+	{
+		mProj(2, 2) = (np + fp) / (fp - np);
+		mProj(2, 3) = -2 * (np * fp) / (fp - np);
+	}
 }
 
 Camera::~Camera()
