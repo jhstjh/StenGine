@@ -181,7 +181,7 @@ public:
 
 	struct MATRIX_PALETTE_BUFFER
 	{
-		XMMATRIX MatrixPalette[64];
+		Mat4 MatrixPalette[64];
 	};
 
 	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
@@ -413,7 +413,7 @@ public:
 
 	struct PEROBJ_CONSTANT_BUFFER
 	{
-		XMMATRIX gWorldViewProj;
+		Mat4 gWorldViewProj;
 	};
 
 	struct BINDLESS_TEXTURE_CONSTANT_BUFFER

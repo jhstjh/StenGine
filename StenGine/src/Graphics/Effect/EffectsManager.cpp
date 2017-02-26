@@ -686,7 +686,7 @@ void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
 		ReleaseCOM(m_dsBlob);
 		ReleaseCOM(m_csBlob);
 
-		m_matrixPaletteSB = new GPUBuffer(sizeof(XMMATRIX) * 64, BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_matrixPaletteSB = new GPUBuffer(sizeof(Mat4) * 64, BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 		break;
 	}
@@ -725,7 +725,7 @@ void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
 		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 2);
 
 		m_textureCB = new GPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
-		m_matrixPaletteSB = new GPUBuffer(sizeof(XMMATRIX) * 64, BufferUsage::WRITE, nullptr, BufferType::SSBO);
+		m_matrixPaletteSB = new GPUBuffer(sizeof(Mat4) * 64, BufferUsage::WRITE, nullptr, BufferType::SSBO);
 
 		break;
 	}

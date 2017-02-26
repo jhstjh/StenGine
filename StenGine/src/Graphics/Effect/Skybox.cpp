@@ -2,6 +2,7 @@
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Scene/CameraManager.h"
 #include "Mesh/MeshRenderer.h"
+#include "Math/MathDefs.h"
 #include "Math/MathHelper.h"
 
 #include "Graphics/OpenGL/GLImageLoader.h"
@@ -124,9 +125,8 @@ void Skybox::Draw() {
 	ConstantBuffer cbuffer0(0, sizeof(SkyboxEffect::PEROBJ_CONSTANT_BUFFER), skyboxEffect->m_perObjectCB);
 	SkyboxEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (SkyboxEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
 
-	XMFLOAT4 eyePos { &CameraManager::Instance()->GetActiveCamera()->GetPos()[0] };
-	XMMATRIX T = XMMatrixTranslation(eyePos.x, eyePos.y, eyePos.z);
-	XMMATRIX WVP = XMMatrixMultiply(T, XMMATRIX{ &CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix()[0] });
+	Mat4 T = Mat4::FromTranslationVector(CameraManager::Instance()->GetActiveCamera()->GetPos().xyz());
+	Mat4 WVP = CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * T;
 
 	perObjData->gWorldViewProj = TRASNPOSE_API_CHOOSER(WVP);
 

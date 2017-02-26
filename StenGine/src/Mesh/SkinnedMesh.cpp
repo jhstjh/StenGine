@@ -224,7 +224,7 @@ void SkinnedMesh::GatherShadowDrawCall()
 				ConstantBuffer cbuffer2(13, sizeof(DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER), effect->m_matrixPaletteSB);
 				DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER* matrixPaletteData = (DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER*)cbuffer2.GetBuffer();
 
-				memcpy(matrixPaletteData, &m_matrixPalette[0], sizeof(XMMATRIX) * m_matrixPalette.size());
+				memcpy(matrixPaletteData, &m_matrixPalette[0], sizeof(Mat4) * m_matrixPalette.size());
 
 				cmd.cbuffers.push_back(std::move(cbuffer2));
 				break;
@@ -236,7 +236,7 @@ void SkinnedMesh::GatherShadowDrawCall()
 				ConstantBuffer cbuffer2(15, sizeof(DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER), effect->m_matrixPaletteSB);
 				DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER* matrixPaletteData = (DeferredSkinnedGeometryPassEffect::MATRIX_PALETTE_BUFFER*)cbuffer2.GetBuffer();
 
-				memcpy(matrixPaletteData, &m_matrixPalette[0], sizeof(XMMATRIX) * m_matrixPalette.size());
+				memcpy(matrixPaletteData, &m_matrixPalette[0], sizeof(Mat4) * m_matrixPalette.size());
 
 				cmd.cbuffers.push_back(std::move(cbuffer2));
 				break;
