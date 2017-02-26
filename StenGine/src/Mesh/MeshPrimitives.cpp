@@ -163,9 +163,9 @@ void Mesh::CreateBoxPrimitive() {
 	m_subMeshes.resize(1);
 	m_materials.resize(1);
 
-	m_materials[0].m_attributes.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f);
-	m_materials[0].m_attributes.diffuse = XMFLOAT4(1.0f, 0.5f, 0.3f, 1.f);
-	m_materials[0].m_attributes.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 10.0f);
+	m_materials[0].m_attributes.ambient = Vec4(0.2f, 0.2f, 0.2f, 1.f);
+	m_materials[0].m_attributes.diffuse = Vec4(1.0f, 0.5f, 0.3f, 1.f);
+	m_materials[0].m_attributes.specular = Vec4(0.6f, 0.6f, 0.6f, 10.0f);
 	m_subMeshes[0].m_indexBufferCPU = m_indexBufferCPU;
 	m_subMeshes[0].m_matIndex = 0;
 
@@ -214,9 +214,9 @@ void Mesh::CreatePlanePrimitive() {
 	};
 
 	m_materials.resize(1);
-	m_materials[0].m_attributes.ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.f);
-	m_materials[0].m_attributes.diffuse = XMFLOAT4(1.0f, 0.5f, 0.3f, 1.f);
-	m_materials[0].m_attributes.specular = XMFLOAT4(0.6f, 0.6f, 0.6f, 16.0f);
+	m_materials[0].m_attributes.ambient = Vec4(0.2f, 0.2f, 0.2f, 1.f);
+	m_materials[0].m_attributes.diffuse = Vec4(1.0f, 0.5f, 0.3f, 1.f);
+	m_materials[0].m_attributes.specular = Vec4(0.6f, 0.6f, 0.6f, 16.0f);
 }
 
 }

@@ -70,7 +70,7 @@ void Mesh::DrawMenu()
 				{
 					ImGui::DragFloat3("Diffuse", reinterpret_cast<float*>(&m_materials[i].m_attributes.diffuse), 0.01f, 0.0f, 1.0f);
 					ImGui::DragFloat3("Roughness/Metalic/c/DoubleSided", reinterpret_cast<float*>(&m_materials[i].m_attributes.roughness_metalic_c_doublesided), 0.01f, 0.0f, 1.0f);
-					ImGui::DragFloat("DoubleSided", &m_materials[i].m_attributes.roughness_metalic_c_doublesided.w, 1.0f, 0.0f, 1.0f);
+					ImGui::DragFloat("DoubleSided", &m_materials[i].m_attributes.roughness_metalic_c_doublesided.data[3], 1.0f, 0.0f, 1.0f);
 
 					static const float TEX_CUBE_SIZE = 64.f;
 
