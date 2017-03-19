@@ -55,7 +55,7 @@ void Mesh::Prepare() {
 
 void Mesh::DrawMenu()
 {
-	if (ImGui::CollapsingHeader("Mesh Renderer", nullptr, true, true))
+	if (ImGui::CollapsingHeader("Mesh Renderer", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		ImGui::Checkbox("Cast Shadow", &m_castShadow);
 		ImGui::Checkbox("Receive Shadow", &m_receiveShadow);

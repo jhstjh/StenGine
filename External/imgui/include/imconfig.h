@@ -6,6 +6,9 @@
 
 #pragma once
 
+#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS 1
+#define ImDrawIdx unsigned int
+
 //---- Define assertion handler. Defaults to calling assert().
 //#define IM_ASSERT(_EXPR)  MyAssert(_EXPR)
 
@@ -49,4 +52,3 @@ namespace ImGui
 }
 */
 
-#define ImDrawIdx unsigned int

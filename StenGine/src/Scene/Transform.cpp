@@ -1,3 +1,4 @@
+#include "Scene/GameObject.h"
 #include "Scene/Transform.h"
 #include "imgui.h"
 #include "Math/MathHelper.h"
@@ -24,11 +25,6 @@ Transform::Transform(float tx, float ty, float tz, float rx, float ry, float rz,
 
 const Mat4 &Transform::GetWorldTransform()
 {
-	if (mDirty)
-	{
-		mWorldTransform = Mat4::FromTranslationVector(mPosition) * mRotation.ToMatrix4() * Mat4::FromScaleVector(mScale);
-		mDirty = false;
-	}
 	return mWorldTransform;
 }
 
@@ -45,9 +41,29 @@ void Transform::RotateAroundY(float radius)
 	mDirty = true;
 }
 
+void Transform::UpdateWorldTransform(Mat4& parent, bool parentDirty)
+{
+	bool thisDirty = mDirty;
+	if (mDirty)
+	{
+		mLocalTransform = Mat4::FromTranslationVector(mPosition) * mRotation.ToMatrix4() * Mat4::FromScaleVector(mScale);
+		mDirty = false;
+	}
+
+	if (parentDirty || thisDirty)
+	{
+		mWorldTransform = parent * mLocalTransform;
+	}
+
+	for (auto &child : mChildren)
+	{
+		child->UpdateWorldTransform(mWorldTransform, mDirty || parentDirty);
+	}
+}
+
 void Transform::DrawMenu()
 {
-	if (ImGui::CollapsingHeader("Transform", nullptr, true, true))
+	if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		Vec3 mRotationEulerDegree = mRotationEuler / PI * 180.f;
 		if (ImGui::InputFloat3("Position", &mPosition.x()))
@@ -64,6 +80,50 @@ void Transform::DrawMenu()
 		{
 			mDirty |= true;
 		}
+	}
+}
+
+void Transform::DrawMenuNodes(Transform* &selected, bool defaultOpen/* = false*/)
+{
+	uint32_t flag = ImGuiTreeNodeFlags_OpenOnArrow;
+	if (mChildren.size() == 0)
+	{
+		flag |= ImGuiTreeNodeFlags_Leaf;
+	}
+
+	const char* nodeName = "";
+	if (m_parents.size() == 0)
+	{
+		nodeName = "Root";
+	}
+	else
+	{
+		nodeName = m_parents[0]->GetName();
+	}
+
+	if (selected == this)
+	{
+		flag |= ImGuiTreeNodeFlags_Selected;
+	}
+
+	if (defaultOpen)
+	{
+		flag |= ImGuiTreeNodeFlags_DefaultOpen;
+	}
+
+	bool opened = ImGui::TreeNodeEx(nodeName, flag);
+	if (ImGui::IsItemClicked())
+	{
+		selected = this;
+	}
+
+	if (opened)
+	{
+		for (auto child : mChildren)
+		{
+			child->DrawMenuNodes(selected);
+		}
+		ImGui::TreePop();
 	}
 }
 

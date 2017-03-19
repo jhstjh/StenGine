@@ -18,6 +18,7 @@ public:
 		UPDATE_ANIMATION,
 		UPDATE_PHYSICS,
 		UPDATE,
+		UPDATE_TRANSFORM,
 		PRE_RENDER,
 		RENDER,
 		POST_RENDER,
@@ -42,6 +43,7 @@ private:
 	EventHandlerPool m_onUpdateAnimationHandlers;
 	EventHandlerPool m_onUpdatePhysicsHandlers;
 	EventHandlerPool m_onUpdateHandlers;
+	EventHandlerPool m_onUpdateTransformHandlers;
 	EventHandlerPool m_onPreRenderHandlers;
 	EventHandlerPool m_onRenderHandlers;
 	EventHandlerPool m_onPostRenderHandlers;

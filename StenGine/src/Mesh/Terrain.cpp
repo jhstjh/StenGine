@@ -483,7 +483,7 @@ void Terrain::GatherShadowDrawCall() {
 
 void Terrain::DrawMenu()
 {
-	if (ImGui::CollapsingHeader("Terrain Renderer", nullptr, true, true))
+	if (ImGui::CollapsingHeader("Terrain Renderer", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 
 	}

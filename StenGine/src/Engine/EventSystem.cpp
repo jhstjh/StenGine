@@ -11,6 +11,7 @@ void EventSystem::Update()
 	InvokeAll(m_onUpdateAnimationHandlers);
 	InvokeAll(m_onUpdatePhysicsHandlers);
 	InvokeAll(m_onUpdateHandlers);
+	InvokeAll(m_onUpdateTransformHandlers);
 	InvokeAll(m_onPreRenderHandlers);
 	InvokeAll(m_onRenderHandlers);
 	InvokeAll(m_onPostRenderHandlers);
@@ -31,6 +32,9 @@ void EventSystem::RegisterEventHandler(EventType type, EventHandler handler)
 		break;
 	case EventType::UPDATE:
 		m_onUpdateHandlers.push_back(handler);
+		break;
+	case EventType::UPDATE_TRANSFORM:
+		m_onUpdateTransformHandlers.push_back(handler);
 		break;
 	case EventType::PRE_RENDER:
 		m_onPreRenderHandlers.push_back(handler);

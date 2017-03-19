@@ -18,6 +18,7 @@ DEFINE_SINGLETON_CLASS(GameObjectManager)
 
 GameObjectManager::GameObjectManager()
 {
+	EventSystem::Instance()->RegisterEventHandler(EventSystem::EventType::UPDATE_TRANSFORM, [this]() {UpdateTransform(); });
 	EventSystem::Instance()->RegisterEventHandler(EventSystem::EventType::UPDATE, [this]() {Update(); });
 }
 
@@ -34,6 +35,11 @@ void GameObjectManager::LoadScene()
 
 }
 
+void GameObjectManager::UpdateTransform()
+{
+	mRoot.UpdateWorldTransform(Mat4::Identity(), false);
+}
+
 void GameObjectManager::Update()
 {
 	for (auto &gameObject : mGameObjects)
@@ -44,23 +50,20 @@ void GameObjectManager::Update()
 
 void GameObjectManager::DrawMenu()
 {
-	ImGui::Begin("Scene");
-
-	static int32_t currentItem = -1;
-	std::vector<const char*> names;
-	for (size_t i = 0; i < mGameObjects.size(); ++i)
+	static Transform* selected = nullptr;
+	if (ImGui::Begin("Scene"), ImGuiTreeNodeFlags_DefaultOpen)
 	{
-		names.push_back(mGameObjects[i]->m_name.c_str());
+		mRoot.DrawMenuNodes(selected, true);
+		ImGui::End();
 	}
 
-	ImGui::ListBox("", &currentItem, names.data(), (int32_t)names.size(), 10);
-	ImGui::End();
-
-	if (currentItem != -1)
+	if (selected && selected != &mRoot)
 	{
-		ImGui::Begin("Inspector");
-		mGameObjects[currentItem]->DrawMenu();
-		ImGui::End();
+		if (ImGui::Begin("Inspector"))
+		{
+			selected->m_parents[0]->DrawMenu();
+			ImGui::End();
+		}
 	}
 }
 

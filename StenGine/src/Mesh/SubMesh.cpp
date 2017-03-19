@@ -24,7 +24,7 @@ void SubMesh::PrepareGPUBuffer() {
 
 void SubMesh::DrawMenu()
 {
-	if (ImGui::CollapsingHeader("Sub Mesh", nullptr, true, true))
+	if (ImGui::CollapsingHeader("Sub Mesh", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 
 	}

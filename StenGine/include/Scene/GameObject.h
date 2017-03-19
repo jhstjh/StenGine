@@ -17,6 +17,7 @@ class GameObject {
 public:
 	virtual ~GameObject();
 	void SetName(const char* name) { m_name = std::string(name); }
+	const char* GetName() { return m_name.c_str(); }
 	void SetUUID(UUID uuid) { m_uuid = uuid; }
 	void AddComponent(Component* c);
 	Component* GetComponentByIdx(int index) { return m_components[index]; }
