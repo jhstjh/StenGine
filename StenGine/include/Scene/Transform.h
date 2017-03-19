@@ -27,10 +27,12 @@ private:
 	Transform* mParent;
 
 	Vec3 mPosition;
+	Vec3 mRotationEuler;
 	Quat mRotation;
 	Vec3 mScale;
 
 	Mat4 mWorldTransform;
+	bool mDirty;
 };
 
 }

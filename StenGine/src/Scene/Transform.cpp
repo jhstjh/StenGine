@@ -16,13 +16,19 @@ const Vec3 AXIS_Z{ 0, 0, 1 };
 Transform::Transform(float tx, float ty, float tz, float rx, float ry, float rz, float sx, float sy, float sz)
 {
 	mPosition = { tx, ty, tz };
-	mRotation = Quat::FromEulerAngles({ rx, ry, rz });
+	mRotationEuler = { rx, ry, rz };
+	mRotation = Quat::FromEulerAngles(mRotationEuler);
 	mScale = { sx, sy, sz };
+	mDirty = true;
 }
 
 const Mat4 &Transform::GetWorldTransform()
 {
-	mWorldTransform = Mat4::FromTranslationVector(mPosition) * mRotation.ToMatrix4() * Mat4::FromScaleVector(mScale);
+	if (mDirty)
+	{
+		mWorldTransform = Mat4::FromTranslationVector(mPosition) * mRotation.ToMatrix4() * Mat4::FromScaleVector(mScale);
+		mDirty = false;
+	}
 	return mWorldTransform;
 }
 
@@ -35,34 +41,29 @@ void Transform::RotateAroundY(float radius)
 {
 	Quat rot = Quat::FromAngleAxis(radius, AXIS_Y);
 	mRotation = mRotation * rot;
+	mRotationEuler = mRotation.ToEulerAngles();
+	mDirty = true;
 }
 
 void Transform::DrawMenu()
 {
 	if (ImGui::CollapsingHeader("Transform", nullptr, true, true))
 	{
-		ImGui::Text("Position");
-		Vec3 pos = GetPosition();
-		char scratch[16];
-		sprintf(scratch, "%f", pos.x());
-		ImGui::Text("X"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0)); ImGui::SameLine();
-		sprintf(scratch, "%f", pos.y());
-		ImGui::Text("Y"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0)); ImGui::SameLine();
-		sprintf(scratch, "%f", pos.z());
-		ImGui::Text("Z"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0));
-
-		ImGui::Text("Rotation");
-		sprintf(scratch, "%f", atan2(mWorldTransform(2, 1), mWorldTransform(2, 2)) * 180 / PI);
-		ImGui::Text("X"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0)); ImGui::SameLine();
-		sprintf(scratch, "%f", atan2(-mWorldTransform(2, 0), sqrt(mWorldTransform(2, 1) * mWorldTransform(2, 1) + mWorldTransform(2, 2) * mWorldTransform(2, 2))) * 180 / PI);
-		ImGui::Text("Y"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0)); ImGui::SameLine();
-		sprintf(scratch, "%f", atan2(mWorldTransform(1, 0), mWorldTransform(0, 0)) * 180 / PI);
-		ImGui::Text("Z"); ImGui::SameLine(); ImGui::Button(scratch, ImVec2(80, 0));
-
-		ImGui::Text("Scale");
-		ImGui::Text("X"); ImGui::SameLine(); ImGui::Button("1.0", ImVec2(80, 0)); ImGui::SameLine();
-		ImGui::Text("Y"); ImGui::SameLine(); ImGui::Button("1.0", ImVec2(80, 0)); ImGui::SameLine();
-		ImGui::Text("Z"); ImGui::SameLine(); ImGui::Button("1.0", ImVec2(80, 0));
+		Vec3 mRotationEulerDegree = mRotationEuler / PI * 180.f;
+		if (ImGui::InputFloat3("Position", &mPosition.x()))
+		{
+			mDirty |= true;
+		}
+		if (ImGui::InputFloat3("Rotation", &mRotationEulerDegree.x()))
+		{
+			mRotationEuler = mRotationEulerDegree * PI / 180.f;
+			mRotation = Quat::FromEulerAngles(mRotationEuler);
+			mDirty |= true;
+		}
+		if (ImGui::InputFloat3("Scale", &mScale.x()))
+		{
+			mDirty |= true;
+		}
 	}
 }
 
