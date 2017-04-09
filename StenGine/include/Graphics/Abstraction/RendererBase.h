@@ -88,6 +88,8 @@ public:
 	virtual void AcquireContext() = 0;
 	virtual void ReleaseContext() = 0;
 
+	virtual ConstantBuffer CreateConstantBuffer(uint32_t index, uint32_t size, class GPUBuffer* buffer) = 0;
+
 protected:
 	static Renderer* _instance;
 	static RenderBackend _backend;

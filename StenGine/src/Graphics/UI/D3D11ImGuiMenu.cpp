@@ -160,8 +160,8 @@ public:
 					scissorState.width = (int32_t)pcmd->ClipRect.z;
 					scissorState.height = (int32_t)pcmd->ClipRect.w;
 
-					ConstantBuffer cbuffer0(0, sizeof(ImGuiEffect::IMGUI_CONSTANT_BUFFER), effect->m_imguiCB);
-					ImGuiEffect::IMGUI_CONSTANT_BUFFER* imguiData = (ImGuiEffect::IMGUI_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+					ConstantBuffer cbuffer0 = Renderer::Instance()->CreateConstantBuffer(0, sizeof(ImGuiEffect::IMGUI_CONSTANT_BUFFER), effect->m_imguiCB);
+					ImGuiEffect::IMGUI_CONSTANT_BUFFER* imguiData = (ImGuiEffect::IMGUI_CONSTANT_BUFFER*)cbuffer0->GetBuffer();
 
 					imguiData->ProjMtx = ortho_projection;
 

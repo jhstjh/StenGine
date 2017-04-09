@@ -122,8 +122,8 @@ Skybox::~Skybox() {
 void Skybox::Draw() {
 	SkyboxEffect* skyboxEffect = EffectsManager::Instance()->m_skyboxEffect.get();
 
-	ConstantBuffer cbuffer0(0, sizeof(SkyboxEffect::PEROBJ_CONSTANT_BUFFER), skyboxEffect->m_perObjectCB);
-	SkyboxEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (SkyboxEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+	ConstantBuffer cbuffer0 = Renderer::Instance()->CreateConstantBuffer(0, sizeof(SkyboxEffect::PEROBJ_CONSTANT_BUFFER), skyboxEffect->m_perObjectCB);
+	SkyboxEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (SkyboxEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0->GetBuffer();
 
 	Mat4 T = Mat4::FromTranslationVector(CameraManager::Instance()->GetActiveCamera()->GetPos().xyz());
 	Mat4 WVP = CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * T;
@@ -142,8 +142,8 @@ void Skybox::Draw() {
 		cmd.drawType = DrawType::INDEXED;
 		cmd.inputLayout = (void*)m_skyboxVAO;
 		
-		ConstantBuffer cbuffer1(1, sizeof(SkyboxEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), skyboxEffect->m_textureCB);
-		SkyboxEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (SkyboxEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
+		ConstantBuffer cbuffer1 = Renderer::Instance()->CreateConstantBuffer(1, sizeof(SkyboxEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), skyboxEffect->m_textureCB);
+		SkyboxEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (SkyboxEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1->GetBuffer();
 
 		textureData->gCubeMap = m_cubeMapTex;
 

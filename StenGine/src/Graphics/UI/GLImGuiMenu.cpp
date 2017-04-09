@@ -134,11 +134,11 @@ public:
 					scissorState.width = (int32_t)(pcmd->ClipRect.z - pcmd->ClipRect.x);
 					scissorState.height = (int32_t)(pcmd->ClipRect.w - pcmd->ClipRect.y);
 
-					ConstantBuffer cbuffer0(0, sizeof(ImGuiEffect::IMGUI_CONSTANT_BUFFER), effect->m_imguiCB);
-					ImGuiEffect::IMGUI_CONSTANT_BUFFER* imguiData = (ImGuiEffect::IMGUI_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+					ConstantBuffer cbuffer0 = Renderer::Instance()->CreateConstantBuffer(0, sizeof(ImGuiEffect::IMGUI_CONSTANT_BUFFER), effect->m_imguiCB);
+					ImGuiEffect::IMGUI_CONSTANT_BUFFER* imguiData = (ImGuiEffect::IMGUI_CONSTANT_BUFFER*)cbuffer0->GetBuffer();
 
-					ConstantBuffer cbuffer1(1, sizeof(ImGuiEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), effect->m_textureCB);
-					ImGuiEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (ImGuiEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
+					ConstantBuffer cbuffer1 = Renderer::Instance()->CreateConstantBuffer(1, sizeof(ImGuiEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), effect->m_textureCB);
+					ImGuiEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (ImGuiEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1->GetBuffer();
 
 					textureData->Texture = (uint64_t)pcmd->TextureId;
 					imguiData->ProjMtx = ortho_projection;

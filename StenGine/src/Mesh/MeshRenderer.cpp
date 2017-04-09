@@ -159,11 +159,11 @@ void Mesh::GatherDrawCall() {
 			if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_bumpMapTex)
 				effect = EffectsManager::Instance()->m_deferredGeometryTessPassEffect.get();
 
-			ConstantBuffer cbuffer0(1, sizeof(DeferredGeometryPassEffect::PERFRAME_CONSTANT_BUFFER), effect->m_perFrameCB);
-			ConstantBuffer cbuffer1(0, sizeof(DeferredGeometryPassEffect::PEROBJ_CONSTANT_BUFFER), effect->m_perObjectCB);
+			ConstantBuffer cbuffer0 = Renderer::Instance()->CreateConstantBuffer(1, sizeof(DeferredGeometryPassEffect::PERFRAME_CONSTANT_BUFFER), effect->m_perFrameCB);
+			ConstantBuffer cbuffer1 = Renderer::Instance()->CreateConstantBuffer(0, sizeof(DeferredGeometryPassEffect::PEROBJ_CONSTANT_BUFFER), effect->m_perObjectCB);
 
-			DeferredGeometryPassEffect::PERFRAME_CONSTANT_BUFFER* perframeData = (DeferredGeometryPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
-			DeferredGeometryPassEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (DeferredGeometryPassEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
+			DeferredGeometryPassEffect::PERFRAME_CONSTANT_BUFFER* perframeData = (DeferredGeometryPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0->GetBuffer();
+			DeferredGeometryPassEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (DeferredGeometryPassEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer1->GetBuffer();
 
 			DrawCmd cmd;
 
@@ -214,8 +214,8 @@ void Mesh::GatherDrawCall() {
 			}
 			case RenderBackend::OPENGL4:
 			{
-				ConstantBuffer cbuffer2(2, sizeof(DeferredGeometryPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), effect->m_textureCB);
-				DeferredGeometryPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (DeferredGeometryPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer2.GetBuffer();
+				ConstantBuffer cbuffer2 = Renderer::Instance()->CreateConstantBuffer(2, sizeof(DeferredGeometryPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), effect->m_textureCB);
+				DeferredGeometryPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (DeferredGeometryPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer2->GetBuffer();
 
 				if (m_materials[m_subMeshes[iSubMesh].m_matIndex].m_diffuseMapTex > 0)
 				{
@@ -281,8 +281,8 @@ void Mesh::GatherShadowDrawCall() {
 	{
 		Mat4 worldViewProj = LightManager::Instance()->m_shadowMap->GetViewProjMatrix() * m_parents[iP]->GetTransform()->GetWorldTransform();
 
-		ConstantBuffer cbuffer0(0, sizeof(ShadowMapEffect::PEROBJ_CONSTANT_BUFFER), effect->m_perObjectCB);
-		ShadowMapEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (ShadowMapEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+		ConstantBuffer cbuffer0 = Renderer::Instance()->CreateConstantBuffer(0, sizeof(ShadowMapEffect::PEROBJ_CONSTANT_BUFFER), effect->m_perObjectCB);
+		ShadowMapEffect::PEROBJ_CONSTANT_BUFFER* perObjData = (ShadowMapEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0->GetBuffer();
 		perObjData->gWorldViewProj = TRASNPOSE_API_CHOOSER(worldViewProj);
 
 		DrawCmd cmd;

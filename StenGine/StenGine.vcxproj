@@ -402,7 +402,6 @@
     <ClCompile Include="src\Engine\Console.cpp" />
     <ClCompile Include="src\Engine\EngineBase.cpp" />
     <ClCompile Include="src\Engine\EventSystem.cpp" />
-    <ClCompile Include="src\Graphics\Abstraction\ConstantBuffer.cpp" />
     <ClCompile Include="src\Graphics\Abstraction\GPUBuffer.cpp" />
     <ClCompile Include="src\Graphics\Abstraction\RendererBase.cpp" />
     <ClCompile Include="src\Graphics\Abstraction\RenderTarget.cpp" />

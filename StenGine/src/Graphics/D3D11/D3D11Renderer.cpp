@@ -6,6 +6,7 @@
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Graphics/Color.h"
 #include "Graphics/D3DIncludes.h"
+#include "Graphics/D3D11/D3D11ConstantBuffer.h"
 #include "Graphics/Effect/EffectsManager.h"
 #include "Graphics/Effect/ShadowMap.h"
 #include "Graphics/Effect/Skybox.h"
@@ -727,8 +728,8 @@ public:
 		DrawCmd cmd;
 		DeferredShadingPassEffect* effect = EffectsManager::Instance()->m_deferredShadingPassEffect.get();
 
-		ConstantBuffer cbuffer0(0, sizeof(DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER), effect->m_perFrameCB);
-		DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER* perFrameData = (DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+		ConstantBuffer cbuffer0 = CreateConstantBuffer(0, sizeof(DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER), effect->m_perFrameCB);
+		DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER* perFrameData = (DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0->GetBuffer();
 
 
 		DirectionalLight viewDirLight;
@@ -826,8 +827,8 @@ public:
 		cmd.indexBuffer = mGridCoordIndexBufferGPU;
 		cmd.vertexBuffer = mGridCoordVertexBufferGPU;
 
-		ConstantBuffer cbuffer0(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), debugLineFX->m_perObjectCB);
-		DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+		ConstantBuffer cbuffer0 = CreateConstantBuffer(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), debugLineFX->m_perObjectCB);
+		DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0->GetBuffer();
 
 		perObjectData->ViewProj = CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix().Transpose();
 
@@ -893,6 +894,12 @@ public:
 	void AcquireContext() final { /*TODO*/ }
 
 	void ReleaseContext() final { /*TODO*/ }
+
+	ConstantBuffer CreateConstantBuffer(uint32_t index, uint32_t size, class GPUBuffer* buffer) final
+	{
+		return std::make_unique<D3D11ConstantBuffer>(index, size, buffer);
+	}
+
 
 private:
 
@@ -963,7 +970,7 @@ private:
 
 				for (auto &cbuffer : cmd.cbuffers)
 				{
-					cbuffer.Bind();
+					cbuffer->Bind();
 				}
 
 				cmd.srvs.Bind();

@@ -16,6 +16,7 @@
 #include "Graphics/Effect/EffectsManager.h"
 #include "Graphics/Effect/ShadowMap.h"
 #include "Graphics/Effect/Skybox.h"
+#include "Graphics/OpenGL/GLConstantBuffer.h"
 #include "Graphics/OpenGL/GLImageLoader.h"
 #include "Math/MathHelper.h"
 #include "Mesh/MeshRenderer.h"
@@ -427,11 +428,11 @@ public:
 		DrawCmd cmd;
 		DeferredShadingPassEffect* effect = EffectsManager::Instance()->m_deferredShadingPassEffect.get();
 
-		ConstantBuffer cbuffer0(0, sizeof(DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER), effect->m_perFrameCB);
-		DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER* perFrameData = (DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+		ConstantBuffer cbuffer0 = Renderer::Instance()->CreateConstantBuffer(0, sizeof(DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER), effect->m_perFrameCB);
+		DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER* perFrameData = (DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0->GetBuffer();
 
-		ConstantBuffer cbuffer1(1, sizeof(DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), effect->m_textureCB);
-		DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
+		ConstantBuffer cbuffer1 = Renderer::Instance()->CreateConstantBuffer(1, sizeof(DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), effect->m_textureCB);
+		DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1->GetBuffer();
 
 
 		textureData->NormalGMap = mNormalBufferTexHandle;
@@ -494,11 +495,11 @@ public:
 		cmd.effect = blurEffect;
 		cmd.elementCount = 6;
 
-		ConstantBuffer cbuffer0(0, sizeof(BlurEffect::SETTING_CONSTANT_BUFFER), blurEffect->m_settingCB);
-		BlurEffect::SETTING_CONSTANT_BUFFER* settingData = (BlurEffect::SETTING_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+		ConstantBuffer cbuffer0 = Renderer::Instance()->CreateConstantBuffer(0, sizeof(BlurEffect::SETTING_CONSTANT_BUFFER), blurEffect->m_settingCB);
+		BlurEffect::SETTING_CONSTANT_BUFFER* settingData = (BlurEffect::SETTING_CONSTANT_BUFFER*)cbuffer0->GetBuffer();
 
-		ConstantBuffer cbuffer1(1, sizeof(BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), blurEffect->m_textureCB);
-		BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
+		ConstantBuffer cbuffer1 = Renderer::Instance()->CreateConstantBuffer(1, sizeof(BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), blurEffect->m_textureCB);
+		BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1->GetBuffer();
 
 		textureData->ScreenMap = mDeferredShadingTexHandle;
 		if (mEnableSSAO)
@@ -526,8 +527,8 @@ public:
 		cmd.effect = debugLineFX;
 		cmd.inputLayout = (void*)mDebugCoordVAO;
 
-		ConstantBuffer cbuffer0(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), debugLineFX->m_perObjectCB);
-		DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+		ConstantBuffer cbuffer0 = Renderer::Instance()->CreateConstantBuffer(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), debugLineFX->m_perObjectCB);
+		DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0->GetBuffer();
 
 		perObjectData->ViewProj = CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
 
@@ -574,6 +575,11 @@ public:
 	void AddShadowDraw(DrawEventHandler handler) final
 	{
 		mShadowDrawHandler.push_back(handler);
+	}
+
+	ConstantBuffer CreateConstantBuffer(uint32_t index, uint32_t size, class GPUBuffer* buffer) final
+	{
+		return std::make_unique<GLConstantBuffer>(index, size, buffer);
 	}
 
 private:
@@ -844,7 +850,7 @@ private:
 
 				for (auto &cbuffer : cmd.cbuffers)
 				{
-					cbuffer.Bind();
+					cbuffer->Bind();
 				}
 
 				if (cmd.flags & CmdFlag::DRAW)
