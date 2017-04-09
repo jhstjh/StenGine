@@ -348,7 +348,6 @@
     <ClInclude Include="include\Graphics\Animation\Animation.h" />
     <ClInclude Include="include\Graphics\Color.h" />
     <ClInclude Include="include\Graphics\D3D11\D3D11ConstantBuffer.h" />
-    <ClInclude Include="include\Graphics\D3D11\D3D11Renderer.h" />
     <ClInclude Include="include\Graphics\D3D11\D3D11RenderTarget.h" />
     <ClInclude Include="include\Graphics\D3D11\D3D11SRVBinding.h" />
     <ClInclude Include="include\Graphics\D3D11\D3D11Texture.h" />
@@ -361,7 +360,6 @@
     <ClInclude Include="include\Graphics\OpenGL\GLBuffer.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLConstantBuffer.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLImageLoader.h" />
-    <ClInclude Include="include\Graphics\OpenGL\GLRenderer.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLRenderTarget.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLTexture.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLUAVBinding.h" />

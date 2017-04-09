@@ -511,12 +511,6 @@
     <ClInclude Include="include\Graphics\OpenGL\GLConstantBuffer.h">
       <Filter>include\Graphics\OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="include\Graphics\D3D11\D3D11Renderer.h">
-      <Filter>include\Graphics\D3D11</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Graphics\OpenGL\GLRenderer.h">
-      <Filter>include\Graphics\OpenGL</Filter>
-    </ClInclude>
     <ClInclude Include="include\Graphics\OpenGL\GLRenderTarget.h">
       <Filter>include\Graphics\OpenGL</Filter>
     </ClInclude>

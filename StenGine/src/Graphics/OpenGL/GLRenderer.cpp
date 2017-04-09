@@ -1,7 +1,32 @@
-﻿#include "Graphics/OpenGL/GLRenderer.h"
+﻿#include <vector>
+#include <memory>
+#include <iostream>
+#include <unordered_map>
+#include <atomic>
+#include <thread>
+
+#include <glew.h>
+#include <imgui.h>
+#include <wglew.h>
+
+#include "Engine/EventSystem.h"
+#include "Graphics/Abstraction/RendererBase.h"
+#include "Graphics/Color.h"
+#include "Graphics/D3DIncludes.h"
+#include "Graphics/Effect/EffectsManager.h"
+#include "Graphics/Effect/ShadowMap.h"
+#include "Graphics/Effect/Skybox.h"
+#include "Graphics/OpenGL/GLImageLoader.h"
+#include "Math/MathHelper.h"
+#include "Mesh/MeshRenderer.h"
+#include "Scene/LightManager.h"
+#include "Scene/CameraManager.h"
+#include "Scene/SceneFileManager.h"
 #include "Utility/Semaphore.h"
 
-#include "Scene/SceneFileManager.h"
+//TEST
+#include "Scene/GameObjectManager.h"
+
 
 using namespace std;
 
@@ -62,30 +87,33 @@ void APIENTRY GLErrorCallback(GLenum source​, GLenum type​, GLuint id​, GL
 	cout << endl << endl;
 }
 
+class GLRenderer : public Renderer
+{
+public:
 
-GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDrawListSync, Semaphore &finishedDrawListSync)
-		: m_hInst(hInstance)
-		, m_hMainWnd(hMainWnd)
-		, m_currentVao(0)
-		, m_currentEffect(nullptr)
-		, m_currentFbo(0)
+	GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDrawListSync, Semaphore &finishedDrawListSync)
+		: mHInst(hInstance)
+		, mHMainWnd(hMainWnd)
+		, mCurrentVao(0)
+		, mCurrentEffect(nullptr)
+		, mCurrentFbo(0)
 		, gPrepareDrawListSync(prepareDrawListSync)
 		, gFinishedDrawListSync(finishedDrawListSync)
-		, m_enableSSAO(true)
+		, mEnableSSAO(true)
 	{
 		_instance = this;
 	}
 
-	void GLRenderer::Release() {
+	void Release() final {
 		_instance = nullptr;
 		delete this;
 	}
 
-	bool GLRenderer::Init(int32_t width, int32_t height, CreateWindowCallback createWindow) {
-		m_clientWidth = width;
-		m_clientHeight = height;
+	bool Init(int32_t width, int32_t height, CreateWindowCallback createWindow) final {
+		mClientWidth = width;
+		mClientHeight = height;
 
-		if (!createWindow(0, 0, m_hInst, m_hMainWnd))
+		if (!createWindow(0, 0, mHInst, mHMainWnd))
 		{
 			return false;
 		}
@@ -95,17 +123,17 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 			return false;
 		}
 
-		DestroyWindow(m_hMainWnd);
+		DestroyWindow(mHMainWnd);
 
-		if (!createWindow(width, height, m_hInst, m_hMainWnd))
+		if (!createWindow(width, height, mHInst, mHMainWnd))
 		{
 			return false;
 		}
 
-		SetWindowText(m_hMainWnd, L"StenGine");
-		ShowWindow(m_hMainWnd, SW_SHOW);
+		SetWindowText(mHMainWnd, L"StenGine");
+		ShowWindow(mHMainWnd, SW_SHOW);
 
-		SetFocus(m_hMainWnd);
+		SetFocus(mHMainWnd);
 
 		if (!initializeOpenGL())
 		{
@@ -137,21 +165,21 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		glClearColor(0.2f, 0.2f, 0.2f, 0.f);
 		glClearDepth(1.0f);
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-		
-		m_defaultRT.Set(0);
+
+		mDefaultRT.Set(0);
 
 		/***************GBUFFER FB*********************/
 		GLuint gbuffer;
 		glCreateFramebuffers(1, &gbuffer);
-		GenerateColorTex(m_diffuseBufferTex);
-		GenerateColorTex(m_normalBufferTex);
-		GenerateColorTex(m_specularBufferTex);
-		GenerateDepthTex(m_depthBufferTex);
+		GenerateColorTex(mDiffuseBufferTex);
+		GenerateColorTex(mNormalBufferTex);
+		GenerateColorTex(mSpecularBufferTex);
+		GenerateDepthTex(mDepthBufferTex);
 
-		glNamedFramebufferTexture(gbuffer, GL_DEPTH_ATTACHMENT, m_depthBufferTex, 0);
-		glNamedFramebufferTexture(gbuffer, GL_COLOR_ATTACHMENT0, m_normalBufferTex, 0);
-		glNamedFramebufferTexture(gbuffer, GL_COLOR_ATTACHMENT1, m_diffuseBufferTex, 0);
-		glNamedFramebufferTexture(gbuffer, GL_COLOR_ATTACHMENT2, m_specularBufferTex, 0);
+		glNamedFramebufferTexture(gbuffer, GL_DEPTH_ATTACHMENT, mDepthBufferTex, 0);
+		glNamedFramebufferTexture(gbuffer, GL_COLOR_ATTACHMENT0, mNormalBufferTex, 0);
+		glNamedFramebufferTexture(gbuffer, GL_COLOR_ATTACHMENT1, mDiffuseBufferTex, 0);
+		glNamedFramebufferTexture(gbuffer, GL_COLOR_ATTACHMENT2, mSpecularBufferTex, 0);
 
 		GLenum draw_bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 		glNamedFramebufferDrawBuffers(gbuffer, 3, draw_bufs);
@@ -162,30 +190,30 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 			return false;
 		}
 
-		m_deferredGBuffers.Set(gbuffer);
+		mDeferredGBuffers.Set(gbuffer);
 
-		m_diffuseBufferTexHandle = glGetTextureHandleARB(m_diffuseBufferTex);
-		m_normalBufferTexHandle = glGetTextureHandleARB(m_normalBufferTex);
-		m_specularBufferTexHandle = glGetTextureHandleARB(m_specularBufferTex);
-		m_depthBufferTexHandle = glGetTextureHandleARB(m_depthBufferTex);
+		mDiffuseBufferTexHandle = glGetTextureHandleARB(mDiffuseBufferTex);
+		mNormalBufferTexHandle = glGetTextureHandleARB(mNormalBufferTex);
+		mSpecularBufferTexHandle = glGetTextureHandleARB(mSpecularBufferTex);
+		mDepthBufferTexHandle = glGetTextureHandleARB(mDepthBufferTex);
 
-		glMakeTextureHandleResidentARB(m_diffuseBufferTexHandle);
-		glMakeTextureHandleResidentARB(m_normalBufferTexHandle);
-		glMakeTextureHandleResidentARB(m_specularBufferTexHandle);
-		glMakeTextureHandleResidentARB(m_depthBufferTexHandle);
+		glMakeTextureHandleResidentARB(mDiffuseBufferTexHandle);
+		glMakeTextureHandleResidentARB(mNormalBufferTexHandle);
+		glMakeTextureHandleResidentARB(mSpecularBufferTexHandle);
+		glMakeTextureHandleResidentARB(mDepthBufferTexHandle);
 
 		/****************deferred shading + ssao fb**********************/
 
 		GLuint deferredShadingRT;
 		glCreateFramebuffers(1, &deferredShadingRT);
 
-		GenerateColorTex(m_deferredShadingTex);
-		GenerateColorTex(m_ssaoTex);
-		GenerateDepthTex(m_deferredShadingDepthTex);
+		GenerateColorTex(mDeferredShadingTex);
+		GenerateColorTex(mSsaoTex);
+		GenerateDepthTex(mDeferredShadingDepthTex);
 
-		glNamedFramebufferTexture(deferredShadingRT, GL_DEPTH_ATTACHMENT, m_deferredShadingDepthTex, 0);
-		glNamedFramebufferTexture(deferredShadingRT, GL_COLOR_ATTACHMENT0, m_deferredShadingTex, 0);
-		glNamedFramebufferTexture(deferredShadingRT, GL_COLOR_ATTACHMENT1, m_ssaoTex, 0);
+		glNamedFramebufferTexture(deferredShadingRT, GL_DEPTH_ATTACHMENT, mDeferredShadingDepthTex, 0);
+		glNamedFramebufferTexture(deferredShadingRT, GL_COLOR_ATTACHMENT0, mDeferredShadingTex, 0);
+		glNamedFramebufferTexture(deferredShadingRT, GL_COLOR_ATTACHMENT1, mSsaoTex, 0);
 
 		GLenum shading_bufs[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 		glNamedFramebufferDrawBuffers(deferredShadingRT, 2, shading_bufs);
@@ -196,31 +224,31 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 			return false;
 		}
 
-		m_deferredShadingRT.Set(deferredShadingRT);
+		mDeferredShadingRT.Set(deferredShadingRT);
 
-		m_deferredShadingTexHandle = glGetTextureHandleARB(m_deferredShadingTex);
-		m_ssaoTexHandle = glGetTextureHandleARB(m_ssaoTex);
-		m_deferredShadingDepthTexHandle = glGetTextureHandleARB(m_deferredShadingDepthTex);
+		mDeferredShadingTexHandle = glGetTextureHandleARB(mDeferredShadingTex);
+		mSsaoTexHandle = glGetTextureHandleARB(mSsaoTex);
+		mDeferredShadingDepthTexHandle = glGetTextureHandleARB(mDeferredShadingDepthTex);
 
-		glMakeTextureHandleResidentARB(m_deferredShadingTexHandle);
-		glMakeTextureHandleResidentARB(m_ssaoTexHandle);
-		glMakeTextureHandleResidentARB(m_deferredShadingDepthTexHandle);
+		glMakeTextureHandleResidentARB(mDeferredShadingTexHandle);
+		glMakeTextureHandleResidentARB(mSsaoTexHandle);
+		glMakeTextureHandleResidentARB(mDeferredShadingDepthTexHandle);
 
 		/******************************************************************/
 
 		for (uint32_t i = 0; i < 4; ++i)
 		{
-			GenerateColorTex(m_computeOutput[i]);
-			m_computeOutputHandle[i] = glGetTextureHandleARB(m_computeOutput[i]);
-			glMakeTextureHandleResidentARB(m_computeOutputHandle[i]);
+			GenerateColorTex(mComputeOutput[i]);
+			mComputeOutputHandle[i] = glGetTextureHandleARB(mComputeOutput[i]);
+			glMakeTextureHandleResidentARB(mComputeOutputHandle[i]);
 		}
-		
+
 		GLuint randVecTex = CreateGLTextureFromFile("Model/RandNorm.dds");
 		glTextureParameteri(randVecTex, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 		glTextureParameteri(randVecTex, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
-		m_randVecTexHandle = glGetTextureHandleARB(randVecTex);
-		glMakeTextureHandleResidentARB(m_randVecTexHandle);
+		mRandVecTexHandle = glGetTextureHandleARB(randVecTex);
+		glMakeTextureHandleResidentARB(mRandVecTexHandle);
 
 		DirectionalLight* dLight = new DirectionalLight();
 		dLight->intensity = { 1.5f, 1.5f, 1.5f, 1 };
@@ -230,27 +258,327 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		LightManager::Instance()->m_dirLights.push_back(dLight);
 		LightManager::Instance()->m_shadowMap = new ShadowMap(2048, 2048);
 
-		m_SkyBox = std::unique_ptr<Skybox>(new Skybox(std::wstring(L"Model/sunsetcube1024.dds")));
+		mSkyBox = std::unique_ptr<Skybox>(new Skybox(std::wstring(L"Model/sunsetcube1024.dds")));
 
 		InitScreenQuad();
 		InitDebugCoord();
 
-		m_drawTopologyMap[PrimitiveTopology::POINTLIST] = GL_POINTS;
-		m_drawTopologyMap[PrimitiveTopology::LINELIST] = GL_LINES;
-		m_drawTopologyMap[PrimitiveTopology::TRIANGLELIST] = GL_TRIANGLES;
-		m_drawTopologyMap[PrimitiveTopology::CONTROL_POINT_3_PATCHLIST] = GL_PATCHES;
-		m_drawTopologyMap[PrimitiveTopology::CONTROL_POINT_4_PATCHLIST] = GL_PATCHES;
+		mDrawTopologyMap[PrimitiveTopology::POINTLIST] = GL_POINTS;
+		mDrawTopologyMap[PrimitiveTopology::LINELIST] = GL_LINES;
+		mDrawTopologyMap[PrimitiveTopology::TRIANGLELIST] = GL_TRIANGLES;
+		mDrawTopologyMap[PrimitiveTopology::CONTROL_POINT_3_PATCHLIST] = GL_PATCHES;
+		mDrawTopologyMap[PrimitiveTopology::CONTROL_POINT_4_PATCHLIST] = GL_PATCHES;
 
 
 		EventSystem::Instance()->RegisterEventHandler(EventSystem::EventType::RENDER, [this]() {Draw(); });
 
-		m_readIndex = 0;
-		m_writeIndex = 1;
+		mReadIndex = 0;
+		mWriteIndex = 1;
 
 		return true;
 	}
 
-	bool GLRenderer::initializeExtensions()
+	void AcquireContext() final
+	{
+		if (mContextThreadId == std::this_thread::get_id())
+		{
+			return;
+		}
+		else
+		{
+			const std::thread::id zeroID;
+			if (mContextThreadId == zeroID)
+			{
+				mContextThreadId = std::this_thread::get_id();
+				wglMakeCurrent(mDeviceContext, mRenderingContext);
+			}
+			else
+			{
+				assert(0);
+			}
+		}
+
+	}
+
+	void ReleaseContext() final
+	{
+		assert(mContextThreadId == std::this_thread::get_id());
+		const std::thread::id zeroID;
+		mContextThreadId = zeroID;
+		wglMakeCurrent(nullptr, nullptr);
+	}
+
+	void Draw() final {
+		EnterFrame();
+
+		DrawShadowMap();
+		DrawGBuffer();
+		DrawDeferredShading();
+		mSkyBox->Draw();
+		DrawBlurSSAOAndCombine();
+		//// TODO put every graphics call into cmdlist
+		//
+		////DrawGodRay();
+		DrawDebug();
+
+		// TEST
+		ImGui::NewFrame();
+		//ImGui::ShowTestWindow();
+		GameObjectManager::Instance()->DrawMenu();
+		SceneFileManager::Instance()->DrawMenu();
+
+
+		if (ImGui::Begin("Render Settings"))
+		{
+			ImGui::Checkbox("SSAO", &mEnableSSAO);
+			ImGui::End();
+		}
+
+		ImGui::Render();
+
+		gFinishedDrawListSync.wait();
+		mWriteIndex = std::atomic_exchange(&mReadIndex, mWriteIndex);
+		gPrepareDrawListSync.notify();
+	}
+
+	float GetAspectRatio() final {
+		return static_cast<float>(mClientWidth) / static_cast<float>(mClientHeight);
+	}
+
+	int GetScreenWidth() final {
+		return mClientWidth;
+	}
+
+	int GetScreenHeight() final {
+		return mClientHeight;
+	}
+
+	Skybox* GetSkyBox() final {
+		return mSkyBox.get();
+	}
+
+	void* GetDevice() final {
+		return nullptr;
+	}
+
+	void* GetDeviceContext() final {
+		return nullptr;
+	}
+
+	void* GetDepthRS() final {
+		return nullptr;
+	}
+
+	void UpdateTitle(const char* str) final {
+		SetWindowTextA(mHMainWnd, str);
+	}
+
+	RenderTarget &GetGbuffer() final {
+		return mDeferredGBuffers;
+	}
+
+	void EndFrame() final
+	{
+		ExecuteCmdList();
+
+		SwapBuffers(mDeviceContext);
+
+		gFinishedDrawListSync.notify();
+	}
+
+	void DrawShadowMap() final
+	{
+		LightManager::Instance()->m_shadowMap->UpdateShadowMatrix();
+
+		uint32_t width, height;
+		LightManager::Instance()->m_shadowMap->GetDimension(width, height);
+
+		DrawCmd shadowcmd;
+
+		shadowcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH;
+		shadowcmd.framebuffer = &LightManager::Instance()->m_shadowMap->GetRenderTarget();
+		shadowcmd.viewport = { 0, 0, (float)width, (float)height, 0, 1 };
+
+		AddDeferredDrawCmd(std::move(shadowcmd));
+
+		for (auto &gatherShadowDrawCall : mShadowDrawHandler)
+		{
+			gatherShadowDrawCall();
+		}
+	}
+
+	void DrawGBuffer() final
+	{
+		DrawCmd drawcmd;
+
+		drawcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH;
+		drawcmd.framebuffer = &mDeferredGBuffers;
+		drawcmd.viewport = { 0.f, 0.f, (float)mClientWidth, (float)mClientHeight, 0.f, 1.f };
+
+		AddDeferredDrawCmd(std::move(drawcmd));
+
+		for (auto &gatherDrawCall : mDrawHandler)
+		{
+			gatherDrawCall();
+		}
+	}
+
+	void DrawDeferredShading() final {
+		DrawCmd cmd;
+		DeferredShadingPassEffect* effect = EffectsManager::Instance()->m_deferredShadingPassEffect.get();
+
+		ConstantBuffer cbuffer0(0, sizeof(DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER), effect->m_perFrameCB);
+		DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER* perFrameData = (DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+
+		ConstantBuffer cbuffer1(1, sizeof(DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), effect->m_textureCB);
+		DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
+
+
+		textureData->NormalGMap = mNormalBufferTexHandle;
+		textureData->DiffuseGMap = mDiffuseBufferTexHandle;//LightManager::Instance()->m_shadowMap->GetDepthTex();//
+		textureData->SpecularGMap = mSpecularBufferTexHandle;
+		textureData->DepthGMap = mDepthBufferTexHandle;
+		textureData->RandVectMap = mRandVecTexHandle;
+
+		DirectionalLight viewDirLight;
+		memcpy(&viewDirLight, LightManager::Instance()->m_dirLights[0], sizeof(DirectionalLight));
+
+		Mat4 ViewInvTranspose = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix().Inverse().Transpose();
+
+		viewDirLight.direction = (ViewInvTranspose * Vec4(viewDirLight.direction.data[0], viewDirLight.direction.data[1], viewDirLight.direction.data[2], 0)).xyz();
+		perFrameData->gDirLight = viewDirLight;
+
+		Vec4 camPos = CameraManager::Instance()->GetActiveCamera()->GetPos();
+		camPos = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix() * camPos;
+		perFrameData->gEyePosV = camPos;
+		perFrameData->gProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetProjMatrix());
+		perFrameData->gProjInv = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetProjMatrix().Inverse());
+
+		cmd.flags = CmdFlag::DRAW | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH | CmdFlag::BIND_FB;
+		cmd.drawType = DrawType::ARRAY;
+		cmd.inputLayout = (void*)mScreenQuadVAO;
+		cmd.vertexBuffer = 0; // don't bind if 0
+		cmd.type = PrimitiveTopology::TRIANGLELIST;
+		cmd.framebuffer = &mDeferredShadingRT;
+		cmd.offset = (void*)(0);
+		cmd.effect = effect;
+		cmd.elementCount = 6;
+		cmd.cbuffers.push_back(std::move(cbuffer0));
+		cmd.cbuffers.push_back(std::move(cbuffer1));
+
+		AddDeferredDrawCmd(std::move(cmd));
+	}
+
+	void DrawBlurSSAOAndCombine() final {
+		if (mEnableSSAO)
+		{
+			doCSBlur(mSsaoTex, 0);
+		}
+
+		// ------ Screen Quad -------//
+		// BADLY NAMED, this is actually just a shader to multiply SSAO effect
+		BlurEffect* blurEffect = EffectsManager::Instance()->m_blurEffect.get();
+
+		DrawCmd cmd;
+
+		// TODO
+		//m_d3d11DeviceContext->PSSetSamplers(0, 1, samplerState);
+
+		cmd.flags = CmdFlag::DRAW | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH | CmdFlag::BIND_FB;
+		cmd.drawType = DrawType::ARRAY;
+		cmd.inputLayout = (void*)mScreenQuadVAO;
+		cmd.vertexBuffer = 0; // don't bind if 0
+		cmd.type = PrimitiveTopology::TRIANGLELIST;
+		cmd.framebuffer = &mDefaultRT;
+		cmd.offset = (void*)(0);
+		cmd.effect = blurEffect;
+		cmd.elementCount = 6;
+
+		ConstantBuffer cbuffer0(0, sizeof(BlurEffect::SETTING_CONSTANT_BUFFER), blurEffect->m_settingCB);
+		BlurEffect::SETTING_CONSTANT_BUFFER* settingData = (BlurEffect::SETTING_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+
+		ConstantBuffer cbuffer1(1, sizeof(BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), blurEffect->m_textureCB);
+		BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
+
+		textureData->ScreenMap = mDeferredShadingTexHandle;
+		if (mEnableSSAO)
+		{
+			textureData->SSAOMap = mComputeOutputHandle[1];
+			textureData->DepthMap = mDepthBufferTexHandle;
+		}
+		//settingData->BloomMap = NOT_USED;
+		settingData->xEnableSSAO.x() = mEnableSSAO;
+
+		cmd.cbuffers.push_back(std::move(cbuffer0));
+		cmd.cbuffers.push_back(std::move(cbuffer1));
+
+		AddDeferredDrawCmd(cmd);
+	}
+
+	void DrawDebug() final {
+		DebugLineEffect* debugLineFX = EffectsManager::Instance()->m_debugLineEffect.get();
+
+		DrawCmd cmd;
+
+		cmd.flags = /*CmdFlag::BIND_FB |*/ CmdFlag::SET_DS | CmdFlag::DRAW;
+
+		cmd.depthState.depthWriteEnable = false;
+		cmd.effect = debugLineFX;
+		cmd.inputLayout = (void*)mDebugCoordVAO;
+
+		ConstantBuffer cbuffer0(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), debugLineFX->m_perObjectCB);
+		DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
+
+		perObjectData->ViewProj = CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
+
+		cmd.cbuffers.push_back(std::move(cbuffer0));
+		cmd.type = PrimitiveTopology::LINELIST;
+		cmd.drawType = DrawType::ARRAY;
+		cmd.framebuffer = 0;
+
+		cmd.offset = (void*)6;
+		cmd.elementCount = 44;
+
+		DrawCmd cmd2;
+
+		cmd2.effect = debugLineFX;
+		cmd2.flags = CmdFlag::DRAW;
+		cmd2.offset = 0;
+		cmd2.elementCount = 6;
+		cmd2.type = PrimitiveTopology::LINELIST;
+		cmd2.drawType = DrawType::ARRAY;
+
+		AddDeferredDrawCmd(cmd);
+		AddDeferredDrawCmd(cmd2);
+	}
+
+	~GLRenderer()
+	{
+		glMakeTextureHandleNonResidentARB(mDiffuseBufferTexHandle);
+		glMakeTextureHandleNonResidentARB(mNormalBufferTexHandle);
+		glMakeTextureHandleNonResidentARB(mSpecularBufferTexHandle);
+		glMakeTextureHandleNonResidentARB(mDepthBufferTexHandle);
+	}
+
+	void AddDeferredDrawCmd(DrawCmd &cmd) final
+	{
+		//m_deferredDrawList.push_back(std::move(cmd));
+		mDrawList[mWriteIndex].push_back(std::move(cmd));
+	}
+
+	void AddDraw(DrawEventHandler handler) final
+	{
+		mDrawHandler.push_back(handler);
+	}
+
+	void AddShadowDraw(DrawEventHandler handler) final
+	{
+		mShadowDrawHandler.push_back(handler);
+	}
+
+private:
+
+	bool initializeExtensions()
 	{
 		HDC deviceContext;
 		PIXELFORMATDESCRIPTOR pixelFormat;
@@ -258,7 +586,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		HGLRC renderContext;
 		//bool result;
 
-		deviceContext = GetDC(m_hMainWnd);
+		deviceContext = GetDC(mHMainWnd);
 		if (!deviceContext)
 		{
 			return false;
@@ -293,21 +621,21 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		wglDeleteContext(renderContext);
 		renderContext = nullptr;
 
-		ReleaseDC(m_hMainWnd, deviceContext);
+		ReleaseDC(mHMainWnd, deviceContext);
 		deviceContext = 0;
 
 		return true;
 	}
 
-	bool GLRenderer::initializeOpenGL()
+	bool initializeOpenGL()
 	{
 		int pixelFormat[1];
 		unsigned int formatCount;
 		int result;
 		PIXELFORMATDESCRIPTOR pixelFormatDescriptor;
 
-		m_deviceContext = GetDC(m_hMainWnd);
-		if (!m_deviceContext)
+		mDeviceContext = GetDC(mHMainWnd);
+		if (!mDeviceContext)
 		{
 			return false;
 		}
@@ -324,13 +652,13 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 			0
 		};
 
-		result = wglChoosePixelFormatARB(m_deviceContext, attributeListInt, NULL, 1, pixelFormat, &formatCount);
+		result = wglChoosePixelFormatARB(mDeviceContext, attributeListInt, NULL, 1, pixelFormat, &formatCount);
 		if (result != 1)
 		{
 			return false;
 		}
 
-		result = SetPixelFormat(m_deviceContext, pixelFormat[0], &pixelFormatDescriptor);
+		result = SetPixelFormat(mDeviceContext, pixelFormat[0], &pixelFormatDescriptor);
 		if (result != 1)
 		{
 			return false;
@@ -343,15 +671,15 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 			0
 		};
 
-		m_renderingContext = wglCreateContextAttribsARB(m_deviceContext, 0, attributeList);
-		if (m_renderingContext == NULL)
+		mRenderingContext = wglCreateContextAttribsARB(mDeviceContext, 0, attributeList);
+		if (mRenderingContext == NULL)
 		{
 			assert(false);
 			return false;
 		}
 
-		m_renderingContext = wglCreateContextAttribsARB(m_deviceContext, 0, attributeList);
-		if (m_renderingContext == NULL)
+		mRenderingContext = wglCreateContextAttribsARB(mDeviceContext, 0, attributeList);
+		if (mRenderingContext == NULL)
 		{
 			assert(false);
 			return false;
@@ -362,39 +690,9 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		return true;
 	}
 
-	void GLRenderer::AcquireContext()
+	void ExecuteCmdList()
 	{
-		if (m_contextThreadId == std::this_thread::get_id())
-		{
-			return;
-		}
-		else
-		{
-			const std::thread::id zeroID;
-			if (m_contextThreadId == zeroID)
-			{
-				m_contextThreadId = std::this_thread::get_id();
-				wglMakeCurrent(m_deviceContext, m_renderingContext);
-			}
-			else
-			{
-				assert(0);
-			}
-		}
-
-	}
-
-	void GLRenderer::ReleaseContext()
-	{
-		assert(m_contextThreadId == std::this_thread::get_id());
-		const std::thread::id zeroID;
-		m_contextThreadId = zeroID;
-		wglMakeCurrent(nullptr, nullptr);
-	}
-
-	void GLRenderer::ExecuteCmdList()
-	{
-		for (auto &cmd : m_drawList[m_readIndex])
+		for (auto &cmd : mDrawList[mReadIndex])
 		{
 			if (cmd.flags & CmdFlag::BIND_FB)
 			{
@@ -427,8 +725,8 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 			if (cmd.flags & CmdFlag::SET_VP)
 			{
 				glViewport(
-					(GLint)cmd.viewport.TopLeftX, 
-					(GLint)cmd.viewport.TopLeftY, 
+					(GLint)cmd.viewport.TopLeftX,
+					(GLint)cmd.viewport.TopLeftY,
 					(GLsizei)cmd.viewport.Width,
 					(GLsizei)cmd.viewport.Height
 				);
@@ -482,7 +780,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 				{
 					glEnable(GL_DEPTH_TEST);
 
-					static const uint32_t convertDepthFunc[] = 
+					static const uint32_t convertDepthFunc[] =
 					{
 						0,
 						GL_NEVER,
@@ -572,7 +870,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 							glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (GLuint)cmd.indexBuffer);
 
 						glDrawElements(
-							m_drawTopologyMap[cmd.type],
+							mDrawTopologyMap[cmd.type],
 							cmd.elementCount,
 							GL_UNSIGNED_INT,
 							cmd.offset
@@ -580,7 +878,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 					}
 					else if (cmd.drawType == DrawType::ARRAY)
 					{
-						glDrawArrays(m_drawTopologyMap[cmd.type], (GLint)cmd.offset, cmd.elementCount);
+						glDrawArrays(mDrawTopologyMap[cmd.type], (GLint)cmd.offset, cmd.elementCount);
 					}
 				}
 				else if (cmd.flags & CmdFlag::COMPUTE)
@@ -600,311 +898,61 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 			}
 		}
 
-		m_drawList[m_readIndex].clear();
+		mDrawList[mReadIndex].clear();
 	}
 
-	void GLRenderer::Draw()  {
-		EnterFrame();
-		
-		DrawShadowMap();
-		DrawGBuffer();
-		DrawDeferredShading();
-		m_SkyBox->Draw();
-		DrawBlurSSAOAndCombine();
-		//// TODO put every graphics call into cmdlist
-		//
-		////DrawGodRay();
-		DrawDebug();
-		
-		// TEST
-		ImGui::NewFrame();
-		//ImGui::ShowTestWindow();
-		GameObjectManager::Instance()->DrawMenu();
-		SceneFileManager::Instance()->DrawMenu();
-
-
-		if (ImGui::Begin("Render Settings"))
-		{
-			ImGui::Checkbox("SSAO", &m_enableSSAO);
-			ImGui::End();
-		}
-
-		ImGui::Render();
-
-		gFinishedDrawListSync.wait();
-		m_writeIndex = std::atomic_exchange(&m_readIndex, m_writeIndex);
-		gPrepareDrawListSync.notify();
-	}
-
-	float GLRenderer::GetAspectRatio()  {
-		return static_cast<float>(m_clientWidth) / static_cast<float>(m_clientHeight);
-	}
-
-	int GLRenderer::GetScreenWidth()  {
-		return m_clientWidth;
-	}
-
-	int GLRenderer::GetScreenHeight()  {
-		return m_clientHeight;
-	}
-
-	Skybox* GLRenderer::GetSkyBox() {
-		return m_SkyBox.get();
-	}
-
-	void* GLRenderer::GetDevice() {
-		return nullptr;
-	}
-
-	void* GLRenderer::GetDeviceContext() {
-		return nullptr;
-	}
-
-	void* GLRenderer::GetDepthRS() {
-		return nullptr;
-	}
-
-	void GLRenderer::UpdateTitle(const char* str) {
-		SetWindowTextA(m_hMainWnd, str);
-	}
-
-	RenderTarget &GLRenderer::GetGbuffer() {
-		return m_deferredGBuffers;
-	}
-
-	void GLRenderer::EnterFrame()
+	void EnterFrame()
 	{
 		// reset state
 		DrawCmd cmd;
 		cmd.flags = CmdFlag::SET_VP | CmdFlag::SET_BS | CmdFlag::SET_CS | CmdFlag::SET_SS | CmdFlag::SET_DS | CmdFlag::CLEAR_COLOR /*| CmdFlag::CLEAR_DEPTH*/;
 		cmd.viewport.TopLeftX = 0;
 		cmd.viewport.TopLeftY = 0;
-		cmd.viewport.Width = m_clientWidth;
-		cmd.viewport.Height = m_clientHeight;
+		cmd.viewport.Width = mClientWidth;
+		cmd.viewport.Height = mClientHeight;
 
 		AddDeferredDrawCmd(cmd);
 	}
 
-	void GLRenderer::EndFrame()
+	void doCSBlur(GLuint blurImgSRV, int uavSlotIdx)
 	{
-		ExecuteCmdList();
-
-		SwapBuffers(m_deviceContext);
-
-		gFinishedDrawListSync.notify();
-	}
-
-	void GLRenderer::DrawShadowMap()
-	{
-		LightManager::Instance()->m_shadowMap->UpdateShadowMatrix();
-
-		uint32_t width, height;
-		LightManager::Instance()->m_shadowMap->GetDimension(width, height);
-
-		DrawCmd shadowcmd;
-
-		shadowcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH;
-		shadowcmd.framebuffer = &LightManager::Instance()->m_shadowMap->GetRenderTarget();
-		shadowcmd.viewport = { 0, 0, (float)width, (float)height, 0, 1 };
-
-		AddDeferredDrawCmd(std::move(shadowcmd));
-
-		for (auto &gatherShadowDrawCall : m_shadowDrawHandler)
-		{
-			gatherShadowDrawCall();
-		}
-	}
-
-	void GLRenderer::DrawGBuffer()
-	{
-		DrawCmd drawcmd;
-
-		drawcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH;
-		drawcmd.framebuffer = &m_deferredGBuffers;
-		drawcmd.viewport = { 0.f, 0.f, (float)m_clientWidth, (float)m_clientHeight, 0.f, 1.f };
-
-		AddDeferredDrawCmd(std::move(drawcmd));
-
-		for (auto &gatherDrawCall : m_drawHandler)
-		{
-			gatherDrawCall();
-		}
-	}
-
-	void GLRenderer::DrawDeferredShading() {
-		DrawCmd cmd;
-		DeferredShadingPassEffect* effect = EffectsManager::Instance()->m_deferredShadingPassEffect.get();
-
-		ConstantBuffer cbuffer0(0, sizeof(DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER), effect->m_perFrameCB);
-		DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER* perFrameData = (DeferredShadingPassEffect::PERFRAME_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
-
-		ConstantBuffer cbuffer1(1, sizeof(DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), effect->m_textureCB);
-		DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (DeferredShadingPassEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
-
-
-		textureData->NormalGMap = m_normalBufferTexHandle;
-		textureData->DiffuseGMap = m_diffuseBufferTexHandle;//LightManager::Instance()->m_shadowMap->GetDepthTex();//
-		textureData->SpecularGMap = m_specularBufferTexHandle;
-		textureData->DepthGMap = m_depthBufferTexHandle;
-		textureData->RandVectMap = m_randVecTexHandle;
-
-		DirectionalLight viewDirLight;
-		memcpy(&viewDirLight, LightManager::Instance()->m_dirLights[0], sizeof(DirectionalLight));
-
-		Mat4 ViewInvTranspose = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix().Inverse().Transpose();
-
-		viewDirLight.direction = (ViewInvTranspose * Vec4(viewDirLight.direction.data[0], viewDirLight.direction.data[1], viewDirLight.direction.data[2], 0)).xyz();
-		perFrameData->gDirLight = viewDirLight;
-
-		Vec4 camPos = CameraManager::Instance()->GetActiveCamera()->GetPos();
-		camPos = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix() * camPos;
-		perFrameData->gEyePosV = camPos;
-		perFrameData->gProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetProjMatrix());
-		perFrameData->gProjInv = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetProjMatrix().Inverse());
-
-		cmd.flags = CmdFlag::DRAW | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH | CmdFlag::BIND_FB;
-		cmd.drawType = DrawType::ARRAY;
-		cmd.inputLayout = (void*)m_screenQuadVAO;
-		cmd.vertexBuffer = 0; // don't bind if 0
-		cmd.type = PrimitiveTopology::TRIANGLELIST;
-		cmd.framebuffer = &m_deferredShadingRT;
-		cmd.offset = (void*)(0);
-		cmd.effect = effect;
-		cmd.elementCount = 6;
-		cmd.cbuffers.push_back(std::move(cbuffer0));
-		cmd.cbuffers.push_back(std::move(cbuffer1));
-
-		AddDeferredDrawCmd(std::move(cmd));
-	}
-
-	void GLRenderer::DrawBlurSSAOAndCombine() {
-		if (m_enableSSAO)
-		{
-			doCSBlur(m_ssaoTex, 0);
-		}
-
-		// ------ Screen Quad -------//
-		// BADLY NAMED, this is actually just a shader to multiply SSAO effect
-		BlurEffect* blurEffect = EffectsManager::Instance()->m_blurEffect.get();
-
-		DrawCmd cmd;
-
-		// TODO
-		//m_d3d11DeviceContext->PSSetSamplers(0, 1, samplerState);
-
-		cmd.flags = CmdFlag::DRAW | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH | CmdFlag::BIND_FB;
-		cmd.drawType = DrawType::ARRAY;
-		cmd.inputLayout = (void*)m_screenQuadVAO;
-		cmd.vertexBuffer = 0; // don't bind if 0
-		cmd.type = PrimitiveTopology::TRIANGLELIST;
-		cmd.framebuffer = &m_defaultRT;
-		cmd.offset = (void*)(0);
-		cmd.effect = blurEffect;
-		cmd.elementCount = 6;
-
-		ConstantBuffer cbuffer0(0, sizeof(BlurEffect::SETTING_CONSTANT_BUFFER), blurEffect->m_settingCB);
-		BlurEffect::SETTING_CONSTANT_BUFFER* settingData = (BlurEffect::SETTING_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
-
-		ConstantBuffer cbuffer1(1, sizeof(BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER), blurEffect->m_textureCB);
-		BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER* textureData = (BlurEffect::BINDLESS_TEXTURE_CONSTANT_BUFFER*)cbuffer1.GetBuffer();
-
-		textureData->ScreenMap = m_deferredShadingTexHandle;
-		if (m_enableSSAO)
-		{
-			textureData->SSAOMap = m_computeOutputHandle[1];
-			textureData->DepthMap = m_depthBufferTexHandle;
-		}
-		//settingData->BloomMap = NOT_USED;
-		settingData->xEnableSSAO.x() = m_enableSSAO;
-
-		cmd.cbuffers.push_back(std::move(cbuffer0));
-		cmd.cbuffers.push_back(std::move(cbuffer1));
-
-		AddDeferredDrawCmd(cmd);
-	}
-
-	void GLRenderer::doCSBlur(GLuint blurImgSRV, int uavSlotIdx) {
 		// vblur
 		DrawCmd cmdV;
 
 		VBlurEffect* vBlurEffect = EffectsManager::Instance()->m_vblurEffect.get();
-		UINT numGroupsX = (UINT)ceilf(m_clientWidth / 256.0f);
+		UINT numGroupsX = (UINT)ceilf(mClientWidth / 256.0f);
 
 		cmdV.effect = vBlurEffect;
 		cmdV.flags = CmdFlag::COMPUTE;
 		cmdV.threadGroupX = numGroupsX;
-		cmdV.threadGroupY = m_clientHeight;
+		cmdV.threadGroupY = mClientHeight;
 		cmdV.threadGroupZ = 1;
 		cmdV.uavs.AddUAV(reinterpret_cast<void*>(blurImgSRV), 0);
-		cmdV.uavs.AddUAV(reinterpret_cast<void*>(m_computeOutput[uavSlotIdx]), 1);
+		cmdV.uavs.AddUAV(reinterpret_cast<void*>(mComputeOutput[uavSlotIdx]), 1);
 
 		AddDeferredDrawCmd(std::move(cmdV));
 
 		// hblur
 		DrawCmd cmdH;
-		
+
 		HBlurEffect* hBlurEffect = EffectsManager::Instance()->m_hblurEffect.get();
-		UINT numGroupsY = (UINT)ceilf(m_clientHeight / 256.0f);
-		
+		UINT numGroupsY = (UINT)ceilf(mClientHeight / 256.0f);
+
 		cmdH.effect = hBlurEffect;
 		cmdH.flags = CmdFlag::COMPUTE;
-		cmdH.threadGroupX = m_clientWidth;
+		cmdH.threadGroupX = mClientWidth;
 		cmdH.threadGroupY = numGroupsY;
 		cmdH.threadGroupZ = 1;
-		cmdH.uavs.AddUAV(reinterpret_cast<void*>(m_computeOutput[uavSlotIdx]), 0);
-		cmdH.uavs.AddUAV(reinterpret_cast<void*>(m_computeOutput[uavSlotIdx + 1]), 1);
-		
+		cmdH.uavs.AddUAV(reinterpret_cast<void*>(mComputeOutput[uavSlotIdx]), 0);
+		cmdH.uavs.AddUAV(reinterpret_cast<void*>(mComputeOutput[uavSlotIdx + 1]), 1);
+
 		AddDeferredDrawCmd(std::move(cmdH));
 	}
 
-	void GLRenderer::DrawDebug() {
-		DebugLineEffect* debugLineFX = EffectsManager::Instance()->m_debugLineEffect.get();
-
-		DrawCmd cmd;
-
-		cmd.flags = /*CmdFlag::BIND_FB |*/ CmdFlag::SET_DS | CmdFlag::DRAW;
-
-		cmd.depthState.depthWriteEnable = false;
-		cmd.effect = debugLineFX;
-		cmd.inputLayout = (void*)m_debugCoordVAO;
-
-		ConstantBuffer cbuffer0(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), debugLineFX->m_perObjectCB);
-		DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0.GetBuffer();
-
-		perObjectData->ViewProj = CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix();
-
-		cmd.cbuffers.push_back(std::move(cbuffer0));
-		cmd.type = PrimitiveTopology::LINELIST;
-		cmd.drawType = DrawType::ARRAY;
-		cmd.framebuffer = 0;
-
-		cmd.offset = (void*)6;
-		cmd.elementCount = 44;
-
-		DrawCmd cmd2;
-
-		cmd2.effect = debugLineFX;
-		cmd2.flags = CmdFlag::DRAW;
-		cmd2.offset = 0;
-		cmd2.elementCount = 6;
-		cmd2.type = PrimitiveTopology::LINELIST;
-		cmd2.drawType = DrawType::ARRAY;
-
-		AddDeferredDrawCmd(cmd);
-		AddDeferredDrawCmd(cmd2);
-	}
-
-	GLRenderer::~GLRenderer()
+	void GenerateColorTex(GLuint &bufferTex) 
 	{
-		glMakeTextureHandleNonResidentARB(m_diffuseBufferTexHandle);
-		glMakeTextureHandleNonResidentARB(m_normalBufferTexHandle);
-		glMakeTextureHandleNonResidentARB(m_specularBufferTexHandle);
-		glMakeTextureHandleNonResidentARB(m_depthBufferTexHandle);
-	}
-
-	void GLRenderer::GenerateColorTex(GLuint &bufferTex) {
 		glCreateTextures(GL_TEXTURE_2D, 1, &bufferTex);
-		glTextureStorage2D(bufferTex, 1, GL_RGBA16F, m_clientWidth, m_clientHeight);
+		glTextureStorage2D(bufferTex, 1, GL_RGBA16F, mClientWidth, mClientHeight);
 
 		glTextureParameteri(bufferTex, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTextureParameteri(bufferTex, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -912,9 +960,10 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		glTextureParameteri(bufferTex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	}
 
-	void GLRenderer::GenerateDepthTex(GLuint &bufferTex) {
+	void GenerateDepthTex(GLuint &bufferTex) 
+	{
 		glCreateTextures(GL_TEXTURE_2D, 1, &bufferTex);
-		glTextureStorage2D(bufferTex, 1, GL_DEPTH_COMPONENT32, m_clientWidth, m_clientHeight);
+		glTextureStorage2D(bufferTex, 1, GL_DEPTH_COMPONENT32, mClientWidth, mClientHeight);
 
 		glTextureParameteri(bufferTex, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTextureParameteri(bufferTex, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -922,23 +971,7 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		glTextureParameteri(bufferTex, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	}
 
-	void GLRenderer::AddDeferredDrawCmd(DrawCmd &cmd)
-	{
-		//m_deferredDrawList.push_back(std::move(cmd));
-		m_drawList[m_writeIndex].push_back(std::move(cmd));
-	}
-
-	void GLRenderer::AddDraw(DrawEventHandler handler)
-	{
-		m_drawHandler.push_back(handler);
-	}
-
-	void GLRenderer::AddShadowDraw(DrawEventHandler handler)
-	{
-		m_shadowDrawHandler.push_back(handler);
-	}
-
-	void GLRenderer::InitScreenQuad()
+	void InitScreenQuad()
 	{
 		// init screen quad vbo
 		std::vector<Vec4> quadVertexBuffer = {
@@ -967,31 +1000,31 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		glCreateBuffers(1, &screenQuadUVVBO);
 		glNamedBufferStorage(screenQuadUVVBO, quadUvVertexBuffer.size() * sizeof(Vec2), &quadUvVertexBuffer[0], 0);
 
-		glCreateVertexArrays(1, &m_screenQuadVAO);
+		glCreateVertexArrays(1, &mScreenQuadVAO);
 
-		glEnableVertexArrayAttrib(m_screenQuadVAO, 0);
-		glEnableVertexArrayAttrib(m_screenQuadVAO, 1);
+		glEnableVertexArrayAttrib(mScreenQuadVAO, 0);
+		glEnableVertexArrayAttrib(mScreenQuadVAO, 1);
 
-		glVertexArrayVertexBuffer(m_screenQuadVAO, 0, screenQuadVertexVBO, 0, sizeof(Vec4));
-		glVertexArrayVertexBuffer(m_screenQuadVAO, 1, screenQuadUVVBO, 0, sizeof(Vec2));
+		glVertexArrayVertexBuffer(mScreenQuadVAO, 0, screenQuadVertexVBO, 0, sizeof(Vec4));
+		glVertexArrayVertexBuffer(mScreenQuadVAO, 1, screenQuadUVVBO, 0, sizeof(Vec2));
 
-		glVertexArrayAttribFormat(m_screenQuadVAO, 0, 4, GL_FLOAT, GL_FALSE, 0);
-		glVertexArrayAttribFormat(m_screenQuadVAO, 1, 2, GL_FLOAT, GL_FALSE, 0);
+		glVertexArrayAttribFormat(mScreenQuadVAO, 0, 4, GL_FLOAT, GL_FALSE, 0);
+		glVertexArrayAttribFormat(mScreenQuadVAO, 1, 2, GL_FLOAT, GL_FALSE, 0);
 
-		glVertexArrayAttribBinding(m_screenQuadVAO, 0, 0);
-		glVertexArrayAttribBinding(m_screenQuadVAO, 1, 1);
+		glVertexArrayAttribBinding(mScreenQuadVAO, 0, 0);
+		glVertexArrayAttribBinding(mScreenQuadVAO, 1, 1);
 	}
 
-	void GLRenderer::InitDebugCoord()
+	void InitDebugCoord()
 	{
 		// init grid and coord debug draw
 		std::vector<Vec3Packed> coordVertexBuffer = {
-			Vec3Packed({0, 0, 0}),
-			Vec3Packed({5, 0, 0}),
-			Vec3Packed({0, 0, 0}),
-			Vec3Packed({0, 5, 0}),
-			Vec3Packed({0, 0, 0}),
-			Vec3Packed({0, 0, 5}),
+			Vec3Packed({ 0, 0, 0 }),
+			Vec3Packed({ 5, 0, 0 }),
+			Vec3Packed({ 0, 0, 0 }),
+			Vec3Packed({ 0, 5, 0 }),
+			Vec3Packed({ 0, 0, 0 }),
+			Vec3Packed({ 0, 0, 5 }),
 		};
 
 		std::vector<UINT> coordIndexBuffer = { 0, 1, 2, 3, 4, 5 };
@@ -1015,12 +1048,79 @@ GLRenderer::GLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDra
 		glCreateBuffers(1, &debugDrawVertexVBO);
 		glNamedBufferStorage(debugDrawVertexVBO, coordVertexBuffer.size() * sizeof(Vec3Packed), &coordVertexBuffer[0], 0);
 
-		glCreateVertexArrays(1, &m_debugCoordVAO);
+		glCreateVertexArrays(1, &mDebugCoordVAO);
 
-		glEnableVertexArrayAttrib(m_debugCoordVAO, 0);
-		glVertexArrayAttribFormat(m_debugCoordVAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
-		glVertexArrayVertexBuffer(m_debugCoordVAO, 0, debugDrawVertexVBO, 0, sizeof(Vec3Packed));
-		glVertexArrayAttribBinding(m_debugCoordVAO, 0, 0);
+		glEnableVertexArrayAttrib(mDebugCoordVAO, 0);
+		glVertexArrayAttribFormat(mDebugCoordVAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
+		glVertexArrayVertexBuffer(mDebugCoordVAO, 0, debugDrawVertexVBO, 0, sizeof(Vec3Packed));
+		glVertexArrayAttribBinding(mDebugCoordVAO, 0, 0);
 	}
+
+	int32_t mClientWidth;
+	int32_t mClientHeight;
+	bool mEnable4xMsaa;
+	std::unique_ptr<Skybox> mSkyBox;
+
+	HINSTANCE	mHInst;
+	HWND		mHMainWnd;
+	HDC			mDeviceContext;
+	HGLRC		mRenderingContext;
+
+	RenderTarget mDeferredGBuffers;
+
+	GLuint mDiffuseBufferTex;
+	GLuint mNormalBufferTex;
+	GLuint mSpecularBufferTex;
+	GLuint mDepthBufferTex;
+
+	RenderTarget mDeferredShadingRT;;
+	RenderTarget mDefaultRT;;
+
+	GLuint mSsaoTex;
+	GLuint mDeferredShadingTex;
+	GLuint mDeferredShadingDepthTex;
+
+	GLuint mComputeOutput[4];
+	uint64_t mComputeOutputHandle[4];
+
+	uint64_t mRandVecTexHandle;
+
+	uint64_t mDiffuseBufferTexHandle;
+	uint64_t mNormalBufferTexHandle;
+	uint64_t mSpecularBufferTexHandle;
+	uint64_t mDepthBufferTexHandle;
+
+	uint64_t mSsaoTexHandle;
+	uint64_t mDeferredShadingTexHandle;
+	uint64_t mDeferredShadingDepthTexHandle;
+
+	GLuint mDebugCoordVAO;
+	GLuint mScreenQuadVAO;
+
+	std::vector<DrawCmd> mDrawList[2];
+	std::atomic<uint8_t> mReadIndex;
+	std::atomic<uint8_t> mWriteIndex;
+
+	Semaphore &gPrepareDrawListSync;
+	Semaphore &gFinishedDrawListSync;
+
+	std::thread::id mContextThreadId;
+
+	uint64_t mCurrentVao;
+	Effect* mCurrentEffect;
+	uint64_t mCurrentFbo;
+
+	std::vector<DrawEventHandler> mDrawHandler;
+	std::vector<DrawEventHandler> mShadowDrawHandler;
+
+	std::unordered_map<PrimitiveTopology, GLenum> mDrawTopologyMap;
+	bool mEnableSSAO;
+};
+
+Renderer* CreateGLRenderer(HINSTANCE hInstance, HWND hMainWnd, Semaphore &prepareDrawListSync, Semaphore &finishedDrawListSync)
+{
+	auto renderer = new GLRenderer(hInstance, hMainWnd, prepareDrawListSync, finishedDrawListSync);
+	return static_cast<Renderer*>(renderer);
+}
 
 }
