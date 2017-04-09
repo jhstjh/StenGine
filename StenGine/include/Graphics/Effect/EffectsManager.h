@@ -140,9 +140,9 @@ public:
 		DirectionalLight DirLight;
 	};
 
-	GPUBuffer* m_perFrameCB;
-	GPUBuffer* m_perObjectCB;
-	GPUBuffer* m_textureCB;
+	GPUBuffer m_perFrameCB;
+	GPUBuffer m_perObjectCB;
+	GPUBuffer m_textureCB;
 };
 
 
@@ -193,10 +193,10 @@ public:
 		uint64_t CubeMapTex;
 	};
 
-	GPUBuffer* m_perFrameCB;
-	GPUBuffer* m_perObjectCB;
-	GPUBuffer* m_textureCB;
-	GPUBuffer* m_matrixPaletteSB;
+	GPUBuffer m_perFrameCB;
+	GPUBuffer m_perObjectCB;
+	GPUBuffer m_textureCB;
+	GPUBuffer m_matrixPaletteSB;
 };
 
 
@@ -204,9 +204,9 @@ public:
 
 class DeferredGeometryTerrainPassEffect : public Effect {
 public:
-	GPUBuffer* m_perFrameCB;
-	GPUBuffer* m_perObjectCB;
-	GPUBuffer* m_textureCB;
+	GPUBuffer m_perFrameCB;
+	GPUBuffer m_perObjectCB;
+	GPUBuffer m_textureCB;
 
 	DeferredGeometryTerrainPassEffect(const std::wstring& filename);
 	DeferredGeometryTerrainPassEffect(const std::wstring& vsPath,
@@ -272,9 +272,9 @@ public:
 
 class TerrainShadowMapEffect : public Effect {
 public:
-	GPUBuffer* m_perFrameCB;
-	GPUBuffer* m_perObjectCB;
-	GPUBuffer* m_textureCB;
+	GPUBuffer m_perFrameCB;
+	GPUBuffer m_perObjectCB;
+	GPUBuffer m_textureCB;
 
 	TerrainShadowMapEffect(const std::wstring& filename);
 	TerrainShadowMapEffect(const std::wstring& vsPath,
@@ -352,8 +352,8 @@ public:
 
 class DeferredShadingPassEffect : public Effect {
 public:
-	GPUBuffer* m_perFrameCB;
-	GPUBuffer* m_textureCB;
+	GPUBuffer m_perFrameCB;
+	GPUBuffer m_textureCB;
 
 	DeferredShadingPassEffect(const std::wstring& filename);
 	~DeferredShadingPassEffect();
@@ -394,7 +394,7 @@ public:
 		Mat4 gWorldViewProj;
 	};
 
-	GPUBuffer* m_perObjectCB;
+	GPUBuffer m_perObjectCB;
 };
 
 
@@ -404,8 +404,8 @@ public:
 class SkyboxEffect : public Effect {
 public:
 
-	GPUBuffer* m_perObjectCB;
-	GPUBuffer* m_textureCB;
+	GPUBuffer m_perObjectCB;
+	GPUBuffer m_textureCB;
 
 public:
 	SkyboxEffect(const std::wstring& filename);
@@ -429,8 +429,8 @@ public:
 class BlurEffect : public Effect {
 public:
 
-	GPUBuffer* m_settingCB;
-	GPUBuffer* m_textureCB;
+	GPUBuffer m_settingCB;
+	GPUBuffer m_textureCB;
 
 public:
 	BlurEffect(const std::wstring& filename);
@@ -477,8 +477,8 @@ public:
 class ImGuiEffect : public Effect {
 public:
 	
-	GPUBuffer* m_imguiCB;
-	GPUBuffer* m_textureCB;
+	GPUBuffer m_imguiCB;
+	GPUBuffer m_textureCB;
 
 	ImGuiEffect(const std::wstring& filename);
 	~ImGuiEffect();
@@ -500,7 +500,7 @@ public:
 
 class DebugLineEffect : public Effect {
 public:
-	GPUBuffer* m_perObjectCB;
+	GPUBuffer m_perObjectCB;
 
 	DebugLineEffect(const std::wstring& filename);
 	DebugLineEffect(const std::wstring& vsPath,

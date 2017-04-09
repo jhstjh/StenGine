@@ -9,7 +9,7 @@
 namespace StenGine
 {
 
-GLConstantBuffer::GLConstantBuffer(uint32_t index, uint32_t size, GPUBuffer* buffer)
+GLConstantBuffer::GLConstantBuffer(uint32_t index, uint32_t size, GPUBuffer buffer)
 {
 	m_index = index;
 	m_buffer = buffer;

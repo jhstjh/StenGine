@@ -10,7 +10,7 @@ namespace StenGine
 class GLConstantBuffer : public ConstantBufferImpl
 {
 public:
-	GLConstantBuffer(uint32_t index, uint32_t size, GPUBuffer* buffer);
+	GLConstantBuffer(uint32_t index, uint32_t size, GPUBuffer buffer);
 	~GLConstantBuffer();
 
 	virtual void* GetBuffer();
@@ -19,7 +19,7 @@ public:
 private:
 	void* m_data;
 	uint32_t m_index;
-	GPUBuffer* m_buffer;
+	GPUBuffer m_buffer;
 	uint32_t m_size;
 };
 

@@ -7,7 +7,7 @@
 namespace StenGine
 {
 
-D3D11ConstantBuffer::D3D11ConstantBuffer(uint32_t index, uint32_t size, GPUBuffer* buffer)
+D3D11ConstantBuffer::D3D11ConstantBuffer(uint32_t index, uint32_t size, GPUBuffer buffer)
 	: m_index(index)
 	, m_size(size)
 {

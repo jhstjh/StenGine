@@ -16,6 +16,7 @@
 #include "Graphics/Effect/EffectsManager.h"
 #include "Graphics/Effect/ShadowMap.h"
 #include "Graphics/Effect/Skybox.h"
+#include "Graphics/D3D11/D3D11Buffer.h"
 #include "Graphics/OpenGL/GLConstantBuffer.h"
 #include "Graphics/OpenGL/GLImageLoader.h"
 #include "Math/MathHelper.h"
@@ -577,10 +578,16 @@ public:
 		mShadowDrawHandler.push_back(handler);
 	}
 
-	ConstantBuffer CreateConstantBuffer(uint32_t index, uint32_t size, class GPUBuffer* buffer) final
+	ConstantBuffer CreateConstantBuffer(uint32_t index, uint32_t size, GPUBuffer buffer) final
 	{
 		return std::make_unique<GLConstantBuffer>(index, size, buffer);
 	}
+
+	GPUBuffer CreateGPUBuffer(size_t size, BufferUsage usage, void* data /*= nullptr*/, BufferType type /*= BufferType::GENERAL*/) final
+	{
+		return std::make_shared<GLBuffer>(size, usage, data, type);
+	}
+
 
 private:
 

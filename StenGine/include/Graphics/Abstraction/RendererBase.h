@@ -4,6 +4,7 @@
 #include <functional>
 
 #include "DrawCmd.h"
+#include "Graphics/Abstraction/GPUBuffer.h"
 #include "Math/MathDefs.h"
 #include "Utility/Semaphore.h"
 
@@ -88,7 +89,8 @@ public:
 	virtual void AcquireContext() = 0;
 	virtual void ReleaseContext() = 0;
 
-	virtual ConstantBuffer CreateConstantBuffer(uint32_t index, uint32_t size, class GPUBuffer* buffer) = 0;
+	virtual ConstantBuffer CreateConstantBuffer(uint32_t index, uint32_t size, GPUBuffer buffer) = 0;
+	virtual GPUBuffer CreateGPUBuffer(size_t size, BufferUsage usage, void* data = nullptr, BufferType type = BufferType::GENERAL) = 0;
 
 protected:
 	static Renderer* _instance;

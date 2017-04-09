@@ -6,6 +6,7 @@
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Graphics/Color.h"
 #include "Graphics/D3DIncludes.h"
+#include "Graphics/D3D11/D3D11Buffer.h"
 #include "Graphics/D3D11/D3D11ConstantBuffer.h"
 #include "Graphics/Effect/EffectsManager.h"
 #include "Graphics/Effect/ShadowMap.h"
@@ -895,11 +896,15 @@ public:
 
 	void ReleaseContext() final { /*TODO*/ }
 
-	ConstantBuffer CreateConstantBuffer(uint32_t index, uint32_t size, class GPUBuffer* buffer) final
+	ConstantBuffer CreateConstantBuffer(uint32_t index, uint32_t size, GPUBuffer buffer) final
 	{
 		return std::make_unique<D3D11ConstantBuffer>(index, size, buffer);
 	}
 
+	GPUBuffer CreateGPUBuffer(size_t size, BufferUsage usage, void* data /*= nullptr*/, BufferType type /*= BufferType::GENERAL*/) final
+	{
+		return std::make_shared<D3D11Buffer>(size, usage, data, type);
+	}
 
 private:
 

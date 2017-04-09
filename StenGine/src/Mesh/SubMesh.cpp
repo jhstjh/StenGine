@@ -15,11 +15,11 @@ SubMesh::SubMesh()
 
 SubMesh::~SubMesh()
 {
-	SafeDelete(m_indexBufferGPU);
+
 }
 
 void SubMesh::PrepareGPUBuffer() {
-	m_indexBufferGPU = new GPUBuffer(m_indexBufferCPU.size() * sizeof(UINT), BufferUsage::IMMUTABLE, (void*)&m_indexBufferCPU.front(), BufferType::INDEX_BUFFER);
+	m_indexBufferGPU = Renderer::Instance()->CreateGPUBuffer(m_indexBufferCPU.size() * sizeof(UINT), BufferUsage::IMMUTABLE, (void*)&m_indexBufferCPU.front(), BufferType::INDEX_BUFFER);
 }
 
 void SubMesh::DrawMenu()

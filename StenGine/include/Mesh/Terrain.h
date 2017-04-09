@@ -52,8 +52,8 @@ private:
 
 	InitInfo m_initInfo;
 
-	GPUBuffer* m_quadPatchVB;
-	GPUBuffer* m_quadPatchIB;
+	GPUBuffer m_quadPatchVB;
+	GPUBuffer m_quadPatchIB;
 
 	Texture* m_layerMapArrayTex;
 	Texture* m_blendMapTex;

@@ -48,10 +48,9 @@ Terrain::Terrain(InitInfo &info) :
 	m_layerMapArrayTex = ResourceManager::Instance()->GetResource<Texture>(m_initInfo.LayerMapFilenames);
 }
 
-Terrain::~Terrain() {
-	SafeDelete(m_heightMapTex);
-	SafeDelete(m_quadPatchIB);
-	SafeDelete(m_quadPatchVB);
+Terrain::~Terrain() 
+{
+
 }
 
 void Terrain::CalcPatchBoundsY(uint32_t i, uint32_t j)
@@ -288,7 +287,7 @@ void Terrain::BuildQuadPatchVB() {
 		}
 	}
 
-	m_quadPatchVB = new GPUBuffer(patchVertices.size() * sizeof(Vertex::TerrainVertex), BufferUsage::IMMUTABLE, (void*)&patchVertices.front(), BufferType::VERTEX_BUFFER);
+	m_quadPatchVB= Renderer::Instance()->CreateGPUBuffer(patchVertices.size() * sizeof(Vertex::TerrainVertex), BufferUsage::IMMUTABLE, (void*)&patchVertices.front(), BufferType::VERTEX_BUFFER);
 }
 
 void Terrain::BuildQuadPatchIB() {
@@ -306,7 +305,7 @@ void Terrain::BuildQuadPatchIB() {
 			k += 4;
 		}
 	}
-	m_quadPatchIB = new GPUBuffer(indices.size() * sizeof(uint32_t), BufferUsage::IMMUTABLE, (void*)&indices.front(), BufferType::INDEX_BUFFER);
+	m_quadPatchIB= Renderer::Instance()->CreateGPUBuffer(indices.size() * sizeof(uint32_t), BufferUsage::IMMUTABLE, (void*)&indices.front(), BufferType::INDEX_BUFFER);
 }
 
 void Terrain::GatherDrawCall() 

@@ -20,7 +20,7 @@ public:
 
 	std::vector<UINT> m_indexBufferCPU;
 
-	GPUBuffer* m_indexBufferGPU;
+	GPUBuffer m_indexBufferGPU;
 
 	uint32_t m_matIndex;
 

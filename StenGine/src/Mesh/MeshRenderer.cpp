@@ -37,10 +37,9 @@ Mesh::Mesh(int type = 0)
 		CreatePlanePrimitive();
 }
 
-Mesh::~Mesh() {
-	SafeDelete(m_shadowMapVertexBufferGPU);
-	SafeDelete(m_vertexBufferGPU);
-	SafeDelete(m_indexBufferGPU);
+Mesh::~Mesh()
+{
+
 }
 
 void Mesh::Prepare() {
@@ -132,13 +131,13 @@ void Mesh::PrepareGPUBuffer()
 		vertices[k].TexUV = m_texUVBufferCPU[i];
 	}
 
-	m_vertexBufferGPU = new GPUBuffer(vertices.size() * sizeof(Vertex::StdMeshVertex), BufferUsage::IMMUTABLE, (void*)&vertices.front(), BufferType::VERTEX_BUFFER);
-	m_indexBufferGPU = new GPUBuffer(m_indexBufferCPU.size() * sizeof(UINT), BufferUsage::IMMUTABLE, (void*)&m_indexBufferCPU.front(), BufferType::INDEX_BUFFER);
+	m_vertexBufferGPU= Renderer::Instance()->CreateGPUBuffer(vertices.size() * sizeof(Vertex::StdMeshVertex), BufferUsage::IMMUTABLE, (void*)&vertices.front(), BufferType::VERTEX_BUFFER);
+	m_indexBufferGPU= Renderer::Instance()->CreateGPUBuffer(m_indexBufferCPU.size() * sizeof(UINT), BufferUsage::IMMUTABLE, (void*)&m_indexBufferCPU.front(), BufferType::INDEX_BUFFER);
 }
 
 void Mesh::PrepareShadowMapBuffer()
 {
-	m_shadowMapVertexBufferGPU = new GPUBuffer(m_positionBufferCPU.size() * sizeof(Vertex::ShadowMapVertex), BufferUsage::IMMUTABLE, (void*)&m_positionBufferCPU.front(), BufferType::VERTEX_BUFFER);
+	m_shadowMapVertexBufferGPU= Renderer::Instance()->CreateGPUBuffer(m_positionBufferCPU.size() * sizeof(Vertex::ShadowMapVertex), BufferUsage::IMMUTABLE, (void*)&m_positionBufferCPU.front(), BufferType::VERTEX_BUFFER);
 }
 
 void Mesh::GatherDrawCall() {

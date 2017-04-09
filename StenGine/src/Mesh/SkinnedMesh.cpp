@@ -59,8 +59,8 @@ void SkinnedMesh::PrepareGPUBuffer()
 		vertices[k].JointIndices = Vec4uiPacked(Vec4ui(&m_jointIndicesBufferCPU[i][0]));
 	}
 
-	m_vertexBufferGPU = new GPUBuffer(vertices.size() * sizeof(Vertex::SkinnedMeshVertex), BufferUsage::IMMUTABLE, (void*)&vertices.front(), BufferType::VERTEX_BUFFER);
-	m_indexBufferGPU = new GPUBuffer(m_indexBufferCPU.size() * sizeof(UINT), BufferUsage::IMMUTABLE, (void*)&m_indexBufferCPU.front(), BufferType::INDEX_BUFFER);
+	m_vertexBufferGPU= Renderer::Instance()->CreateGPUBuffer(vertices.size() * sizeof(Vertex::SkinnedMeshVertex), BufferUsage::IMMUTABLE, (void*)&vertices.front(), BufferType::VERTEX_BUFFER);
+	m_indexBufferGPU= Renderer::Instance()->CreateGPUBuffer(m_indexBufferCPU.size() * sizeof(UINT), BufferUsage::IMMUTABLE, (void*)&m_indexBufferCPU.front(), BufferType::INDEX_BUFFER);
 }
 
 void SkinnedMesh::PrepareShadowMapBuffer()

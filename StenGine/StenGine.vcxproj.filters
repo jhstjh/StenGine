@@ -660,9 +660,6 @@
     <ClCompile Include="src\Graphics\Abstraction\UAVBinding.cpp">
       <Filter>src\Graphics\Abstraction</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Abstraction\GPUBuffer.cpp">
-      <Filter>src\Graphics\Abstraction</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\Abstraction\RendererBase.cpp">
       <Filter>src\Graphics\Abstraction</Filter>
     </ClCompile>

@@ -35,21 +35,6 @@ public:
 	virtual void bind(uint32_t bindpoint) = 0;
 };
 
-
-class GPUBuffer
-{
-public:
-	GPUBuffer(size_t size, BufferUsage usage, void* data = nullptr, BufferType type = BufferType::GENERAL);
-	~GPUBuffer();
-
-	void* map();
-	void unmap();
-	void* GetBuffer();
-	uint32_t GetFlags();
-	void bind(uint32_t bindpoint);
-private:
-	std::unique_ptr<GPUBufferImpl> mImpl;
-};
-
+using GPUBuffer = std::shared_ptr<GPUBufferImpl>;
 
 }

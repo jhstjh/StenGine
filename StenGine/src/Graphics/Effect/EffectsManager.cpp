@@ -505,7 +505,7 @@ ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
 	}
 	}
 
-	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB = Renderer::Instance()->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 ShadowMapEffect::~ShadowMapEffect()
@@ -519,8 +519,6 @@ ShadowMapEffect::~ShadowMapEffect()
 		glDeleteVertexArrays(1, &m_glinputLayout);
 		break;
 	}
-
-	SafeDelete(m_perObjectCB);
 }
 
 
@@ -547,13 +545,8 @@ DeferredGeometryPassEffect::~DeferredGeometryPassEffect()
 		break;
 	case RenderBackend::OPENGL4:
 		glDeleteVertexArrays(1, &m_glinputLayout);
-		SafeDelete(m_textureCB);
 		break;
-	}
-
-	SafeDelete(m_perObjectCB);
-	SafeDelete(m_perFrameCB);
-	
+	}	
 }
 
 void DeferredGeometryPassEffect::PrepareBuffer()
@@ -615,14 +608,14 @@ void DeferredGeometryPassEffect::PrepareBuffer()
 		GLint texUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
 		glUniformBlockBinding(m_shaderProgram, texUBOPos, 2);
 
-		m_textureCB = new GPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_textureCB = Renderer::Instance()->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 		break;
 	}
 	}
 
-	m_perFrameCB = new GPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
-	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perFrameCB = Renderer::Instance()->CreateGPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB = Renderer::Instance()->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 //------------------------------------------------------------//
@@ -648,13 +641,8 @@ DeferredSkinnedGeometryPassEffect::~DeferredSkinnedGeometryPassEffect()
 		break;
 	case RenderBackend::OPENGL4:
 		glDeleteVertexArrays(1, &m_glinputLayout);
-		SafeDelete(m_textureCB);
 		break;
 	}
-
-	SafeDelete(m_perFrameCB);
-	SafeDelete(m_perObjectCB);
-	SafeDelete(m_matrixPaletteSB);
 }
 
 void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
@@ -683,7 +671,7 @@ void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
 		ReleaseCOM(m_dsBlob);
 		ReleaseCOM(m_csBlob);
 
-		m_matrixPaletteSB = new GPUBuffer(sizeof(Mat4) * 64, BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_matrixPaletteSB = Renderer::Instance()->CreateGPUBuffer(sizeof(Mat4) * 64, BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 		break;
 	}
@@ -721,15 +709,15 @@ void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
 		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
 		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 2);
 
-		m_textureCB = new GPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
-		m_matrixPaletteSB = new GPUBuffer(sizeof(Mat4) * 64, BufferUsage::WRITE, nullptr, BufferType::SSBO);
+		m_textureCB= Renderer::Instance()->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_matrixPaletteSB= Renderer::Instance()->CreateGPUBuffer(sizeof(Mat4) * 64, BufferUsage::WRITE, nullptr, BufferType::SSBO);
 
 		break;
 	}
 	}
 
-	m_perFrameCB = new GPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
-	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perFrameCB= Renderer::Instance()->CreateGPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB= Renderer::Instance()->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 
@@ -772,12 +760,12 @@ DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filenam
 		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
 		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 1);
 
-		m_textureCB = new GPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_textureCB= Renderer::Instance()->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 		break;
 	}
 	}
 
-	m_perFrameCB = new GPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perFrameCB= Renderer::Instance()->CreateGPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 DeferredShadingPassEffect::~DeferredShadingPassEffect()
@@ -788,11 +776,8 @@ DeferredShadingPassEffect::~DeferredShadingPassEffect()
 		ReleaseCOM(m_d3d11inputLayout);
 		break;
 	case RenderBackend::OPENGL4:
-		SafeDelete(m_textureCB);
 		break;
 	}
-
-	SafeDelete(m_perFrameCB);
 }
 
 SkyboxEffect::SkyboxEffect(const std::wstring& filename)
@@ -831,12 +816,12 @@ SkyboxEffect::SkyboxEffect(const std::wstring& filename)
 		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
 		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 1);
 
-		m_textureCB = new GPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_textureCB= Renderer::Instance()->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 		break;
 	}
 	}
 
-	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB= Renderer::Instance()->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 SkyboxEffect::~SkyboxEffect()
@@ -850,12 +835,9 @@ SkyboxEffect::~SkyboxEffect()
 	}
 	case RenderBackend::OPENGL4:
 	{
-		SafeDelete(m_textureCB);
 		break;
 	}
 	}
-
-	SafeDelete(m_perObjectCB);
 }
 
 //------------------------------------------------------------//
@@ -891,7 +873,7 @@ DebugLineEffect::DebugLineEffect(const std::wstring& filename)
 	}
 	}
 
-	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB= Renderer::Instance()->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 DebugLineEffect::~DebugLineEffect()
@@ -904,8 +886,6 @@ DebugLineEffect::~DebugLineEffect()
 		break;
 	}
 	}
-
-	SafeDelete(m_perObjectCB);
 }
 
 
@@ -998,14 +978,14 @@ DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::
 		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
 		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 2);
 
-		m_textureCB = new GPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_textureCB= Renderer::Instance()->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 		break;
 	}
 	}
 
-	m_perFrameCB = new GPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
-	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perFrameCB= Renderer::Instance()->CreateGPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB= Renderer::Instance()->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 }
 
@@ -1021,13 +1001,9 @@ DeferredGeometryTerrainPassEffect::~DeferredGeometryTerrainPassEffect()
 	case RenderBackend::OPENGL4:
 	{
 		glDeleteVertexArrays(1, &m_glinputLayout);
-		SafeDelete(m_textureCB);
 		break;
 	}
 	}
-
-	SafeDelete(m_perFrameCB);
-	SafeDelete(m_perObjectCB);
 }
 
 
@@ -1093,14 +1069,14 @@ TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
 		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
 		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 2);
 
-		m_textureCB = new GPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_textureCB = Renderer::Instance()->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 		break;
 	}
 	}
 
-	m_perFrameCB = new GPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
-	m_perObjectCB = new GPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perFrameCB = Renderer::Instance()->CreateGPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB = Renderer::Instance()->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 }
 
@@ -1115,14 +1091,10 @@ TerrainShadowMapEffect::~TerrainShadowMapEffect()
 	}
 	case RenderBackend::OPENGL4:
 	{
-		SafeDelete(m_textureCB);
 		glDeleteVertexArrays(1, &m_glinputLayout);
 		break;
 	}
 	}
-
-	SafeDelete(m_perObjectCB);
-	SafeDelete(m_perFrameCB);
 }
 
 //----------------------------------------------------------//
@@ -1182,13 +1154,13 @@ ImGuiEffect::ImGuiEffect(const std::wstring& filename)
 		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
 		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 1);
 
-		m_textureCB = new GPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_textureCB= Renderer::Instance()->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 		break;
 	}
 	}
 
-	m_imguiCB = new GPUBuffer(sizeof(IMGUI_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_imguiCB= Renderer::Instance()->CreateGPUBuffer(sizeof(IMGUI_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 }
 
@@ -1203,13 +1175,10 @@ ImGuiEffect::~ImGuiEffect()
 	}
 	case RenderBackend::OPENGL4:
 	{
-		SafeDelete(m_textureCB);
 		glDeleteVertexArrays(1, &m_glinputLayout);
 		break;
 	}
 	}
-
-	SafeDelete(m_imguiCB);
 }
 
 //-------------------------------------------//
@@ -1246,13 +1215,13 @@ BlurEffect::BlurEffect(const std::wstring& filename)
 		GLint texturesCBPos = glGetUniformBlockIndex(m_shaderProgram, "cbTextures");
 		glUniformBlockBinding(m_shaderProgram, texturesCBPos, 1);
 
-		m_textureCB = new GPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_textureCB= Renderer::Instance()->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 		break;
 	}
 	}
 
-	m_settingCB = new GPUBuffer(sizeof(SETTING_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_settingCB= Renderer::Instance()->CreateGPUBuffer(sizeof(SETTING_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 BlurEffect::~BlurEffect()
@@ -1266,12 +1235,9 @@ BlurEffect::~BlurEffect()
 	}
 	case RenderBackend::OPENGL4:
 	{
-		SafeDelete(m_textureCB);
 		break;
 	}
 	}
-
-	SafeDelete(m_settingCB);
 }
 
 /********************************************************************/
