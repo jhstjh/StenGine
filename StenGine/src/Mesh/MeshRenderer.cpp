@@ -250,7 +250,7 @@ void Mesh::GatherDrawCall() {
 			cmd.flags = CmdFlag::DRAW;
 			cmd.drawType = DrawType::INDEXED;
 			cmd.inputLayout = effect->GetInputLayout();
-			cmd.framebuffer = &Renderer::Instance()->GetGbuffer();
+			cmd.framebuffer = Renderer::Instance()->GetGbuffer();
 			cmd.vertexBuffer = (void*)m_vertexBufferGPU->GetBuffer();
 			cmd.indexBuffer = (void*)m_indexBufferGPU->GetBuffer();
 			cmd.vertexStride = stride;
@@ -294,7 +294,7 @@ void Mesh::GatherShadowDrawCall() {
 		cmd.vertexStride = stride;
 		cmd.vertexOffset = offset;
 		cmd.inputLayout = effect->GetInputLayout();
-		cmd.framebuffer = &LightManager::Instance()->m_shadowMap->GetRenderTarget();
+		cmd.framebuffer = LightManager::Instance()->m_shadowMap->GetRenderTarget();
 		cmd.offset = (void*)(0);
 		cmd.effect = effect;
 		cmd.elementCount = (int64_t)m_indexBufferCPU.size();

@@ -8,6 +8,7 @@
 #include "Graphics/D3DIncludes.h"
 #include "Graphics/D3D11/D3D11Buffer.h"
 #include "Graphics/D3D11/D3D11ConstantBuffer.h"
+#include "Graphics/D3D11/D3D11RenderTarget.h"
 #include "Graphics/Effect/EffectsManager.h"
 #include "Graphics/Effect/ShadowMap.h"
 #include "Graphics/Effect/Skybox.h"
@@ -541,15 +542,16 @@ public:
 			assert(SUCCEEDED(hr));
 		}
 
-		mGBuffer.AddRenderTarget(mDiffuseBufferRTV);
-		mGBuffer.AddRenderTarget(mNormalBufferRTV);
-		mGBuffer.AddRenderTarget(mSpecularBufferRTV);
+		mGBuffer = CreateRenderTarget();
+		mGBuffer->AddRenderTarget(mDiffuseBufferRTV);
+		mGBuffer->AddRenderTarget(mNormalBufferRTV);
+		mGBuffer->AddRenderTarget(mSpecularBufferRTV);
 
-		mGBuffer.AddClearColor(SGColors::LightSteelBlue);
-		mGBuffer.AddClearColor(SGColors::Black);
-		mGBuffer.AddClearColor(SGColors::Black);
+		mGBuffer->AddClearColor(SGColors::LightSteelBlue);
+		mGBuffer->AddClearColor(SGColors::Black);
+		mGBuffer->AddClearColor(SGColors::Black);
 
-		mGBuffer.AssignDepthStencil(mDeferredRenderDepthStencilView);
+		mGBuffer->AssignDepthStencil(mDeferredRenderDepthStencilView);
 
 		mDrawTopologyMap[PrimitiveTopology::POINTLIST] = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
 		mDrawTopologyMap[PrimitiveTopology::LINELIST] = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
@@ -557,22 +559,25 @@ public:
 		mDrawTopologyMap[PrimitiveTopology::CONTROL_POINT_3_PATCHLIST] = D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST;
 		mDrawTopologyMap[PrimitiveTopology::CONTROL_POINT_4_PATCHLIST] = D3D11_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST;
 
+		mDeferredShadingRT = CreateRenderTarget();
+		mDeferredShadingRT->AddRenderTarget(mDeferredShadingRTV);
+		mDeferredShadingRT->AddRenderTarget(mSSAORTV);
+		mDeferredShadingRT->AddClearColor(SGColors::LightSteelBlue);
+		mDeferredShadingRT->AddClearColor(SGColors::LightSteelBlue);
+		mDeferredShadingRT->AssignDepthStencil(mDepthStencilView);
 
-		mDeferredShadingRT.AddRenderTarget(mDeferredShadingRTV);
-		mDeferredShadingRT.AddRenderTarget(mSSAORTV);
-		mDeferredShadingRT.AddClearColor(SGColors::LightSteelBlue);
-		mDeferredShadingRT.AddClearColor(SGColors::LightSteelBlue);
-		mDeferredShadingRT.AssignDepthStencil(mDepthStencilView);
+		mDefaultRTNoDepth = CreateRenderTarget();
+		mDefaultRTNoDepth->AddRenderTarget(mRenderTargetView);
+		mDefaultRTNoDepth->AssignDepthStencil(nullptr);
 
-		mDefaultRTNoDepth.AddRenderTarget(mRenderTargetView);
-		mDefaultRTNoDepth.AssignDepthStencil(nullptr);
+		mDefaultRTWithDepth = CreateRenderTarget();
+		mDefaultRTWithDepth->AddRenderTarget(mRenderTargetView);
+		mDefaultRTWithDepth->AddClearColor(SGColors::LightSteelBlue);
+		mDefaultRTWithDepth->AssignDepthStencil(mDepthStencilView);
 
-		mDefaultRTWithDepth.AddRenderTarget(mRenderTargetView);
-		mDefaultRTWithDepth.AddClearColor(SGColors::LightSteelBlue);
-		mDefaultRTWithDepth.AssignDepthStencil(mDepthStencilView);
-
-		mDebugRT.AddRenderTarget(mRenderTargetView);
-		mDebugRT.AssignDepthStencil(mDeferredRenderDepthStencilView);
+		mDebugRT = CreateRenderTarget();
+		mDebugRT->AddRenderTarget(mRenderTargetView);
+		mDebugRT->AssignDepthStencil(mDeferredRenderDepthStencilView);
 
 		/*****************************uav***************************/
 
@@ -619,7 +624,7 @@ public:
 
 	void Draw() final {
 
-		mGBuffer.ClearDepth(mD3d11DeviceContext);
+		mGBuffer->ClearDepth(mD3d11DeviceContext);
 
 		ID3D11SamplerState* samplerState[] = { mSamplerState, mShadowSamplerState, mHeightMapSamplerState };
 		mD3d11DeviceContext->PSSetSamplers(0, 3, samplerState);
@@ -686,7 +691,7 @@ public:
 		DrawCmd shadowcmd;
 
 		shadowcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_DEPTH | CmdFlag::SET_RSSTATE;
-		shadowcmd.framebuffer = &LightManager::Instance()->m_shadowMap->GetRenderTarget();
+		shadowcmd.framebuffer = LightManager::Instance()->m_shadowMap->GetRenderTarget();
 		shadowcmd.viewport = { 0, 0, (float)width, (float)height, 0, 1 };
 		shadowcmd.rsState = mDepthRS;
 
@@ -707,7 +712,7 @@ public:
 		DrawCmd drawcmd;
 
 		drawcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH | CmdFlag::SET_RSSTATE;
-		drawcmd.framebuffer = &mGBuffer;
+		drawcmd.framebuffer = mGBuffer;
 
 		drawcmd.viewport = mScreenViewpot;
 		drawcmd.rsState = 0;
@@ -758,7 +763,7 @@ public:
 		cmd.inputLayout = 0;
 		cmd.vertexBuffer = 0; // don't bind if 0
 		cmd.type = PrimitiveTopology::TRIANGLELIST;
-		cmd.framebuffer = &mDeferredShadingRT;
+		cmd.framebuffer = mDeferredShadingRT;
 		cmd.offset = (void*)(0);
 		cmd.effect = effect;
 		cmd.elementCount = 6;
@@ -777,7 +782,7 @@ public:
 
 		clearRTcmd.flags = CmdFlag::BIND_FB;
 
-		clearRTcmd.framebuffer = &mDefaultRTNoDepth;
+		clearRTcmd.framebuffer = mDefaultRTNoDepth;
 
 		AddDeferredDrawCmd(std::move(clearRTcmd));
 
@@ -800,7 +805,7 @@ public:
 		cmd.inputLayout = 0;
 		cmd.vertexBuffer = 0; // don't bind if 0
 		cmd.type = PrimitiveTopology::TRIANGLELIST;
-		cmd.framebuffer = &mDefaultRTWithDepth;
+		cmd.framebuffer = mDefaultRTWithDepth;
 		cmd.offset = (void*)(0);
 		cmd.effect = blurEffect;
 		cmd.elementCount = 6;
@@ -841,7 +846,7 @@ public:
 		cmd.elementCount = 44;
 		cmd.vertexStride = stride;
 		cmd.vertexOffset = offset;
-		cmd.framebuffer = &mDebugRT;
+		cmd.framebuffer = mDebugRT;
 
 		DrawCmd cmd2;
 
@@ -904,6 +909,11 @@ public:
 	GPUBuffer CreateGPUBuffer(size_t size, BufferUsage usage, void* data /*= nullptr*/, BufferType type /*= BufferType::GENERAL*/) final
 	{
 		return std::make_shared<D3D11Buffer>(size, usage, data, type);
+	}
+
+	RenderTarget CreateRenderTarget() final
+	{
+		return std::make_shared<D3D11RenderTarget>();
 	}
 
 private:

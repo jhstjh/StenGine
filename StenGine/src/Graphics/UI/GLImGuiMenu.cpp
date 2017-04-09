@@ -66,7 +66,7 @@ public:
 		viewport.Width = static_cast<float>(fb_width);
 		viewport.Height = static_cast<float>(fb_height);
 
-		stateCmd.framebuffer = &m_defaultRT;
+		stateCmd.framebuffer = m_defaultRT;
 
 		Renderer::Instance()->AddDeferredDrawCmd(stateCmd);
 
@@ -216,7 +216,8 @@ private:
 		glCreateBuffers(1, &m_vbo);
 		glCreateBuffers(1, &m_ibo);
 
-		m_defaultRT.Set(0);
+		m_defaultRT = Renderer::Instance()->CreateRenderTarget();
+		m_defaultRT->Set(0);
 
 		return true;
 	}

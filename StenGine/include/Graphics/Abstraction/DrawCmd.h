@@ -51,7 +51,7 @@ struct DrawCmd {
 	uint32_t			flags			= 0;
 	DrawType			drawType		= DrawType::NONE;
 	PrimitiveTopology	type			= PrimitiveTopology::TRIANGLELIST;
-	RenderTarget*		framebuffer		= nullptr;
+	RenderTarget		framebuffer		= nullptr;
 	void*				inputLayout		= nullptr;
 
 	int64_t				elementCount	= 0;

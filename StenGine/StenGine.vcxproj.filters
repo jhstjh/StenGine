@@ -663,9 +663,6 @@
     <ClCompile Include="src\Graphics\Abstraction\RendererBase.cpp">
       <Filter>src\Graphics\Abstraction</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Abstraction\RenderTarget.cpp">
-      <Filter>src\Graphics\Abstraction</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\Abstraction\Texture.cpp">
       <Filter>src\Graphics\Abstraction</Filter>
     </ClCompile>

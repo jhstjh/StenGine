@@ -19,6 +19,7 @@
 #include "Graphics/D3D11/D3D11Buffer.h"
 #include "Graphics/OpenGL/GLConstantBuffer.h"
 #include "Graphics/OpenGL/GLImageLoader.h"
+#include "Graphics/OpenGL/GLRenderTarget.h"
 #include "Math/MathHelper.h"
 #include "Mesh/MeshRenderer.h"
 #include "Scene/LightManager.h"
@@ -168,7 +169,8 @@ public:
 		glClearDepth(1.0f);
 		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-		mDefaultRT.Set(0);
+		mDefaultRT = CreateRenderTarget();
+		mDefaultRT->Set(0);
 
 		/***************GBUFFER FB*********************/
 		GLuint gbuffer;
@@ -192,7 +194,8 @@ public:
 			return false;
 		}
 
-		mDeferredGBuffers.Set(gbuffer);
+		mDeferredGBuffers = CreateRenderTarget();
+		mDeferredGBuffers->Set(gbuffer);
 
 		mDiffuseBufferTexHandle = glGetTextureHandleARB(mDiffuseBufferTex);
 		mNormalBufferTexHandle = glGetTextureHandleARB(mNormalBufferTex);
@@ -226,7 +229,8 @@ public:
 			return false;
 		}
 
-		mDeferredShadingRT.Set(deferredShadingRT);
+		mDeferredShadingRT = CreateRenderTarget();
+		mDeferredShadingRT->Set(deferredShadingRT);
 
 		mDeferredShadingTexHandle = glGetTextureHandleARB(mDeferredShadingTex);
 		mSsaoTexHandle = glGetTextureHandleARB(mSsaoTex);
@@ -398,7 +402,7 @@ public:
 		DrawCmd shadowcmd;
 
 		shadowcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH;
-		shadowcmd.framebuffer = &LightManager::Instance()->m_shadowMap->GetRenderTarget();
+		shadowcmd.framebuffer = LightManager::Instance()->m_shadowMap->GetRenderTarget();
 		shadowcmd.viewport = { 0, 0, (float)width, (float)height, 0, 1 };
 
 		AddDeferredDrawCmd(std::move(shadowcmd));
@@ -414,7 +418,7 @@ public:
 		DrawCmd drawcmd;
 
 		drawcmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_VP | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH;
-		drawcmd.framebuffer = &mDeferredGBuffers;
+		drawcmd.framebuffer = mDeferredGBuffers;
 		drawcmd.viewport = { 0.f, 0.f, (float)mClientWidth, (float)mClientHeight, 0.f, 1.f };
 
 		AddDeferredDrawCmd(std::move(drawcmd));
@@ -461,7 +465,7 @@ public:
 		cmd.inputLayout = (void*)mScreenQuadVAO;
 		cmd.vertexBuffer = 0; // don't bind if 0
 		cmd.type = PrimitiveTopology::TRIANGLELIST;
-		cmd.framebuffer = &mDeferredShadingRT;
+		cmd.framebuffer = mDeferredShadingRT;
 		cmd.offset = (void*)(0);
 		cmd.effect = effect;
 		cmd.elementCount = 6;
@@ -491,7 +495,7 @@ public:
 		cmd.inputLayout = (void*)mScreenQuadVAO;
 		cmd.vertexBuffer = 0; // don't bind if 0
 		cmd.type = PrimitiveTopology::TRIANGLELIST;
-		cmd.framebuffer = &mDefaultRT;
+		cmd.framebuffer = mDefaultRT;
 		cmd.offset = (void*)(0);
 		cmd.effect = blurEffect;
 		cmd.elementCount = 6;
@@ -588,6 +592,10 @@ public:
 		return std::make_shared<GLBuffer>(size, usage, data, type);
 	}
 
+	RenderTarget CreateRenderTarget() final
+	{
+		return std::make_shared<GLRenderTarget>();
+	}
 
 private:
 

@@ -403,7 +403,6 @@
     <ClCompile Include="src\Engine\EngineBase.cpp" />
     <ClCompile Include="src\Engine\EventSystem.cpp" />
     <ClCompile Include="src\Graphics\Abstraction\RendererBase.cpp" />
-    <ClCompile Include="src\Graphics\Abstraction\RenderTarget.cpp" />
     <ClCompile Include="src\Graphics\Abstraction\Texture.cpp" />
     <ClCompile Include="src\Graphics\Abstraction\UAVBinding.cpp" />
     <ClCompile Include="src\Graphics\Animation\Animation.cpp" />

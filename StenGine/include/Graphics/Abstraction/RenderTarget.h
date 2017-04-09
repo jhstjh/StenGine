@@ -20,25 +20,6 @@ public:
 	virtual uint32_t Get() { return 0; };
 };
 
-
-class RenderTarget
-{
-public:
-	RenderTarget();
-	// D3D11 only
-	void AddRenderTarget(void* renderTarget);
-	void AddClearColor(SGColors color);
-	void AssignDepthStencil(void* depthStencil);
-
-	void SetRenderTarget(void* deviceContext);
-	void ClearColor(void* deviceContext);
-	void ClearDepth(void* deviceContext);
-
-	// GL only
-	void Set(uint32_t framebuffer);
-	uint32_t Get();
-private:
-	std::unique_ptr<RenderTargetImpl> mImpl;
-};
+using RenderTarget = std::shared_ptr<RenderTargetImpl>;
 
 }

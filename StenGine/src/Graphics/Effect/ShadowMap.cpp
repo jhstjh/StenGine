@@ -50,8 +50,9 @@ ShadowMap::ShadowMap(uint32_t width, uint32_t height)
 
 		ReleaseCOM(depthMap);
 
-		m_shadowTarget.AddRenderTarget(nullptr);
-		m_shadowTarget.AssignDepthStencil(m_depthDSV);
+		m_shadowTarget = Renderer::Instance()->CreateRenderTarget();
+		m_shadowTarget->AddRenderTarget(nullptr);
+		m_shadowTarget->AssignDepthStencil(m_depthDSV);
 
 		break;
 	}
@@ -78,7 +79,8 @@ ShadowMap::ShadowMap(uint32_t width, uint32_t height)
 		GLenum draw_bufs[] = { GL_NONE };
 		glNamedFramebufferDrawBuffers(shadowFB, 1, draw_bufs);
 
-		m_shadowTarget.Set(shadowFB);
+		m_shadowTarget = Renderer::Instance()->CreateRenderTarget();
+		m_shadowTarget->Set(shadowFB);
 
 		m_depthTexHandle = glGetTextureHandleARB(m_depthTex);
 		glMakeTextureHandleResidentARB(m_depthTexHandle);
