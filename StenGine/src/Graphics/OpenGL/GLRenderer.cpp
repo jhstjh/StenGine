@@ -20,6 +20,8 @@
 #include "Graphics/OpenGL/GLConstantBuffer.h"
 #include "Graphics/OpenGL/GLImageLoader.h"
 #include "Graphics/OpenGL/GLRenderTarget.h"
+#include "Graphics/OpenGL/GLTexture.h"
+#include "Graphics/OpenGL/GLUAVBinding.h"
 #include "Math/MathHelper.h"
 #include "Mesh/MeshRenderer.h"
 #include "Scene/LightManager.h"
@@ -597,6 +599,16 @@ public:
 		return std::make_shared<GLRenderTarget>();
 	}
 
+	UAVBinding CreateUAVBinding() final
+	{
+		return std::make_unique<GLUAVBinding>();
+	}
+
+	Texture CreateTexture(uint32_t width, uint32_t height, void* srv) final
+	{
+		return std::make_shared<GLTexture>(width, height, srv);
+	}
+
 private:
 
 	bool initializeExtensions()
@@ -904,7 +916,7 @@ private:
 				}
 				else if (cmd.flags & CmdFlag::COMPUTE)
 				{
-					cmd.uavs.Bind();
+					cmd.uavs->Bind();
 					glDispatchCompute​(cmd.threadGroupX, cmd.threadGroupY, cmd.threadGroupZ);
 				}
 			}
@@ -948,8 +960,9 @@ private:
 		cmdV.threadGroupX = numGroupsX;
 		cmdV.threadGroupY = mClientHeight;
 		cmdV.threadGroupZ = 1;
-		cmdV.uavs.AddUAV(reinterpret_cast<void*>(blurImgSRV), 0);
-		cmdV.uavs.AddUAV(reinterpret_cast<void*>(mComputeOutput[uavSlotIdx]), 1);
+		cmdV.uavs = CreateUAVBinding();
+		cmdV.uavs->AddUAV(reinterpret_cast<void*>(blurImgSRV), 0);
+		cmdV.uavs->AddUAV(reinterpret_cast<void*>(mComputeOutput[uavSlotIdx]), 1);
 
 		AddDeferredDrawCmd(std::move(cmdV));
 
@@ -964,8 +977,9 @@ private:
 		cmdH.threadGroupX = mClientWidth;
 		cmdH.threadGroupY = numGroupsY;
 		cmdH.threadGroupZ = 1;
-		cmdH.uavs.AddUAV(reinterpret_cast<void*>(mComputeOutput[uavSlotIdx]), 0);
-		cmdH.uavs.AddUAV(reinterpret_cast<void*>(mComputeOutput[uavSlotIdx + 1]), 1);
+		cmdH.uavs = CreateUAVBinding();
+		cmdH.uavs->AddUAV(reinterpret_cast<void*>(mComputeOutput[uavSlotIdx]), 0);
+		cmdH.uavs->AddUAV(reinterpret_cast<void*>(mComputeOutput[uavSlotIdx + 1]), 1);
 
 		AddDeferredDrawCmd(std::move(cmdH));
 	}

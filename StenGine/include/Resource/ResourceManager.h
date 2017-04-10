@@ -24,19 +24,29 @@ namespace StenGine
 class ResourceManager : public SingletonClass<ResourceManager> {
 public:
 	template <typename T>
-	T* GetResource(const char* path) {
+	T* GetResource(const char* path)
+	{
 		std::string s(path);
 		std::wstring ws(s.begin(), s.end());
 		return GetResource<T>(ws);
 	}
 
 	template <typename T>
-	T* GetResource(std::string path) {
+	T GetSharedResource(std::wstring path)
+	{
+		// Place holder
+		assert(false);
+		return T();
+	}
+
+	template <typename T>
+	T* GetResource(std::string path) 
+	{
 		std::wstring _path(path.begin(), path.end());
 		if (std::is_same<T, Mesh>::value) {
 			auto got = m_meshResourceMap.find(_path);
-			if (got == m_meshResourceMap.end()) {
-
+			if (got == m_meshResourceMap.end())
+			{
 				Mesh* newMesh = new Mesh(2);
 
 				bool result = SgmReader::Read(path, newMesh);
@@ -46,7 +56,8 @@ public:
 
 				return (T*)newMesh;
 			}
-			else {
+			else
+			{
 				return (T*)got->second;
 			}
 		}
@@ -136,14 +147,14 @@ public:
 	}
 
 	template <>
-	Texture* GetResource<Texture>(std::wstring path) 
+	Texture GetSharedResource<Texture>(std::wstring path)
 	{
-		switch (Renderer::GetRenderBackend())
+		auto got = m_textureResourceMap.find(path);
+		if (got == m_textureResourceMap.end())
 		{
-		case RenderBackend::D3D11:
-		{
-			auto got = m_textureResourceMap.find(path);
-			if (got == m_textureResourceMap.end())
+			switch (Renderer::GetRenderBackend())
+			{
+			case RenderBackend::D3D11:
 			{
 				ID3D11ShaderResourceView* texSRV;
 				ID3D11Texture2D* texRes;
@@ -153,119 +164,121 @@ public:
 				D3D11_TEXTURE2D_DESC texElementDesc;
 				texRes->GetDesc(&texElementDesc);
 
-				m_textureResourceMap[path] = new Texture(texElementDesc.Width, texElementDesc.Height, texSRV);
+				m_textureResourceMap[path] = Renderer::Instance()->CreateTexture(texElementDesc.Width, texElementDesc.Height, texSRV);
+				break;
 			}
-			return m_textureResourceMap[path];
-		}
-		case RenderBackend::OPENGL4:
-		{
-			auto got = m_textureResourceMap.find(path);
-			if (got == m_textureResourceMap.end()) {
+			case RenderBackend::OPENGL4:
+			{
 				std::string s(path.begin(), path.end());
 				uint32_t width, height;
 				GLuint tex = CreateGLTextureFromFile(s.c_str(), &width, &height);
 				assert(tex != 0);
 
-				m_textureResourceMap[path] = new Texture(width, height, reinterpret_cast<void*>(tex));
+				m_textureResourceMap[path] = Renderer::Instance()->CreateTexture(width, height, reinterpret_cast<void*>(tex));
+				break;
 			}
-			return m_textureResourceMap[path];
+			default:
+				assert(0);
+				break;
+			}
 		}
-		}
-		return nullptr;
+		return m_textureResourceMap[path];
 	}
 
 	// cubemap
 	template <typename T>
-	T* GetResource(std::vector<std::wstring> &filenames) {
-		switch (Renderer::GetRenderBackend())
+	T GetSharedResource(std::vector<std::wstring> &filenames)
+	{
+		if (std::is_same<T, Texture>::value)
 		{
-		case RenderBackend::D3D11:
-		{
-			if (std::is_same<T, Texture>::value) {
-				//
-				// Load the texture elements individually from file.  These textures
-				// won't be used by the GPU (0 bind flags), they are just used to 
-				// load the image data from file.  We use the STAGING usage so the
-				// CPU can read the resource.
-				//
-				UINT size = (UINT)filenames.size();
-				std::vector<ID3D11Texture2D*> srcTex(size);
-				auto device = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice());
-				for (UINT i = 0; i < size; ++i)
-				{
-					HR(DirectX::CreateDDSTextureFromFileEx(device, filenames[i].c_str(), 0u, D3D11_USAGE_STAGING, 0, D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ, 0, false, (ID3D11Resource**)&srcTex[i], nullptr, nullptr));
-				}
+			std::wstring paths;
 
-				//
-				// Create the texture array.  Each element in the texture 
-				// array has the same format/dimensions.
-				//
-				D3D11_TEXTURE2D_DESC texElementDesc;
-				srcTex[0]->GetDesc(&texElementDesc);
-				D3D11_TEXTURE2D_DESC texArrayDesc;
-				texArrayDesc.Width = texElementDesc.Width;
-				texArrayDesc.Height = texElementDesc.Height;
-				texArrayDesc.MipLevels = texElementDesc.MipLevels;
-				texArrayDesc.ArraySize = size;
-				texArrayDesc.Format = texElementDesc.Format;
-				texArrayDesc.SampleDesc.Count = 1;
-				texArrayDesc.SampleDesc.Quality = 0;
-				texArrayDesc.Usage = D3D11_USAGE_DEFAULT;
-				texArrayDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-				texArrayDesc.CPUAccessFlags = 0;
-				texArrayDesc.MiscFlags = 0;
-				ID3D11Texture2D* texArray = 0;
-				HR(device->CreateTexture2D(&texArrayDesc, 0, &texArray));
-
-				//
-				// Copy individual texture elements into texture array.
-				//
-				auto context = static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext());
-
-				// for each texture element...
-				for (UINT texElement = 0; texElement < size; ++texElement)
-				{
-					// for each mipmap level...
-					for (UINT mipLevel = 0; mipLevel < texElementDesc.MipLevels; ++mipLevel)
-					{
-						D3D11_MAPPED_SUBRESOURCE mappedTex2D;
-						HR(context->Map(srcTex[texElement], mipLevel, D3D11_MAP_READ, 0, &mappedTex2D));
-						context->UpdateSubresource(texArray,
-							D3D11CalcSubresource(mipLevel, texElement, texElementDesc.MipLevels),
-							0, mappedTex2D.pData, mappedTex2D.RowPitch, mappedTex2D.DepthPitch);
-						context->Unmap(srcTex[texElement], mipLevel);
-					}
-				}
-				//
-				// Create a resource view to the texture array.
-				//
-
-				ID3D11ShaderResourceView* textureArraySRV;
-
-				D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
-				viewDesc.Format = texArrayDesc.Format;
-				viewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-				viewDesc.Texture2DArray.MostDetailedMip = 0;
-				viewDesc.Texture2DArray.MipLevels = texArrayDesc.MipLevels;
-				viewDesc.Texture2DArray.FirstArraySlice = 0;
-				viewDesc.Texture2DArray.ArraySize = size;
-				HR(device->CreateShaderResourceView(texArray, &viewDesc, &textureArraySRV));
-
-				return new Texture(texArrayDesc.Width, texArrayDesc.Height, textureArraySRV);
+			for (auto &filename : filenames)
+			{
+				paths += filename;
 			}
-		}
-		case RenderBackend::OPENGL4:
-		{
-			if (std::is_same<T, Texture>::value) {
-				std::wstring paths;
 
-				for (auto &filename : filenames)
+			auto got = m_textureResourceMap.find(paths);
+			if (got == m_textureResourceMap.end())
+			{
+				switch (Renderer::GetRenderBackend())
 				{
-					paths += filename;
-				}
+				case RenderBackend::D3D11:
+				{
+					//
+					// Load the texture elements individually from file.  These textures
+					// won't be used by the GPU (0 bind flags), they are just used to 
+					// load the image data from file.  We use the STAGING usage so the
+					// CPU can read the resource.
+					//
+					UINT size = (UINT)filenames.size();
+					std::vector<ID3D11Texture2D*> srcTex(size);
+					auto device = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice());
+					for (UINT i = 0; i < size; ++i)
+					{
+						HR(DirectX::CreateDDSTextureFromFileEx(device, filenames[i].c_str(), 0u, D3D11_USAGE_STAGING, 0, D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ, 0, false, (ID3D11Resource**)&srcTex[i], nullptr, nullptr));
+					}
 
-				auto got = m_textureResourceMap.find(paths);
-				if (got == m_textureResourceMap.end()) {
+					//
+					// Create the texture array.  Each element in the texture 
+					// array has the same format/dimensions.
+					//
+					D3D11_TEXTURE2D_DESC texElementDesc;
+					srcTex[0]->GetDesc(&texElementDesc);
+					D3D11_TEXTURE2D_DESC texArrayDesc;
+					texArrayDesc.Width = texElementDesc.Width;
+					texArrayDesc.Height = texElementDesc.Height;
+					texArrayDesc.MipLevels = texElementDesc.MipLevels;
+					texArrayDesc.ArraySize = size;
+					texArrayDesc.Format = texElementDesc.Format;
+					texArrayDesc.SampleDesc.Count = 1;
+					texArrayDesc.SampleDesc.Quality = 0;
+					texArrayDesc.Usage = D3D11_USAGE_DEFAULT;
+					texArrayDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+					texArrayDesc.CPUAccessFlags = 0;
+					texArrayDesc.MiscFlags = 0;
+					ID3D11Texture2D* texArray = 0;
+					HR(device->CreateTexture2D(&texArrayDesc, 0, &texArray));
+
+					//
+					// Copy individual texture elements into texture array.
+					//
+					auto context = static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext());
+
+					// for each texture element...
+					for (UINT texElement = 0; texElement < size; ++texElement)
+					{
+						// for each mipmap level...
+						for (UINT mipLevel = 0; mipLevel < texElementDesc.MipLevels; ++mipLevel)
+						{
+							D3D11_MAPPED_SUBRESOURCE mappedTex2D;
+							HR(context->Map(srcTex[texElement], mipLevel, D3D11_MAP_READ, 0, &mappedTex2D));
+							context->UpdateSubresource(texArray,
+								D3D11CalcSubresource(mipLevel, texElement, texElementDesc.MipLevels),
+								0, mappedTex2D.pData, mappedTex2D.RowPitch, mappedTex2D.DepthPitch);
+							context->Unmap(srcTex[texElement], mipLevel);
+						}
+					}
+					//
+					// Create a resource view to the texture array.
+					//
+
+					ID3D11ShaderResourceView* textureArraySRV;
+
+					D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
+					viewDesc.Format = texArrayDesc.Format;
+					viewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+					viewDesc.Texture2DArray.MostDetailedMip = 0;
+					viewDesc.Texture2DArray.MipLevels = texArrayDesc.MipLevels;
+					viewDesc.Texture2DArray.FirstArraySlice = 0;
+					viewDesc.Texture2DArray.ArraySize = size;
+					HR(device->CreateShaderResourceView(texArray, &viewDesc, &textureArraySRV));
+
+					m_textureResourceMap[paths] = Renderer::Instance()->CreateTexture(texArrayDesc.Width, texArrayDesc.Height, textureArraySRV);
+					break;
+				}
+				case RenderBackend::OPENGL4:
+				{
 					uint32_t width, height;
 					GLuint tex = CreateGLTextureArrayFromFiles(filenames, &width, &height);
 					assert(tex != 0);
@@ -273,13 +286,16 @@ public:
 					glTextureParameteri(tex, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 					glTextureParameteri(tex, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 
-					m_textureResourceMap[paths] = new Texture(width, height, reinterpret_cast<void*>(tex));
+					m_textureResourceMap[paths] = Renderer::Instance()->CreateTexture(width, height, reinterpret_cast<void*>(tex));
+					break;
 				}
-				return m_textureResourceMap[paths];
+				default:
+					assert(0);
+					break;
+				}
 			}
+			return m_textureResourceMap[paths];
 		}
-		}
-
 		return nullptr;
 	}
 
@@ -287,7 +303,7 @@ public:
 
 private:
 	std::unordered_map<std::wstring, Mesh*> m_meshResourceMap;
-	std::unordered_map<std::wstring, Texture*> m_textureResourceMap;
+	std::unordered_map<std::wstring, Texture> m_textureResourceMap;
 	std::unordered_map<std::wstring, Animation*> m_animationResourceMap;
 };
 

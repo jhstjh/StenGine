@@ -9,6 +9,8 @@
 #include "Graphics/D3D11/D3D11Buffer.h"
 #include "Graphics/D3D11/D3D11ConstantBuffer.h"
 #include "Graphics/D3D11/D3D11RenderTarget.h"
+#include "Graphics/D3D11/D3D11Texture.h"
+#include "Graphics/D3D11/D3D11UAVBinding.h"
 #include "Graphics/Effect/EffectsManager.h"
 #include "Graphics/Effect/ShadowMap.h"
 #include "Graphics/Effect/Skybox.h"
@@ -916,6 +918,16 @@ public:
 		return std::make_shared<D3D11RenderTarget>();
 	}
 
+	UAVBinding CreateUAVBinding() final
+	{
+		return std::make_unique<D3D11UAVBinding>();
+	}
+
+	Texture CreateTexture(uint32_t width, uint32_t height, void* srv) final
+	{
+		return std::make_shared<D3D11Texture>(width, height, srv);
+	}
+
 private:
 
 	void ExecuteCmdList()
@@ -989,7 +1001,11 @@ private:
 				}
 
 				cmd.srvs.Bind();
-				cmd.uavs.Bind();
+
+				if (cmd.flags & CmdFlag::COMPUTE)
+				{
+					cmd.uavs->Bind();
+				}
 
 				if (cmd.flags & CmdFlag::DRAW)
 				{
@@ -1024,7 +1040,11 @@ private:
 				}
 
 				cmd.srvs.Unbind();
-				cmd.uavs.Unbind();
+
+				if (cmd.flags & CmdFlag::COMPUTE)
+				{
+					cmd.uavs->Unbind();
+				}
 			}
 		}
 
@@ -1044,7 +1064,8 @@ private:
 		cmdV.threadGroupY = mClientHeight;
 		cmdV.threadGroupZ = 1;
 		cmdV.srvs.AddSRV(blurImgSRV, 0);
-		cmdV.uavs.AddUAV(mUnorderedAccessViews[uavSlotIdx], 0);
+		cmdV.uavs = CreateUAVBinding();
+		cmdV.uavs->AddUAV(mUnorderedAccessViews[uavSlotIdx], 0);
 
 		AddDeferredDrawCmd(std::move(cmdV));
 
@@ -1060,7 +1081,8 @@ private:
 		cmdH.threadGroupY = numGroupsY;
 		cmdH.threadGroupZ = 1;
 		cmdH.srvs.AddSRV(mOutputShaderResources[uavSlotIdx], 0);
-		cmdH.uavs.AddUAV(mUnorderedAccessViews[uavSlotIdx + 1], 0);
+		cmdH.uavs = CreateUAVBinding();
+		cmdH.uavs->AddUAV(mUnorderedAccessViews[uavSlotIdx + 1], 0);
 
 		AddDeferredDrawCmd(std::move(cmdH));
 	}

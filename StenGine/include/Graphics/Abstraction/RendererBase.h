@@ -6,6 +6,8 @@
 #include "DrawCmd.h"
 #include "Graphics/Abstraction/GPUBuffer.h"
 #include "Graphics/Abstraction/RenderTarget.h"
+#include "Graphics/Abstraction/Texture.h"
+#include "Graphics/Abstraction/UAVBinding.h"
 #include "Math/MathDefs.h"
 #include "Utility/Semaphore.h"
 
@@ -93,6 +95,8 @@ public:
 	virtual ConstantBuffer CreateConstantBuffer(uint32_t index, uint32_t size, GPUBuffer buffer) = 0;
 	virtual GPUBuffer CreateGPUBuffer(size_t size, BufferUsage usage, void* data = nullptr, BufferType type = BufferType::GENERAL) = 0;
 	virtual RenderTarget CreateRenderTarget() = 0;
+	virtual UAVBinding CreateUAVBinding() = 0;
+	virtual Texture CreateTexture(uint32_t width, uint32_t height, void* srv) = 0;
 
 protected:
 	static Renderer* _instance;

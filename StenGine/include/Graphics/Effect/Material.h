@@ -20,9 +20,9 @@ public:
 		Vec4Packed roughness_metalic_c_doublesided { { 0.1f, 1.0f, 0.6f, 0.0f } };
 	} m_attributes;
 
-	Texture* m_diffuseMapTex = nullptr;
-	Texture* m_normalMapTex = nullptr;
-	Texture* m_bumpMapTex = nullptr;
+	Texture m_diffuseMapTex = nullptr;
+	Texture m_normalMapTex = nullptr;
+	Texture m_bumpMapTex = nullptr;
 };
 
 }

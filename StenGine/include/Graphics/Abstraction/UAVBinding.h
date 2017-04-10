@@ -13,17 +13,6 @@ public:
 	virtual void Unbind() = 0;
 };
 
-class UAVBinding
-{
-public:
-	UAVBinding();
-	void AddUAV(void* UAV, uint32_t index);
-	void Bind();
-	void Unbind();
-
-private:
-	std::unique_ptr<UAVBindingImpl> mImpl;
-};
-
+using UAVBinding = std::unique_ptr<UAVBindingImpl>;
 
 }

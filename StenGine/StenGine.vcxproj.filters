@@ -657,13 +657,7 @@
     <ClCompile Include="src\Graphics\OpenGL\GLUAVBinding.cpp">
       <Filter>src\Graphics\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Abstraction\UAVBinding.cpp">
-      <Filter>src\Graphics\Abstraction</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\Abstraction\RendererBase.cpp">
-      <Filter>src\Graphics\Abstraction</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\Abstraction\Texture.cpp">
       <Filter>src\Graphics\Abstraction</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\UI\GLImGuiMenu.cpp">

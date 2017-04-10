@@ -1,3 +1,5 @@
+#include <Windows.h>
+
 #include "Utility/FbxReaderSG.h"
 #include <algorithm>
 #include "Resource/ResourceManager.h"
@@ -25,6 +27,17 @@ void ReadFbxMesh(FbxNode* node, Mesh* mesh, const std::wstring& filename);
 void ReadFbxMaterial(FbxNode* node, Mesh* mesh, const std::wstring& filename);
 bool ReadModelCache(Mesh* mesh, const std::wstring& filename);
 #endif
+
+std::wstring GetWideCharPath(const char* path)
+{
+	std::wstring wpath;
+	int32_t length = MultiByteToWideChar(CP_UTF8, 0, path, -1, NULL, 0);
+	wpath.resize(length);
+
+	MultiByteToWideChar(CP_UTF8, 0, path, -1, &wpath[0], length);
+	
+	return wpath;
+}
 
 bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 
@@ -204,25 +217,26 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 		
 		auto &fMat = scene->mMaterials[i];
 
-		char dir[512];
-		_getcwd(dir, 512);
+		wchar_t dir[512];
+		_wgetcwd(dir, 512);
 
-		std::string dirStr(dir);
+		std::wstring dirStr(dir);
 
 		aiString texPath;
 		if (fMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
 		{
-			mesh->m_materials[i].m_diffuseMapTex = ResourceManager::Instance()->GetResource<Texture>((dirStr + "\\Model\\" + texPath.C_Str()).c_str());
+
+			mesh->m_materials[i].m_diffuseMapTex = ResourceManager::Instance()->GetSharedResource<Texture>(dirStr + L"\\Model\\" + GetWideCharPath(texPath.C_Str()));
 		}
 		
 		if (fMat->GetTexture(aiTextureType_NORMALS, 0, &texPath, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
 		{
-			mesh->m_materials[i].m_normalMapTex = ResourceManager::Instance()->GetResource<Texture>((dirStr + "\\Model\\" + texPath.C_Str()).c_str());
+			mesh->m_materials[i].m_normalMapTex = ResourceManager::Instance()->GetSharedResource<Texture>(dirStr + L"\\Model\\" + GetWideCharPath(texPath.C_Str()));
 		}
 		
 		if (fMat->GetTexture(aiTextureType_DISPLACEMENT, 0, &texPath, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
 		{
-			mesh->m_materials[i].m_bumpMapTex = ResourceManager::Instance()->GetResource<Texture>((dirStr + "\\Model\\" + texPath.C_Str()).c_str());
+			mesh->m_materials[i].m_bumpMapTex = ResourceManager::Instance()->GetSharedResource<Texture>(dirStr + L"\\Model\\" + GetWideCharPath(texPath.C_Str()));
 		}
 
 	}

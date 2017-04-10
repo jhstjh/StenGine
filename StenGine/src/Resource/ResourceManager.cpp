@@ -9,14 +9,14 @@ ResourceManager::~ResourceManager() {
 	for (auto it = m_meshResourceMap.begin(); it != m_meshResourceMap.end(); ++it) {
 		SafeDelete(it->second);
 	}
+	m_meshResourceMap.clear();
 
-	for (auto it = m_textureResourceMap.begin(); it != m_textureResourceMap.end(); ++it) {
-		SafeDelete(it->second);
-	}
+	m_textureResourceMap.clear();
 
 	for (auto it = m_animationResourceMap.begin(); it != m_animationResourceMap.end(); ++it) {
 		SafeDelete(it->second);
 	}
+	m_animationResourceMap.clear();
 }
 
 }

@@ -55,9 +55,9 @@ private:
 	GPUBuffer m_quadPatchVB;
 	GPUBuffer m_quadPatchIB;
 
-	Texture* m_layerMapArrayTex;
-	Texture* m_blendMapTex;
-	Texture* m_heightMapTex;
+	Texture m_layerMapArrayTex;
+	Texture m_blendMapTex;
+	Texture m_heightMapTex;
 
 	uint32_t m_numPatchVertices;
 	uint32_t m_numPatchQuadFaces;

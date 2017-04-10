@@ -169,8 +169,8 @@ void Mesh::CreateBoxPrimitive() {
 	m_subMeshes[0].m_indexBufferCPU = m_indexBufferCPU;
 	m_subMeshes[0].m_matIndex = 0;
 
-	m_materials[0].m_diffuseMapTex = ResourceManager::Instance()->GetResource<Texture>(L"../StenGine/Model/WoodCrate02.dds");
-	m_materials[0].m_normalMapTex = ResourceManager::Instance()->GetResource<Texture>(L"../StenGine/Model/WoodCrate02_normal.dds");
+	m_materials[0].m_diffuseMapTex = ResourceManager::Instance()->GetSharedResource<Texture>(L"../StenGine/Model/WoodCrate02.dds");
+	m_materials[0].m_normalMapTex = ResourceManager::Instance()->GetSharedResource<Texture>(L"../StenGine/Model/WoodCrate02_normal.dds");
 }
 
 void Mesh::CreatePlanePrimitive() {

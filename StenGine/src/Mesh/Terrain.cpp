@@ -44,8 +44,8 @@ Terrain::Terrain(InitInfo &info) :
 	BuildQuadPatchIB();
 	BuildHeightMapSRV();
 
-	m_blendMapTex = ResourceManager::Instance()->GetResource<Texture>(m_initInfo.BlendMapFilename);
-	m_layerMapArrayTex = ResourceManager::Instance()->GetResource<Texture>(m_initInfo.LayerMapFilenames);
+	m_blendMapTex = ResourceManager::Instance()->GetSharedResource<Texture>(m_initInfo.BlendMapFilename);
+	m_layerMapArrayTex = ResourceManager::Instance()->GetSharedResource<Texture>(m_initInfo.LayerMapFilenames);
 }
 
 Terrain::~Terrain() 
@@ -211,7 +211,7 @@ void Terrain::BuildHeightMapSRV() {
 		ID3D11ShaderResourceView* heightMapSRV;
 		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateShaderResourceView(hmapTex, &srvDesc, &heightMapSRV));
 
-		m_heightMapTex = new Texture(m_initInfo.HeightmapWidth, m_initInfo.HeightmapHeight, heightMapSRV);
+		m_heightMapTex = Renderer::Instance()->CreateTexture(m_initInfo.HeightmapWidth, m_initInfo.HeightmapHeight, heightMapSRV);
 
 		// SRV saves reference.
 		ReleaseCOM(hmapTex);
@@ -238,7 +238,7 @@ void Terrain::BuildHeightMapSRV() {
 
 		glDeleteBuffers(1, &pbo);
 
-		m_heightMapTex = new Texture(m_initInfo.HeightmapWidth, m_initInfo.HeightmapHeight, reinterpret_cast<void*>(hmapTex));
+		m_heightMapTex = Renderer::Instance()->CreateTexture(m_initInfo.HeightmapWidth, m_initInfo.HeightmapHeight, reinterpret_cast<void*>(hmapTex));
 		break;
 	}
 	}
