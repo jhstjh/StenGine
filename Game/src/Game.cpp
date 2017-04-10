@@ -22,6 +22,11 @@ namespace SGGame
 
 Game::Game()
 {
+
+}
+
+void Game::GameInit()
+{
 	// TODO move these to somewhere else
 	REGISTER_GAMEOBJECT(Box);
 	REGISTER_GAMEOBJECT(Sphere);
@@ -31,10 +36,7 @@ Game::Game()
 	REGISTER_GAMEOBJECT(House);
 	REGISTER_GAMEOBJECT(Dragon);
 	REGISTER_GAMEOBJECT(GameTerrain);
-}
 
-void Game::GameInit()
-{
 	static UUID NIL_UUID;
 	UuidCreateNil(&NIL_UUID);
 

@@ -17,7 +17,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
-	std::unique_ptr<StenGine::CommandlineParser> cmdParser = std::unique_ptr<StenGine::CommandlineParser>(StenGine::CommandlineParser::Instance());
+	std::unique_ptr<StenGine::CommandlineParser> cmdParser = std::unique_ptr<StenGine::CommandlineParser>(StenGine::CommandlineParser::Create());
 	cmdParser->Init(lpCmdLine);
 
 	std::unique_ptr<StenGine::EngineBase> game = CreateGame();

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <assert.h>
+
 namespace StenGine
 {
 
@@ -10,9 +12,16 @@ protected:
 	static T* _instance;
 
 public:
-	static T* Instance() {
-		if (!_instance)
-			_instance = new T();
+	static T* Create()
+	{
+		assert(_instance == nullptr);
+		_instance = new T();
+		return _instance;
+	}
+
+	static T* Instance() 
+	{
+		assert(_instance != nullptr);
 		return _instance;
 	}
 
@@ -43,16 +52,23 @@ public:
 
 #define DECLARE_ABSTRACT_SINGLETON_CLASS(BASE) \
 	static BASE* _instance; \
+	static BASE* Create();\
 	static BASE* Instance();\
 
 
 #define DEFINE_ABSTRACT_SINGLETON_CLASS(BASE, DERIVED) \
 	BASE* BASE::_instance = nullptr;	\
 										\
-	BASE* BASE::Instance()		\
+	BASE* BASE::Create()				\
 	{									\
-		if (!_instance)					\
-			_instance = new DERIVED();  \
+		assert(_instance == nullptr);	\
+		_instance = new DERIVED();		\
+		return _instance;				\
+	}									\
+										\
+	BASE* BASE::Instance()				\
+	{									\
+		assert(_instance != nullptr);	\
 		return _instance;				\
 	}									\
 

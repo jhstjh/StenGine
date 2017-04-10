@@ -33,6 +33,8 @@ class Renderer;
 class Effect : public AlignedClass<16> {
 protected:
 
+	Renderer* m_renderer;
+
 	/****TODO this is quite ugly here****/
 	/****either create a shader abstraction or Impl this****/
 	ID3D11VertexShader* m_d3d11vertexShader;
@@ -72,8 +74,8 @@ protected:
 	/*******************************************************/
 
 public:
-	Effect(const std::wstring& filename);
-	Effect(const std::wstring& vsPath,
+	Effect(Renderer* renderer, const std::wstring& filename);
+	Effect(Renderer* renderer, const std::wstring& vsPath,
 		const std::wstring& psPath,
 		const std::wstring& gsPath,
 		const std::wstring& hsPath,
@@ -102,8 +104,8 @@ public:
 class DeferredGeometryPassEffect : public Effect {
 
 public:
-	DeferredGeometryPassEffect(const std::wstring& filename);
-	DeferredGeometryPassEffect(const std::wstring& vsPath,
+	DeferredGeometryPassEffect(Renderer* renderer, const std::wstring& filename);
+	DeferredGeometryPassEffect(Renderer* renderer, const std::wstring& vsPath,
 		const std::wstring& psPath,
 		const std::wstring& gsPath,
 		const std::wstring& hsPath,
@@ -151,8 +153,8 @@ public:
 class DeferredSkinnedGeometryPassEffect : public Effect {
 
 public:
-	DeferredSkinnedGeometryPassEffect(const std::wstring& filename);
-	DeferredSkinnedGeometryPassEffect(const std::wstring& vsPath,
+	DeferredSkinnedGeometryPassEffect(Renderer* renderer, const std::wstring& filename);
+	DeferredSkinnedGeometryPassEffect(Renderer* renderer, const std::wstring& vsPath,
 		const std::wstring& psPath,
 		const std::wstring& gsPath,
 		const std::wstring& hsPath,
@@ -208,8 +210,8 @@ public:
 	GPUBuffer m_perObjectCB;
 	GPUBuffer m_textureCB;
 
-	DeferredGeometryTerrainPassEffect(const std::wstring& filename);
-	DeferredGeometryTerrainPassEffect(const std::wstring& vsPath,
+	DeferredGeometryTerrainPassEffect(Renderer* renderer, const std::wstring& filename);
+	DeferredGeometryTerrainPassEffect(Renderer* renderer, const std::wstring& vsPath,
 		const std::wstring& psPath,
 		const std::wstring& gsPath,
 		const std::wstring& hsPath,
@@ -276,8 +278,8 @@ public:
 	GPUBuffer m_perObjectCB;
 	GPUBuffer m_textureCB;
 
-	TerrainShadowMapEffect(const std::wstring& filename);
-	TerrainShadowMapEffect(const std::wstring& vsPath,
+	TerrainShadowMapEffect(Renderer* renderer, const std::wstring& filename);
+	TerrainShadowMapEffect(Renderer* renderer, const std::wstring& vsPath,
 		const std::wstring& psPath,
 		const std::wstring& gsPath,
 		const std::wstring& hsPath,
@@ -343,7 +345,7 @@ private:
 
 
 public:
-	DeferredGeometryTessPassEffect(const std::wstring& filename);
+	DeferredGeometryTessPassEffect(Renderer* renderer, const std::wstring& filename);
 	~DeferredGeometryTessPassEffect();
 };
 
@@ -355,7 +357,7 @@ public:
 	GPUBuffer m_perFrameCB;
 	GPUBuffer m_textureCB;
 
-	DeferredShadingPassEffect(const std::wstring& filename);
+	DeferredShadingPassEffect(Renderer* renderer, const std::wstring& filename);
 	~DeferredShadingPassEffect();
 
 	struct PERFRAME_CONSTANT_BUFFER
@@ -386,7 +388,7 @@ private:
 
 
 public:
-	ShadowMapEffect(const std::wstring& filename);
+	ShadowMapEffect(Renderer* renderer, const std::wstring& filename);
 	~ShadowMapEffect();
 
 	struct PEROBJ_CONSTANT_BUFFER
@@ -408,7 +410,7 @@ public:
 	GPUBuffer m_textureCB;
 
 public:
-	SkyboxEffect(const std::wstring& filename);
+	SkyboxEffect(Renderer* renderer, const std::wstring& filename);
 	~SkyboxEffect();
 
 	struct PEROBJ_CONSTANT_BUFFER
@@ -433,7 +435,7 @@ public:
 	GPUBuffer m_textureCB;
 
 public:
-	BlurEffect(const std::wstring& filename);
+	BlurEffect(Renderer* renderer, const std::wstring& filename);
 	~BlurEffect();
 
 	struct SETTING_CONSTANT_BUFFER
@@ -458,7 +460,7 @@ public:
 class VBlurEffect : public Effect {
 
 public:
-	VBlurEffect(const std::wstring& filename);
+	VBlurEffect(Renderer* renderer, const std::wstring& filename);
 };
 
 
@@ -468,7 +470,7 @@ public:
 class HBlurEffect : public Effect {
 
 public:
-	HBlurEffect(const std::wstring& filename);
+	HBlurEffect(Renderer* renderer, const std::wstring& filename);
 };
 
 //--------------------------------------------------------------------//
@@ -480,7 +482,7 @@ public:
 	GPUBuffer m_imguiCB;
 	GPUBuffer m_textureCB;
 
-	ImGuiEffect(const std::wstring& filename);
+	ImGuiEffect(Renderer* renderer, const std::wstring& filename);
 	~ImGuiEffect();
 
 	struct IMGUI_CONSTANT_BUFFER
@@ -502,8 +504,8 @@ class DebugLineEffect : public Effect {
 public:
 	GPUBuffer m_perObjectCB;
 
-	DebugLineEffect(const std::wstring& filename);
-	DebugLineEffect(const std::wstring& vsPath,
+	DebugLineEffect(Renderer* renderer, const std::wstring& filename);
+	DebugLineEffect(Renderer* renderer, const std::wstring& vsPath,
 		const std::wstring& psPath,
 		const std::wstring& gsPath,
 		const std::wstring& hsPath,
@@ -526,6 +528,8 @@ public:
 	EffectsManager();
 	~EffectsManager();
 
+	void Init(Renderer* renderer);
+
 	//StdMeshEffect* m_stdMeshEffect;
 	std::unique_ptr<ShadowMapEffect> m_shadowMapEffect;
 	std::unique_ptr<TerrainShadowMapEffect> m_terrainShadowMapEffect;
@@ -540,6 +544,8 @@ public:
 	std::unique_ptr<HBlurEffect> m_hblurEffect;
 	std::unique_ptr<DebugLineEffect> m_debugLineEffect;
 	std::unique_ptr<ImGuiEffect> m_imguiEffect;
+private:
+	Renderer* m_renderer;
 };
 
 }

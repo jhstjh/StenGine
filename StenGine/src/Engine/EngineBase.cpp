@@ -107,7 +107,8 @@ void EngineBase::Init(HINSTANCE hInstance)
 	}
 
 	m_console = std::make_unique<Console>();
-	m_eventSystem = std::unique_ptr<EventSystem>(EventSystem::Instance());
+	m_eventSystem = std::unique_ptr<EventSystem>(EventSystem::Create());
+	m_lightManager = std::unique_ptr<LightManager>(LightManager::Create());
 
 	m_renderer = Renderer::Create(hInstance, m_hMainWnd, gPrepareDrawListSync, gFinishedDrawListSync);
 
@@ -118,13 +119,15 @@ void EngineBase::Init(HINSTANCE hInstance)
 
 	m_renderer->Init(1280, 720, func);
 
-	m_effectManager = std::unique_ptr<EffectsManager>(EffectsManager::Instance());
-	m_cameraManager = std::unique_ptr<CameraManager>(CameraManager::Instance());
-	m_resourceManager = std::unique_ptr<ResourceManager>(ResourceManager::Instance());
-	m_inputManager = std::unique_ptr<InputManager>(InputManager::Instance());
-	m_gameObjectManager = std::unique_ptr<GameObjectManager>(GameObjectManager::Instance());
-	m_imguiMenu = std::unique_ptr<ImGuiMenu>(ImGuiMenu::Instance());
-	m_sceneFileManager = std::unique_ptr<SceneFileManager>(SceneFileManager::Instance());
+	m_effectManager = std::unique_ptr<EffectsManager>(EffectsManager::Create());
+	m_cameraManager = std::unique_ptr<CameraManager>(CameraManager::Create());
+	m_resourceManager = std::unique_ptr<ResourceManager>(ResourceManager::Create());
+	m_inputManager = std::unique_ptr<InputManager>(InputManager::Create());
+	m_gameObjectManager = std::unique_ptr<GameObjectManager>(GameObjectManager::Create());
+	m_imguiMenu = std::unique_ptr<ImGuiMenu>(ImGuiMenu::Create());
+	m_sceneFileManager = std::unique_ptr<SceneFileManager>(SceneFileManager::Create());
+
+	m_effectManager->Init(m_renderer.get());
 
 	Timer::Init();
 

@@ -48,6 +48,7 @@ protected:
 	std::unique_ptr<ImGuiMenu> m_imguiMenu;
 	std::unique_ptr<Console> m_console;
 	std::unique_ptr<SceneFileManager> m_sceneFileManager;
+	std::unique_ptr<LightManager> m_lightManager;
 
 	std::unique_ptr<Renderer> m_renderer;
 

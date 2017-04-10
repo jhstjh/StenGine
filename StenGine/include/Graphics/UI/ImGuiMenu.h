@@ -11,6 +11,7 @@ class ImGuiMenu
 {
 public:
 	virtual void RenderDrawLists(ImDrawData* draw_data) = 0;
+	static ImGuiMenu* Create();
 	static ImGuiMenu* Instance();
 	static bool Created() { return _instance != nullptr; }
 	static ImGuiMenu* _instance;

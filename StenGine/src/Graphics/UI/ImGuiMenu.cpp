@@ -12,20 +12,26 @@ extern ImGuiMenu* CreateOpenGLImGuiMenu();
 
 ImGuiMenu* ImGuiMenu::_instance = nullptr;
 
+ImGuiMenu* ImGuiMenu::Create()
+{
+	assert(!_instance);
+
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+		_instance = detail::CreateD3D11ImGuiMenu();
+		break;
+	case RenderBackend::OPENGL4:
+		_instance = detail::CreateOpenGLImGuiMenu();
+		break;
+	}
+
+	return _instance;
+}
+
 ImGuiMenu* ImGuiMenu::Instance()
 {
-	if (!_instance)
-	{
-		switch (Renderer::GetRenderBackend())
-		{
-		case RenderBackend::D3D11:
-			_instance = detail::CreateD3D11ImGuiMenu();
-			break;
-		case RenderBackend::OPENGL4:
-			_instance = detail::CreateOpenGLImGuiMenu();
-			break;
-		}
-	}
+	assert(_instance);
 	return _instance;
 }
 

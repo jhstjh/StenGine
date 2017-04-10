@@ -26,18 +26,21 @@ inline std::wstring GetExt()
 	return L".fx";
 }
 
-Effect::Effect(const std::wstring& filename)
+Effect::Effect(Renderer* renderer, const std::wstring& filename)
+	: m_renderer(renderer)
 {
 
 }
 
-Effect::Effect(const std::wstring& vsPath,
+Effect::Effect(Renderer* renderer, 
+			   const std::wstring& vsPath,
 			   const std::wstring& psPath,
 			   const std::wstring& gsPath = L"",
 			   const std::wstring& hsPath = L"",
 			   const std::wstring& dsPath = L"",
 			   const std::wstring& csPath = L"")
-			   : m_d3d11vertexShader(nullptr)
+			   : m_renderer(renderer)
+			   , m_d3d11vertexShader(nullptr)
 			   , m_d3d11pixelShader(nullptr)
 			   , m_d3d11geometryShader(nullptr)
 			   , m_d3d11hullShader(nullptr)
@@ -69,7 +72,7 @@ Effect::Effect(const std::wstring& vsPath,
 
 		if (vsPath.length()) {
 			ReadShaderFile(vsPath, &m_vsBlob, "vs_5_0");
-			hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateVertexShader(
+			hr = static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateVertexShader(
 				m_vsBlob->GetBufferPointer(),
 				m_vsBlob->GetBufferSize(),
 				nullptr,
@@ -80,7 +83,7 @@ Effect::Effect(const std::wstring& vsPath,
 
 		if (psPath.length()) {
 			ReadShaderFile(psPath, &m_psBlob, "ps_5_0");
-			hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreatePixelShader(
+			hr = static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreatePixelShader(
 				m_psBlob->GetBufferPointer(),
 				m_psBlob->GetBufferSize(),
 				nullptr,
@@ -91,7 +94,7 @@ Effect::Effect(const std::wstring& vsPath,
 
 		if (gsPath.length()) {
 			ReadShaderFile(gsPath, &m_gsBlob, "gs_5_0");
-			hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateGeometryShader(
+			hr = static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateGeometryShader(
 				m_gsBlob->GetBufferPointer(),
 				m_gsBlob->GetBufferSize(),
 				nullptr,
@@ -102,7 +105,7 @@ Effect::Effect(const std::wstring& vsPath,
 
 		if (hsPath.length()) {
 			ReadShaderFile(hsPath, &m_hsBlob, "hs_5_0");
-			hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateHullShader(
+			hr = static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateHullShader(
 				m_hsBlob->GetBufferPointer(),
 				m_hsBlob->GetBufferSize(),
 				nullptr,
@@ -113,7 +116,7 @@ Effect::Effect(const std::wstring& vsPath,
 
 		if (dsPath.length()) {
 			ReadShaderFile(dsPath, &m_dsBlob, "ds_5_0");
-			hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateDomainShader(
+			hr = static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateDomainShader(
 				m_dsBlob->GetBufferPointer(),
 				m_dsBlob->GetBufferSize(),
 				nullptr,
@@ -124,7 +127,7 @@ Effect::Effect(const std::wstring& vsPath,
 
 		if (csPath.length()) {
 			ReadShaderFile(csPath, &m_csBlob, "cs_5_0");
-			hr = static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateComputeShader(
+			hr = static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateComputeShader(
 				m_csBlob->GetBufferPointer(),
 				m_csBlob->GetBufferSize(),
 				nullptr,
@@ -363,22 +366,22 @@ Effect::~Effect()
 }
 
 void Effect::UnBindConstantBuffer() {
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetConstantBuffers(0, 0, nullptr);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetConstantBuffers(0, 0, nullptr);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetConstantBuffers(0, 0, nullptr);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetConstantBuffers(0, 0, nullptr);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->GSSetConstantBuffers(0, 0, nullptr);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetConstantBuffers(0, 0, nullptr);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->VSSetConstantBuffers(0, 0, nullptr);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->PSSetConstantBuffers(0, 0, nullptr);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->HSSetConstantBuffers(0, 0, nullptr);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->DSSetConstantBuffers(0, 0, nullptr);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->GSSetConstantBuffers(0, 0, nullptr);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->CSSetConstantBuffers(0, 0, nullptr);
 }
 
 void Effect::UnBindShaderResource() {
 	static ID3D11ShaderResourceView* nullSRV[16] = { 0 };
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShaderResources(0, 16, nullSRV);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShaderResources(0, 16, nullSRV);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShaderResources(0, 16, nullSRV);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShaderResources(0, 16, nullSRV);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->GSSetShaderResources(0, 16, nullSRV);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetShaderResources(0, 16, nullSRV);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->VSSetShaderResources(0, 16, nullSRV);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->PSSetShaderResources(0, 16, nullSRV);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->HSSetShaderResources(0, 16, nullSRV);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->DSSetShaderResources(0, 16, nullSRV);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->GSSetShaderResources(0, 16, nullSRV);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->CSSetShaderResources(0, 16, nullSRV);
 }
 
 
@@ -388,17 +391,17 @@ void Effect::SetShader() {
 	case RenderBackend::D3D11:
 	{
 		//if (m_vertexShader)
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShader(m_d3d11vertexShader, 0, 0);
+		static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->VSSetShader(m_d3d11vertexShader, 0, 0);
 		//if (m_pixelShader)											
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShader(m_d3d11pixelShader, 0, 0);
+		static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->PSSetShader(m_d3d11pixelShader, 0, 0);
 		//if (m_geometryShader)																
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->GSSetShader(m_d3d11geometryShader, 0, 0);
+		static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->GSSetShader(m_d3d11geometryShader, 0, 0);
 		//if (m_hullShader)																	
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShader(m_d3d11hullShader, 0, 0);
+		static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->HSSetShader(m_d3d11hullShader, 0, 0);
 		//if (m_domainShader)														
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShader(m_d3d11domainShader, 0, 0);
+		static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->DSSetShader(m_d3d11domainShader, 0, 0);
 		//if (m_domainShader)														
-		static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetShader(m_d3d11computeShader, 0, 0);
+		static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->CSSetShader(m_d3d11computeShader, 0, 0);
 		break;
 	}
 	case RenderBackend::OPENGL4:
@@ -411,12 +414,12 @@ void Effect::SetShader() {
 }
 
 void Effect::UnSetShader() {
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->VSSetShader(nullptr, 0, 0);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->PSSetShader(nullptr, 0, 0);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->HSSetShader(nullptr, 0, 0);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->GSSetShader(nullptr, 0, 0);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->DSSetShader(nullptr, 0, 0);
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetShader(nullptr, 0, 0);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->VSSetShader(nullptr, 0, 0);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->PSSetShader(nullptr, 0, 0);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->HSSetShader(nullptr, 0, 0);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->GSSetShader(nullptr, 0, 0);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->DSSetShader(nullptr, 0, 0);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->CSSetShader(nullptr, 0, 0);
 }
 
 void* Effect::GetInputLayout()
@@ -433,7 +436,7 @@ void* Effect::GetInputLayout()
 
 void Effect::UnbindUnorderedAccessViews() {
 	static ID3D11UnorderedAccessView* nullUAV[7] = { 0 };
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetUnorderedAccessViews(0, 7, nullUAV, 0);
+	static_cast<ID3D11DeviceContext*>(m_renderer->GetDeviceContext())->CSSetUnorderedAccessViews(0, 7, nullUAV, 0);
 }
 
 void Effect::ReadShaderFile(std::wstring filename, ID3DBlob **blob, char* target, char* entryPoint) {
@@ -467,8 +470,8 @@ ID3D11ShaderResourceView* Effect::GetOutputShaderResource(int idx) {
 //----------------------------------------------------------//
 
 
-ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
-	: Effect(filename + L"_vs" + GetExt(), (Renderer::GetRenderBackend() == RenderBackend::D3D11) ? L"" : (std::wstring(L"FX/ZOnly_ps.glsl")))
+ShadowMapEffect::ShadowMapEffect(Renderer* renderer, const std::wstring& filename)
+	: Effect(renderer, filename + L"_vs" + GetExt(), (Renderer::GetRenderBackend() == RenderBackend::D3D11) ? L"" : (std::wstring(L"FX/ZOnly_ps.glsl")))
 {
 	switch (Renderer::GetRenderBackend())
 	{
@@ -479,7 +482,7 @@ ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+		HR(static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
 
@@ -505,7 +508,7 @@ ShadowMapEffect::ShadowMapEffect(const std::wstring& filename)
 	}
 	}
 
-	m_perObjectCB = Renderer::Instance()->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB = m_renderer->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 ShadowMapEffect::~ShadowMapEffect()
@@ -524,14 +527,14 @@ ShadowMapEffect::~ShadowMapEffect()
 
 //------------------------------------------------------------//
 
-DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath)
-	:Effect(vsPath, psPath, gsPath, hsPath, dsPath)
+DeferredGeometryPassEffect::DeferredGeometryPassEffect(Renderer* renderer, const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath)
+	:Effect(renderer, vsPath, psPath, gsPath, hsPath, dsPath)
 {
 
 }
 
-DeferredGeometryPassEffect::DeferredGeometryPassEffect(const std::wstring& filename)
-	: Effect(filename + L"_vs" + GetExt(), filename + L"_ps" + GetExt())
+DeferredGeometryPassEffect::DeferredGeometryPassEffect(Renderer* renderer, const std::wstring& filename)
+	: Effect(renderer, filename + L"_vs" + GetExt(), filename + L"_ps" + GetExt())
 {
 	PrepareBuffer();
 }
@@ -563,7 +566,7 @@ void DeferredGeometryPassEffect::PrepareBuffer()
 			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 		};
 
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 4, m_vsBlob->GetBufferPointer(),
+		HR(static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateInputLayout(vertexDesc, 4, m_vsBlob->GetBufferPointer(),
 			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
 		m_shaderResources = new ID3D11ShaderResourceView*[5];
@@ -608,26 +611,26 @@ void DeferredGeometryPassEffect::PrepareBuffer()
 		GLint texUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
 		glUniformBlockBinding(m_shaderProgram, texUBOPos, 2);
 
-		m_textureCB = Renderer::Instance()->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_textureCB = m_renderer->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 		break;
 	}
 	}
 
-	m_perFrameCB = Renderer::Instance()->CreateGPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
-	m_perObjectCB = Renderer::Instance()->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perFrameCB = m_renderer->CreateGPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB = m_renderer->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 //------------------------------------------------------------//
 
-DeferredSkinnedGeometryPassEffect::DeferredSkinnedGeometryPassEffect(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath)
-	:Effect(vsPath, psPath, gsPath, hsPath, dsPath)
+DeferredSkinnedGeometryPassEffect::DeferredSkinnedGeometryPassEffect(Renderer* renderer, const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath)
+	:Effect(renderer, vsPath, psPath, gsPath, hsPath, dsPath)
 {
 
 }
 
-DeferredSkinnedGeometryPassEffect::DeferredSkinnedGeometryPassEffect(const std::wstring& filename)
-	: Effect(filename + L"_vs" + GetExt(), filename + L"_ps" + GetExt())
+DeferredSkinnedGeometryPassEffect::DeferredSkinnedGeometryPassEffect(Renderer* renderer, const std::wstring& filename)
+	: Effect(renderer, filename + L"_vs" + GetExt(), filename + L"_ps" + GetExt())
 {
 	PrepareBuffer();
 }
@@ -661,7 +664,7 @@ void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
 			{ "JOINTINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, offsetof(Vertex::SkinnedMeshVertex, JointIndices), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 6, m_vsBlob->GetBufferPointer(),
+		HR(static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateInputLayout(vertexDesc, 6, m_vsBlob->GetBufferPointer(),
 			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
 		ReleaseCOM(m_vsBlob);
@@ -671,7 +674,7 @@ void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
 		ReleaseCOM(m_dsBlob);
 		ReleaseCOM(m_csBlob);
 
-		m_matrixPaletteSB = Renderer::Instance()->CreateGPUBuffer(sizeof(Mat4) * 64, BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_matrixPaletteSB = m_renderer->CreateGPUBuffer(sizeof(Mat4) * 64, BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 		break;
 	}
@@ -709,23 +712,23 @@ void DeferredSkinnedGeometryPassEffect::PrepareBuffer()
 		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
 		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 2);
 
-		m_textureCB= Renderer::Instance()->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
-		m_matrixPaletteSB= Renderer::Instance()->CreateGPUBuffer(sizeof(Mat4) * 64, BufferUsage::WRITE, nullptr, BufferType::SSBO);
+		m_textureCB= m_renderer->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_matrixPaletteSB= m_renderer->CreateGPUBuffer(sizeof(Mat4) * 64, BufferUsage::WRITE, nullptr, BufferType::SSBO);
 
 		break;
 	}
 	}
 
-	m_perFrameCB= Renderer::Instance()->CreateGPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
-	m_perObjectCB= Renderer::Instance()->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perFrameCB= m_renderer->CreateGPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB= m_renderer->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 
 //------------------------------------------------------------//
 
 
-DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filename)
-	: Effect(std::wstring(L"../StenGine/FX/ScreenQuad_vs") + GetExt(), filename + L"_ps" + GetExt())
+DeferredShadingPassEffect::DeferredShadingPassEffect(Renderer* renderer, const std::wstring& filename)
+	: Effect(renderer, std::wstring(L"../StenGine/FX/ScreenQuad_vs") + GetExt(), filename + L"_ps" + GetExt())
 {
 	switch (Renderer::GetRenderBackend())
 	{
@@ -736,7 +739,7 @@ DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filenam
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+		HR(static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
 		m_shaderResources = new ID3D11ShaderResourceView*[5];
@@ -760,12 +763,12 @@ DeferredShadingPassEffect::DeferredShadingPassEffect(const std::wstring& filenam
 		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
 		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 1);
 
-		m_textureCB= Renderer::Instance()->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_textureCB= m_renderer->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 		break;
 	}
 	}
 
-	m_perFrameCB= Renderer::Instance()->CreateGPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perFrameCB= m_renderer->CreateGPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 DeferredShadingPassEffect::~DeferredShadingPassEffect()
@@ -780,8 +783,8 @@ DeferredShadingPassEffect::~DeferredShadingPassEffect()
 	}
 }
 
-SkyboxEffect::SkyboxEffect(const std::wstring& filename)
-	: Effect(filename + L"_vs" + GetExt(), filename + L"_ps" + GetExt())
+SkyboxEffect::SkyboxEffect(Renderer* renderer, const std::wstring& filename)
+	: Effect(renderer, filename + L"_vs" + GetExt(), filename + L"_ps" + GetExt())
 {
 	switch (Renderer::GetRenderBackend())
 	{
@@ -797,7 +800,7 @@ SkyboxEffect::SkyboxEffect(const std::wstring& filename)
 			m_shaderResources[i] = 0;
 		}
 
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+		HR(static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
 		ReleaseCOM(m_vsBlob);
@@ -816,12 +819,12 @@ SkyboxEffect::SkyboxEffect(const std::wstring& filename)
 		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
 		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 1);
 
-		m_textureCB= Renderer::Instance()->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_textureCB= m_renderer->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 		break;
 	}
 	}
 
-	m_perObjectCB= Renderer::Instance()->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB= m_renderer->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 SkyboxEffect::~SkyboxEffect()
@@ -842,14 +845,14 @@ SkyboxEffect::~SkyboxEffect()
 
 //------------------------------------------------------------//
 
-DebugLineEffect::DebugLineEffect(const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath)
-	:Effect(vsPath, psPath, gsPath, hsPath, dsPath)
+DebugLineEffect::DebugLineEffect(Renderer* renderer, const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath)
+	: Effect(renderer, vsPath, psPath, gsPath, hsPath, dsPath)
 {
 
 }
 
-DebugLineEffect::DebugLineEffect(const std::wstring& filename)
-	: Effect(filename + L"_vs" + GetExt(), filename + L"_ps" + GetExt())
+DebugLineEffect::DebugLineEffect(Renderer* renderer, const std::wstring& filename)
+	: Effect(renderer, filename + L"_vs" + GetExt(), filename + L"_ps" + GetExt())
 {
 	switch (Renderer::GetRenderBackend())
 	{
@@ -860,7 +863,7 @@ DebugLineEffect::DebugLineEffect(const std::wstring& filename)
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+		HR(static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
 		ReleaseCOM(m_vsBlob);
@@ -873,7 +876,7 @@ DebugLineEffect::DebugLineEffect(const std::wstring& filename)
 	}
 	}
 
-	m_perObjectCB= Renderer::Instance()->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB= m_renderer->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 DebugLineEffect::~DebugLineEffect()
@@ -891,8 +894,9 @@ DebugLineEffect::~DebugLineEffect()
 
 //----------------------------------------------------------//
 
-DeferredGeometryTessPassEffect::DeferredGeometryTessPassEffect(const std::wstring& filename)
+DeferredGeometryTessPassEffect::DeferredGeometryTessPassEffect(Renderer* renderer, const std::wstring& filename)
 	: DeferredGeometryPassEffect(
+		renderer,
 		filename + L"_vs" + GetExt(),
 		filename + L"_ps" + GetExt(),
 		L"",
@@ -916,8 +920,9 @@ DeferredGeometryTessPassEffect::~DeferredGeometryTessPassEffect()
 
 //----------------------------------------------------------//
 
-DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::wstring& filename)
+DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(Renderer* renderer, const std::wstring& filename)
 	: Effect(
+		renderer,
 		filename + L"_vs" + GetExt(),
 		filename + L"_ps" + GetExt(),
 		L"",
@@ -935,7 +940,7 @@ DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::
 			{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		HRESULT hr = (static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
+		HRESULT hr = (static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
 			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
 		m_shaderResources = new ID3D11ShaderResourceView*[8];
@@ -978,14 +983,14 @@ DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(const std::
 		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
 		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 2);
 
-		m_textureCB= Renderer::Instance()->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_textureCB= m_renderer->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 		break;
 	}
 	}
 
-	m_perFrameCB= Renderer::Instance()->CreateGPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
-	m_perObjectCB= Renderer::Instance()->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perFrameCB= m_renderer->CreateGPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB= m_renderer->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 }
 
@@ -1007,8 +1012,9 @@ DeferredGeometryTerrainPassEffect::~DeferredGeometryTerrainPassEffect()
 }
 
 
-TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
+TerrainShadowMapEffect::TerrainShadowMapEffect(Renderer* renderer, const std::wstring& filename)
 	: Effect(
+		renderer,
 		filename + L"_vs" + GetExt(),
 		L"",
 		L"",
@@ -1026,7 +1032,7 @@ TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
 			{ "TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		HRESULT hr = (static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
+		HRESULT hr = (static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
 			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
 		m_shaderResources = new ID3D11ShaderResourceView*[8];
@@ -1069,14 +1075,14 @@ TerrainShadowMapEffect::TerrainShadowMapEffect(const std::wstring& filename)
 		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
 		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 2);
 
-		m_textureCB = Renderer::Instance()->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_textureCB = m_renderer->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 		break;
 	}
 	}
 
-	m_perFrameCB = Renderer::Instance()->CreateGPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
-	m_perObjectCB = Renderer::Instance()->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perFrameCB = m_renderer->CreateGPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB = m_renderer->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 }
 
@@ -1099,24 +1105,24 @@ TerrainShadowMapEffect::~TerrainShadowMapEffect()
 
 //----------------------------------------------------------//
 
-VBlurEffect::VBlurEffect(const std::wstring& filename)
-	: Effect(L"", L"", L"", L"", L"", filename + L"_cs" + GetExt())
+VBlurEffect::VBlurEffect(Renderer* renderer, const std::wstring& filename)
+	: Effect(renderer, L"", L"", L"", L"", L"", filename + L"_cs" + GetExt())
 {
 
 }
 
 //----------------------------------------------------------//
 
-HBlurEffect::HBlurEffect(const std::wstring& filename)
-	: Effect(L"", L"", L"", L"", L"", filename + L"_cs" + GetExt())
+HBlurEffect::HBlurEffect(Renderer* renderer, const std::wstring& filename)
+	: Effect(renderer, L"", L"", L"", L"", L"", filename + L"_cs" + GetExt())
 {
 
 }
 
 //-------------------------------------------//
 
-ImGuiEffect::ImGuiEffect(const std::wstring& filename)
-	: Effect(filename + L"_vs" + GetExt(), filename + L"_ps" + GetExt(), L"", L"", L"", L"")
+ImGuiEffect::ImGuiEffect(Renderer* renderer, const std::wstring& filename)
+	: Effect(renderer, filename + L"_vs" + GetExt(), filename + L"_ps" + GetExt(), L"", L"", L"", L"")
 {
 	switch (Renderer::GetRenderBackend())
 	{
@@ -1128,7 +1134,7 @@ ImGuiEffect::ImGuiEffect(const std::wstring& filename)
 			{ "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (size_t)(&((ImDrawVert*)0)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(localLayout, 3, m_vsBlob->GetBufferPointer(), m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
+		HR(static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateInputLayout(localLayout, 3, m_vsBlob->GetBufferPointer(), m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
 		break;
 	}
@@ -1154,13 +1160,13 @@ ImGuiEffect::ImGuiEffect(const std::wstring& filename)
 		GLint textureUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
 		glUniformBlockBinding(m_shaderProgram, textureUBOPos, 1);
 
-		m_textureCB= Renderer::Instance()->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_textureCB= m_renderer->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 		break;
 	}
 	}
 
-	m_imguiCB= Renderer::Instance()->CreateGPUBuffer(sizeof(IMGUI_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_imguiCB= m_renderer->CreateGPUBuffer(sizeof(IMGUI_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 }
 
@@ -1184,8 +1190,8 @@ ImGuiEffect::~ImGuiEffect()
 //-------------------------------------------//
 
 
-BlurEffect::BlurEffect(const std::wstring& filename)
-	: Effect(std::wstring(L"../StenGine/FX/ScreenQuad_vs") + GetExt(), filename + L"_ps" + GetExt())
+BlurEffect::BlurEffect(Renderer* renderer, const std::wstring& filename)
+	: Effect(renderer, std::wstring(L"../StenGine/FX/ScreenQuad_vs") + GetExt(), filename + L"_ps" + GetExt())
 {
 	switch (Renderer::GetRenderBackend())
 	{
@@ -1196,7 +1202,7 @@ BlurEffect::BlurEffect(const std::wstring& filename)
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
+		HR(static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateInputLayout(vertexDesc, 1, m_vsBlob->GetBufferPointer(),
 			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
 		ReleaseCOM(m_vsBlob);
@@ -1215,13 +1221,13 @@ BlurEffect::BlurEffect(const std::wstring& filename)
 		GLint texturesCBPos = glGetUniformBlockIndex(m_shaderProgram, "cbTextures");
 		glUniformBlockBinding(m_shaderProgram, texturesCBPos, 1);
 
-		m_textureCB= Renderer::Instance()->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+		m_textureCB= m_renderer->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 
 		break;
 	}
 	}
 
-	m_settingCB= Renderer::Instance()->CreateGPUBuffer(sizeof(SETTING_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_settingCB= m_renderer->CreateGPUBuffer(sizeof(SETTING_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
 }
 
 BlurEffect::~BlurEffect()
@@ -1284,26 +1290,32 @@ EffectsManager::EffectsManager()
 	, m_debugLineEffect(nullptr)
 {
 
-	// TODO, add a function to get FX directory
-
-	m_shadowMapEffect = std::make_unique<ShadowMapEffect>(L"../StenGine/FX/ShadowMap");
-	m_deferredGeometryPassEffect = std::make_unique<DeferredGeometryPassEffect>(L"../StenGine/FX/DeferredGeometryPass");
-	m_deferredSkinnedGeometryPassEffect = std::make_unique<DeferredSkinnedGeometryPassEffect>(L"../StenGine/FX/DeferredSkinnedGeometryPass");
-	m_deferredShadingPassEffect = std::make_unique<DeferredShadingPassEffect>(L"../StenGine/FX/DeferredShadingPass");
-	m_deferredGeometryTessPassEffect = std::make_unique<DeferredGeometryTessPassEffect>(L"../StenGine/FX/DeferredGeometryTessPass");
-	m_skyboxEffect = std::make_unique<SkyboxEffect>(L"../StenGine/FX/Skybox");
-	m_debugLineEffect = std::make_unique<DebugLineEffect>(L"../StenGine/FX/DebugLine");
-	m_deferredGeometryTerrainPassEffect = std::make_unique<DeferredGeometryTerrainPassEffect>(L"../StenGine/FX/DeferredGeometryTerrainPass");
-	m_terrainShadowMapEffect = std::make_unique<TerrainShadowMapEffect>(L"../StenGine/FX/DeferredGeometryTerrainPass");
-	m_vblurEffect = std::make_unique<VBlurEffect>(L"../StenGine/FX/VBlur");
-	m_hblurEffect = std::make_unique<HBlurEffect>(L"../StenGine/FX/HBlur");
-	m_blurEffect = std::make_unique<BlurEffect>(L"../StenGine/FX/Blur");
-	m_imguiEffect = std::make_unique<ImGuiEffect>(L"../StenGine/FX/imgui");
 }
 
 EffectsManager::~EffectsManager()
 {
 
+}
+
+void EffectsManager::Init(Renderer* renderer)
+{
+	m_renderer = renderer;
+
+	// TODO, add a function to get FX directory
+
+	m_shadowMapEffect = std::make_unique<ShadowMapEffect>(m_renderer, L"../StenGine/FX/ShadowMap");
+	m_deferredGeometryPassEffect = std::make_unique<DeferredGeometryPassEffect>(m_renderer, L"../StenGine/FX/DeferredGeometryPass");
+	m_deferredSkinnedGeometryPassEffect = std::make_unique<DeferredSkinnedGeometryPassEffect>(m_renderer, L"../StenGine/FX/DeferredSkinnedGeometryPass");
+	m_deferredShadingPassEffect = std::make_unique<DeferredShadingPassEffect>(m_renderer, L"../StenGine/FX/DeferredShadingPass");
+	m_deferredGeometryTessPassEffect = std::make_unique<DeferredGeometryTessPassEffect>(m_renderer, L"../StenGine/FX/DeferredGeometryTessPass");
+	m_skyboxEffect = std::make_unique<SkyboxEffect>(m_renderer, L"../StenGine/FX/Skybox");
+	m_debugLineEffect = std::make_unique<DebugLineEffect>(m_renderer, L"../StenGine/FX/DebugLine");
+	m_deferredGeometryTerrainPassEffect = std::make_unique<DeferredGeometryTerrainPassEffect>(m_renderer, L"../StenGine/FX/DeferredGeometryTerrainPass");
+	m_terrainShadowMapEffect = std::make_unique<TerrainShadowMapEffect>(m_renderer, L"../StenGine/FX/DeferredGeometryTerrainPass");
+	m_vblurEffect = std::make_unique<VBlurEffect>(m_renderer, L"../StenGine/FX/VBlur");
+	m_hblurEffect = std::make_unique<HBlurEffect>(m_renderer, L"../StenGine/FX/HBlur");
+	m_blurEffect = std::make_unique<BlurEffect>(m_renderer, L"../StenGine/FX/Blur");
+	m_imguiEffect = std::make_unique<ImGuiEffect>(m_renderer, L"../StenGine/FX/imgui");
 }
 
 }
