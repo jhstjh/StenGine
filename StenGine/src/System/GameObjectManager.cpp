@@ -1,9 +1,9 @@
 #include "Scene/GameObjectManager.h"
 #include "System/API/PlatformAPIDefs.h"
 #include "Mesh/MeshRenderer.h"
-#include "Mesh/SkinnedMesh.h"
+#include "Mesh/SkinnedMeshRenderer.h"
 #include "Resource/ResourceManager.h"
-#include "Mesh/Terrain.h"
+#include "Mesh/Terrain/Terrain.h"
 #include "Math/MathHelper.h"
 #include "Graphics/Animation/Animation.h"
 #include "imgui.h"
@@ -61,7 +61,7 @@ void GameObjectManager::DrawMenu()
 	{
 		if (ImGui::Begin("Inspector"))
 		{
-			selected->m_parents[0]->DrawMenu();
+			selected->mParent->DrawMenu();
 			ImGui::End();
 		}
 	}

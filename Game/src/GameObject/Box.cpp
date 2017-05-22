@@ -8,7 +8,9 @@ namespace SGGame
 Box::Box()
 {
 	Mesh* box0Mesh = ResourceManager::Instance()->GetResource<Mesh>(L"GenerateBox");
-	AddComponent(box0Mesh);
+	auto box0MeshRenderer = std::make_unique<MeshRenderer>();
+	box0MeshRenderer->SetMesh(box0Mesh);
+	AddComponent(std::move(box0MeshRenderer));
 }
 
 }

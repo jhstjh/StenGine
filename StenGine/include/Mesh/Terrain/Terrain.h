@@ -7,6 +7,10 @@
 #include "Scene/Component.h"
 #include "Scene/Drawable.h"
 
+namespace SGGame
+{
+class Grass;
+}
 
 namespace StenGine
 {
@@ -69,6 +73,8 @@ private:
 
 	std::vector<Vec2Packed> m_patchBoundsY;
 	std::vector<float> m_heightMap;
+
+	SGGame::Grass* m_grass;
 };
 
 }

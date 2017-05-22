@@ -92,13 +92,13 @@ void Transform::DrawMenuNodes(Transform* &selected, bool defaultOpen/* = false*/
 	}
 
 	const char* nodeName = "";
-	if (m_parents.size() == 0)
+	if (mParent == nullptr)
 	{
 		nodeName = "Root";
 	}
 	else
 	{
-		nodeName = m_parents[0]->GetName();
+		nodeName = mParent->GetName();
 	}
 
 	if (selected == this)

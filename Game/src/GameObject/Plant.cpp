@@ -8,7 +8,9 @@ namespace SGGame
 Plant::Plant()
 {
 	Mesh* plantMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/plants.fbx");
-	AddComponent(plantMesh);
+	auto plantMeshRenderer = std::make_unique<MeshRenderer>();
+	plantMeshRenderer->SetMesh(plantMesh);
+	AddComponent(std::move(plantMeshRenderer));
 }
 
 }

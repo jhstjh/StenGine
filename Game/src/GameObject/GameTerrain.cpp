@@ -1,7 +1,7 @@
 #include "GameObject/GameTerrain.h"
 #include "Mesh/MeshRenderer.h"
 #include "Resource/ResourceManager.h"
-#include "Mesh/Terrain.h"
+#include "Mesh/Terrain/Terrain.h"
 
 namespace SGGame
 {
@@ -22,8 +22,8 @@ GameTerrain::GameTerrain()
 	tii.HeightmapHeight = 2049;
 	tii.CellSpacing = 0.5f;
 
-	Terrain* terrainComp = new Terrain(tii);
-	AddComponent(terrainComp);
+	auto terrainComp = std::make_unique<Terrain>(tii);
+	AddComponent(std::move(terrainComp));
 }
 
 }

@@ -19,37 +19,26 @@ namespace StenGine
 {
 
 class Effect;
+class Mesh;
 
-class Mesh : public Component, public Drawable {
+class MeshRenderer : public Component, public Drawable {
 protected:
 	GPUBuffer m_indexBufferGPU;
 	GPUBuffer m_vertexBufferGPU;
 	GPUBuffer m_shadowMapVertexBufferGPU;
 
-	Effect* m_associatedEffect;
-	Effect* m_associatedDeferredEffect;
+	Effect* m_associatedEffect{ nullptr };
+	Effect* m_associatedDeferredEffect{ nullptr };
+	Mesh* mMesh{ nullptr };
 
-	void CreateBoxPrimitive();
-	void CreatePlanePrimitive();
 	virtual void PrepareGPUBuffer();
 	virtual void PrepareShadowMapBuffer();
-	void PrepareSRV(int type);
 
 public:
-	std::vector<uint32_t> m_indexBufferCPU;
-	std::vector<Vec3Packed> m_positionBufferCPU;
-	std::vector<Vec3Packed> m_normalBufferCPU;
-	std::vector<Vec2Packed> m_texUVBufferCPU;
-	std::vector<Vec4Packed> m_colorBufferCPU;
-	std::vector<Vec3Packed> m_tangentBufferCPU;
-
-	std::vector<SubMesh> m_subMeshes;
-	std::vector<Material> m_materials;
-
-	bool m_castShadow;
-	bool m_receiveShadow;
-	Mesh(int type);
-	virtual ~Mesh();
+	bool m_castShadow{ true };
+	bool m_receiveShadow{ true };
+	virtual ~MeshRenderer();
+	virtual void SetMesh(Mesh* mesh);
 	virtual void GatherDrawCall() override;
 	virtual void GatherShadowDrawCall() override;
 	void Prepare();

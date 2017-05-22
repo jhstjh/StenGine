@@ -11,7 +11,7 @@
 #include "Utility/Timer.h"
 #include "Engine/Console.h"
 #include "Engine/EventSystem.h"
-#include "Mesh/Terrain.h"
+#include "Mesh/Terrain/Terrain.h"
 
 namespace StenGine
 {

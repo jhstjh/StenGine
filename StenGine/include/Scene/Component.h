@@ -10,9 +10,8 @@ class GameObject;
 
 class Component {
 public:
-	GameObject* mParent;
-	std::vector<GameObject*> m_parents;
-	virtual ~Component();
+	GameObject* mParent{ nullptr };
+	virtual ~Component() = default;
 
 	virtual void DrawMenu() = 0;
 };

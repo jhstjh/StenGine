@@ -3,8 +3,10 @@
 
 #include <unordered_map>
 #include "Graphics/Abstraction/RendererBase.h"
+#include "Mesh/Mesh.h"
 #include "Mesh/MeshRenderer.h"
 #include "Mesh/SkinnedMesh.h"
+#include "Mesh/SkinnedMeshRenderer.h"
 #include "System/SingletonClass.h"
 #include "Graphics/Abstraction/Texture.h"
 #include "Graphics/Animation/Animation.h"
@@ -43,11 +45,11 @@ public:
 	T* GetResource(std::string path) 
 	{
 		std::wstring _path(path.begin(), path.end());
-		if (std::is_same<T, Mesh>::value) {
+		if (std::is_same<T, MeshRenderer>::value) {
 			auto got = m_meshResourceMap.find(_path);
 			if (got == m_meshResourceMap.end())
 			{
-				Mesh* newMesh = new Mesh(2);
+				MeshRenderer* newMesh = new MeshRenderer(2);
 
 				bool result = SgmReader::Read(path, newMesh);
 				assert(result);
@@ -78,14 +80,12 @@ public:
 			if (path == L"GenerateBox") 
 			{
 				Mesh* box = new Mesh(0);
-				box->Prepare();
 				m_meshResourceMap[L"GenerateBox"] = box;
 				return box;
 			}
 			else if (path == L"GeneratePlane") 
 			{
 				Mesh* plane = new Mesh(1);
-				plane->Prepare();
 				m_meshResourceMap[L"GeneratePlane"] = plane;
 				return plane;
 			}
@@ -94,7 +94,6 @@ public:
 				Mesh* newMesh = new Mesh(2);
 				bool result = FbxReaderSG::Read(path, newMesh);
 				assert(result);
-				newMesh->Prepare();
 				m_meshResourceMap[path] = newMesh;
 
 				return newMesh;
@@ -115,7 +114,6 @@ public:
 			SkinnedMesh* newMesh = new SkinnedMesh();
 			bool result = FbxReaderSG::Read(path, newMesh);
 			assert(result);
-			newMesh->Prepare();
 			m_meshResourceMap[path] = newMesh;
 
 			return newMesh;

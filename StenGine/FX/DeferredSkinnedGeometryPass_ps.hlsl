@@ -17,12 +17,12 @@ PixelOut main(VertexOut pin)
 
 	pin.ShadowPosH.xyz /= pin.ShadowPosH.w;
 	float depth = pin.ShadowPosH.z;
-	float shadowLit = 1 - gDiffX_NormY_ShadZ.z;
+	float shadowLit = 1 - gDiffX_NormY_ShadZ_ClipW.z;
 
 	shadowLit += gShadowMap.SampleCmpLevelZero(gShadowSampler,
  		pin.ShadowPosH.xy, depth).r;
 
-	pout.diffuseH = ((1 - gDiffX_NormY_ShadZ.x) * gCubeMap.SampleLevel(gDiffuseMapSampler, refRay, 3) + gDiffX_NormY_ShadZ.x * gDiffuseMap.Sample(gDiffuseMapSampler, pin.TexUV)) * gMaterial.diffuse;
+	pout.diffuseH = ((1 - gDiffX_NormY_ShadZ_ClipW.x) * gCubeMap.SampleLevel(gDiffuseMapSampler, refRay, 3) + gDiffX_NormY_ShadZ_ClipW.x * gDiffuseMap.Sample(gDiffuseMapSampler, pin.TexUV)) * gMaterial.diffuse;
 	//pout.diffuseH = gShadowMap.Sample(gDiffuseMapSampler, pin.ShadowPosH.xy);
 	pout.diffuseH.w = saturate(shadowLit);
 	pout.specularH = gMaterial.specular;
@@ -30,7 +30,7 @@ PixelOut main(VertexOut pin)
 	pout.normalV.w = 1.0;
 	pout.normalV.xyz = (normalize(pin.NormalV) + 1) / 2;
 
-	if (gDiffX_NormY_ShadZ.y > 0) {
+	if (gDiffX_NormY_ShadZ_ClipW.y > 0) {
 		float3 normalMapNormal = gNormalMap.Sample(gDiffuseMapSampler, pin.TexUV);
 		normalMapNormal = 2.0f * normalMapNormal - 1.0;
 

@@ -1,5 +1,5 @@
 #include "GameObject/zombie.h"
-#include "Mesh/SkinnedMesh.h"
+#include "Mesh/SkinnedMeshRenderer.h"
 #include "Resource/ResourceManager.h"
 
 namespace SGGame
@@ -8,10 +8,13 @@ namespace SGGame
 Zombie::Zombie()
 {
 	SkinnedMesh* zombieMesh = ResourceManager::Instance()->GetResource<SkinnedMesh>(L"Model/vampire-animated.fbx");
-	AddComponent(zombieMesh);
-
+	auto zombieMeshRenderer = std::make_unique<SkinnedMeshRenderer>();
+	zombieMeshRenderer->SetMesh(zombieMesh);
+	
 	Animation* animation = ResourceManager::Instance()->GetResource<Animation>(L"Model/vampire-animated.fbx");
-	zombieMesh->SetAnimation(animation);
+	zombieMeshRenderer.get()->SetAnimation(animation);
+
+	AddComponent(std::move(zombieMeshRenderer));
 }
 
 }

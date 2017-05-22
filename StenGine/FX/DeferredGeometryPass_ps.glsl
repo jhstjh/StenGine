@@ -54,6 +54,12 @@ layout(std140) uniform ubTextures{
 };
 
 void main() {
+
+    // if (texture(gDiffuseMap, pIn.pTexUV)).a < 0.1)
+    // {
+    //     discard;
+    // }
+
 	vec3 normal = normalize(pIn.pNormalV);
 
 	if (DiffX_NormY_ShadZ.y > 0) {

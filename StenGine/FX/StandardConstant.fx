@@ -45,7 +45,7 @@ cbuffer cbPerObject : register(b0) {
 	float4x4 gView;
 #endif
 	Material gMaterial;
-	float4 gDiffX_NormY_ShadZ;
+	float4 gDiffX_NormY_ShadZ_ClipW;
 };
 #endif
 

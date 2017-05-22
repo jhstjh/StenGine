@@ -9,8 +9,6 @@
 namespace StenGine
 {
 
-class Component;
-
 class Transform : public Component, public AlignedClass<16>
 {
 public:

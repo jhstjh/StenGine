@@ -113,6 +113,12 @@
     <Filter Include="src\Graphics\Abstraction">
       <UniqueIdentifier>{4ad925aa-69d3-4e5f-9d94-82397125583a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Mesh\Terrain">
+      <UniqueIdentifier>{eab790a1-ab64-4413-b811-c4350e170160}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Mesh\Terrain">
+      <UniqueIdentifier>{5674b39a-6843-4945-90c6-a791115850f3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -391,16 +397,7 @@
     <ClInclude Include="include\Math\MathHelper.h">
       <Filter>include\Math</Filter>
     </ClInclude>
-    <ClInclude Include="include\Mesh\Skeleton.h">
-      <Filter>include\Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Mesh\SkinnedMesh.h">
-      <Filter>include\Mesh</Filter>
-    </ClInclude>
     <ClInclude Include="include\Mesh\SubMesh.h">
-      <Filter>include\Mesh</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Mesh\Terrain.h">
       <Filter>include\Mesh</Filter>
     </ClInclude>
     <ClInclude Include="include\Mesh\MeshRenderer.h">
@@ -535,6 +532,21 @@
     <ClInclude Include="include\Math\MathDefs.h">
       <Filter>include\Math</Filter>
     </ClInclude>
+    <ClInclude Include="include\Mesh\Terrain\Terrain.h">
+      <Filter>include\Mesh\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Mesh\Terrain\TerrainGrass.h">
+      <Filter>include\Mesh\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Mesh\Mesh.h">
+      <Filter>include\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Mesh\SkinnedMeshRenderer.h">
+      <Filter>include\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Mesh\SkinnedMesh.h">
+      <Filter>include\Mesh</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -558,19 +570,7 @@
     <ClCompile Include="src\Input\InputManager.cpp">
       <Filter>src\Input</Filter>
     </ClCompile>
-    <ClCompile Include="src\Mesh\Skeleton.cpp">
-      <Filter>src\Mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Mesh\SkinnedMesh.cpp">
-      <Filter>src\Mesh</Filter>
-    </ClCompile>
     <ClCompile Include="src\Mesh\SubMesh.cpp">
-      <Filter>src\Mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Mesh\Terrain.cpp">
-      <Filter>src\Mesh</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Mesh\MeshPrimitives.cpp">
       <Filter>src\Mesh</Filter>
     </ClCompile>
     <ClCompile Include="src\Mesh\MeshRenderer.cpp">
@@ -583,9 +583,6 @@
       <Filter>src\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Scene\CameraManager.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Scene\Component.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\Scene\GameObject.cpp">
@@ -680,6 +677,21 @@
     </ClCompile>
     <ClCompile Include="src\Scene\GameObjectRegistry.cpp">
       <Filter>src\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh\Terrain\Terrain.cpp">
+      <Filter>src\Mesh\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh\Terrain\TerrainGrass.cpp">
+      <Filter>src\Mesh\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh\Mesh.cpp">
+      <Filter>src\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh\SkinnedMeshRenderer.cpp">
+      <Filter>src\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh\SkinnedMesh.cpp">
+      <Filter>src\Mesh</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

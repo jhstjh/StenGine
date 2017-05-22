@@ -31,19 +31,18 @@ public:
 	{
 		auto gameObject = mRegistry.Instantiate(objectType);
 		gameObject->SetName(name);
-		auto transform = new Transform(tx, ty, tz, rx, ry, rz, sx, sy, sz); // will be cleanup in component
+		auto transform = std::make_unique<Transform>(tx, ty, tz, rx, ry, rz, sx, sy, sz); // will be cleanup in component
+		gameObject->AddComponent(std::move(transform));
+		gameObject->m_transform = gameObject->GetFirstComponentByType<Transform>();
 
 		if (parent)
 		{
-			parent->AddChild(transform);
+			parent->AddChild(gameObject->m_transform);
 		}
 		else
 		{
-			mRoot.AddChild(transform);
+			mRoot.AddChild(gameObject->m_transform);
 		}
-
-		gameObject->AddComponent(transform);
-		gameObject->m_transform = transform;
 
 		RPC_STATUS status;
 		if (UuidIsNil(&uuid, &status))

@@ -1,9 +1,11 @@
 #include "Utility/ObjReader.h"
 
+#if 0
+
 namespace StenGine
 {
 
-void ObjReader::Read(const std::wstring& filename, Mesh* mesh) {
+void ObjReader::Read(const std::wstring& filename, MeshRenderer* mesh) {
 
 	std::ifstream fin(filename);
 	char line[256];
@@ -74,3 +76,5 @@ void ObjReader::Read(const std::wstring& filename, Mesh* mesh) {
 }
 
 }
+
+#endif

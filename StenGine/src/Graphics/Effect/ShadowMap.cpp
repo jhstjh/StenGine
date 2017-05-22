@@ -4,7 +4,7 @@
 #include "Scene/LightManager.h"
 #include "Graphics/Abstraction/RendererBase.h"
 
-#include "Mesh/Terrain.h"
+#include "Mesh/Terrain/Terrain.h"
 
 #pragma warning(disable: 4312) // 'type cast': conversion from 'GLuint' to 'void *' of greater size
 

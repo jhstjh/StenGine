@@ -6,7 +6,7 @@
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Graphics/Animation/Animation.h"
 #include "Math/MathDefs.h"
-#include "Mesh/SkinnedMesh.h"
+#include "Mesh/SkinnedMeshRenderer.h"
 #include "Shlwapi.h"
 #include <sys/stat.h>
 #include <direct.h>

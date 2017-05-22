@@ -8,7 +8,9 @@ namespace SGGame
 House::House()
 {
 	Mesh* houseMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/house.fbx");
-	AddComponent(houseMesh);
+	auto houseMeshRenderer = std::make_unique<MeshRenderer>();
+	houseMeshRenderer->SetMesh(houseMesh);
+	AddComponent(std::move(houseMeshRenderer));
 }
 
 }

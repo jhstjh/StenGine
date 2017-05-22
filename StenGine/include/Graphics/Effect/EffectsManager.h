@@ -27,7 +27,7 @@
 namespace StenGine
 {
 
-class Mesh;
+class MeshRenderer;
 class Renderer;
 
 class Effect : public AlignedClass<16> {
@@ -98,7 +98,7 @@ public:
 	virtual ID3D11ShaderResourceView* GetOutputShaderResource(int idx);
 	//virtual void GetUAVResources(ID3D11UnorderedAccessView* res, int idx) {}
 
-	std::vector<Mesh*> m_associatedMeshes;
+	std::vector<MeshRenderer*> m_associatedMeshes;
 };
 
 class DeferredGeometryPassEffect : public Effect {

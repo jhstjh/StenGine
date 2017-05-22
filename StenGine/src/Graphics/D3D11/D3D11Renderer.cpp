@@ -16,7 +16,7 @@
 #include "Graphics/Effect/Skybox.h"
 #include "Math/MathHelper.h"
 #include "Mesh/MeshRenderer.h"
-#include "Mesh/Terrain.h"
+#include "Mesh/Terrain/Terrain.h"
 #include "Scene/LightManager.h"
 #include "Scene/CameraManager.h"
 #include "Scene/GameObjectManager.h"

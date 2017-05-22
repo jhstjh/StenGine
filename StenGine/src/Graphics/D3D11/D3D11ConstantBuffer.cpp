@@ -32,7 +32,6 @@ void *D3D11ConstantBuffer::GetBuffer()
 
 void D3D11ConstantBuffer::Bind()
 {
-	D3D11_MAPPED_SUBRESOURCE ms;
 	void* cb = m_buffer->map();
 	assert(cb);
 	memcpy(cb, m_data, m_size);

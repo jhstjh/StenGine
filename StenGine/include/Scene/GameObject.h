@@ -1,6 +1,7 @@
 #ifndef __GAMEOBJECT__
 #define __GAMEOBJECT__
 
+#include <memory>
 #include <Rpc.h>
 #include "System/API/PlatformAPIDefs.h"
 #include "Graphics/D3DIncludes.h"
@@ -10,8 +11,8 @@
 namespace StenGine
 {
 
-class Component;
 class GameObjectManager;
+using UniqueComponent = std::unique_ptr<Component>;
 
 class GameObject {
 public:
@@ -19,17 +20,19 @@ public:
 	void SetName(const char* name) { m_name = std::string(name); }
 	const char* GetName() { return m_name.c_str(); }
 	void SetUUID(UUID uuid) { m_uuid = uuid; }
-	void AddComponent(Component* c);
-	Component* GetComponentByIdx(int index) { return m_components[index]; }
+	void AddComponent(UniqueComponent c);
+	Component* GetComponentByIdx(int index) { return m_components[index].get(); }
 
 	template <class T>
 	T* GetFirstComponentByType()
 	{
-		for (auto &comp : m_components)
+		for (auto &&comp : m_components)
 		{
-			if (dynamic_cast<T*>comp)
-				return comp;
+			auto ret = dynamic_cast<T*>(comp.get());
+			if (ret)
+				return ret;
 		}
+		return nullptr;
 	}
 
 	Transform* GetTransform() { return m_transform; };
@@ -40,8 +43,8 @@ public:
 	friend GameObjectManager;
 
 protected:
-	Transform* m_transform;
-	std::vector<Component*> m_components;
+	Transform* m_transform {nullptr};
+	std::vector<UniqueComponent> m_components;
 	std::string m_name;
 	UUID m_uuid;
 };

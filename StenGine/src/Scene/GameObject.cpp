@@ -7,18 +7,14 @@
 namespace StenGine
 {
 
-GameObject::~GameObject() {
-	for (uint32_t i = 0; i < m_components.size(); i++) {
-		m_components[i]->m_parents.erase(std::remove(m_components[i]->m_parents.begin(), m_components[i]->m_parents.end(), this), m_components[i]->m_parents.end());
-		if (m_components[i]->m_parents.size() == 0) {
-			//			SafeDelete(m_components[i]);
-		}
-	}
+GameObject::~GameObject() 
+{
+
 }
 
-void GameObject::AddComponent(Component* c) {
-	m_components.push_back(c);
-	c->m_parents.push_back(this);
+void GameObject::AddComponent(UniqueComponent c) {
+	c->mParent = this;
+	m_components.push_back(std::move(c));
 }
 
 void GameObject::Update()

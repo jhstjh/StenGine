@@ -8,7 +8,9 @@ namespace SGGame
 Sphere::Sphere()
 {
 	Mesh* sphereMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/earth.fbx");
-	AddComponent(sphereMesh);
+	auto sphereMeshRenderer = std::make_unique<MeshRenderer>();
+	sphereMeshRenderer->SetMesh(sphereMesh);
+	AddComponent(std::move(sphereMeshRenderer));
 }
 
 void Sphere::Update()

@@ -9,7 +9,7 @@ namespace StenGine
 
 class ObjReader {
 public:
-	static void Read(const std::wstring& filename, Mesh* mesh);
+	static void Read(const std::wstring& filename, MeshRenderer* mesh);
 };
 
 }

@@ -8,7 +8,9 @@ namespace SGGame
 Dragon::Dragon()
 {
 	Mesh* dragonMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/dragon.fbx");
-	AddComponent(dragonMesh);
+	auto dragonMeshRenderer = std::make_unique<MeshRenderer>();
+	dragonMeshRenderer->SetMesh(dragonMesh);
+	AddComponent(std::move(dragonMeshRenderer));
 }
 
 }
