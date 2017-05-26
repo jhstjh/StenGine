@@ -101,6 +101,8 @@ public:
 	std::vector<MeshRenderer*> m_associatedMeshes;
 };
 
+//--------------------------------------------------------------------//
+
 class DeferredGeometryPassEffect : public Effect {
 
 public:
@@ -145,6 +147,55 @@ public:
 	GPUBuffer m_perFrameCB;
 	GPUBuffer m_perObjectCB;
 	GPUBuffer m_textureCB;
+};
+
+//--------------------------------------------------------------------//
+
+class DeferredGeometryInstancedPassEffect : public Effect {
+
+public:
+	DeferredGeometryInstancedPassEffect(Renderer* renderer, const std::wstring& filename);
+	DeferredGeometryInstancedPassEffect(Renderer* renderer, const std::wstring& vsPath,
+		const std::wstring& psPath,
+		const std::wstring& gsPath = L"",
+		const std::wstring& hsPath = L"",
+		const std::wstring& dsPath = L"");
+	~DeferredGeometryInstancedPassEffect();
+
+	void PrepareBuffer();
+
+	struct PEROBJ_CONSTANT_BUFFER
+	{
+		Mat4 WorldViewProj;
+		Mat4 WorldViewInvTranspose;
+		Mat4 WorldInvTranspose;
+		Mat4 WorldView;
+		Mat4 World;
+		Mat4 ViewProj;
+		Mat4 ShadowTransform;
+		Material::MaterialAttrib Mat;
+		Vec4 DiffX_NormY_ShadZ;
+	};
+
+	struct BINDLESS_TEXTURE_CONSTANT_BUFFER
+	{
+		uint64_t DiffuseMap;
+		uint64_t NormalMap;
+		uint64_t ShadowMapTex;
+		uint64_t BumpMapTex;
+		uint64_t CubeMapTex;
+	};
+
+	struct PERFRAME_CONSTANT_BUFFER
+	{
+		Vec4 EyePosW;
+		DirectionalLight DirLight;
+	};
+
+	GPUBuffer m_perFrameCB;
+	GPUBuffer m_perObjectCB;
+	GPUBuffer m_textureCB;
+	GPUBuffer m_instanceBuffer;
 };
 
 
@@ -534,6 +585,7 @@ public:
 	std::unique_ptr<ShadowMapEffect> m_shadowMapEffect;
 	std::unique_ptr<TerrainShadowMapEffect> m_terrainShadowMapEffect;
 	std::unique_ptr<DeferredGeometryPassEffect> m_deferredGeometryPassEffect;
+	std::unique_ptr<DeferredGeometryInstancedPassEffect> m_deferredGeometryInstancedPassEffect;
 	std::unique_ptr<DeferredSkinnedGeometryPassEffect> m_deferredSkinnedGeometryPassEffect;
 	std::unique_ptr<DeferredGeometryTerrainPassEffect> m_deferredGeometryTerrainPassEffect;
 	std::unique_ptr<DeferredGeometryTessPassEffect> m_deferredGeometryTessPassEffect;

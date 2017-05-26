@@ -328,20 +328,20 @@ public:
 		//
 		////DrawGodRay();
 		DrawDebug();
-
+		
 		// TEST
 		ImGui::NewFrame();
 		//ImGui::ShowTestWindow();
 		GameObjectManager::Instance()->DrawMenu();
 		SceneFileManager::Instance()->DrawMenu();
-
-
+		
+		
 		if (ImGui::Begin("Render Settings"))
 		{
 			ImGui::Checkbox("SSAO", &mEnableSSAO);
 			ImGui::End();
 		}
-
+		
 		ImGui::Render();
 
 		gFinishedDrawListSync.wait();
@@ -465,7 +465,9 @@ public:
 		cmd.flags = CmdFlag::DRAW | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH | CmdFlag::BIND_FB;
 		cmd.drawType = DrawType::ARRAY;
 		cmd.inputLayout = (void*)mScreenQuadVAO;
-		cmd.vertexBuffer = 0; // don't bind if 0
+		// cmd.vertexBuffer.push_back(0); // don't bind if 0
+		// cmd.vertexOffset.push_back(0);
+		// cmd.vertexStride.push_back(0);
 		cmd.type = PrimitiveTopology::TRIANGLELIST;
 		cmd.framebuffer = mDeferredShadingRT;
 		cmd.offset = (void*)(0);
@@ -495,7 +497,9 @@ public:
 		cmd.flags = CmdFlag::DRAW | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH | CmdFlag::BIND_FB;
 		cmd.drawType = DrawType::ARRAY;
 		cmd.inputLayout = (void*)mScreenQuadVAO;
-		cmd.vertexBuffer = 0; // don't bind if 0
+		// cmd.vertexBuffer.push_back(0); // don't bind if 0
+		// cmd.vertexOffset.push_back(0);
+		// cmd.vertexStride.push_back(0);
 		cmd.type = PrimitiveTopology::TRIANGLELIST;
 		cmd.framebuffer = mDefaultRT;
 		cmd.offset = (void*)(0);
@@ -883,11 +887,14 @@ private:
 				if (cmd.flags & CmdFlag::DRAW)
 				{
 					if (cmd.inputLayout)
+					{
 						glBindVertexArray((GLuint)cmd.inputLayout);
+					}
 
-					if (cmd.vertexBuffer)
-						glBindVertexBuffer(0, (GLuint)cmd.vertexBuffer, cmd.vertexOffset, cmd.vertexStride);
-
+					for (auto i = 0; i < cmd.vertexBuffer.size(); i++)
+					{
+						glBindVertexBuffer(i, (GLuint)cmd.vertexBuffer[i], cmd.vertexOffset[i], cmd.vertexStride[i]);
+					}
 					if (cmd.type == PrimitiveTopology::CONTROL_POINT_3_PATCHLIST)
 					{
 						glPatchParameteri(GL_PATCH_VERTICES, 3);
@@ -900,18 +907,40 @@ private:
 					if (cmd.drawType == DrawType::INDEXED)
 					{
 						if (cmd.indexBuffer)
+						{
 							glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (GLuint)cmd.indexBuffer);
+						}
 
-						glDrawElements(
-							mDrawTopologyMap[cmd.type],
-							cmd.elementCount,
-							GL_UNSIGNED_INT,
-							cmd.offset
-						);
+						if (cmd.instanceCount)
+						{
+							glDrawElementsInstanced(
+								mDrawTopologyMap[cmd.type],
+								cmd.elementCount,
+								GL_UNSIGNED_INT,
+								cmd.offset,
+								cmd.instanceCount
+								);
+						}
+						else
+						{
+							glDrawElements(
+								mDrawTopologyMap[cmd.type],
+								cmd.elementCount,
+								GL_UNSIGNED_INT,
+								cmd.offset
+							);
+						}
 					}
 					else if (cmd.drawType == DrawType::ARRAY)
 					{
-						glDrawArrays(mDrawTopologyMap[cmd.type], (GLint)cmd.offset, cmd.elementCount);
+						if (cmd.instanceCount)
+						{
+							assert(0);
+						}
+						else
+						{
+							glDrawArrays(mDrawTopologyMap[cmd.type], (GLint)cmd.offset, cmd.elementCount);
+						}
 					}
 				}
 				else if (cmd.flags & CmdFlag::COMPUTE)

@@ -84,7 +84,7 @@ public:
 
 		UINT createDeviceFlags = 0;
 #if (defined(DEBUG) || defined(_DEBUG))  
-		//createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+		createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
 		D3D_FEATURE_LEVEL featureLevel;
@@ -763,7 +763,9 @@ public:
 		cmd.flags = CmdFlag::DRAW | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH | CmdFlag::BIND_FB;
 		cmd.drawType = DrawType::ARRAY;
 		cmd.inputLayout = 0;
-		cmd.vertexBuffer = 0; // don't bind if 0
+		cmd.vertexBuffer.push_back(0); // don't bind if 0
+		cmd.vertexOffset.push_back(0);
+		cmd.vertexStride.push_back(0);
 		cmd.type = PrimitiveTopology::TRIANGLELIST;
 		cmd.framebuffer = mDeferredShadingRT;
 		cmd.offset = (void*)(0);
@@ -805,7 +807,9 @@ public:
 		cmd.flags = CmdFlag::DRAW | CmdFlag::CLEAR_COLOR | CmdFlag::CLEAR_DEPTH | CmdFlag::BIND_FB;
 		cmd.drawType = DrawType::ARRAY;
 		cmd.inputLayout = 0;
-		cmd.vertexBuffer = 0; // don't bind if 0
+		cmd.vertexBuffer.push_back(0); // don't bind if 0
+		cmd.vertexOffset.push_back(0);
+		cmd.vertexStride.push_back(0);
 		cmd.type = PrimitiveTopology::TRIANGLELIST;
 		cmd.framebuffer = mDefaultRTWithDepth;
 		cmd.offset = (void*)(0);
@@ -833,7 +837,7 @@ public:
 		cmd.effect = debugLineFX;
 		cmd.inputLayout = debugLineFX->GetInputLayout();
 		cmd.indexBuffer = mGridCoordIndexBufferGPU;
-		cmd.vertexBuffer = mGridCoordVertexBufferGPU;
+		cmd.vertexBuffer.push_back(mGridCoordVertexBufferGPU);
 
 		ConstantBuffer cbuffer0 = CreateConstantBuffer(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), debugLineFX->m_perObjectCB);
 		DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0->GetBuffer();
@@ -846,8 +850,9 @@ public:
 
 		cmd.offset = (void*)6;
 		cmd.elementCount = 44;
-		cmd.vertexStride = stride;
-		cmd.vertexOffset = offset;
+		// cmd.vertexBuffer.push_back(0);
+		cmd.vertexStride.push_back(stride);
+		cmd.vertexOffset.push_back(offset);
 		cmd.framebuffer = mDebugRT;
 
 		DrawCmd cmd2;
@@ -858,8 +863,9 @@ public:
 		cmd2.elementCount = 6;
 		cmd2.type = PrimitiveTopology::LINELIST;
 		cmd2.drawType = DrawType::INDEXED;
-		cmd2.vertexStride = stride;
-		cmd2.vertexOffset = offset;
+		cmd2.vertexBuffer.push_back(0);
+		cmd2.vertexStride.push_back(stride);
+		cmd2.vertexOffset.push_back(offset);
 
 		AddDeferredDrawCmd(cmd);
 		AddDeferredDrawCmd(cmd2);
@@ -1012,11 +1018,15 @@ private:
 					mD3d11DeviceContext->IASetPrimitiveTopology(mDrawTopologyMap[cmd.type]);
 					mD3d11DeviceContext->IASetInputLayout((ID3D11InputLayout *)cmd.inputLayout);
 
-					if (cmd.vertexBuffer)
+					if (cmd.vertexBuffer.size())
 					{
-						ID3D11Buffer* vertexBuffer = static_cast<ID3D11Buffer*>(cmd.vertexBuffer);
-						UINT offset = 0;
-						mD3d11DeviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &cmd.vertexStride, &offset);
+						// ID3D11Buffer* vertexBuffer = reinterpret_cast<ID3D11Buffer*>(cmd.vertexBuffer[0]);
+						std::vector<ID3D11Buffer*> vbs;
+						for (auto &vb : cmd.vertexBuffer)
+						{
+							vbs.push_back((ID3D11Buffer*)vb);
+						}
+						mD3d11DeviceContext->IASetVertexBuffers(0, cmd.vertexBuffer.size(), &vbs.front(), cmd.vertexStride.data(), cmd.vertexOffset.data());
 					}
 
 					if (cmd.drawType == DrawType::INDEXED)
@@ -1027,11 +1037,25 @@ private:
 							mD3d11DeviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 						}
 
-						mD3d11DeviceContext->DrawIndexed(cmd.elementCount, (int64_t)cmd.offset, cmd.vertexOffset);
+						if (cmd.instanceCount)
+						{
+							mD3d11DeviceContext->DrawIndexedInstanced(cmd.elementCount, cmd.instanceCount, (int64_t)cmd.offset, cmd.vertexOffset[0], 0);
+						}
+						else
+						{
+							mD3d11DeviceContext->DrawIndexed(cmd.elementCount, (int64_t)cmd.offset, cmd.vertexOffset[0]);
+						}
 					}
 					else if (cmd.drawType == DrawType::ARRAY)
 					{
-						mD3d11DeviceContext->Draw(cmd.elementCount, (UINT)cmd.offset);
+						if (cmd.instanceCount)
+						{
+							assert(0); // TODO
+						}
+						else
+						{
+							mD3d11DeviceContext->Draw(cmd.elementCount, (UINT)cmd.offset);
+						}
 					}
 				}
 				else if (cmd.flags & CmdFlag::COMPUTE)
@@ -1213,8 +1237,8 @@ private:
 				desc.CullMode = convertType[(uint32_t)rasterizerState.cullType];
 			}
 
-			desc.ScissorEnable = true;
-			desc.DepthClipEnable = false;
+			desc.ScissorEnable = false;
+			desc.DepthClipEnable = true;
 
 			ID3D11RasterizerState* d3d11rasterizerState;
 

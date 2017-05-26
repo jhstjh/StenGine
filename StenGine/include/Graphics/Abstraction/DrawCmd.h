@@ -50,6 +50,7 @@ static const uint32_t   SET_SS		 = 0x0400; // set scissor state
 struct DrawCmd {
 	uint32_t			flags			= 0;
 	DrawType			drawType		= DrawType::NONE;
+	uint32_t			instanceCount   = 0;
 	PrimitiveTopology	type			= PrimitiveTopology::TRIANGLELIST;
 	RenderTarget		framebuffer		= nullptr;
 	void*				inputLayout		= nullptr;
@@ -60,10 +61,10 @@ struct DrawCmd {
 	class Effect*		effect			= nullptr;
 
 	void*				indexBuffer		= nullptr;
-	void*				vertexBuffer	= nullptr;
+	std::vector<void*>	vertexBuffer;
 
-	uint32_t			vertexStride	= 0;
-	uint32_t			vertexOffset	= 0;
+	std::vector<uint32_t> vertexStride;
+	std::vector<uint32_t> vertexOffset;
 
 	Viewport			viewport;
 

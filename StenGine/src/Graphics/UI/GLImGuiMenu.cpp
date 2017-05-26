@@ -147,14 +147,14 @@ public:
 					cmd.cbuffers.push_back(std::move(cbuffer1));
 					cmd.drawType = DrawType::INDEXED;
 					cmd.type = PrimitiveTopology::TRIANGLELIST;
-					cmd.vertexBuffer = (void*)m_vbo;
+					cmd.vertexBuffer.push_back((void*)m_vbo);
 					cmd.indexBuffer = (void*)m_ibo;
 					cmd.inputLayout = effect->GetInputLayout();
 					cmd.effect = effect;
 					cmd.elementCount = (int64_t)pcmd->ElemCount;
 					cmd.offset = (void*)(idx_buffer_offset + indexOffset);
-					cmd.vertexStride = sizeof(ImDrawVert);
-					cmd.vertexOffset = sizeof(ImDrawVert) * vertexOffset;
+					cmd.vertexStride.push_back(sizeof(ImDrawVert));
+					cmd.vertexOffset.push_back(sizeof(ImDrawVert) * vertexOffset);
 
 					Renderer::Instance()->AddDeferredDrawCmd(cmd);
 				}

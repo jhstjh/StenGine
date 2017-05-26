@@ -48,10 +48,13 @@ D3D11Buffer::D3D11Buffer(size_t size, BufferUsage usage, void* data, BufferType 
 	desc.CPUAccessFlags = m_flags;
 	desc.MiscFlags = misc;
 	desc.StructureByteStride = stride;
-	D3D11_SUBRESOURCE_DATA vinitData;
+	D3D11_SUBRESOURCE_DATA vinitData = {};
 
 	if (data)
+	{
 		vinitData.pSysMem = data;
+	}
+
 	HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&desc, data ? &vinitData : nullptr, &m_buffer));
 }
 

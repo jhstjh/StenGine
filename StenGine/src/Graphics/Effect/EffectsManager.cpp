@@ -623,6 +623,108 @@ void DeferredGeometryPassEffect::PrepareBuffer()
 
 //------------------------------------------------------------//
 
+DeferredGeometryInstancedPassEffect::DeferredGeometryInstancedPassEffect(Renderer* renderer, const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath)
+	:Effect(renderer, vsPath, psPath, gsPath, hsPath, dsPath)
+{
+	PrepareBuffer();
+}
+
+DeferredGeometryInstancedPassEffect::DeferredGeometryInstancedPassEffect(Renderer* renderer, const std::wstring& filename)
+	: Effect(renderer, filename + L"_vs" + GetExt(), filename + L"_ps" + GetExt())
+{
+	PrepareBuffer();
+}
+
+DeferredGeometryInstancedPassEffect::~DeferredGeometryInstancedPassEffect()
+{
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+		ReleaseCOM(m_d3d11inputLayout);
+		break;
+	case RenderBackend::OPENGL4:
+		glDeleteVertexArrays(1, &m_glinputLayout);
+		break;
+	}
+}
+
+void DeferredGeometryInstancedPassEffect::PrepareBuffer()
+{
+	switch (Renderer::GetRenderBackend())
+	{
+	case RenderBackend::D3D11:
+	{
+		D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 1, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 }
+		};
+
+		HR(static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateInputLayout(vertexDesc, 5, m_vsBlob->GetBufferPointer(),
+			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
+
+		m_shaderResources = new ID3D11ShaderResourceView*[5];
+
+		for (int i = 0; i < 5; i++) {
+			m_shaderResources[i] = 0;
+		}
+
+		ReleaseCOM(m_vsBlob);
+		ReleaseCOM(m_psBlob);
+		ReleaseCOM(m_gsBlob);
+		ReleaseCOM(m_hsBlob);
+		ReleaseCOM(m_dsBlob);
+		ReleaseCOM(m_csBlob);
+		break;
+	}
+	case RenderBackend::OPENGL4:
+	{
+		glCreateVertexArrays(1, &m_glinputLayout);
+
+		glEnableVertexArrayAttrib(m_glinputLayout, 0);
+		glEnableVertexArrayAttrib(m_glinputLayout, 1);
+		glEnableVertexArrayAttrib(m_glinputLayout, 2);
+		glEnableVertexArrayAttrib(m_glinputLayout, 3);
+		glEnableVertexArrayAttrib(m_glinputLayout, 4);
+
+		glVertexArrayAttribFormat(m_glinputLayout, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Pos));
+		glVertexArrayAttribFormat(m_glinputLayout, 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Normal));
+		glVertexArrayAttribFormat(m_glinputLayout, 2, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, Tangent));
+		glVertexArrayAttribFormat(m_glinputLayout, 3, 2, GL_FLOAT, GL_FALSE, offsetof(Vertex::StdMeshVertex, TexUV));
+		glVertexArrayAttribFormat(m_glinputLayout, 4, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex::InstanceVertex, position));
+
+		glVertexArrayAttribBinding(m_glinputLayout, 0, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 1, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 2, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 3, 0);
+		glVertexArrayAttribBinding(m_glinputLayout, 4, 1);
+
+		glVertexArrayBindingDivisor(m_glinputLayout, 1, 1);
+
+		GLint perFrameUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerFrame");
+		glUniformBlockBinding(m_shaderProgram, perFrameUBOPos, 1);
+
+		GLint perObjUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubPerObj");
+		glUniformBlockBinding(m_shaderProgram, perObjUBOPos, 0);
+
+		GLint texUBOPos = glGetUniformBlockIndex(m_shaderProgram, "ubTextures");
+		glUniformBlockBinding(m_shaderProgram, texUBOPos, 2);
+
+		m_textureCB = m_renderer->CreateGPUBuffer(sizeof(BINDLESS_TEXTURE_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+
+		break;
+	}
+	}
+
+	m_perFrameCB = m_renderer->CreateGPUBuffer(sizeof(PERFRAME_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+	m_perObjectCB = m_renderer->CreateGPUBuffer(sizeof(PEROBJ_CONSTANT_BUFFER), BufferUsage::WRITE, nullptr, BufferType::CONSTANT_BUFFER);
+}
+
+//------------------------------------------------------------//
+
 DeferredSkinnedGeometryPassEffect::DeferredSkinnedGeometryPassEffect(Renderer* renderer, const std::wstring& vsPath, const std::wstring& psPath, const std::wstring& gsPath, const std::wstring& hsPath, const std::wstring& dsPath)
 	:Effect(renderer, vsPath, psPath, gsPath, hsPath, dsPath)
 {
@@ -1305,6 +1407,7 @@ void EffectsManager::Init(Renderer* renderer)
 
 	m_shadowMapEffect = std::make_unique<ShadowMapEffect>(m_renderer, L"../StenGine/FX/ShadowMap");
 	m_deferredGeometryPassEffect = std::make_unique<DeferredGeometryPassEffect>(m_renderer, L"../StenGine/FX/DeferredGeometryPass");
+	m_deferredGeometryInstancedPassEffect = std::make_unique<DeferredGeometryInstancedPassEffect>(m_renderer, L"../StenGine/FX/DeferredGeometryInstancedPass_vs" + GetExt(), L"../StenGine/FX/DeferredGeometryPass_ps" + GetExt());
 	m_deferredSkinnedGeometryPassEffect = std::make_unique<DeferredSkinnedGeometryPassEffect>(m_renderer, L"../StenGine/FX/DeferredSkinnedGeometryPass");
 	m_deferredShadingPassEffect = std::make_unique<DeferredShadingPassEffect>(m_renderer, L"../StenGine/FX/DeferredShadingPass");
 	m_deferredGeometryTessPassEffect = std::make_unique<DeferredGeometryTessPassEffect>(m_renderer, L"../StenGine/FX/DeferredGeometryTessPass");

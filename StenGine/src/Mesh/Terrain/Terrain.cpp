@@ -1,18 +1,20 @@
 #include <algorithm>
+#include <cstdlib>
 #include <fstream>
+#include <imgui.h>
 
+#include "Math/MathHelper.h"
 #include "Mesh/Terrain/Terrain.h"
+#include "Mesh/Terrain/TerrainGrass.h"
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Graphics/D3DIncludes.h"
 #include "Graphics/Effect/ShadowMap.h"
+#include "Graphics/OpenGL/GLImageLoader.h"
 #include "Scene/CameraManager.h"
 #include "Scene/LightManager.h"
 #include "Scene/GameObject.h"
 #include "Resource/ResourceManager.h"
-#include "Math/MathHelper.h"
-#include "imgui.h"
 
-#include "Graphics/OpenGL/GLImageLoader.h"
 
 namespace StenGine
 {
@@ -46,6 +48,8 @@ Terrain::Terrain(InitInfo &info) :
 
 	m_blendMapTex = ResourceManager::Instance()->GetSharedResource<Texture>(m_initInfo.BlendMapFilename);
 	m_layerMapArrayTex = ResourceManager::Instance()->GetSharedResource<Texture>(m_initInfo.LayerMapFilenames);
+
+	mGrasses.emplace_back(0.f, 0.f, 0.f);
 }
 
 Terrain::~Terrain() 
@@ -380,16 +384,21 @@ void Terrain::GatherDrawCall()
 	cmd.type = PrimitiveTopology::CONTROL_POINT_4_PATCHLIST;
 	cmd.inputLayout = effect->GetInputLayout();
 	cmd.framebuffer = Renderer::Instance()->GetGbuffer();
-	cmd.vertexBuffer = (void*)m_quadPatchVB->GetBuffer();
+	cmd.vertexBuffer.push_back((void*)m_quadPatchVB->GetBuffer());
 	cmd.indexBuffer = (void*)m_quadPatchIB->GetBuffer();
-	cmd.vertexStride = stride;
-	cmd.vertexOffset = offset;
+	cmd.vertexStride.push_back(stride);
+	cmd.vertexOffset.push_back(offset);
 	cmd.effect = effect;
 	cmd.elementCount = m_numPatchQuadFaces * 4;
 	cmd.cbuffers.push_back(std::move(cbuffer0));
 	cmd.cbuffers.push_back(std::move(cbuffer1));
 
 	Renderer::Instance()->AddDeferredDrawCmd(cmd);
+
+	for (auto &grass : mGrasses)
+	{
+		grass.GatherDrawCall();
+	}
 }
 
 void Terrain::GatherShadowDrawCall() {
@@ -467,10 +476,10 @@ void Terrain::GatherShadowDrawCall() {
 	cmd.type = PrimitiveTopology::CONTROL_POINT_4_PATCHLIST;
 	cmd.inputLayout = effect->GetInputLayout();
 	cmd.framebuffer = Renderer::Instance()->GetGbuffer();
-	cmd.vertexBuffer = (void*)m_quadPatchVB->GetBuffer();
+	cmd.vertexBuffer.push_back((void*)m_quadPatchVB->GetBuffer());
 	cmd.indexBuffer = (void*)m_quadPatchIB->GetBuffer();
-	cmd.vertexStride = stride;
-	cmd.vertexOffset = offset;
+	cmd.vertexStride.push_back(stride);
+	cmd.vertexOffset.push_back(offset);
 	cmd.effect = effect;
 	cmd.elementCount = m_numPatchQuadFaces * 4;
 	cmd.cbuffers.push_back(std::move(cbuffer0));

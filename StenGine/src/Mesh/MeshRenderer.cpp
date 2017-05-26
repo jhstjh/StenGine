@@ -242,10 +242,10 @@ void MeshRenderer::GatherDrawCall() {
 			cmd.drawType = DrawType::INDEXED;
 			cmd.inputLayout = effect->GetInputLayout();
 			cmd.framebuffer = Renderer::Instance()->GetGbuffer();
-			cmd.vertexBuffer = (void*)m_vertexBufferGPU->GetBuffer();
+			cmd.vertexBuffer.push_back((void*)m_vertexBufferGPU->GetBuffer());
 			cmd.indexBuffer = (void*)m_indexBufferGPU->GetBuffer();
-			cmd.vertexStride = stride;
-			cmd.vertexOffset = offset;
+			cmd.vertexStride.push_back(stride);
+			cmd.vertexOffset.push_back(offset);
 			cmd.effect = effect;
 			cmd.elementCount = subMesh.m_indexBufferCPU.size();
 			cmd.cbuffers.push_back(std::move(cbuffer0));
@@ -278,10 +278,10 @@ void MeshRenderer::GatherShadowDrawCall() {
 		cmd.flags = CmdFlag::DRAW;
 		cmd.drawType = DrawType::INDEXED;
 		cmd.type = PrimitiveTopology::TRIANGLELIST;
-		cmd.vertexBuffer = (void*)m_shadowMapVertexBufferGPU->GetBuffer();
+		cmd.vertexBuffer.push_back((void*)m_shadowMapVertexBufferGPU->GetBuffer());
 		cmd.indexBuffer = (void*)m_indexBufferGPU->GetBuffer();
-		cmd.vertexStride = stride;
-		cmd.vertexOffset = offset;
+		cmd.vertexStride.push_back(stride);
+		cmd.vertexOffset.push_back(offset);
 		cmd.inputLayout = effect->GetInputLayout();
 		cmd.framebuffer = LightManager::Instance()->m_shadowMap->GetRenderTarget();
 		cmd.offset = (void*)(0);

@@ -96,6 +96,14 @@ struct VertexIn {
 	float2 TexUV	: TEXCOORD;
 };
 
+struct VertexIntancedIn {
+	float3 PosL		: POSITION;
+	float3 NormalL	: NORMAL0;
+	float3 TangentL	: TANGENT;
+	float2 TexUV	: TEXCOORD;
+    float3 instancePosition : TEXCOORD1;
+};
+
 struct SkinnedVertexIn {
 	float3 PosL		: POSITION;
 	float3 NormalL	: NORMAL0;

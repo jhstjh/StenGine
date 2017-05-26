@@ -10,6 +10,7 @@ enum class BufferUsage
 	IMMUTABLE,
 	DYNAMIC,
 	WRITE,
+	DEFAULT,
 };
 
 enum class BufferType

@@ -20,6 +20,7 @@ Transform::Transform(float tx, float ty, float tz, float rx, float ry, float rz,
 	mRotationEuler = { rx, ry, rz };
 	mRotation = Quat::FromEulerAngles(mRotationEuler);
 	mScale = { sx, sy, sz };
+	mLocalTransform = Mat4::FromTranslationVector(mPosition) * mRotation.ToMatrix4() * Mat4::FromScaleVector(mScale);
 	mDirty = true;
 }
 

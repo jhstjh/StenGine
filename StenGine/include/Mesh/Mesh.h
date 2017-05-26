@@ -8,6 +8,7 @@ namespace StenGine
 
 class FbxReaderSG;
 class MeshRenderer;
+class TerrainGrass;
 
 class Mesh
 {
@@ -17,6 +18,11 @@ public:
 
 	friend FbxReaderSG;
 	friend MeshRenderer;
+	friend TerrainGrass;
+
+	std::vector<SubMesh> m_subMeshes;
+	std::vector<Material> m_materials;
+
 protected:
 	void CreateBoxPrimitive();
 	void CreatePlanePrimitive();
@@ -27,9 +33,6 @@ protected:
 	std::vector<Vec2Packed> m_texUVBufferCPU;
 	std::vector<Vec4Packed> m_colorBufferCPU;
 	std::vector<Vec3Packed> m_tangentBufferCPU;
-
-	std::vector<SubMesh> m_subMeshes;
-	std::vector<Material> m_materials;
 };
 
 

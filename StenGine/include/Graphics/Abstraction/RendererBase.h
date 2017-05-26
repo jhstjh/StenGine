@@ -28,6 +28,11 @@ struct StdMeshVertex {
 	Vec2Packed TexUV;
 };
 
+struct InstanceVertex
+{
+	Vec3Packed position;
+};
+
 struct ShadowMapVertex {
 	Vec3Packed Pos;
 };

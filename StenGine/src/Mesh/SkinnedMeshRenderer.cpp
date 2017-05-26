@@ -177,10 +177,10 @@ void SkinnedMeshRenderer::GatherDrawCall()
 			cmd.drawType = DrawType::INDEXED;
 			cmd.inputLayout = effect->GetInputLayout();
 			cmd.framebuffer = Renderer::Instance()->GetGbuffer();
-			cmd.vertexBuffer = (void*)m_vertexBufferGPU->GetBuffer();
+			cmd.vertexBuffer.push_back((void*)m_vertexBufferGPU->GetBuffer());
 			cmd.indexBuffer = (void*)m_indexBufferGPU->GetBuffer();
-			cmd.vertexStride = stride;
-			cmd.vertexOffset = offset;
+			cmd.vertexStride.push_back(stride);
+			cmd.vertexOffset.push_back(offset);
 			cmd.effect = effect;
 			cmd.elementCount = mSkinnedMesh->m_subMeshes[iSubMesh].m_indexBufferCPU.size();
 			cmd.cbuffers.push_back(std::move(cbuffer0));
@@ -255,10 +255,10 @@ void SkinnedMeshRenderer::GatherShadowDrawCall()
 			cmd.drawType = DrawType::INDEXED;
 			cmd.inputLayout = effect->GetInputLayout();
 			cmd.framebuffer = Renderer::Instance()->GetGbuffer();
-			cmd.vertexBuffer = (void*)m_vertexBufferGPU->GetBuffer();
+			cmd.vertexBuffer.push_back((void*)m_vertexBufferGPU->GetBuffer());
 			cmd.indexBuffer = (void*)m_indexBufferGPU->GetBuffer();
-			cmd.vertexStride = stride;
-			cmd.vertexOffset = offset;
+			cmd.vertexStride.push_back(stride);
+			cmd.vertexOffset.push_back(offset);
 			cmd.effect = effect;
 			cmd.elementCount = mSkinnedMesh->m_subMeshes[iSubMesh].m_indexBufferCPU.size();
 			cmd.cbuffers.push_back(std::move(cbuffer0));

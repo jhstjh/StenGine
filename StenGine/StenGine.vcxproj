@@ -129,6 +129,7 @@
     <None Include="FX\Blur_ps.glsl" />
     <None Include="FX\DebugLine_ps.glsl" />
     <None Include="FX\DebugLine_vs.glsl" />
+    <None Include="FX\DeferredGeometryInstancedPass_vs.glsl" />
     <None Include="FX\DeferredGeometryPass_ps.glsl" />
     <None Include="FX\DeferredGeometryPass_vs.glsl" />
     <None Include="FX\DeferredGeometryTerrainPass_ds.glsl" />
@@ -477,6 +478,15 @@
       <FileType>Document</FileType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.1</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="FX\DeferredGeometryInstancedPass_vs.hlsl">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <FileType>Document</FileType>
     </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

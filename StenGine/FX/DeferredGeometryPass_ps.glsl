@@ -53,12 +53,12 @@ layout(std140) uniform ubTextures{
 	samplerCube gCubeMap;
 };
 
-void main() {
-
-    // if (texture(gDiffuseMap, pIn.pTexUV)).a < 0.1)
-    // {
-    //     discard;
-    // }
+void main() 
+{
+    if (texture(gDiffuseMap, pIn.pTexUV).w < 0.01)
+    {
+        discard;
+    }
 
 	vec3 normal = normalize(pIn.pNormalV);
 

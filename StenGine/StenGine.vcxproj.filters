@@ -353,6 +353,12 @@
     <None Include="FX\DeferredSkinnedGeometryPass_vs.hlsl">
       <Filter>FX\HLSL</Filter>
     </None>
+    <None Include="FX\DeferredGeometryInstancedPass_vs.glsl">
+      <Filter>FX\GLSL</Filter>
+    </None>
+    <None Include="FX\DeferredGeometryInstancedPass_vs.hlsl">
+      <Filter>FX\HLSL</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\stdafx.h">

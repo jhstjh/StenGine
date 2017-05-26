@@ -135,7 +135,6 @@ void Skybox::Draw() {
 	cmd.flags = CmdFlag::DRAW;
 	cmd.type = PrimitiveTopology::TRIANGLELIST;
 	cmd.indexBuffer = 0;
-	cmd.vertexBuffer = 0;
 
 	if (Renderer::GetRenderBackend() == RenderBackend::OPENGL4)
 	{

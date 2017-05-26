@@ -22,7 +22,7 @@ class Effect;
 class Mesh;
 
 class MeshRenderer : public Component, public Drawable {
-protected:
+public:
 	GPUBuffer m_indexBufferGPU;
 	GPUBuffer m_vertexBufferGPU;
 	GPUBuffer m_shadowMapVertexBufferGPU;
@@ -34,7 +34,6 @@ protected:
 	virtual void PrepareGPUBuffer();
 	virtual void PrepareShadowMapBuffer();
 
-public:
 	bool m_castShadow{ true };
 	bool m_receiveShadow{ true };
 	virtual ~MeshRenderer();
