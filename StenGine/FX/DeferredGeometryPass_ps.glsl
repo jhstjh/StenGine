@@ -55,7 +55,7 @@ layout(std140) uniform ubTextures{
 
 void main() 
 {
-    if (texture(gDiffuseMap, pIn.pTexUV).w < 0.01)
+    if (texture(gDiffuseMap, pIn.pTexUV).w < 0.01 && DiffX_NormY_ShadZ.w > 0)
     {
         discard;
     }

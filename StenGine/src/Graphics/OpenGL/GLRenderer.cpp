@@ -849,25 +849,25 @@ private:
 
 			if (cmd.flags & CmdFlag::SET_CS)
 			{
-				if (cmd.rasterizerState.cullFaceEnabled)
+				if (cmd.rasterizerState.cullFaceEnabled > 0)
 				{
-					glEnable(GL_CULL_FACE);
 					static const uint32_t convertCull[] =
 					{
 						0,
 						GL_CW,
 						GL_CCW,
 					};
-
+			
 					static const uint32_t convertType[] =
 					{
 						0,
 						GL_FRONT,
 						GL_BACK,
 					};
-
+			
 					glFrontFace(convertCull[(uint32_t)cmd.rasterizerState.frontFace]);
 					glCullFace(convertType[(uint32_t)cmd.rasterizerState.cullType]);
+					glEnable(GL_CULL_FACE);
 				}
 				else
 				{

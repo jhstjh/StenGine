@@ -193,7 +193,7 @@ void TerrainGrass::GatherDrawCall()
 
 
 	DrawCmd enableCullCmd;
-	enableCullCmd.flags = CmdFlag::SET_RSSTATE;
+	enableCullCmd.flags = CmdFlag::SET_CS;
 	enableCullCmd.rsState = 0;
 
 	Renderer::Instance()->AddDeferredDrawCmd(enableCullCmd);
