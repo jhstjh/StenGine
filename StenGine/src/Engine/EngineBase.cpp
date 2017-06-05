@@ -133,6 +133,8 @@ void EngineBase::Init(HINSTANCE hInstance)
 
 	GameInit();
 	m_renderer->ReleaseContext();
+
+	m_sceneFileManager->LoadScene(L""); // TODO read from file
 }
 
 void EngineBase::Run()

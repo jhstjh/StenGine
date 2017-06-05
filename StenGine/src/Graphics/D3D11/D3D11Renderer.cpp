@@ -476,7 +476,7 @@ public:
 			coordIndexBuffer.push_back(initIdx++);
 		}
 
-		D3D11_BUFFER_DESC vbd;
+		D3D11_BUFFER_DESC vbd = {};
 		vbd.Usage = D3D11_USAGE_IMMUTABLE;
 		vbd.ByteWidth = sizeof(Vertex::StdMeshVertex) * coordVertexBuffer.size();
 		vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -487,7 +487,7 @@ public:
 		vinitData.pSysMem = &coordVertexBuffer[0];
 		HR(mD3d11Device->CreateBuffer(&vbd, &vinitData, &mGridCoordVertexBufferGPU));
 
-		D3D11_BUFFER_DESC ibd;
+		D3D11_BUFFER_DESC ibd = {};
 		ibd.Usage = D3D11_USAGE_IMMUTABLE;
 		ibd.ByteWidth = sizeof(UINT) * coordIndexBuffer.size();
 		ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
@@ -829,46 +829,63 @@ public:
 
 		DebugLineEffect* debugLineFX = EffectsManager::Instance()->m_debugLineEffect.get();
 
-		DrawCmd cmd;
+		// Draw grid
+		{
+			DrawCmd cmd;
 
-		cmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_DS | CmdFlag::DRAW;
+			cmd.flags = CmdFlag::BIND_FB | CmdFlag::SET_DS | CmdFlag::DRAW;
 
-		cmd.depthState.depthWriteEnable = false;
-		cmd.effect = debugLineFX;
-		cmd.inputLayout = debugLineFX->GetInputLayout();
-		cmd.indexBuffer = mGridCoordIndexBufferGPU;
-		cmd.vertexBuffer.push_back(mGridCoordVertexBufferGPU);
+			cmd.depthState.depthWriteEnable = false;
+			cmd.effect = debugLineFX;
+			cmd.inputLayout = debugLineFX->GetInputLayout();
+			cmd.indexBuffer = mGridCoordIndexBufferGPU;
+			cmd.vertexBuffer.push_back(mGridCoordVertexBufferGPU);
 
-		ConstantBuffer cbuffer0 = CreateConstantBuffer(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), debugLineFX->m_perObjectCB);
-		DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0->GetBuffer();
+			ConstantBuffer cbuffer0 = CreateConstantBuffer(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), debugLineFX->m_perObjectCB);
+			DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0->GetBuffer();
 
-		perObjectData->ViewProj = CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix().Transpose();
+			perObjectData->ViewProj = CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix().Transpose();
 
-		cmd.cbuffers.push_back(std::move(cbuffer0));
-		cmd.type = PrimitiveTopology::LINELIST;
-		cmd.drawType = DrawType::INDEXED;
+			cmd.cbuffers.push_back(std::move(cbuffer0));
+			cmd.type = PrimitiveTopology::LINELIST;
+			cmd.drawType = DrawType::INDEXED;
 
-		cmd.offset = (void*)6;
-		cmd.elementCount = 44;
-		// cmd.vertexBuffer.push_back(0);
-		cmd.vertexStride.push_back(stride);
-		cmd.vertexOffset.push_back(offset);
-		cmd.framebuffer = mDebugRT;
+			cmd.offset = (void*)6;
+			cmd.elementCount = 44;
+			cmd.vertexBuffer.push_back(0);
+			cmd.vertexStride.push_back(stride);
+			cmd.vertexOffset.push_back(offset);
+			cmd.framebuffer = mDebugRT;
+			AddDeferredDrawCmd(cmd);
+		}
 
-		DrawCmd cmd2;
+		// draw axes
+		{
+			DrawCmd cmd2;
 
-		cmd2.effect = debugLineFX;
-		cmd2.flags = CmdFlag::DRAW;
-		cmd2.offset = 0;
-		cmd2.elementCount = 6;
-		cmd2.type = PrimitiveTopology::LINELIST;
-		cmd2.drawType = DrawType::INDEXED;
-		cmd2.vertexBuffer.push_back(0);
-		cmd2.vertexStride.push_back(stride);
-		cmd2.vertexOffset.push_back(offset);
+			cmd2.flags = CmdFlag::DRAW;
 
-		AddDeferredDrawCmd(cmd);
-		AddDeferredDrawCmd(cmd2);
+			cmd2.effect = debugLineFX;
+			cmd2.inputLayout = debugLineFX->GetInputLayout();
+			cmd2.indexBuffer = mGridCoordIndexBufferGPU;
+			cmd2.vertexBuffer.push_back(mGridCoordVertexBufferGPU);
+
+			ConstantBuffer cbuffer0 = CreateConstantBuffer(0, sizeof(DebugLineEffect::PEROBJ_CONSTANT_BUFFER), debugLineFX->m_perObjectCB);
+			DebugLineEffect::PEROBJ_CONSTANT_BUFFER* perObjectData = (DebugLineEffect::PEROBJ_CONSTANT_BUFFER*)cbuffer0->GetBuffer();
+
+			perObjectData->ViewProj = CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix().Transpose();
+
+			cmd2.cbuffers.push_back(std::move(cbuffer0));
+			cmd2.type = PrimitiveTopology::LINELIST;
+			cmd2.drawType = DrawType::INDEXED;
+
+			cmd2.offset = 0;
+			cmd2.elementCount = 6;
+			cmd2.vertexBuffer.push_back(0);
+			cmd2.vertexStride.push_back(stride);
+			cmd2.vertexOffset.push_back(offset);
+			AddDeferredDrawCmd(cmd2);
+		}
 	}
 
 	void* GetDevice() final {

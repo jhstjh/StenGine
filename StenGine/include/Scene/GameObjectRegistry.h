@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+#include <string>
 #include <unordered_map>
 #include "Scene/GameObject.h"
 
@@ -10,13 +11,13 @@ class GameObjectRegistry
 {
 public:
 	template <typename T>
-	void RegisterGameObjectClass(const char* name)
+	void RegisterGameObjectClass(std::string name)
 	{
 		assert(mGameObjectMap.find(name) == mGameObjectMap.end());
 		mGameObjectMap[name] = []() -> GameObject* { return static_cast<GameObject*>(new T()); };
 	}
 
-	GameObject* Instantiate(const char* name)
+	GameObject* Instantiate(std::string name)
 	{
 		auto find = mGameObjectMap.find(name);
 		if (find != mGameObjectMap.end())
@@ -31,7 +32,7 @@ public:
 
 private:
 	using GameObjectCreator = std::function<GameObject*()>;
-	std::unordered_map<const char*, GameObjectCreator> mGameObjectMap;
+	std::unordered_map<std::string, GameObjectCreator> mGameObjectMap;
 };
 
 }
