@@ -24,9 +24,9 @@ GameObjectManager::GameObjectManager()
 
 GameObjectManager::~GameObjectManager()
 {
-	for (auto &gameObject : mGameObjects)
+	for (auto &entry : mGameObjects)
 	{
-		delete gameObject;
+		delete entry.second;
 	}
 }
 
@@ -42,9 +42,28 @@ void GameObjectManager::UpdateTransform()
 
 void GameObjectManager::Update()
 {
-	for (auto &gameObject : mGameObjects)
+	for (auto &entry : mGameObjects)
 	{
-		gameObject->Update();
+		entry.second->Update();
+	}
+}
+
+void GameObjectManager::BuildSceneHierarchy()
+{
+	for (auto &entry : mGameObjects)
+	{
+		RPC_STATUS status;
+		if (UuidIsNil(const_cast<UUID*>(&entry.second->m_parentUUID), &status))
+		{
+			mRoot.AddChild(entry.second->m_transform);
+		}
+		else
+		{
+			auto parentEntry = mGameObjects.find(entry.second->m_parentUUID);
+			assert(parentEntry != mGameObjects.end());
+
+			parentEntry->second->m_transform->AddChild(entry.second->m_transform);
+		}
 	}
 }
 

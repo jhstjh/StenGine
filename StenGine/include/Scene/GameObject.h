@@ -47,6 +47,7 @@ protected:
 	std::vector<UniqueComponent> m_components;
 	std::string m_name;
 	UUID m_uuid;
+	UUID m_parentUUID;
 };
 
 }

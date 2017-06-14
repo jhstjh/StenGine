@@ -8,9 +8,10 @@ const char* testScene =
 "	\"GameObjects\" :[\n"
 "		{\n"
 "			\"ObjectType\" : \"Box\",\n"
-"			\"UUID\" : 0,\n"
+"			\"UUID\" : \"E07B5012-320F-45B2-8EB0-6ADD00277038\",\n"
 "			\"Name\" : \"box0\",\n"
 "			\"Transform\" : {\n"
+"				\"Parent\" : \"00000000-0000-0000-0000-000000000000\",\n"
 "				\"Translation\" : {\n"
 "					\"x\" : 0.0,\n"
 "					\"y\" : 1.2,\n"
@@ -30,12 +31,13 @@ const char* testScene =
 "		},\n"
 "		{\n"
 "			\"ObjectType\" : \"Sphere\",\n"
-"			\"UUID\" : 0,\n"
+"			\"UUID\" : \"938FC005-8455-4483-923A-7F1BDF3A9E57\",\n"
 "			\"Name\" : \"sphere\",\n"
 "			\"Transform\" : {\n"
+"				\"Parent\" : \"E07B5012-320F-45B2-8EB0-6ADD00277038\",\n"
 "				\"Translation\" : {\n"
 "					\"x\" : 0.0,\n"
-"					\"y\" : 3.7,\n"
+"					\"y\" : 2.5,\n"
 "					\"z\" : -0.5\n"
 "				},\n"
 "				\"Rotation\" : {\n"
@@ -72,15 +74,15 @@ public:
 		const Value& gameObjects = sceneDoc["GameObjects"];
 		assert(gameObjects.IsArray());
 
-		static UUID NIL_UUID;
-		UuidCreateNil(&NIL_UUID); // TODO
-
 		for (Value::ConstValueIterator itr = gameObjects.Begin(); itr != gameObjects.End(); ++itr)
 		{
 			const char* objectType = itr->FindMember("ObjectType")->value.GetString();
 			const char* name = itr->FindMember("Name")->value.GetString();
-
+			UUID uuid, parentUuid;
+			UuidFromStringA((RPC_CSTR)(itr->FindMember("UUID")->value.GetString()), &uuid);
+			
 			auto transform = itr->FindMember("Transform");
+			UuidFromStringA((RPC_CSTR)(transform->value.FindMember("Parent")->value.GetString()), &parentUuid);
 			auto translation = transform->value.FindMember("Translation");
 			float transX = translation->value.FindMember("x")->value.GetFloat();
 			float transY = translation->value.FindMember("y")->value.GetFloat();
@@ -94,8 +96,10 @@ public:
 			float scaleY = scale->value.FindMember("y")->value.GetFloat();
 			float scaleZ = scale->value.FindMember("z")->value.GetFloat();
 
-			GameObjectManager::Instance()->Instantiate(objectType, NIL_UUID, name, nullptr, transX, transY, transZ, rotX, rotY, rotZ, scaleX, scaleY, scaleZ);
+			GameObjectManager::Instance()->Instantiate(objectType, uuid, name, parentUuid, transX, transY, transZ, rotX, rotY, rotZ, scaleX, scaleY, scaleZ);
 		}
+
+		GameObjectManager::Instance()->BuildSceneHierarchy();
 	}
 
 	void Save() final

@@ -1,12 +1,52 @@
 #pragma once
 
+#include <functional>
+#include <unordered_map>
+#include <guiddef.h>
+
 #include "System/SingletonClass.h"
 #include "Scene/GameObject.h"
 #include "Scene/GameObjectRegistry.h"
 #include "Scene/Transform.h"
-#include <vector>
 
 #define REGISTER_GAMEOBJECT(n) StenGine::GameObjectManager::Instance()->GetRegistry().RegisterGameObjectClass<n>(#n)
+
+// TODO move these UUID function to somewhere else
+namespace std {
+template<> struct hash<UUID>
+{
+	size_t operator()(const UUID& uuid) const noexcept
+	{
+		RPC_STATUS status;
+		auto ret = UuidHash(const_cast<UUID*>(&uuid), &status);
+		return ret;
+	}
+};
+}
+
+inline bool operator < (const UUID &uuid1, const UUID &uuid2)
+{
+	if (uuid1.Data1 != uuid2.Data1)
+	{
+		return uuid1.Data1 < uuid2.Data1;
+	}
+	if (uuid1.Data2 != uuid2.Data2)
+	{
+		return uuid1.Data2 < uuid2.Data2;
+	}
+	if (uuid1.Data3 != uuid2.Data3)
+	{
+		return uuid1.Data3 < uuid2.Data3;
+	}
+	for (int i = 0; i < 8; i++)
+	{
+		if (uuid1.Data4[i] != uuid2.Data4[i])
+		{
+			return uuid1.Data4[i] < uuid2.Data4[i];
+		}
+	}
+	return false;
+}
 
 namespace StenGine
 {
@@ -21,10 +61,10 @@ public:
 	void UpdateTransform();
 
 	void DrawMenu();
-	void Add(GameObject* gameObject) { mGameObjects.push_back(gameObject); }
 	GameObjectRegistry &GetRegistry() { return mRegistry; }
+	void BuildSceneHierarchy();
 
-	GameObject* Instantiate(const char* objectType, UUID uuid, const char* name, Transform* parent = nullptr,
+	GameObject* Instantiate(const char* objectType, UUID uuid, const char* name, UUID parent,
 		float tx = 0, float ty = 0, float tz = 0,
 		float rx = 0, float ry = 0, float rz = 0,
 		float sx = 1, float sy = 1, float sz = 1)
@@ -34,29 +74,17 @@ public:
 		auto transform = std::make_unique<Transform>(tx, ty, tz, rx, ry, rz, sx, sy, sz); // will be cleanup in component
 		gameObject->AddComponent(std::move(transform));
 		gameObject->m_transform = gameObject->GetFirstComponentByType<Transform>();
-
-		if (parent)
-		{
-			parent->AddChild(gameObject->m_transform);
-		}
-		else
-		{
-			mRoot.AddChild(gameObject->m_transform);
-		}
-
-		RPC_STATUS status;
-		if (UuidIsNil(&uuid, &status))
-		{
-			UuidCreate(&uuid);
-		}
 		gameObject->m_uuid = uuid;
+		gameObject->m_parentUUID = parent;
 
-		Add(gameObject);
+		Add(uuid, gameObject);
 		return gameObject;
 	}
 
 private:
-	std::vector<GameObject*> mGameObjects;
+	void Add(UUID uuid, GameObject* gameObject) { mGameObjects[uuid] = gameObject; }
+
+	std::unordered_map<UUID, GameObject*> mGameObjects;
 	GameObjectRegistry		 mRegistry;
 	Transform				 mRoot;
 };
