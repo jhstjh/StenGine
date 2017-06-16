@@ -1039,11 +1039,13 @@ private:
 					{
 						// ID3D11Buffer* vertexBuffer = reinterpret_cast<ID3D11Buffer*>(cmd.vertexBuffer[0]);
 						std::vector<ID3D11Buffer*> vbs;
+						std::vector<UINT> offsets;
 						for (auto &vb : cmd.vertexBuffer)
 						{
 							vbs.push_back((ID3D11Buffer*)vb);
+							offsets.push_back(0);
 						}
-						mD3d11DeviceContext->IASetVertexBuffers(0, cmd.vertexBuffer.size(), &vbs.front(), cmd.vertexStride.data(), cmd.vertexOffset.data());
+						mD3d11DeviceContext->IASetVertexBuffers(0, cmd.vertexBuffer.size(), &vbs.front(), cmd.vertexStride.data(), offsets.data());
 					}
 
 					if (cmd.drawType == DrawType::INDEXED)
