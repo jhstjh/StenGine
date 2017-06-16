@@ -61,6 +61,7 @@ GLuint CreateGLTextureFromFile(const char* filename, uint32_t* width, uint32_t* 
 	glCreateBuffers(1, &pbo);
 	glNamedBufferData(pbo, Texture.size(), nullptr, GL_STREAM_DRAW);
 	void* pboData = glMapNamedBuffer(pbo, GL_WRITE_ONLY);
+	assert(pboData);
 
 	memcpy(pboData, Texture.data(), Texture.size());
 
