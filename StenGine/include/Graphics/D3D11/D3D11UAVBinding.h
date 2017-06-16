@@ -16,7 +16,7 @@ public:
 	virtual void Unbind();
 
 private:
-	std::array<ID3D11UnorderedAccessView*, 16> m_UAVs;
+	std::array<ID3D11UnorderedAccessView*, 7> m_UAVs;
 };
 
 }

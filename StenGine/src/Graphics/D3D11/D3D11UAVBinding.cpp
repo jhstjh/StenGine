@@ -19,14 +19,14 @@ void D3D11UAVBinding::AddUAV(void * UAV, uint32_t index)
 void D3D11UAVBinding::Bind()
 {
 	// TODO only set shader in interest
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetUnorderedAccessViews(0, 16, &m_UAVs[0], 0); // todo 0, 5
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetUnorderedAccessViews(0, 7, &m_UAVs[0], 0); // todo 0, 5
 }
 
 void D3D11UAVBinding::Unbind()
 {
 	// TODO only set shader in interest
-	static ID3D11UnorderedAccessView* nullUAV[16] = { 0 };
-	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetUnorderedAccessViews(0, 16, nullUAV, 0);
+	static ID3D11UnorderedAccessView* nullUAV[7] = { 0 };
+	static_cast<ID3D11DeviceContext*>(Renderer::Instance()->GetDeviceContext())->CSSetUnorderedAccessViews(0, 7, nullUAV, 0);
 }
 
 }

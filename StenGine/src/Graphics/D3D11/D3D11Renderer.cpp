@@ -590,7 +590,7 @@ public:
 			blurredTexDesc.Height = Renderer::Instance()->GetScreenHeight();
 			blurredTexDesc.MipLevels = 1;
 			blurredTexDesc.ArraySize = 1;
-			blurredTexDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			blurredTexDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 			blurredTexDesc.SampleDesc.Count = 1;
 			blurredTexDesc.SampleDesc.Quality = 0;
 			blurredTexDesc.Usage = D3D11_USAGE_DEFAULT;
