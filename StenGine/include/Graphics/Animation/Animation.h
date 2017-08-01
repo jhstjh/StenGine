@@ -32,20 +32,25 @@ struct AnimationNode
 		float dt = Timer::GetDeltaTime();
 		playbackTime += dt * FRAME_RATE;
 
-		if (playbackTime > positionTime[positionIndex])
+		if (!positionTime.empty() && playbackTime > positionTime[positionIndex])
 		{
 			positionIndex = (positionIndex + 1) % positionTime.size();
 			dirty = true;
 		}
-		if (playbackTime > rotationTime[rotationIndex])
+		if (!rotationTime.empty() && playbackTime > rotationTime[rotationIndex])
 		{
 			rotationIndex = (rotationIndex + 1) % rotationTime.size();
 			dirty = true;
 		}
-		if (playbackTime > scaleTime[scaleIndex])
+		if (!scaleTime.empty() && playbackTime > scaleTime[scaleIndex])
 		{
 			scaleIndex = (scaleIndex + 1) % scaleTime.size();
 			dirty = true;
+		}
+
+		if (playbackTime >= length)
+		{
+			playbackTime = fmod(playbackTime, length);
 		}
 	}
 
@@ -67,7 +72,7 @@ struct AnimationNode
 	float playbackTime = 0;
 	Mat4 transformMatrix = Mat4::Identity();
 	bool dirty = true;
-	uint32_t length = 0;
+	float length = 0;
 };
 
 class Animation {

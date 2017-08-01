@@ -266,7 +266,6 @@ bool FbxReaderSG::Read(const std::wstring& filename, Animation* animation) {
 			const auto &channel = fAnimation->mChannels[ichannel];
 			AnimationNode &animationNode = animation->m_animations[std::string(channel->mNodeName.C_Str())];
 
-			animationNode.length = std::max(animationNode.length, channel->mNumPositionKeys);
 			animationNode.position.resize(channel->mNumPositionKeys);
 			animationNode.positionTime.resize(channel->mNumPositionKeys);
 			for (uint32_t iPos = 0; iPos < channel->mNumPositionKeys; iPos++)
@@ -275,8 +274,11 @@ bool FbxReaderSG::Read(const std::wstring& filename, Animation* animation) {
 				animationNode.position[iPos] = { position.mValue.x, position.mValue.y, position.mValue.z };
 				animationNode.positionTime[iPos] = position.mTime;
 			}
+			if (!animationNode.positionTime.empty())
+			{
+				animationNode.length = std::max(animationNode.length, animationNode.positionTime.back());
+			}
 
-			animationNode.length = std::max(animationNode.length, channel->mNumRotationKeys);
 			animationNode.rotation.resize(channel->mNumRotationKeys);
 			animationNode.rotationTime.resize(channel->mNumRotationKeys);
 			for (uint32_t iRot = 0; iRot < channel->mNumRotationKeys; iRot++)
@@ -285,8 +287,11 @@ bool FbxReaderSG::Read(const std::wstring& filename, Animation* animation) {
 				animationNode.rotation[iRot] = Quat(rotation.mValue.w, rotation.mValue.x, rotation.mValue.y, rotation.mValue.z);
 				animationNode.rotationTime[iRot] = rotation.mTime;
 			}
+			if (!animationNode.rotationTime.empty())
+			{
+				animationNode.length = std::max(animationNode.length, animationNode.rotationTime.back());
+			}
 
-			animationNode.length = std::max(animationNode.length, channel->mNumScalingKeys);
 			animationNode.scale.resize(channel->mNumScalingKeys);
 			animationNode.scaleTime.resize(channel->mNumScalingKeys);
 			for (uint32_t iScale = 0; iScale < channel->mNumScalingKeys; iScale++)
@@ -295,6 +300,11 @@ bool FbxReaderSG::Read(const std::wstring& filename, Animation* animation) {
 				animationNode.scale[iScale] = { scale.mValue.x, scale.mValue.y, scale.mValue.z };
 				animationNode.scaleTime[iScale] = scale.mTime;
 			}
+			if (!animationNode.scaleTime.empty())
+			{
+				animationNode.length = std::max(animationNode.length, animationNode.scaleTime.back());
+			}
+
 		}
 	}
 	
