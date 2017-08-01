@@ -1,61 +1,17 @@
 #include <rapidjson/document.h>
+#include <rapidjson/istreamwrapper.h>
 #include <imgui.h>
+#include <fstream>
 #include "Scene/GameObjectManager.h"
 #include "Scene/SceneFileManager.h"
 
-const char* testScene =
-"{\n"
-"	\"GameObjects\" :[\n"
-"		{\n"
-"			\"ObjectType\" : \"Box\",\n"
-"			\"UUID\" : \"E07B5012-320F-45B2-8EB0-6ADD00277038\",\n"
-"			\"Name\" : \"box0\",\n"
-"			\"Transform\" : {\n"
-"				\"Parent\" : \"00000000-0000-0000-0000-000000000000\",\n"
-"				\"Translation\" : {\n"
-"					\"x\" : 0.0,\n"
-"					\"y\" : 1.2,\n"
-"					\"z\" : 0.0\n"
-"				},\n"
-"				\"Rotation\" : {\n"
-"					\"x\" : 0.0,\n"
-"					\"y\" : 0.62831852,\n"
-"					\"z\" : 0.0\n"
-"				},\n"
-"				\"Scale\" : {\n"
-"					\"x\" : 1.0,\n"
-"					\"y\" : 1.0,\n"
-"					\"z\" : 1.0\n"
-"				}\n"
-"			}\n"
-"		},\n"
-"		{\n"
-"			\"ObjectType\" : \"Sphere\",\n"
-"			\"UUID\" : \"938FC005-8455-4483-923A-7F1BDF3A9E57\",\n"
-"			\"Name\" : \"sphere\",\n"
-"			\"Transform\" : {\n"
-"				\"Parent\" : \"E07B5012-320F-45B2-8EB0-6ADD00277038\",\n"
-"				\"Translation\" : {\n"
-"					\"x\" : 0.0,\n"
-"					\"y\" : 2.5,\n"
-"					\"z\" : -0.5\n"
-"				},\n"
-"				\"Rotation\" : {\n"
-"					\"x\" : 0.0,\n"
-"					\"y\" : 0.0,\n"
-"					\"z\" : 0.0\n"
-"				},\n"
-"				\"Scale\" : {\n"
-"					\"x\" : 1.0,\n"
-"					\"y\" : 1.0,\n"
-"					\"z\" : 1.0\n"
-"				}\n"
-"			}\n"
-"		}\n"
-"	]\n"
-"}\n";
-
 using namespace rapidjson;
+
+#if BUILD_DEBUG
+#define DEFAULT_SCENE L"Scene/TestScene.sgs"
+#else
+#define DEFAULT_SCENE L"Scene/TestSceneFull.sgs"
+#endif
 
 namespace StenGine
 {
@@ -66,8 +22,11 @@ public:
 	void LoadScene(std::wstring path) final
 	{
 		Document sceneDoc;
+		std::ifstream ifs(mLoadedScene);
+		IStreamWrapper isw(ifs);
 
-		auto ret = sceneDoc.Parse(testScene).HasParseError();
+		auto ret = sceneDoc.ParseStream(isw).HasParseError();
+
 		assert(!ret);
 		assert(sceneDoc.IsObject());
 
@@ -100,6 +59,8 @@ public:
 		}
 
 		GameObjectManager::Instance()->BuildSceneHierarchy();
+
+		ifs.close();
 	}
 
 	void Save() final
@@ -122,7 +83,7 @@ public:
 	}
 
 private:
-	std::wstring mLoadedScene;
+	std::wstring mLoadedScene{ DEFAULT_SCENE };
 };
 
 DEFINE_ABSTRACT_SINGLETON_CLASS(SceneFileManager, SceneFileManagerImpl);

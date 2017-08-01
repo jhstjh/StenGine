@@ -718,13 +718,6 @@ private:
 			return false;
 		}
 
-		mRenderingContext = wglCreateContextAttribsARB(mDeviceContext, 0, attributeList);
-		if (mRenderingContext == NULL)
-		{
-			assert(false);
-			return false;
-		}
-
 		AcquireContext();
 
 		return true;

@@ -1,0 +1,73 @@
+{ 
+	"GameObjects" :[ 
+		{ 
+			"ObjectType" : "Box", 
+			"UUID" : "E07B5012-320F-45B2-8EB0-6ADD00277038", 
+			"Name" : "box0", 
+			"Transform" : { 
+				"Parent" : "00000000-0000-0000-0000-000000000000", 
+				"Translation" : { 
+					"x" : 0.0, 
+					"y" : 1.2, 
+					"z" : 0.0 
+				}, 
+				"Rotation" : { 
+					"x" : 0.0, 
+					"y" : 0.62831852, 
+					"z" : 0.0 
+				}, 
+				"Scale" : { 
+					"x" : 1.0, 
+					"y" : 1.0, 
+					"z" : 1.0 
+				} 
+			} 
+		}, 
+		{ 
+			"ObjectType" : "Sphere", 
+			"UUID" : "938FC005-8455-4483-923A-7F1BDF3A9E57", 
+			"Name" : "sphere", 
+			"Transform" : { 
+				"Parent" : "E07B5012-320F-45B2-8EB0-6ADD00277038", 
+				"Translation" : { 
+					"x" : 0.0, 
+					"y" : 2.5, 
+					"z" : -0.5 
+				}, 
+				"Rotation" : { 
+					"x" : 0.0, 
+					"y" : 0.0, 
+					"z" : 0.0 
+				}, 
+				"Scale" : { 
+					"x" : 1.0, 
+					"y" : 1.0, 
+					"z" : 1.0 
+				} 
+			} 
+		}, 
+		{ 
+			"ObjectType" : "Zombie", 
+			"UUID" : "EF2E23ED-C844-4B72-9CC4-4483EBC23C04", 
+			"Name" : "Zombie", 
+			"Transform" : { 
+				"Parent" : "00000000-0000-0000-0000-000000000000", 
+				"Translation" : { 
+					"x" : 7.0, 
+					"y" : 0.0, 
+					"z" : -0.5 
+				}, 
+				"Rotation" : { 
+					"x" : 0.0, 
+					"y" : 3.1415926, 
+					"z" : 0.0 
+				}, 
+				"Scale" : { 
+					"x" : 0.4, 
+					"y" : 0.4, 
+					"z" : 0.4 
+				} 
+			} 
+		}		
+	] 
+} 
