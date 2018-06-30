@@ -49,7 +49,7 @@ Terrain::Terrain(InitInfo &info) :
 	m_blendMapTex = ResourceManager::Instance()->GetSharedResource<Texture>(m_initInfo.BlendMapFilename);
 	m_layerMapArrayTex = ResourceManager::Instance()->GetSharedResource<Texture>(m_initInfo.LayerMapFilenames);
 
-	mGrasses.emplace_back(0.f, 0.f, 0.f);
+	mGrasses.emplace_back(this, GetWidth(), GetDepth());
 }
 
 Terrain::~Terrain() 
@@ -258,7 +258,41 @@ float Terrain::GetDepth() const {
 
 float Terrain::GetHeight(float x, float z) const {
 
-	return 0;
+	// Transform from terrain local space to "cell" space.
+	float c = (x + 0.5f*GetWidth()) / m_initInfo.CellSpacing;
+	float d = (z - 0.5f*GetDepth()) / -m_initInfo.CellSpacing;
+
+	// Get the row and column we are in.
+	int row = (int)floorf(d);
+	int col = (int)floorf(c);
+
+	// Grab the heights of the cell we are in.
+	// A*--*B
+	//  | /|
+	//  |/ |
+	// C*--*D
+	float A = m_heightMap[row*m_initInfo.HeightmapWidth + col];
+	float B = m_heightMap[row*m_initInfo.HeightmapWidth + col + 1];
+	float C = m_heightMap[(row + 1)*m_initInfo.HeightmapWidth + col];
+	float D = m_heightMap[(row + 1)*m_initInfo.HeightmapWidth + col + 1];
+
+	// Where we are relative to the cell.
+	float s = c - (float)col;
+	float t = d - (float)row;
+
+	// If upper triangle ABC.
+	if (s + t <= 1.0f)
+	{
+		float uy = B - A;
+		float vy = C - A;
+		return A + s * uy + t * vy;
+	}
+	else // lower triangle DCB.
+	{
+		float uy = C - D;
+		float vy = B - D;
+		return D + (1.0f - s)*uy + (1.0f - t)*vy;
+	}
 }
 
 void Terrain::BuildQuadPatchVB() {
@@ -487,6 +521,11 @@ void Terrain::GatherShadowDrawCall() {
 
 	Renderer::Instance()->AddDeferredDrawCmd(cmd);
 
+}
+
+const Mat4& Terrain::GetWorldTransform()
+{
+	return mParent->GetTransform()->GetWorldTransform();
 }
 
 void Terrain::DrawMenu()

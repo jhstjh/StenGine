@@ -4,28 +4,37 @@
 #include "Graphics/Effect/Skybox.h"
 #include "Math/MathHelper.h"
 #include "Mesh/Mesh.h"
+#include "Mesh/Terrain/Terrain.h"
 #include "Mesh/Terrain/TerrainGrass.h"
 #include "Resource/ResourceManager.h"
 #include "Scene/CameraManager.h"
 #include "Scene/LightManager.h"
 
+#if BUILD_DEBUG
+#define DENSITY 100
+#else
+#define DENSITY 5000
+#endif
+
 namespace StenGine
 {
 
-TerrainGrass::TerrainGrass(float x, float y, float z, float rx /*= 0*/, float ry /*= 0*/, float rz /*= 0*/)
+TerrainGrass::TerrainGrass(Terrain* terrain, float width, float depth)
 {
-	mTransform = Transform(x, y, z, rx, ry, rz);
-	mTransform.UpdateWorldTransform(Mat4::Identity(), true);
+	mParent = terrain;
 	mMesh = ResourceManager::Instance()->GetResource<Mesh>(L"Model/grassPatch.fbx");
 
 	std::random_device rd;  //Will be used to obtain a seed for the random number engine
 	std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-	std::uniform_real_distribution<float> dis(-100, 100);
+	std::uniform_real_distribution<float> disX(-width * 0.5f, width * 0.5f);
+	std::uniform_real_distribution<float> disZ(-depth * 0.5f, depth * 0.5f);
 
-	for (float i = 0; i < 10000; i++ )
+	for (uint32_t i = 0; i < DENSITY; i++ )
 	{
 		Vertex::InstanceVertex instance;
-		instance.position = { dis(gen), 0.f, dis(gen) };
+		float x = disX(gen);
+		float z = disZ(gen);
+		instance.position = { x, mParent->GetHeight(x, z), z };
 		mInstances.push_back(instance);
 	}
 
@@ -92,13 +101,13 @@ void TerrainGrass::GatherDrawCall()
 	perframeData->EyePosW = CameraManager::Instance()->GetActiveCamera()->GetPos();
 
 	perObjData->Mat = mMesh->m_materials[subMesh.m_matIndex].m_attributes;
-	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * mTransform.GetWorldTransform());
-	perObjData->World = TRASNPOSE_API_CHOOSER(mTransform.GetWorldTransform());
-	Mat4 worldView = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix() * mTransform.GetWorldTransform();
+	perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * mParent->GetWorldTransform());
+	perObjData->World = TRASNPOSE_API_CHOOSER(mParent->GetWorldTransform());
+	Mat4 worldView = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix() * mParent->GetWorldTransform();
 	perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
 	Mat4 worldViewInvTranspose = worldView.Inverse().Transpose();
 
-	perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform() * mTransform.GetWorldTransform());
+	perObjData->ShadowTransform = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetShadowMapTransform() * mParent->GetWorldTransform());
 	perObjData->ViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 
 	resourceMask.x() = 0;
@@ -110,7 +119,7 @@ void TerrainGrass::GatherDrawCall()
 	{
 		cmd.srvs.AddSRV(Renderer::Instance()->GetSkyBox()->m_cubeMapSRV, 4);
 		cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-		perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(mTransform.GetWorldTransform().Inverse().Transpose());
+		perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(mParent->GetWorldTransform().Inverse().Transpose());
 		perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
 		if (mMesh->m_materials[subMesh.m_matIndex].m_diffuseMapTex) {

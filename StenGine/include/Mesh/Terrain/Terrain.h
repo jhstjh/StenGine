@@ -26,10 +26,12 @@ public:
 	Terrain(struct Terrain::InitInfo &info);
 	~Terrain();
 
-	virtual void GatherDrawCall() override;
-	virtual void GatherShadowDrawCall() override;
+	void GatherDrawCall() override;
+	void GatherShadowDrawCall() override;
 
-	virtual void DrawMenu() override;
+	void DrawMenu() override;
+	float GetHeight(float x, float z) const;	
+	const Mat4 &GetWorldTransform();
 
 private:
 	static const int CellsPerPatch = 64;
@@ -42,7 +44,6 @@ private:
 
 	float GetWidth() const;
 	float GetDepth() const;
-	float GetHeight(float x, float z) const;
 
 	void CalcAllPatchBoundsY();
 	void CalcPatchBoundsY(uint32_t i, uint32_t j);

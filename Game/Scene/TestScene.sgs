@@ -47,6 +47,29 @@
 			} 
 		}, 
 		{ 
+			"ObjectType" : "GameTerrain", 
+			"UUID" : "B9CE4851-62AD-41BE-AC68-2E82A8F27A44", 
+			"Name" : "Terrain", 
+			"Transform" : { 
+				"Parent" : "00000000-0000-0000-0000-000000000000", 
+				"Translation" : { 
+					"x" : 0.0, 
+					"y" : 0.0, 
+					"z" : -100.0 
+				}, 
+				"Rotation" : { 
+					"x" : 0.0, 
+					"y" : 0.0, 
+					"z" : 0.0 
+				}, 
+				"Scale" : { 
+					"x" : 1.0, 
+					"y" : 1.0, 
+					"z" : 1.0 
+				} 
+			} 
+		}, 
+		{ 
 			"ObjectType" : "Zombie", 
 			"UUID" : "EF2E23ED-C844-4B72-9CC4-4483EBC23C04", 
 			"Name" : "Zombie", 

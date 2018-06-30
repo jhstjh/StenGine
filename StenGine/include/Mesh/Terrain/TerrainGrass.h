@@ -8,17 +8,18 @@ namespace StenGine
 {
 
 class Mesh;
+class Terrain;
 
 class TerrainGrass
 {
 public:
-	TerrainGrass(float x, float y, float z, float rx = 0, float ry = 0, float rz = 0);
+	TerrainGrass(Terrain* terrain, float width, float depth);
 	void GatherDrawCall();
 
 private:
 	void PrepareGPUBuffer();
 
-	Transform mTransform;
+	Terrain* mParent;
 	Mesh* mMesh{ nullptr };
 
 	GPUBuffer mIndexBufferGPU;
