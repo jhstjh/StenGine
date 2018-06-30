@@ -7,7 +7,7 @@
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>-g d3d11</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-g gl4</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>PATH=$(SolutionDir)StenGine\lib;$(SolutionDir)StenGine;%PATH%
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
