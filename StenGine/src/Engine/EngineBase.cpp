@@ -19,6 +19,7 @@ EngineBase::~EngineBase()
 
 Semaphore gPrepareDrawListSync;
 Semaphore gFinishedDrawListSync;
+bool gWindowsInited{ false };
 
 BOOL EngineBase::CreateWindowInstance(int32_t w, int32_t h, HINSTANCE hInstance/*, int nCmdShow*/, HWND &hMainWnd)
 {
@@ -50,7 +51,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)
 	{
 	case WM_DESTROY:
-		PostQuitMessage(0);
+		if (gWindowsInited)
+		{
+			PostQuitMessage(0);
+		}
 		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
@@ -118,6 +122,7 @@ void EngineBase::Init(HINSTANCE hInstance)
 	};
 
 	m_renderer->Init(1280, 720, func);
+	gWindowsInited = true;
 
 	m_effectManager = std::unique_ptr<EffectsManager>(EffectsManager::Create());
 	m_cameraManager = std::unique_ptr<CameraManager>(CameraManager::Create());
