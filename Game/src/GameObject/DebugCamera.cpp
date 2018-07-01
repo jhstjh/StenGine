@@ -7,9 +7,7 @@ namespace SGGame
 {
 	DebugCamera::DebugCamera()
 	{
-		auto camera = std::make_unique<Camera>(0.25f * 3.14159f, 1.0f, 1000.0f);
-		camera->SetEnabled(true);
-		AddComponent(std::move(camera));
+
 	}
 
 	void DebugCamera::Update()

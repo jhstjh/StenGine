@@ -4,231 +4,256 @@
 			"ObjectType" : "DebugCamera", 
 			"UUID" : "B9CE3451-623F-453E-AD78-2E82A8F27A32", 
 			"Name" : "DebugCamera", 
-			"Transform" : { 
-				"Parent" : "00000000-0000-0000-0000-000000000000", 
-				"Translation" : { 
-					"x" : 4.0, 
-					"y" : 11.0, 
-					"z" : -11.0 
-				}, 
-				"Rotation" : { 
-					"x" : 0.6125, 
-					"y" : -0.17453, 
-					"z" : 0.0 
-				}, 
-				"Scale" : { 
-					"x" : 1.0, 
-					"y" : 1.0, 
-					"z" : 1.0 
-				} 
-			} 
+			"Components" : {
+				"Transform" : { 
+					"Parent" : "00000000-0000-0000-0000-000000000000", 
+					"Translation" : { 
+						"x" : 4.0, 
+						"y" : 11.0, 
+						"z" : -11.0 
+					}, 
+					"Rotation" : { 
+						"x" : 0.6125, 
+						"y" : -0.17453, 
+						"z" : 0.0 
+					}, 
+					"Scale" : { 
+						"x" : 1.0, 
+						"y" : 1.0, 
+						"z" : 1.0 
+					} 
+				} ,
+				"Camera" : {
+					"FOV" : 0.7853975,
+					"NearPlane" : 0.1,
+					"FarPlane" : 1000
+				}
+			}
 		}, 
 		{ 
 			"ObjectType" : "Box", 
 			"UUID" : "E07B5012-320F-45B2-8EB0-6ADD00277038", 
 			"Name" : "box0", 
-			"Transform" : { 
-				"Parent" : "00000000-0000-0000-0000-000000000000", 
-				"Translation" : { 
-					"x" : 0.0, 
-					"y" : 1.2, 
-					"z" : 0.0 
-				}, 
-				"Rotation" : { 
-					"x" : 0.0, 
-					"y" : 0.62831852, 
-					"z" : 0.0 
-				}, 
-				"Scale" : { 
-					"x" : 1.0, 
-					"y" : 1.0, 
-					"z" : 1.0 
+			"Components" : {
+				"Transform" : { 
+					"Parent" : "00000000-0000-0000-0000-000000000000", 
+					"Translation" : { 
+						"x" : 0.0, 
+						"y" : 1.2, 
+						"z" : 0.0 
+					}, 
+					"Rotation" : { 
+						"x" : 0.0, 
+						"y" : 0.62831852, 
+						"z" : 0.0 
+					}, 
+					"Scale" : { 
+						"x" : 1.0, 
+						"y" : 1.0, 
+						"z" : 1.0 
+					} 
 				} 
-			} 
+			}
 		}, 
 		{ 
 			"ObjectType" : "Sphere", 
 			"UUID" : "938FC005-8455-4483-923A-7F1BDF3A9E57", 
 			"Name" : "sphere", 
-			"Transform" : { 
-				"Parent" : "E07B5012-320F-45B2-8EB0-6ADD00277038", 
-				"Translation" : { 
-					"x" : 0.0, 
-					"y" : 2.5, 
-					"z" : -0.5 
-				}, 
-				"Rotation" : { 
-					"x" : 0.0, 
-					"y" : 0.0, 
-					"z" : 0.0 
-				}, 
-				"Scale" : { 
-					"x" : 1.0, 
-					"y" : 1.0, 
-					"z" : 1.0 
+			"Components" : {
+				"Transform" : { 
+					"Parent" : "E07B5012-320F-45B2-8EB0-6ADD00277038", 
+					"Translation" : { 
+						"x" : 0.0, 
+						"y" : 2.5, 
+						"z" : -0.5 
+					}, 
+					"Rotation" : { 
+						"x" : 0.0, 
+						"y" : 0.0, 
+						"z" : 0.0 
+					}, 
+					"Scale" : { 
+						"x" : 1.0, 
+						"y" : 1.0, 
+						"z" : 1.0 
+					} 
 				} 
-			} 
+			}
 		}, 
 		{ 
 			"ObjectType" : "Zombie", 
 			"UUID" : "EF2E23ED-C844-4B72-9CC4-4483EBC23C04", 
 			"Name" : "Zombie", 
-			"Transform" : { 
-				"Parent" : "00000000-0000-0000-0000-000000000000", 
-				"Translation" : { 
-					"x" : 7.0, 
-					"y" : 0.0, 
-					"z" : -0.5 
-				}, 
-				"Rotation" : { 
-					"x" : 0.0, 
-					"y" : 3.1415926, 
-					"z" : 0.0 
-				}, 
-				"Scale" : { 
-					"x" : 0.4, 
-					"y" : 0.4, 
-					"z" : 0.4 
+			"Components" : {
+				"Transform" : { 
+					"Parent" : "00000000-0000-0000-0000-000000000000", 
+					"Translation" : { 
+						"x" : 7.0, 
+						"y" : 0.0, 
+						"z" : -0.5 
+					}, 
+					"Rotation" : { 
+						"x" : 0.0, 
+						"y" : 3.1415926, 
+						"z" : 0.0 
+					}, 
+					"Scale" : { 
+						"x" : 0.4, 
+						"y" : 0.4, 
+						"z" : 0.4 
+					} 
 				} 
-			} 
+			}
 		}, 
 		{ 
 			"ObjectType" : "GameTerrain", 
 			"UUID" : "B9CE4851-62AD-41BE-AC68-2E82A8F27A44", 
 			"Name" : "Terrain", 
-			"Transform" : { 
-				"Parent" : "00000000-0000-0000-0000-000000000000", 
-				"Translation" : { 
-					"x" : 0.0, 
-					"y" : 0.0, 
-					"z" : -100.0 
-				}, 
-				"Rotation" : { 
-					"x" : 0.0, 
-					"y" : 0.0, 
-					"z" : 0.0 
-				}, 
-				"Scale" : { 
-					"x" : 1.0, 
-					"y" : 1.0, 
-					"z" : 1.0 
+			"Components" : {
+				"Transform" : { 
+					"Parent" : "00000000-0000-0000-0000-000000000000", 
+					"Translation" : { 
+						"x" : 0.0, 
+						"y" : 0.0, 
+						"z" : -100.0 
+					}, 
+					"Rotation" : { 
+						"x" : 0.0, 
+						"y" : 0.0, 
+						"z" : 0.0 
+					}, 
+					"Scale" : { 
+						"x" : 1.0, 
+						"y" : 1.0, 
+						"z" : 1.0 
+					} 
 				} 
-			} 
+			}
 		}, 
 		{ 
 			"ObjectType" : "Plane", 
 			"UUID" : "5BA9F965-E06A-4EA2-845E-F08E8BF0F0DF", 
 			"Name" : "plane0", 
-			"Transform" : { 
-				"Parent" : "00000000-0000-0000-0000-000000000000", 
-				"Translation" : { 
-					"x" : 4.0, 
-					"y" : 0.2, 
-					"z" : 0.0 
-				}, 
-				"Rotation" : { 
-					"x" : 0.0, 
-					"y" : 0.0, 
-					"z" : 0.0 
-				}, 
-				"Scale" : { 
-					"x" : 1.0, 
-					"y" : 1.0, 
-					"z" : 1.0 
+			"Components" : {
+				"Transform" : { 
+					"Parent" : "00000000-0000-0000-0000-000000000000", 
+					"Translation" : { 
+						"x" : 4.0, 
+						"y" : 0.2, 
+						"z" : 0.0 
+					}, 
+					"Rotation" : { 
+						"x" : 0.0, 
+						"y" : 0.0, 
+						"z" : 0.0 
+					}, 
+					"Scale" : { 
+						"x" : 1.0, 
+						"y" : 1.0, 
+						"z" : 1.0 
+					} 
 				} 
-			} 
+			}
 		}, 
 		{ 
 			"ObjectType" : "Plane", 
 			"UUID" : "E7D44738-E6C7-4602-AA03-A320599C7C9E", 
 			"Name" : "plane1", 
-			"Transform" : { 
-				"Parent" : "00000000-0000-0000-0000-000000000000", 
-				"Translation" : { 
-					"x" : -4.0, 
-					"y" : 0.2, 
-					"z" : 0.0 
-				}, 
-				"Rotation" : { 
-					"x" : 0.0, 
-					"y" : 0.0, 
-					"z" : 0.0 
-				}, 
-				"Scale" : { 
-					"x" : 1.0, 
-					"y" : 1.0, 
-					"z" : 1.0 
+			"Components" : {
+				"Transform" : { 
+					"Parent" : "00000000-0000-0000-0000-000000000000", 
+					"Translation" : { 
+						"x" : -4.0, 
+						"y" : 0.2, 
+						"z" : 0.0 
+					}, 
+					"Rotation" : { 
+						"x" : 0.0, 
+						"y" : 0.0, 
+						"z" : 0.0 
+					}, 
+					"Scale" : { 
+						"x" : 1.0, 
+						"y" : 1.0, 
+						"z" : 1.0 
+					} 
 				} 
-			} 
+			}
 		}, 
 		{ 
 			"ObjectType" : "Plant", 
 			"UUID" : "59DB5198-37CD-4D85-8B14-152511DA895E", 
 			"Name" : "plants0", 
-			"Transform" : { 
-				"Parent" : "00000000-0000-0000-0000-000000000000", 
-				"Translation" : { 
-					"x" : -4.0, 
-					"y" : 0.2, 
-					"z" : 0.0 
-				}, 
-				"Rotation" : { 
-					"x" : 0.0, 
-					"y" : 3.1415926, 
-					"z" : 0.0 
-				}, 
-				"Scale" : { 
-					"x" : 0.4, 
-					"y" : 0.4, 
-					"z" : 0.4 
+			"Components" : {
+				"Transform" : { 
+					"Parent" : "00000000-0000-0000-0000-000000000000", 
+					"Translation" : { 
+						"x" : -4.0, 
+						"y" : 0.2, 
+						"z" : 0.0 
+					}, 
+					"Rotation" : { 
+						"x" : 0.0, 
+						"y" : 3.1415926, 
+						"z" : 0.0 
+					}, 
+					"Scale" : { 
+						"x" : 0.4, 
+						"y" : 0.4, 
+						"z" : 0.4 
+					} 
 				} 
-			} 
+			}
 		}, 
 		{ 
 			"ObjectType" : "House", 
 			"UUID" : "6D711B86-8042-4939-A327-2D7967E96B18", 
 			"Name" : "house0", 
-			"Transform" : { 
-				"Parent" : "00000000-0000-0000-0000-000000000000", 
-				"Translation" : { 
-					"x" : 0.0, 
-					"y" : -0.1, 
-					"z" : 20.0 
-				}, 
-				"Rotation" : { 
-					"x" : 0.0, 
-					"y" : 1.5707963, 
-					"z" : 0.0 
-				}, 
-				"Scale" : { 
-					"x" : 1.0, 
-					"y" : 1.0, 
-					"z" : 1.0 
-				} 
-			} 
+			"Components" : {
+				"Transform" : { 
+					"Parent" : "00000000-0000-0000-0000-000000000000", 
+					"Translation" : { 
+						"x" : 0.0, 
+						"y" : -0.1, 
+						"z" : 20.0 
+					}, 
+					"Rotation" : { 
+						"x" : 0.0, 
+						"y" : 1.5707963, 
+						"z" : 0.0 
+					}, 
+					"Scale" : { 
+						"x" : 1.0, 
+						"y" : 1.0, 
+						"z" : 1.0 
+					} 
+				}
+			}				
 		}, 
 		{ 
 			"ObjectType" : "Dragon", 
 			"UUID" : "3CD681AF-A0D0-4854-B857-2B028269C908", 
 			"Name" : "dragon", 
-			"Transform" : { 
-				"Parent" : "00000000-0000-0000-0000-000000000000", 
-				"Translation" : { 
-					"x" : 3.0, 
-					"y" : 0.2, 
-					"z" : 0.0 
-				}, 
-				"Rotation" : { 
-					"x" : 0.0, 
-					"y" : 0.0, 
-					"z" : 0.0 
-				}, 
-				"Scale" : { 
-					"x" : 1.0, 
-					"y" : 1.0, 
-					"z" : 1.0 
+			"Components" : {
+				"Transform" : { 
+					"Parent" : "00000000-0000-0000-0000-000000000000", 
+					"Translation" : { 
+						"x" : 3.0, 
+						"y" : 0.2, 
+						"z" : 0.0 
+					}, 
+					"Rotation" : { 
+						"x" : 0.0, 
+						"y" : 0.0, 
+						"z" : 0.0 
+					}, 
+					"Scale" : { 
+						"x" : 1.0, 
+						"y" : 1.0, 
+						"z" : 1.0 
+					} 
 				} 
-			} 
+			}
 		}		
 	] 
 } 

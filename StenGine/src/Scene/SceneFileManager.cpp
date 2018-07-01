@@ -2,6 +2,7 @@
 #include <rapidjson/istreamwrapper.h>
 #include <imgui.h>
 #include <fstream>
+#include "Scene/CameraManager.h"
 #include "Scene/GameObjectManager.h"
 #include "Scene/SceneFileManager.h"
 
@@ -40,7 +41,10 @@ public:
 			UUID uuid, parentUuid;
 			UuidFromStringA((RPC_CSTR)(itr->FindMember("UUID")->value.GetString()), &uuid);
 			
-			auto transform = itr->FindMember("Transform");
+			auto components = itr->FindMember("Components");
+
+			// Special component Transform
+			auto transform = components->value.FindMember("Transform");
 			UuidFromStringA((RPC_CSTR)(transform->value.FindMember("Parent")->value.GetString()), &parentUuid);
 			auto translation = transform->value.FindMember("Translation");
 			float transX = translation->value.FindMember("x")->value.GetFloat();
@@ -55,7 +59,30 @@ public:
 			float scaleY = scale->value.FindMember("y")->value.GetFloat();
 			float scaleZ = scale->value.FindMember("z")->value.GetFloat();
 
-			GameObjectManager::Instance()->Instantiate(objectType, uuid, name, parentUuid, transX, transY, transZ, rotX, rotY, rotZ, scaleX, scaleY, scaleZ);
+			GameObject* gameObject = GameObjectManager::Instance()->Instantiate(objectType, uuid, name, parentUuid, transX, transY, transZ, rotX, rotY, rotZ, scaleX, scaleY, scaleZ);
+
+			// other components
+			{
+				for (auto compIter = components->value.MemberBegin(); compIter != components->value.MemberEnd(); ++compIter)
+				{
+					if (compIter->name == "Transform")
+					{
+						continue;
+					}
+					else if (compIter->name == "Camera")
+					{
+						float fov = compIter->value.FindMember("FOV")->value.GetFloat();
+						float np = compIter->value.FindMember("NearPlane")->value.GetFloat();
+						float fp = compIter->value.FindMember("FarPlane")->value.GetFloat();
+
+						auto camera = std::make_unique<Camera>(fov, np, fp);
+						camera->SetEnabled(true);
+						gameObject->AddComponent(std::move(camera));
+					}
+					// TODO move other hardcoded components to scene file and init here
+				}
+
+			}
 		}
 
 		GameObjectManager::Instance()->BuildSceneHierarchy();
