@@ -1,6 +1,29 @@
 { 
 	"GameObjects" :[ 
 		{ 
+			"ObjectType" : "DebugCamera", 
+			"UUID" : "B9CE3451-623F-453E-AD78-2E82A8F27A32", 
+			"Name" : "DebugCamera", 
+			"Transform" : { 
+				"Parent" : "00000000-0000-0000-0000-000000000000", 
+				"Translation" : { 
+					"x" : 4.0, 
+					"y" : 11.0, 
+					"z" : -11.0 
+				}, 
+				"Rotation" : { 
+					"x" : 0.6125, 
+					"y" : -0.17453, 
+					"z" : 0.0 
+				}, 
+				"Scale" : { 
+					"x" : 1.0, 
+					"y" : 1.0, 
+					"z" : 1.0 
+				} 
+			} 
+		}, 
+		{ 
 			"ObjectType" : "Box", 
 			"UUID" : "E07B5012-320F-45B2-8EB0-6ADD00277038", 
 			"Name" : "box0", 

@@ -478,7 +478,7 @@ public:
 
 		D3D11_BUFFER_DESC vbd = {};
 		vbd.Usage = D3D11_USAGE_IMMUTABLE;
-		vbd.ByteWidth = sizeof(Vertex::StdMeshVertex) * coordVertexBuffer.size();
+		vbd.ByteWidth = sizeof(Vec3Packed) * coordVertexBuffer.size();
 		vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		vbd.CPUAccessFlags = 0;
 		vbd.MiscFlags = 0;

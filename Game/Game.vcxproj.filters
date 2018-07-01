@@ -48,6 +48,9 @@
     <ClInclude Include="include\GameObject\GameTerrain.h">
       <Filter>include\GameObject</Filter>
     </ClInclude>
+    <ClInclude Include="include\GameObject\DebugCamera.h">
+      <Filter>include\GameObject</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Game.cpp">
@@ -75,6 +78,9 @@
       <Filter>src\GameObject</Filter>
     </ClCompile>
     <ClCompile Include="src\GameObject\GameTerrain.cpp">
+      <Filter>src\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GameObject\DebugCamera.cpp">
       <Filter>src\GameObject</Filter>
     </ClCompile>
   </ItemGroup>

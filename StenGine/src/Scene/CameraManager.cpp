@@ -3,31 +3,27 @@
 #include "Input/InputManager.h"
 #include "Math/MathHelper.h"
 #include "Scene/CameraManager.h"
-
-#define MOVE_SPEED 10
+#include "Scene/GameObject.h"
 
 namespace StenGine
 {
 
-Camera::Camera(float px, float py, float pz,
-	float tx, float ty, float tz,
-	float ux, float uy, float uz,
-	float fov, float np, float fp)
+Camera::Camera(float fov, float np, float fp)
+	: mNP(np)
+	, mFP(fp)
+	, mFOV(fov)
 {
-	mTrans = Mat4::FromTranslationVector(Vec3( px, py, pz ));
+	UpdateProjMat();
+}
 
-	mView = Mat4::LookAt({ tx, ty, tz }, { px, py, pz }, { ux, uy, uz }, -1.0f);
-	mProj = Mat4::Perspective(fov, Renderer::Instance()->GetAspectRatio(), np, fp, -1.0f);
-
-	mWorldTransform = mView.Inverse();
-	mRot = (mTrans.Inverse() * mWorldTransform);
-	auto rot3 = Mat3(mRot.GetColumn(0).xyz(), mRot.GetColumn(1).xyz(), mRot.GetColumn(2).xyz());
-	mRotQuat = Quat::FromMatrix(rot3);
+void Camera::UpdateProjMat()
+{
+	mProj = Mat4::Perspective(mFOV, Renderer::Instance()->GetAspectRatio(), mNP, mFP, -1.0f);
 
 	if (Renderer::GetRenderBackend() == RenderBackend::OPENGL4)
 	{
-		mProj(2, 2) = (np + fp) / (fp - np);
-		mProj(2, 3) = -2 * (np * fp) / (fp - np);
+		mProj(2, 2) = (mNP + mFP) / (mFP - mNP);
+		mProj(2, 3) = -2 * (mNP * mFP) / (mFP - mNP);
 	}
 }
 
@@ -38,12 +34,12 @@ Camera::~Camera()
 
 Mat4 Camera::GetViewProjMatrix()
 {
-	return mProj * mView;
+	return mProj * mParent->GetTransform()->GetWorldTransformInversed();
 }
 
 Mat4 Camera::GetViewMatrix()
 {
-	return mView;
+	return mParent->GetTransform()->GetWorldTransformInversed();
 }
 
 Mat4 Camera::GetProjMatrix()
@@ -51,75 +47,50 @@ Mat4 Camera::GetProjMatrix()
 	return mProj;
 }
 
+Vec4 Camera::GetPos()
+{
+	return{ mParent->GetTransform()->GetWorldTransform()(0, 3), 
+			mParent->GetTransform()->GetWorldTransform()(1, 3),
+			mParent->GetTransform()->GetWorldTransform()(2, 3), 0.0 };
+}
+
+void Camera::SetEnabled(bool enabled)
+{
+	mEnabled = enabled;
+
+	if (mEnabled)
+	{
+		CameraManager::Instance()->SetActiveCamera(this);
+	}
+
+	// TODO clear active cam
+}
+
 void Camera::Update() 
 {
-	if (InputManager::Instance()->GetKeyHold('W')) 
-	{
-		MatrixHelper::MoveForward(mWorldTransform, MOVE_SPEED * Timer::GetDeltaTime());
-		mTrans = mWorldTransform * mRot.Inverse();
-		mView = mWorldTransform.Inverse();
-	}
-	if (InputManager::Instance()->GetKeyHold('S')) 
-	{
-		MatrixHelper::MoveBack(mWorldTransform, MOVE_SPEED * Timer::GetDeltaTime());
-		mTrans = mWorldTransform * mRot.Inverse();
-		mView = mWorldTransform.Inverse();
-	}
-	if (InputManager::Instance()->GetKeyHold('A'))
-	{
-		MatrixHelper::MoveLeft(mWorldTransform, MOVE_SPEED * Timer::GetDeltaTime());
-		mTrans = mWorldTransform * mRot.Inverse();
-		mView = mWorldTransform.Inverse();
-	}
-	if (InputManager::Instance()->GetKeyHold('D'))
-	{
-		MatrixHelper::MoveRight(mWorldTransform, MOVE_SPEED * Timer::GetDeltaTime());
-		mTrans = mWorldTransform * mRot.Inverse();
-		mView = mWorldTransform.Inverse();
-	}
-	if (InputManager::Instance()->GetKeyHold(VK_UP))
-	{
-		auto rot = Quat::FromAngleAxis(-PI / 3.0f * Timer::GetDeltaTime(), { 1, 0, 0 });
-		mRotQuat = mRotQuat * rot;
-		mRot = mRotQuat.ToMatrix4();
 
-		mWorldTransform = mTrans * mRot;
-		mView = mWorldTransform.Inverse();
-	}
-	if (InputManager::Instance()->GetKeyHold(VK_DOWN))
-	{
-		auto rot = Quat::FromAngleAxis(PI / 3.0f * Timer::GetDeltaTime(), { 1, 0, 0 });
-		mRotQuat = mRotQuat * rot;
-		mRot = mRotQuat.ToMatrix4();
+}
 
-		mWorldTransform = mTrans * mRot;
-		mView = mWorldTransform.Inverse();
-	}
-	if (InputManager::Instance()->GetKeyHold(VK_LEFT)) 
+void Camera::DrawMenu()
+{
+	if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		auto rot = Quat::FromAngleAxis(-PI / 3.0f * Timer::GetDeltaTime(), { 0, 1, 0 });
-		mRotQuat = rot * mRotQuat;
-		mRot = mRotQuat.ToMatrix4();
+		bool dirty = false;
 
-		mWorldTransform = mTrans * mRot;
-		mView = mWorldTransform.Inverse();
-	}
-	if (InputManager::Instance()->GetKeyHold(VK_RIGHT)) 
-	{
-		auto rot = Quat::FromAngleAxis(PI / 3.0f * Timer::GetDeltaTime(), { 0, 1, 0 });
-		mRotQuat = rot * mRotQuat;
-		mRot = mRotQuat.ToMatrix4();
-
-		mWorldTransform = mTrans * mRot;
-		mView = mWorldTransform.Inverse();
+		if (ImGui::SliderFloat("FOV", &mFOV, 0, PI)) dirty = true;
+		if (ImGui::InputFloat("Near Plane", &mNP)) dirty = true;
+		if (ImGui::InputFloat("Far Plane", &mFP)) dirty = true;
+		
+		if (dirty)
+		{
+			UpdateProjMat();
+		}
 	}
 }
 
+
 CameraManager::CameraManager()
 {
-	mDebugCamera = new Camera(4.0f, 11.f, -11.f, 0.0f, 5.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.25f * 3.14159f, 1.0f, 1000.0f);
-	mActiveCamera = mDebugCamera;
-
 	auto updateCam = [this]()
 	{
 		mActiveCamera->Update();
@@ -131,7 +102,11 @@ CameraManager::CameraManager()
 CameraManager::~CameraManager() 
 {
 	mActiveCamera = nullptr;
-	SafeDelete(mDebugCamera);
+}
+
+void CameraManager::SetActiveCamera(Camera* cam)
+{
+	mActiveCamera = cam;
 }
 
 DEFINE_SINGLETON_CLASS(CameraManager)

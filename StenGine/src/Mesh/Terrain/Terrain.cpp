@@ -376,7 +376,7 @@ void Terrain::GatherDrawCall()
 	perObjData->View = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewMatrix());
 	perObjData->ViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix());
 	perObjData->World = TRASNPOSE_API_CHOOSER(mParent->GetTransform()->GetWorldTransform());
-	perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(mParent->GetTransform()->GetWorldTransform().Inverse().Transpose());
+	perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(mParent->GetTransform()->GetWorldTransformInversed().Transpose());
 
 	Mat4 worldView = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix() * mParent->GetTransform()->GetWorldTransform();
 	perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
@@ -465,7 +465,7 @@ void Terrain::GatherShadowDrawCall() {
 	perObjData->View = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetViewMatrix());
 	perObjData->ViewProj = TRASNPOSE_API_CHOOSER(LightManager::Instance()->m_shadowMap->GetViewProjMatrix());
 	perObjData->World = TRASNPOSE_API_CHOOSER(mParent->GetTransform()->GetWorldTransform());
-	perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(mParent->GetTransform()->GetWorldTransform().Inverse().Transpose());
+	perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(mParent->GetTransform()->GetWorldTransformInversed().Transpose());
 
 	Vec4 resourceMask(0, 0, 0, 0);
 

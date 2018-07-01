@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\GameObject\Box.cpp" />
+    <ClCompile Include="src\GameObject\DebugCamera.cpp" />
     <ClCompile Include="src\GameObject\Dragon.cpp" />
     <ClCompile Include="src\GameObject\GameTerrain.cpp" />
     <ClCompile Include="src\GameObject\House.cpp" />
@@ -147,6 +148,7 @@
   <ItemGroup>
     <ClInclude Include="include\Game.h" />
     <ClInclude Include="include\GameObject\box.h" />
+    <ClInclude Include="include\GameObject\DebugCamera.h" />
     <ClInclude Include="include\GameObject\Dragon.h" />
     <ClInclude Include="include\GameObject\GameTerrain.h" />
     <ClInclude Include="include\GameObject\House.h" />

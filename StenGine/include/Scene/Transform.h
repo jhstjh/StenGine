@@ -16,11 +16,19 @@ public:
 			  float rx = 0, float ry = 0, float rz = 0,
 			  float sx = 1, float sy = 1, float sz = 1);
 
-	const Mat4 &GetWorldTransform();
+	const Mat4 &GetWorldTransform() const;
+	const Mat4 &GetWorldTransformInversed() const;
 	Vec3 GetPosition() const;
 	void RotateAroundY(float radius);
 	void UpdateWorldTransform(Mat4& parent, bool parentDirty);
 	void AddChild(Transform* child) { mChildren.push_back(child); }
+
+	void MoveForward(float distance);
+	void MoveBack(float distance) { MoveForward(-distance); }
+	void MoveRight(float distance);
+	void MoveLeft(float distance) { MoveRight(-distance); }
+	
+	void Rotate(float radians, const Vec3& axis, bool pre);
 
 	virtual void DrawMenu();
 	virtual void DrawMenuNodes(Transform*&, bool defaultOpen = false);
@@ -34,6 +42,7 @@ private:
 	Vec3 mScale;
 
 	Mat4 mWorldTransform;
+	Mat4 mWorldTransformInversed;
 	Mat4 mLocalTransform;
 	bool mDirty;
 };

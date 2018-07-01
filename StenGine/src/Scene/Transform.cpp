@@ -24,9 +24,14 @@ Transform::Transform(float tx, float ty, float tz, float rx, float ry, float rz,
 	mDirty = true;
 }
 
-const Mat4 &Transform::GetWorldTransform()
+const Mat4 &Transform::GetWorldTransform() const
 {
 	return mWorldTransform;
+}
+
+const Mat4 &Transform::GetWorldTransformInversed() const
+{
+	return mWorldTransformInversed;
 }
 
 Vec3 Transform::GetPosition() const
@@ -54,12 +59,48 @@ void Transform::UpdateWorldTransform(Mat4& parent, bool parentDirty)
 	if (parentDirty || thisDirty)
 	{
 		mWorldTransform = parent * mLocalTransform;
+		mWorldTransformInversed = mWorldTransform.Inverse();
 	}
 
 	for (auto &child : mChildren)
 	{
 		child->UpdateWorldTransform(mWorldTransform, mDirty || parentDirty);
 	}
+}
+
+void Transform::MoveForward(float distance)
+{
+	Vec3 offset = MatrixHelper::GetForward(mWorldTransform);
+	mPosition.x() += offset[0] * distance;
+	mPosition.y() += offset[1] * distance;
+	mPosition.z() += offset[2] * distance;
+
+	mDirty = true;
+}
+
+void Transform::MoveRight(float distance)
+{
+	Vec3 offset = MatrixHelper::GetRight(mWorldTransform);
+	mPosition.x() += offset[0] * distance;
+	mPosition.y() += offset[1] * distance;
+	mPosition.z() += offset[2] * distance;
+
+	mDirty = true;
+}
+
+void Transform::Rotate(float radians, const Vec3& axis, bool pre)
+{
+	auto rot = Quat::FromAngleAxis(radians, axis);
+	if (pre)
+	{
+		mRotation = mRotation * rot;
+	}
+	else
+	{
+		mRotation = rot * mRotation;
+	}
+	mRotationEuler = mRotation.ToEulerAngles();
+	mDirty = true;
 }
 
 void Transform::DrawMenu()

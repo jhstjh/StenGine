@@ -178,7 +178,7 @@ void MeshRenderer::GatherDrawCall() {
 			{
 				cmd.srvs.AddSRV(Renderer::Instance()->GetSkyBox()->m_cubeMapSRV, 4);
 				cmd.srvs.AddSRV(LightManager::Instance()->m_shadowMap->GetDepthSRV(), 3);
-				perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(mParent->GetTransform()->GetWorldTransform().Inverse().Transpose());
+				perObjData->WorldInvTranspose = TRASNPOSE_API_CHOOSER(mParent->GetTransform()->GetWorldTransformInversed().Transpose());
 				perObjData->WorldViewInvTranspose = TRASNPOSE_API_CHOOSER(worldViewInvTranspose);
 
 				if (mMesh->m_materials[subMesh.m_matIndex].m_diffuseMapTex) {
