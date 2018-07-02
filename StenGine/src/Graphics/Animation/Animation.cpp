@@ -23,11 +23,33 @@ Mat4 AnimationNode::UpdateAnimation(Timer::Seconds playbackTime)
 	uint32_t rotationIndex = findIdx(rotationTime);
 	uint32_t scaleIndex = findIdx(scaleTime);
 
+	auto pos = position[positionIndex];
+	auto rot = rotation[rotationIndex];
+	auto scal = scale[scaleIndex];
+
+	if (positionIndex < position.size() - 1)
+	{
+		float percent = (playbackFrame - positionTime[positionIndex]) / (positionTime[positionIndex + 1] - positionTime[positionIndex]);
+		pos = Vec3::Lerp(pos, position[positionIndex + 1], percent);
+	}
+
+	if (rotationIndex < rotation.size() - 1)
+	{
+		float percent = (playbackFrame - rotationTime[rotationIndex]) / (rotationTime[rotationIndex + 1] - rotationTime[rotationIndex]);
+		rot = Quat::Slerp(rot, rotation[rotationIndex + 1], percent);
+	}
+
+	if (scaleIndex < scale.size() - 1)
+	{
+		float percent = (playbackFrame - scaleTime[scaleIndex]) / (scaleTime[scaleIndex + 1] - scaleTime[scaleIndex]);
+		scal = Vec3::Lerp(scal, scale[scaleIndex + 1], percent);
+	}
+
 	Mat4 transformMatrix = Mat4::Identity();
 
-	Mat4 t = Mat4::FromTranslationVector(position[positionIndex]);
-	Mat4 q = rotation[rotationIndex].ToMatrix4();
-	Mat4 s = Mat4::FromScaleVector(scale[scaleIndex]);
+	Mat4 t = Mat4::FromTranslationVector(pos);
+	Mat4 q = rot.ToMatrix4();
+	Mat4 s = Mat4::FromScaleVector(scal);
 
 	transformMatrix = t * s * q;
 
