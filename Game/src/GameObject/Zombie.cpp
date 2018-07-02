@@ -1,4 +1,5 @@
 #include "GameObject/zombie.h"
+#include "Graphics/Animation/Animator.h"
 #include "Mesh/SkinnedMeshRenderer.h"
 #include "Resource/ResourceManager.h"
 
@@ -12,9 +13,11 @@ Zombie::Zombie()
 	zombieMeshRenderer->SetMesh(zombieMesh);
 	
 	Animation* animation = ResourceManager::Instance()->GetResource<Animation>(L"Model/vampire-animated.fbx");
-	zombieMeshRenderer.get()->SetAnimation(animation);
+	auto zombieAnimator = std::make_unique<Animator>();
+	zombieAnimator->SetAnimation(animation);
 
 	AddComponent(std::move(zombieMeshRenderer));
+	AddComponent(std::move(zombieAnimator));
 }
 
 }

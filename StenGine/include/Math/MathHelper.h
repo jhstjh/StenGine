@@ -24,6 +24,7 @@ class MatrixHelper {
 public:
 
 	inline static void SetPosition(Mat4 &mat, float x, float y, float z) { mat(0, 3) = x; mat(1, 3) = y; mat(2, 3) = z; }
+	inline static Vec3 GetPosition(Mat4 &mat) { return { mat(0, 3), mat(1, 3), mat(2,3)}; }
 	inline static void MoveLeft(Mat4& mat, float distance) { MoveRight(mat, -distance); }
 
 	inline static Vec3 GetForward(const Mat4& mat) { return{ mat(0, 2), mat(1, 2), mat(2, 2) }; }

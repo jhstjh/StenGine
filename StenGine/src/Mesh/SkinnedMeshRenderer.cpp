@@ -4,6 +4,7 @@
 #include "Mesh/SkinnedMeshRenderer.h"
 #include "Engine/EventSystem.h"
 #include "Graphics/Abstraction/RendererBase.h"
+#include "Graphics/Animation/Animator.h"
 #include "Graphics/Effect/EffectsManager.h"
 #include "Graphics/Effect/ShadowMap.h"
 #include "Graphics/Effect/Skybox.h"
@@ -17,7 +18,6 @@ namespace StenGine
 {
 
 SkinnedMeshRenderer::SkinnedMeshRenderer() 
-	: m_animation(nullptr)
 {
 	EventSystem::Instance()->RegisterEventHandler(EventSystem::EventType::PRE_RENDER, [this]() {	PrepareMatrixPalette(); });
 }
@@ -39,10 +39,22 @@ void SkinnedMeshRenderer::PrepareMatrixPalette()
 	m_matrixPalette.resize(mSkinnedMesh->m_joints.size());
 	m_toRootTransform.resize(mSkinnedMesh->m_joints.size());
 
+
+
 	for (int64_t i = mSkinnedMesh->m_joints.size() - 1; i >= 0; --i)
 	{
+		Mat4 nodeTrans = Mat4::Identity();
+		Mat4 nodeRotTrans = Mat4::Identity();
+		auto animator = mParent->GetFirstComponentByType<Animator>();
+		
+		if (animator)
+		{
+			nodeTrans = animator->GetTransform(mSkinnedMesh->m_joints[i].m_name);
+			nodeRotTrans = animator->GetTransform(mSkinnedMesh->m_joints[i].m_name + "_$AssimpFbx$_Rotation");
+		}
+
 		// m_toRootTransform[i] = m_animation->GetTransform(m_joints[i].m_name + "_$AssimpFbx$_Rotation") * m_jointPreRotationBufferCPU[i] * m_animation->GetTransform(m_joints[i].m_name) * (m_joints[i].m_parentIdx == -1? Mat4::Identity() : m_toRootTransform[m_joints[i].m_parentIdx]);
-		m_toRootTransform[i] = (mSkinnedMesh->m_joints[i].m_parentIdx == -1 ? Mat4::Identity() : m_toRootTransform[mSkinnedMesh->m_joints[i].m_parentIdx]) * m_animation->GetTransform(mSkinnedMesh->m_joints[i].m_name) * mSkinnedMesh->m_jointPreRotationBufferCPU[i] * m_animation->GetTransform(mSkinnedMesh->m_joints[i].m_name + "_$AssimpFbx$_Rotation");
+		m_toRootTransform[i] = (mSkinnedMesh->m_joints[i].m_parentIdx == -1 ? Mat4::Identity() : m_toRootTransform[mSkinnedMesh->m_joints[i].m_parentIdx]) * nodeTrans * mSkinnedMesh->m_jointPreRotationBufferCPU[i] * nodeRotTrans;
 		// m_matrixPalette[i] = TRASNPOSE_API_CHOOSER(m_joints[i].m_inverseBindPosMat * m_toRootTransform[i]);
 		m_matrixPalette[i] = TRASNPOSE_API_CHOOSER(m_toRootTransform[i] * mSkinnedMesh->m_joints[i].m_inverseBindPosMat);
 	}

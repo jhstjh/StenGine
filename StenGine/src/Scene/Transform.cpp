@@ -71,9 +71,9 @@ void Transform::UpdateWorldTransform(Mat4& parent, bool parentDirty)
 void Transform::MoveForward(float distance)
 {
 	Vec3 offset = MatrixHelper::GetForward(mWorldTransform);
-	mPosition.x() += offset[0] * distance;
-	mPosition.y() += offset[1] * distance;
-	mPosition.z() += offset[2] * distance;
+	mPosition.x() += offset[0] * distance * mScale.z();
+	mPosition.y() += offset[1] * distance * mScale.z();
+	mPosition.z() += offset[2] * distance * mScale.z();
 
 	mDirty = true;
 }
@@ -81,9 +81,9 @@ void Transform::MoveForward(float distance)
 void Transform::MoveRight(float distance)
 {
 	Vec3 offset = MatrixHelper::GetRight(mWorldTransform);
-	mPosition.x() += offset[0] * distance;
-	mPosition.y() += offset[1] * distance;
-	mPosition.z() += offset[2] * distance;
+	mPosition.x() += offset[0] * distance * mScale.x();
+	mPosition.y() += offset[1] * distance * mScale.x();
+	mPosition.z() += offset[2] * distance * mScale.x();
 
 	mDirty = true;
 }

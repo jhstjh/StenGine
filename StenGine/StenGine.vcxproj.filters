@@ -553,6 +553,9 @@
     <ClInclude Include="include\Mesh\SkinnedMesh.h">
       <Filter>include\Mesh</Filter>
     </ClInclude>
+    <ClInclude Include="include\Graphics\Animation\Animator.h">
+      <Filter>include\Graphics\Animation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\stdafx.cpp">
@@ -698,6 +701,9 @@
     </ClCompile>
     <ClCompile Include="src\Mesh\SkinnedMesh.cpp">
       <Filter>src\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Animation\Animator.cpp">
+      <Filter>src\Animation</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

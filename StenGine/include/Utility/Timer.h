@@ -8,21 +8,22 @@ namespace StenGine
 {
 
 class Timer {
-private:
-	static double m_gameStartTime;
-	static double m_lastUpdateTime;
-	static double m_deltaTime;
-	static LARGE_INTEGER m_frequency;
-	static LARGE_INTEGER m_counter;
-
 public:
+	using Seconds = double;
+
 	Timer();
 	~Timer();
 	static void Init();
-	static double GetTime();
-	static double GetTimeSinceGameStart();
-	static double GetDeltaTime() { return m_deltaTime; }
+	static Seconds GetTime();
+	static Seconds GetTimeSinceGameStart();
+	static Seconds GetDeltaTime() { return m_deltaTime; }
 	static void Update();
+private:
+	static Seconds m_gameStartTime;
+	static Seconds m_lastUpdateTime;
+	static Seconds m_deltaTime;
+	static LARGE_INTEGER m_frequency;
+	static LARGE_INTEGER m_counter;
 };
 
 }

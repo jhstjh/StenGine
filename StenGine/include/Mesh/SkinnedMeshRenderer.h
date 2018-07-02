@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Graphics/Animation/Animation.h"
 #include "Mesh/MeshRenderer.h"
 #include "Math/MathDefs.h"
 #include "Scene/Component.h"
@@ -20,9 +19,6 @@ public:
 	virtual void GatherShadowDrawCall() override;
 
 	virtual void DrawMenu() override {}
-
-	void SetAnimation(Animation* animation) { m_animation = animation; }
-
 private:
 
 	void PrepareMatrixPalette();
@@ -33,7 +29,6 @@ private:
 	std::vector<Mat4> m_toRootTransform;
 	std::vector<Mat4> m_matrixPalette;
 	SkinnedMesh* mSkinnedMesh;
-	Animation* m_animation;
 };
 
 }

@@ -347,6 +347,7 @@
     <ClInclude Include="include\Graphics\Abstraction\Texture.h" />
     <ClInclude Include="include\Graphics\Abstraction\UAVBinding.h" />
     <ClInclude Include="include\Graphics\Animation\Animation.h" />
+    <ClInclude Include="include\Graphics\Animation\Animator.h" />
     <ClInclude Include="include\Graphics\Color.h" />
     <ClInclude Include="include\Graphics\D3D11\D3D11ConstantBuffer.h" />
     <ClInclude Include="include\Graphics\D3D11\D3D11RenderTarget.h" />
@@ -407,6 +408,7 @@
     <ClCompile Include="src\Engine\EventSystem.cpp" />
     <ClCompile Include="src\Graphics\Abstraction\RendererBase.cpp" />
     <ClCompile Include="src\Graphics\Animation\Animation.cpp" />
+    <ClCompile Include="src\Graphics\Animation\Animator.cpp" />
     <ClCompile Include="src\Graphics\Color.cpp" />
     <ClCompile Include="src\Graphics\D3D11\D3D11Buffer.cpp" />
     <ClCompile Include="src\Graphics\D3D11\D3D11ConstantBuffer.cpp" />

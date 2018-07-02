@@ -309,6 +309,7 @@ bool FbxReaderSG::Read(const std::wstring& filename, Animation* animation) {
 	}
 	
 	delete importer;
+	animation->DoneReading();
 
 	return true;
 }

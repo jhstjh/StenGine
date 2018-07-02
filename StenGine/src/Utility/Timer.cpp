@@ -3,9 +3,9 @@
 namespace StenGine
 {
 
-double Timer::m_gameStartTime = 0;
-double Timer::m_lastUpdateTime = 0;
-double Timer::m_deltaTime = 0;
+Timer::Seconds Timer::m_gameStartTime = 0;
+Timer::Seconds Timer::m_lastUpdateTime = 0;
+Timer::Seconds Timer::m_deltaTime = 0;
 LARGE_INTEGER Timer::m_frequency = { 0 };
 LARGE_INTEGER Timer::m_counter = { 0 };
 
@@ -15,17 +15,17 @@ void Timer::Init() {
 	m_lastUpdateTime = GetTime();
 }
 
-double Timer::GetTime() {
+Timer::Seconds Timer::GetTime() {
 	QueryPerformanceCounter(&m_counter);
 	return (double)(m_counter.QuadPart) / (double)m_frequency.QuadPart;
 }
 
-double Timer::GetTimeSinceGameStart() {
+Timer::Seconds Timer::GetTimeSinceGameStart() {
 	return GetTime() - m_gameStartTime;
 }
 
 void Timer::Update() {
-	double time = GetTime();
+	Seconds time = GetTime();
 	m_deltaTime = time - m_lastUpdateTime;
 	m_lastUpdateTime = time;
 }
