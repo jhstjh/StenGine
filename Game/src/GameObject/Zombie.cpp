@@ -15,6 +15,8 @@ Zombie::Zombie()
 	Animation* animation = ResourceManager::Instance()->GetResource<Animation>(L"Model/vampire-animated.fbx");
 	auto zombieAnimator = std::make_unique<Animator>();
 	zombieAnimator->SetAnimation(animation);
+	zombieAnimator->CreateClip(2, 120, "Idle");
+	zombieAnimator->SetCurrentClip("Idle");
 
 	AddComponent(std::move(zombieMeshRenderer));
 	AddComponent(std::move(zombieAnimator));

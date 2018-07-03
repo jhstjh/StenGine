@@ -11,6 +11,16 @@ Animator::Animator()
 	EventSystem::Instance()->RegisterEventHandler(EventSystem::EventType::UPDATE_ANIMATION, [this]() { UpdateAnimation(); });
 }
 
+Animator::~Animator()
+{
+	for (auto& entry : mAnimationClips)
+	{
+		delete entry.second;
+	}
+
+	mAnimationClips.clear();
+}
+
 const Mat4 Animator::GetTransform(std::string name) const
 {
 	auto find = mTransformMatrices.find(name);
@@ -21,20 +31,35 @@ const Mat4 Animator::GetTransform(std::string name) const
 	return Mat4::Identity();
 }
 
+void Animator::CreateClip(float startFrame, float endFrame, const std::string & name)
+{
+	assert(mAnimationClips.find(name) == mAnimationClips.end());
+	mAnimationClips[name] = new AnimationClip{ startFrame, endFrame, name };
+}
+
+void Animator::SetCurrentClip(const std::string & name)
+{
+	auto entry = mAnimationClips.find(name);
+	if (entry != mAnimationClips.end())
+	{
+		mCurrentClip = entry->second;
+	}
+}
+
 void Animator::UpdateAnimation()
 {
-	if (!mAnimation || !mPlay)
+	if (!mAnimation || !mPlay || !mCurrentClip)
 	{
 		return;
 	}
 
 	auto dt = Timer::GetDeltaTime();
 	mPlaybackTime += dt;
-	mPlaybackTime = fmod(mPlaybackTime, mAnimation->GetLengthInSec());
+	mPlaybackTime = fmod(mPlaybackTime, (mCurrentClip->endFrame - mCurrentClip->startFrame) / mAnimation->GetFrameRate());
 
 	for (auto &node : mAnimation->m_animations)
 	{
-		mTransformMatrices[node.first] = node.second.UpdateAnimation(mPlaybackTime);
+		mTransformMatrices[node.first] = node.second.UpdateAnimation(mPlaybackTime + mCurrentClip->startFrame / mAnimation->GetFrameRate());
 	}
 }
 
@@ -59,8 +84,10 @@ void Animator::DrawMenu()
 
 		if (mAnimation)
 		{
-			ImGui::Text("%f/%f", mPlaybackTime, mAnimation->GetLengthInSec());
-			ImGui::ProgressBar(mPlaybackTime / mAnimation->GetLengthInSec());
+			float clipLength = (mCurrentClip->endFrame - mCurrentClip->startFrame) / mAnimation->GetFrameRate();
+			ImGui::Text("Current Clip: %s", mCurrentClip->name.c_str());
+			ImGui::Text("%f/%f", mPlaybackTime, clipLength);
+			ImGui::ProgressBar(mPlaybackTime / clipLength);
 		}
 	}
 }

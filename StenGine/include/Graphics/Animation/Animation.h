@@ -33,6 +33,8 @@ public:
 
 	void DoneReading();
 	float GetLengthInSec() { return m_length / FRAME_RATE; }
+	float GetLengthInFrame() { return m_length; }
+	float GetFrameRate() { return FRAME_RATE; }
 };
 
 }
