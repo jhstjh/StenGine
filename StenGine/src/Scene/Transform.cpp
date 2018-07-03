@@ -39,6 +39,24 @@ Vec3 Transform::GetPosition() const
 	return mPosition;
 }
 
+void Transform::SetPosX(float x)
+{
+	mPosition.x() = x;
+	mDirty = true;
+}
+
+void Transform::SetPosY(float y)
+{
+	mPosition.y() = y;
+	mDirty = true;
+}
+
+void Transform::SetPosZ(float z)
+{
+	mPosition.z() = z;
+	mDirty = true;
+}
+
 void Transform::RotateAroundY(float radius)
 {
 	Quat rot = Quat::FromAngleAxis(radius, AXIS_Y);
@@ -71,9 +89,9 @@ void Transform::UpdateWorldTransform(Mat4& parent, bool parentDirty)
 void Transform::MoveForward(float distance)
 {
 	Vec3 offset = MatrixHelper::GetForward(mWorldTransform);
-	mPosition.x() += offset[0] * distance * mScale.z();
-	mPosition.y() += offset[1] * distance * mScale.z();
-	mPosition.z() += offset[2] * distance * mScale.z();
+	mPosition.x() += offset[0] * distance;
+	mPosition.y() += offset[1] * distance;
+	mPosition.z() += offset[2] * distance;
 
 	mDirty = true;
 }

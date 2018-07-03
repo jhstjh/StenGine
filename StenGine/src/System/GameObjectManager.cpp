@@ -67,6 +67,19 @@ void GameObjectManager::BuildSceneHierarchy()
 	}
 }
 
+GameObject * GameObjectManager::FindGameObjectByName(const std::string & name) const
+{
+	for (auto &gameObject : mGameObjects)
+	{
+		if (gameObject.second->GetName() == name)
+		{
+			return gameObject.second;
+		}
+	}
+
+	return nullptr;
+}
+
 void GameObjectManager::DrawMenu()
 {
 	static Transform* selected = nullptr;

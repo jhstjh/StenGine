@@ -64,6 +64,8 @@ public:
 	GameObjectRegistry &GetRegistry() { return mRegistry; }
 	void BuildSceneHierarchy();
 
+	GameObject* FindGameObjectByName(const std::string& name) const;
+
 	GameObject* Instantiate(const char* objectType, UUID uuid, const char* name, UUID parent,
 		float tx = 0, float ty = 0, float tz = 0,
 		float rx = 0, float ry = 0, float rz = 0,

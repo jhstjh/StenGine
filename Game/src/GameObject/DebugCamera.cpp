@@ -15,7 +15,6 @@ namespace SGGame
 		static const float MOVE_SPEED{ 10.f };
 
 		auto transform = GetTransform();
-		bool dirty = false;
 		if (InputManager::Instance()->GetKeyHold('W'))
 		{
 			transform->MoveForward(MOVE_SPEED * Timer::GetDeltaTime());

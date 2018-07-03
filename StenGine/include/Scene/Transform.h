@@ -19,6 +19,9 @@ public:
 	const Mat4 &GetWorldTransform() const;
 	const Mat4 &GetWorldTransformInversed() const;
 	Vec3 GetPosition() const;
+	void SetPosX(float x);
+	void SetPosY(float y);
+	void SetPosZ(float z);
 	void RotateAroundY(float radius);
 	void UpdateWorldTransform(Mat4& parent, bool parentDirty);
 	void AddChild(Transform* child) { mChildren.push_back(child); }
