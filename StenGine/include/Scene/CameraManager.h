@@ -25,7 +25,7 @@ class Camera : public Component, public AlignedClass<16>
 public:
 	Camera(float fov, float np, float fp);
 
-	~Camera();
+	virtual ~Camera();
 	Mat4 GetViewProjMatrix();
 	Mat4 GetViewMatrix();
 	Mat4 GetProjMatrix();

@@ -24,7 +24,7 @@ public:
 	};
 
 	Terrain(struct Terrain::InitInfo &info);
-	~Terrain();
+	virtual ~Terrain();
 
 	void GatherDrawCall() override;
 	void GatherShadowDrawCall() override;

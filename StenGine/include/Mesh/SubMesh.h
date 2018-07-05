@@ -15,7 +15,7 @@ namespace StenGine
 class SubMesh : public Component {
 public:
 	SubMesh();
-	~SubMesh();
+	virtual ~SubMesh();
 	void PrepareGPUBuffer();
 
 	std::vector<UINT> m_indexBufferCPU;
