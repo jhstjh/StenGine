@@ -4,7 +4,7 @@
 namespace StenGine
 {
 
-Mat4 AnimationNode::UpdateAnimation(Timer::Seconds playbackTime)
+TSQ AnimationNode::UpdateAnimation(Timer::Seconds playbackTime)
 {
 	float playbackFrame = static_cast<float>(playbackTime) * FRAME_RATE;
 
@@ -45,15 +45,7 @@ Mat4 AnimationNode::UpdateAnimation(Timer::Seconds playbackTime)
 		scal = Vec3::Lerp(scal, scale[scaleIndex + 1], percent);
 	}
 
-	Mat4 transformMatrix = Mat4::Identity();
-
-	Mat4 t = Mat4::FromTranslationVector(pos);
-	Mat4 q = rot.ToMatrix4();
-	Mat4 s = Mat4::FromScaleVector(scal);
-
-	transformMatrix = t * s * q;
-
-	return transformMatrix;
+	return { pos, rot, scal };
 }
 
 void Animation::DoneReading()

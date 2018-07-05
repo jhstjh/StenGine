@@ -11,6 +11,21 @@ namespace StenGine
 
 const float FRAME_RATE = 30.f;
 
+struct TSQ
+{
+	Vec3 pos;
+	Quat rot;
+	Vec3 scale;
+
+	Mat4 ToMat4() const
+	{
+		Mat4 t = Mat4::FromTranslationVector(pos);
+		Mat4 q = rot.ToMatrix4();
+		Mat4 s = Mat4::FromScaleVector(scale);
+		return t * s * q;
+	}
+};
+
 struct AnimationNode
 {
 	std::vector<Vec3> position;
@@ -21,7 +36,7 @@ struct AnimationNode
 	std::vector<float> rotationTime;
 	std::vector<float> scaleTime;
 
-	Mat4 UpdateAnimation(Timer::Seconds playbackTime);
+	TSQ UpdateAnimation(Timer::Seconds playbackTime);
 
 	float length{ 0.f };
 };

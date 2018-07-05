@@ -49,7 +49,7 @@ void Zombie::processIDLE()
 {
 	if (InputManager::Instance()->GetKeyHold('I'))
 	{
-		GetFirstComponentByType<Animator>()->SetCurrentClip("Walk");
+		GetFirstComponentByType<Animator>()->SetCurrentClip("Walk", 0.5);
 		mState = State::WALK;
 		return;
 	}
@@ -60,7 +60,7 @@ void Zombie::processWALK()
 	auto dt = Timer::GetDeltaTime();
 	if (!InputManager::Instance()->GetKeyHold('I'))
 	{
-		GetFirstComponentByType<Animator>()->SetCurrentClip("Idle");
+		GetFirstComponentByType<Animator>()->SetCurrentClip("Idle", 0.5);
 		mState = State::IDLE;
 		return;
 	}
