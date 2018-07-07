@@ -17,11 +17,6 @@ void GameObject::AddComponent(UniqueComponent c) {
 	m_components.push_back(std::move(c));
 }
 
-void GameObject::Update()
-{
-
-}
-
 void GameObject::DrawMenu()
 {
 	ImGui::Text(m_name.c_str());

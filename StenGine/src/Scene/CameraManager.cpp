@@ -85,6 +85,11 @@ void Camera::DrawMenu()
 		{
 			UpdateProjMat();
 		}
+
+		if (ImGui::Button("Set Current"))
+		{
+			CameraManager::Instance()->SetActiveCamera(this);
+		}
 	}
 }
 

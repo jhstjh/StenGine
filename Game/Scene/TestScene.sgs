@@ -1,8 +1,8 @@
 { 
 	"GameObjects" :[ 
-		{
+		{	
 			"ObjectType" : "DebugCamera", 
-			"UUID" : "B9CE3451-623F-453E-AD78-2E82A8F27A32", 
+			"UUID" : "B34E3451-623F-4F4E-AD78-2E82A8F22A32", 
 			"Name" : "DebugCamera", 
 			"Components" : {
 				"Transform" : { 
@@ -21,6 +21,36 @@
 						"x" : 1.0, 
 						"y" : 1.0, 
 						"z" : 1.0 
+					} 
+				} ,
+				"Camera" : {
+					"FOV" : 0.7853975,
+					"NearPlane" : 0.1,
+					"FarPlane" : 1000
+				}
+			}
+		},
+		{
+			"ObjectType" : "ThirdPersonCamera", 
+			"UUID" : "B9CE3451-623F-453E-AD78-2E82A8F27A32", 
+			"Name" : "ThirdPersonCamera", 
+			"Components" : {
+				"Transform" : { 
+					"Parent" : "EF2E23ED-C844-4B72-9CC4-4483EBC23C04", 
+					"Translation" : { 
+						"x" : 0.0, 
+						"y" : 25.0, 
+						"z" : -30.0 
+					}, 
+					"Rotation" : { 
+						"x" : 0.0, 
+						"y" : 0.0, 
+						"z" : 0.0 
+					}, 
+					"Scale" : { 
+						"x" : 2.5, 
+						"y" : 2.5, 
+						"z" : 2.5 
 					} 
 				},
 				"Camera" : {
@@ -94,7 +124,7 @@
 					}, 
 					"Rotation" : { 
 						"x" : 0.0, 
-						"y" : 3.1415926, 
+						"y" : 0.0, 
 						"z" : 0.0 
 					}, 
 					"Scale" : { 

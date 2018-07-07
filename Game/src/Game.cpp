@@ -10,6 +10,7 @@
 #include "GameObject/Dragon.h"
 #include "GameObject/GameTerrain.h"
 #include "GameObject/DebugCamera.h"
+#include "GameObject/ThirdPersonCamera.h"
 
 #define MIN_SCENE 1
 
@@ -38,6 +39,7 @@ void Game::GameInit()
 	REGISTER_GAMEOBJECT(Dragon);
 	REGISTER_GAMEOBJECT(GameTerrain);
 	REGISTER_GAMEOBJECT(DebugCamera);
+	REGISTER_GAMEOBJECT(ThirdPersonCamera);
 }
 
 }

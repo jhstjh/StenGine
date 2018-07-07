@@ -65,6 +65,19 @@ void Transform::RotateAroundY(float radius)
 	mDirty = true;
 }
 
+void Transform::LookAt(const Vec3 &target, const Vec3 &worldUp)
+{
+	Vec3 forward = target - mPosition;
+	forward.Normalize();
+	Vec3 right = Vec3::CrossProduct(forward, worldUp);
+	Vec3 realUp = Vec3::CrossProduct(right, forward);
+	
+	Mat3 rot = Mat3(right, realUp, forward);
+	mRotation = Quat::FromMatrix(rot);
+	mRotationEuler = mRotation.ToEulerAngles();
+	mDirty = true;
+}
+
 void Transform::UpdateWorldTransform(Mat4& parent, bool parentDirty)
 {
 	bool thisDirty = mDirty;

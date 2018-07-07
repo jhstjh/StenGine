@@ -44,6 +44,11 @@ void GameObjectManager::Update()
 {
 	for (auto &entry : mGameObjects)
 	{
+		if (entry.second->m_started == false)
+		{
+			entry.second->Start();
+			entry.second->m_started = true;
+		}
 		entry.second->Update();
 	}
 }

@@ -37,7 +37,8 @@ public:
 
 	Transform* GetTransform() { return m_transform; };
 
-	virtual void Update();
+	virtual void Start() {};
+	virtual void Update() {};
 	virtual void DrawMenu();
 
 	friend GameObjectManager;
@@ -48,6 +49,7 @@ protected:
 	std::string m_name;
 	UUID m_uuid;
 	UUID m_parentUUID;
+	bool m_started{ false };
 };
 
 }

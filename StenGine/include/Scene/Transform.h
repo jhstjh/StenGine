@@ -23,6 +23,7 @@ public:
 	void SetPosY(float y);
 	void SetPosZ(float z);
 	void RotateAroundY(float radius);
+	void LookAt(const Vec3 &target, const Vec3 &worldUp);
 	void UpdateWorldTransform(Mat4& parent, bool parentDirty);
 	void AddChild(Transform* child) { mChildren.push_back(child); }
 

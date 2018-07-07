@@ -144,6 +144,7 @@
     <ClCompile Include="src\GameObject\Plane.cpp" />
     <ClCompile Include="src\GameObject\Plant.cpp" />
     <ClCompile Include="src\GameObject\Sphere.cpp" />
+    <ClCompile Include="src\GameObject\ThirdPersonCamera.cpp" />
     <ClCompile Include="src\GameObject\zombie.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -156,6 +157,7 @@
     <ClInclude Include="include\GameObject\Plane.h" />
     <ClInclude Include="include\GameObject\Plant.h" />
     <ClInclude Include="include\GameObject\sphere.h" />
+    <ClInclude Include="include\GameObject\ThirdPersonCamera.h" />
     <ClInclude Include="include\GameObject\zombie.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
