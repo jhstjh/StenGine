@@ -82,7 +82,7 @@ void Transform::UpdateWorldTransform(Mat4& parent, bool parentDirty)
 
 	for (auto &child : mChildren)
 	{
-		child->UpdateWorldTransform(mWorldTransform, mDirty || parentDirty);
+		child->UpdateWorldTransform(mWorldTransform, thisDirty || parentDirty);
 	}
 }
 
