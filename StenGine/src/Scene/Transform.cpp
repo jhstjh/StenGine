@@ -69,8 +69,8 @@ void Transform::LookAt(const Vec3 &target, const Vec3 &worldUp)
 {
 	Vec3 forward = target - mPosition;
 	forward.Normalize();
-	Vec3 right = Vec3::CrossProduct(forward, worldUp);
-	Vec3 realUp = Vec3::CrossProduct(right, forward);
+	Vec3 right = Vec3::CrossProduct(worldUp, forward).Normalized();
+	Vec3 realUp = Vec3::CrossProduct(forward, right).Normalized();
 	
 	Mat3 rot = Mat3(right, realUp, forward);
 	mRotation = Quat::FromMatrix(rot);

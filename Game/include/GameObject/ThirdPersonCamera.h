@@ -24,7 +24,7 @@ private:
 
 	float		 mTheta;
 	float		 mPhi;
-	float		 mRadius{ 10.f };
+	float		 mRadius;
 };
 
 }
