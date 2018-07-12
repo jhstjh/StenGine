@@ -119,6 +119,7 @@ public:
 	struct PEROBJ_CONSTANT_BUFFER
 	{
 		Mat4 WorldViewProj;
+		Mat4 PrevWorldViewProj;
 		Mat4 WorldViewInvTranspose;
 		Mat4 WorldInvTranspose;
 		Mat4 WorldView;
@@ -217,6 +218,7 @@ public:
 	struct PEROBJ_CONSTANT_BUFFER
 	{
 		Mat4 WorldViewProj;
+		Mat4 PrevWorldViewProj;
 		Mat4 WorldViewInvTranspose;
 		Mat4 WorldInvTranspose;
 		Mat4 WorldView;

@@ -179,7 +179,7 @@ void TerrainGrass::GatherDrawCall()
 
 	perObjData->DiffX_NormY_ShadZ = resourceMask;
 
-	cmd.flags = CmdFlag::DRAW;
+	cmd.flags = CmdFlag::DRAW | CmdFlag::BIND_FB;
 	cmd.drawType = DrawType::INDEXED;
 	cmd.inputLayout = effect->GetInputLayout();
 	cmd.framebuffer = Renderer::Instance()->GetGbuffer();

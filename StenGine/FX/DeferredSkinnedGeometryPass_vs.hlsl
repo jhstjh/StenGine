@@ -30,6 +30,8 @@ VertexOut main(SkinnedVertexIn vin)
 
 
 	vout.PosH = mul(float4(PosLBlend.xyz, 1.0f), gWorldViewProj);
+	vout.PosH2 = vout.PosH;
+	vout.PrevPosH = mul(float4(PosLBlend.xyz, 1.0f), gPrevWorldViewProj);
 	vout.NormalV = mul(NormalLBlend, gWorldViewInvTranspose);
 	vout.TangentV = mul(TangentLBlend, gWorldViewInvTranspose);
 	vout.TexUV = vin.TexUV;

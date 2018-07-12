@@ -44,5 +44,9 @@ PixelOut main(VertexOut pin)
 	}
 	//pout.edgeH = float4(1, 1, 1, 1); // implement edge detection later
 
+	float2 a = (pin.PosH2.xy / pin.PosH2.w) * 0.5 + 0.5;
+	float2 b = (pin.PrevPosH.xy / pin.PrevPosH.w) * 0.5 + 0.5;
+	pout.motionH.xy = (a - b);
+
 	return pout;
 }

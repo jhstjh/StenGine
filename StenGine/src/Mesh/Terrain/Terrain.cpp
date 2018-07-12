@@ -413,7 +413,7 @@ void Terrain::GatherDrawCall()
 	}
 
 	cmd.drawType = DrawType::INDEXED;
-	cmd.flags = CmdFlag::DRAW;
+	cmd.flags = CmdFlag::DRAW | CmdFlag::BIND_FB;
 	cmd.offset = (void*)(0);
 	cmd.type = PrimitiveTopology::CONTROL_POINT_4_PATCHLIST;
 	cmd.inputLayout = effect->GetInputLayout();
@@ -505,11 +505,11 @@ void Terrain::GatherShadowDrawCall() {
 	}
 
 	cmd.drawType = DrawType::INDEXED;
-	cmd.flags = CmdFlag::DRAW;
+	cmd.flags = CmdFlag::DRAW | CmdFlag::BIND_FB;
 	cmd.offset = (void*)(0);
 	cmd.type = PrimitiveTopology::CONTROL_POINT_4_PATCHLIST;
 	cmd.inputLayout = effect->GetInputLayout();
-	cmd.framebuffer = Renderer::Instance()->GetGbuffer();
+	cmd.framebuffer = LightManager::Instance()->m_shadowMap->GetRenderTarget();
 	cmd.vertexBuffer.push_back((void*)m_quadPatchVB->GetBuffer());
 	cmd.indexBuffer = (void*)m_quadPatchIB->GetBuffer();
 	cmd.vertexStride.push_back(stride);

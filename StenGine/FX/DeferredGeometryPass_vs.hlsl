@@ -11,6 +11,8 @@ VertexOut main(VertexIn vin)
 	VertexOut vout;
 
 	vout.PosH = mul(float4(vin.PosL, 1.0f), gWorldViewProj);
+	vout.PosH2 = vout.PosH;
+	vout.PrevPosH = mul(float4(vin.PosL, 1.0f), gPrevWorldViewProj);
 	vout.NormalV = mul(vin.NormalL, gWorldViewInvTranspose);
 	vout.TangentV = mul(vin.TangentL, gWorldViewInvTranspose);
 	vout.TexUV = vin.TexUV;

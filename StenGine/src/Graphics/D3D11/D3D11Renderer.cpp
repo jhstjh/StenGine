@@ -315,7 +315,7 @@ public:
 		ID3D11Texture2D* gBufferDTex = 0;
 		ID3D11Texture2D* gBufferNTex = 0;
 		ID3D11Texture2D* gBufferSTex = 0;
-		ID3D11Texture2D* gBufferPTex = 0;
+		ID3D11Texture2D* gBufferMTex = 0;
 		ID3D11Texture2D* gSSAOTex = 0;
 		ID3D11Texture2D* gSSAOTex2 = 0;
 		ID3D11Texture2D* gDeferredShadeTex = 0;
@@ -323,7 +323,7 @@ public:
 		HR(mD3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferDTex));
 		HR(mD3d11Device->CreateTexture2D(&gNormalBufferDesc, 0, &gBufferNTex));
 		HR(mD3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferSTex));
-		HR(mD3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferPTex));
+		HR(mD3d11Device->CreateTexture2D(&gBufferDesc, 0, &gBufferMTex));
 		HR(mD3d11Device->CreateTexture2D(&gBufferDesc, 0, &gSSAOTex));
 		HR(mD3d11Device->CreateTexture2D(&gBufferDesc, 0, &gSSAOTex2));
 		HR(mD3d11Device->CreateTexture2D(&gBufferDesc, 0, &gDeferredShadeTex));
@@ -343,7 +343,7 @@ public:
 		HR(mD3d11Device->CreateRenderTargetView(gBufferDTex, &rtvDesc, &mDiffuseBufferRTV));
 		HR(mD3d11Device->CreateRenderTargetView(gBufferNTex, &rtvNormalDesc, &mNormalBufferRTV));
 		HR(mD3d11Device->CreateRenderTargetView(gBufferSTex, &rtvDesc, &mSpecularBufferRTV));
-		HR(mD3d11Device->CreateRenderTargetView(gBufferPTex, &rtvDesc, &mPositionBufferRTV));
+		HR(mD3d11Device->CreateRenderTargetView(gBufferMTex, &rtvDesc, &mMotionVecBufferRTV));
 		HR(mD3d11Device->CreateRenderTargetView(gSSAOTex, &rtvDesc, &mSSAORTV));
 		HR(mD3d11Device->CreateRenderTargetView(gSSAOTex2, &rtvDesc, &mSSAORTV2));
 		HR(mD3d11Device->CreateRenderTargetView(gDeferredShadeTex, &rtvDesc, &mDeferredShadingRTV));
@@ -365,7 +365,7 @@ public:
 		HR(mD3d11Device->CreateShaderResourceView(gBufferDTex, &srvDesc, &mDiffuseBufferSRV));
 		HR(mD3d11Device->CreateShaderResourceView(gBufferNTex, &srvNormalDesc, &mNormalBufferSRV));
 		HR(mD3d11Device->CreateShaderResourceView(gBufferSTex, &srvDesc, &mSpecularBufferSRV));
-		HR(mD3d11Device->CreateShaderResourceView(gBufferPTex, &srvDesc, &mPositionBufferSRV));
+		HR(mD3d11Device->CreateShaderResourceView(gBufferMTex, &srvDesc, &mMotionVecBufferSRV));
 		HR(mD3d11Device->CreateShaderResourceView(gSSAOTex, &srvDesc, &mSSAOSRV));
 		HR(mD3d11Device->CreateShaderResourceView(gSSAOTex2, &srvDesc, &mSSAOSRV2));
 		HR(mD3d11Device->CreateShaderResourceView(gDeferredShadeTex, &srvDesc, &mDeferredShadingSRV));
@@ -374,7 +374,7 @@ public:
 		ReleaseCOM(gBufferDTex);
 		ReleaseCOM(gBufferNTex);
 		ReleaseCOM(gBufferSTex);
-		ReleaseCOM(gBufferPTex);
+		ReleaseCOM(gBufferMTex);
 		ReleaseCOM(gSSAOTex);
 		ReleaseCOM(gDeferredShadeTex);
 
@@ -548,8 +548,10 @@ public:
 		mGBuffer->AddRenderTarget(mDiffuseBufferRTV);
 		mGBuffer->AddRenderTarget(mNormalBufferRTV);
 		mGBuffer->AddRenderTarget(mSpecularBufferRTV);
+		mGBuffer->AddRenderTarget(mMotionVecBufferRTV);
 
 		mGBuffer->AddClearColor(SGColors::LightSteelBlue);
+		mGBuffer->AddClearColor(SGColors::Black);
 		mGBuffer->AddClearColor(SGColors::Black);
 		mGBuffer->AddClearColor(SGColors::Black);
 
@@ -1301,6 +1303,7 @@ private:
 	ID3D11RenderTargetView* mNormalBufferRTV;
 	ID3D11RenderTargetView* mSpecularBufferRTV;
 	ID3D11RenderTargetView* mPositionBufferRTV;
+	ID3D11RenderTargetView* mMotionVecBufferRTV;
 	ID3D11RenderTargetView* mEdgeBufferRTV;
 	ID3D11RenderTargetView* mSSAORTV;
 	ID3D11RenderTargetView* mSSAORTV2;
@@ -1311,7 +1314,7 @@ private:
 	ID3D11ShaderResourceView* mDiffuseBufferSRV;
 	ID3D11ShaderResourceView* mNormalBufferSRV;
 	ID3D11ShaderResourceView* mSpecularBufferSRV;
-	ID3D11ShaderResourceView* mPositionBufferSRV;
+	ID3D11ShaderResourceView* mMotionVecBufferSRV;
 	ID3D11ShaderResourceView* mEdgeBufferSRV;
 	ID3D11ShaderResourceView* mSSAOSRV;
 	ID3D11ShaderResourceView* mSSAOSRV2;

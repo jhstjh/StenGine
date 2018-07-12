@@ -35,6 +35,7 @@ cbuffer cbPerObject : register(b0) {
 #else
 cbuffer cbPerObject : register(b0) {
 	float4x4 gWorldViewProj;
+	float4x4 gPrevWorldViewProj;
 	float4x4 gWorldViewInvTranspose;
 	float4x4 gWorldInvTranspose;
 	float4x4 gWorldView;
@@ -126,7 +127,9 @@ struct TerrainVertexIn {
 
 struct VertexOut {
 	float4 PosH  : SV_POSITION;
-	float4 PosW  : POSITION;
+	float4 PosH2  : POSITION0;
+	float4 PrevPosH  : POSITION1;
+	float4 PosW  : POSITION2;
 	float3 NormalV : NORMAL0;
 	float3 NormalW : NORMAL1;
 	float3 TangentV: TANGENT;
@@ -165,6 +168,7 @@ struct PixelOut {
 	half4 diffuseH: SV_TARGET0;
 	half4 normalV: SV_TARGET1;
 	half4 specularH: SV_TARGET2;
+	half4 motionH: SV_TARGET3;
 	//float4 edgeH: SV_TARGET3;
 	//float4 positionV: SV_TARGET3;
 };

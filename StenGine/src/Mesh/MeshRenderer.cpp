@@ -161,6 +161,7 @@ void MeshRenderer::GatherDrawCall() {
 
 			perObjData->Mat = mMesh->m_materials[subMesh.m_matIndex].m_attributes;
 			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * mParent->GetTransform()->GetWorldTransform());
+			perObjData->PrevWorldViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * mParent->GetTransform()->GetPrevWorldTransform());
 			perObjData->World = TRASNPOSE_API_CHOOSER(mParent->GetTransform()->GetWorldTransform());
 			Mat4 worldView = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix() * mParent->GetTransform()->GetWorldTransform();
 			perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
@@ -238,7 +239,7 @@ void MeshRenderer::GatherDrawCall() {
 
 			perObjData->DiffX_NormY_ShadZ = resourceMask;
 
-			cmd.flags = CmdFlag::DRAW;
+			cmd.flags = CmdFlag::DRAW | CmdFlag::BIND_FB;;
 			cmd.drawType = DrawType::INDEXED;
 			cmd.inputLayout = effect->GetInputLayout();
 			cmd.framebuffer = Renderer::Instance()->GetGbuffer();
@@ -275,7 +276,7 @@ void MeshRenderer::GatherShadowDrawCall() {
 		perObjData->gWorldViewProj = TRASNPOSE_API_CHOOSER(worldViewProj);
 
 		DrawCmd cmd;
-		cmd.flags = CmdFlag::DRAW;
+		cmd.flags = CmdFlag::DRAW | CmdFlag::BIND_FB;;
 		cmd.drawType = DrawType::INDEXED;
 		cmd.type = PrimitiveTopology::TRIANGLELIST;
 		cmd.vertexBuffer.push_back((void*)m_shadowMapVertexBufferGPU->GetBuffer());

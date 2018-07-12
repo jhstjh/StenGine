@@ -17,6 +17,7 @@ public:
 			  float sx = 1, float sy = 1, float sz = 1);
 
 	const Mat4 &GetWorldTransform() const;
+	const Mat4 &GetPrevWorldTransform() const;
 	const Mat4 &GetWorldTransformInversed() const;
 	Vec3 GetPosition() const;
 	void SetPosX(float x);
@@ -46,6 +47,7 @@ private:
 	Vec3 mScale;
 
 	Mat4 mWorldTransform;
+	Mat4 mPrevWorldTransform;
 	Mat4 mWorldTransformInversed;
 	Mat4 mLocalTransform;
 	bool mDirty;

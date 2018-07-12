@@ -29,6 +29,11 @@ const Mat4 &Transform::GetWorldTransform() const
 	return mWorldTransform;
 }
 
+const Mat4 &Transform::GetPrevWorldTransform() const
+{
+	return mPrevWorldTransform;
+}
+
 const Mat4 &Transform::GetWorldTransformInversed() const
 {
 	return mWorldTransformInversed;
@@ -80,6 +85,8 @@ void Transform::LookAt(const Vec3 &target, const Vec3 &worldUp)
 
 void Transform::UpdateWorldTransform(Mat4& parent, bool parentDirty)
 {
+	mPrevWorldTransform = mWorldTransform;
+
 	bool thisDirty = mDirty;
 	if (mDirty)
 	{

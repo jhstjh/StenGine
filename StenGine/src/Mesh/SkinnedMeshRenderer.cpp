@@ -115,6 +115,7 @@ void SkinnedMeshRenderer::GatherDrawCall()
 
 			perObjData->Mat = mSkinnedMesh->m_materials[mSkinnedMesh->m_subMeshes[iSubMesh].m_matIndex].m_attributes;
 			perObjData->WorldViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * mParent->GetTransform()->GetWorldTransform());
+			perObjData->PrevWorldViewProj = TRASNPOSE_API_CHOOSER(CameraManager::Instance()->GetActiveCamera()->GetViewProjMatrix() * mParent->GetTransform()->GetPrevWorldTransform());
 			perObjData->World = TRASNPOSE_API_CHOOSER(mParent->GetTransform()->GetWorldTransform());
 			Mat4 worldView = CameraManager::Instance()->GetActiveCamera()->GetViewMatrix() * mParent->GetTransform()->GetWorldTransform();
 			perObjData->WorldView = TRASNPOSE_API_CHOOSER(worldView);
@@ -185,7 +186,7 @@ void SkinnedMeshRenderer::GatherDrawCall()
 
 			perObjData->DiffX_NormY_ShadZ = resourceMask;
 
-			cmd.flags = CmdFlag::DRAW;
+			cmd.flags = CmdFlag::DRAW | CmdFlag::BIND_FB;;
 			cmd.drawType = DrawType::INDEXED;
 			cmd.inputLayout = effect->GetInputLayout();
 			cmd.framebuffer = Renderer::Instance()->GetGbuffer();
@@ -263,10 +264,10 @@ void SkinnedMeshRenderer::GatherShadowDrawCall()
 			}
 			}
 
-			cmd.flags = CmdFlag::DRAW;
+			cmd.flags = CmdFlag::DRAW | CmdFlag::BIND_FB;
 			cmd.drawType = DrawType::INDEXED;
 			cmd.inputLayout = effect->GetInputLayout();
-			cmd.framebuffer = Renderer::Instance()->GetGbuffer();
+			cmd.framebuffer = LightManager::Instance()->m_shadowMap->GetRenderTarget();
 			cmd.vertexBuffer.push_back((void*)m_vertexBufferGPU->GetBuffer());
 			cmd.indexBuffer = (void*)m_indexBufferGPU->GetBuffer();
 			cmd.vertexStride.push_back(stride);
