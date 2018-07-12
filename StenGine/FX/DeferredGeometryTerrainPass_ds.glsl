@@ -34,6 +34,7 @@ out TesOut {
 
 layout(std140) uniform ubPerObj {
 	mat4 gWorldViewProj;
+	mat4 gPrevWorldViewProj;
 	mat4 gWorldViewInvTranspose;
 	mat4 gWorldInvTranspose;
 	mat4 gWorldView;

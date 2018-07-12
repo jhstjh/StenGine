@@ -23,6 +23,7 @@ struct DirectionalLight {
 
 layout(std140) uniform ubPerObj{
 	mat4 gWorldViewProj;
+	mat4 gPrevWorldViewProj;
 	mat4 pad0;
 	mat4 pad1;
 	mat4 gWorldView;
