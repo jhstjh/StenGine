@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "Engine/EventSystem.h"
 #include "Graphics/Animation/Animation.h"
 #include "Graphics/Animation/Animator.h"
@@ -24,10 +26,14 @@ Animator::~Animator()
 
 const Mat4 Animator::GetTransform(std::string name) const
 {
-	auto find = mTransformTSQ.find(name);
-	if (find != mTransformTSQ.end())
+	if (mBledingClips.size())
 	{
-		return find->second.ToMat4();
+		auto &currClip = mBledingClips.back();
+		auto find = currClip.transformTSQ.find(name);
+		if (find != currClip.transformTSQ.end())
+		{
+			return find->second.ToMat4();
+		}
 	}
 	return Mat4::Identity();
 }
@@ -43,16 +49,20 @@ void Animator::SetCurrentClip(const std::string & name, float blendTime /*= 0.f*
 	auto entry = mAnimationClips.find(name);
 	if (entry != mAnimationClips.end())
 	{
-		mPrevPlaybackTime = mPlaybackTime;
-		mTotalBlendTime = blendTime;
-		mCurrBlendTime = 0.0;
-		mPreviousClip = mCurrentClip;
-		mPrevLastPosDrivenNodePos = mLastPosDrivenNodePos;
-		mPrevValidDriven = mValidDriven;
+		if (mBledingClips.size() == 0)
+		{
+			mBledingClips.emplace_back(entry->second, 0.f, 0.f, Vec3(0.f, 0.f, 0.f), false);
+		}
+		else
+		{
+			auto& prevClip = mBledingClips.back();
+			prevClip.totalBlendTime = blendTime;
+			prevClip.currBlendTime = 0.f;
+			mBledingClips.emplace_back(entry->second, 0.f, 0.f, Vec3(0.f, 0.f, 0.f), false);
+			mBledingClips.back().transformTSQ = prevClip.transformTSQ;
+		}
 
-		mPlaybackTime = 0;
 		mValidDriven = false;
-		mCurrentClip = entry->second;
 	}
 }
 
@@ -101,37 +111,63 @@ void Animator::UpdateClip(const AnimationClip* clip, Timer::Seconds &playbackTim
 
 void Animator::UpdateAnimation()
 {
-	if (!mAnimation || !mPlay || !mCurrentClip)
+	if (!mAnimation || !mPlay || mBledingClips.size() == 0)
 	{
 		return;
 	}
 
-	Vec3 posDiff;
-	UpdateClip(mCurrentClip, mPlaybackTime, mTransformTSQ, mLastPosDrivenNodePos, mValidDriven, posDiff);
+	const auto dt = Timer::GetDeltaTime();
 
-	auto dt = Timer::GetDeltaTime();
-	mCurrBlendTime += dt;
-	
-	if (mCurrBlendTime < mTotalBlendTime && mPreviousClip)
+	auto UpdateClipFunc = [dt, this](BlendingClip &blendClip)
 	{
-		Vec3 prevPosDiff;
-		UpdateClip(mPreviousClip, mPrevPlaybackTime, mPrevTransformTSQ, mPrevLastPosDrivenNodePos, mPrevValidDriven, prevPosDiff);
+		UpdateClip(blendClip.clip, blendClip.playbackTime, blendClip.transformTSQ, blendClip.posDrivenNodePos, blendClip.validDriven, blendClip.posDiff);
+		blendClip.currBlendTime += dt;
+	};
 
-		for (auto& tsq : mTransformTSQ)
+	UpdateClipFunc(mBledingClips.front());
+	
+	for (size_t i = 1; i < mBledingClips.size(); i++)
+	{
+		auto &prevClip = mBledingClips[i - 1];
+		auto &currClip = mBledingClips[i];
+
+		UpdateClipFunc(currClip);
+		float percent = static_cast<float>(prevClip.currBlendTime / prevClip.totalBlendTime);
+		percent = percent > 1.f ? 1.f : percent;
+
+		for (auto& tsq : currClip.transformTSQ)
 		{
-			tsq.second.pos = Vec3::Lerp(mPrevTransformTSQ[tsq.first].pos, tsq.second.pos, static_cast<float>(mCurrBlendTime / mTotalBlendTime));
-			tsq.second.rot = Quat::Slerp(mPrevTransformTSQ[tsq.first].rot, tsq.second.rot, static_cast<float>(mCurrBlendTime / mTotalBlendTime));
-			tsq.second.scale = Vec3::Lerp(mPrevTransformTSQ[tsq.first].scale, tsq.second.scale, static_cast<float>(mCurrBlendTime / mTotalBlendTime));
+			tsq.second.pos = Vec3::Lerp(prevClip.transformTSQ[tsq.first].pos, tsq.second.pos, percent);
+			tsq.second.rot = Quat::Slerp(prevClip.transformTSQ[tsq.first].rot, tsq.second.rot, percent);
+			tsq.second.scale = Vec3::Lerp(prevClip.transformTSQ[tsq.first].scale, tsq.second.scale, percent);
 		}
 
-		posDiff = Vec3::Lerp(prevPosDiff, posDiff, static_cast<float>(mCurrBlendTime / mTotalBlendTime));
+		currClip.posDiff = Vec3::Lerp(prevClip.posDiff, currClip.posDiff, percent);
 	}
 
-	if (posDiff != Vec3{0.f, 0.f, 0.f})
+	if (mBledingClips.size() > 1)
+	{
+		auto it = mBledingClips.crbegin() + 1;
+		for (;it != mBledingClips.crend(); it++)
+		{
+			if (it->currBlendTime >= it->totalBlendTime)
+			{
+				break;
+			}
+		}
+
+		if (it != mBledingClips.crend())
+		{
+			mBledingClips.erase(mBledingClips.begin(), mBledingClips.begin() + std::distance(it, mBledingClips.crend()));
+		}
+	}
+
+	auto &currentClip = mBledingClips.back();
+	if (currentClip.posDiff != Vec3{0.f, 0.f, 0.f})
 	{
 		auto transform = mParent->GetTransform();
-		transform->MoveForward(posDiff.z());
-		transform->MoveRight(posDiff.x());
+		transform->MoveForward(currentClip.posDiff.z());
+		transform->MoveRight(currentClip.posDiff.x());
 	}
 }
 
@@ -141,7 +177,7 @@ void Animator::DrawMenu()
 	{
 		if (mAnimation)
 		{
-			if (mCurrentClip)
+			if (mBledingClips.size())
 			{
 				if (mPlay)
 				{
@@ -158,11 +194,12 @@ void Animator::DrawMenu()
 					}
 				}
 
-				float clipLength = (mCurrentClip->endFrame - mCurrentClip->startFrame) / mAnimation->GetFrameRate();
+				auto &currClip = mBledingClips.back();
+				float clipLength = (currClip.clip->endFrame - currClip.clip->startFrame) / mAnimation->GetFrameRate();
 
-				ImGui::Text("Current Clip: %s", mCurrentClip->name.c_str());
-				ImGui::Text("%f/%f", mPlaybackTime, clipLength);
-				ImGui::ProgressBar(mPlaybackTime / clipLength);
+				ImGui::Text("Current Clip: %s", currClip.clip->name.c_str());
+				ImGui::Text("%f/%f", currClip.playbackTime, clipLength);
+				ImGui::ProgressBar(currClip.playbackTime / clipLength);
 			}
 
 			if (ImGui::TreeNode("Clips"))

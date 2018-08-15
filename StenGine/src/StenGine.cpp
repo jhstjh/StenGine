@@ -8,6 +8,10 @@
 
 #include "Engine/EngineBase.h"
 
+extern "C" {
+	_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+}
+
 extern std::unique_ptr<StenGine::EngineBase> CreateGame();
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
