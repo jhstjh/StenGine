@@ -16,6 +16,8 @@ Animator::Animator()
 
 Animator::~Animator()
 {
+	mBledingClips.clear();
+
 	for (auto& entry : mAnimationClips)
 	{
 		delete entry.second;

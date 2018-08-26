@@ -9,7 +9,7 @@ namespace StenGine
 
 class Timer {
 public:
-	using Seconds = double;
+	using Seconds = float;
 
 	Timer();
 	~Timer();

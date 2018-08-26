@@ -25,6 +25,12 @@ private:
 	float		 mTheta;
 	float		 mPhi;
 	float		 mRadius;
+
+	Transform*   mTarget{ nullptr };
+	Vec3		 mPrevTargetPos;
+
+	const float  DISTANCE{ 30.f };
+	const Vec3   HEIGHT_OFFSET{ 0.f, 4.f, 0.f };
 };
 
 }

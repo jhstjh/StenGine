@@ -169,6 +169,10 @@
   <ItemGroup>
     <ResourceCompile Include="Game.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Scene\TestScene.sgs" />
+    <None Include="Scene\TestSceneFull.sgs" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

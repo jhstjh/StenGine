@@ -16,6 +16,9 @@
     <Filter Include="Resource Files">
       <UniqueIdentifier>{6bd606d7-ae97-4b9e-b431-2bad2f43ca3c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{5d0efb9d-a613-4a27-b8ce-07a19fdbdb6d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Game.h">
@@ -94,5 +97,13 @@
     <ResourceCompile Include="Game.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Scene\TestScene.sgs">
+      <Filter>Scene</Filter>
+    </None>
+    <None Include="Scene\TestSceneFull.sgs">
+      <Filter>Scene</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -17,7 +17,7 @@ void Timer::Init() {
 
 Timer::Seconds Timer::GetTime() {
 	QueryPerformanceCounter(&m_counter);
-	return (double)(m_counter.QuadPart) / (double)m_frequency.QuadPart;
+	return (float)((double)(m_counter.QuadPart) / (double)m_frequency.QuadPart);
 }
 
 Timer::Seconds Timer::GetTimeSinceGameStart() {

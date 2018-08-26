@@ -121,9 +121,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="StenGine.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
@@ -359,6 +356,7 @@
     <None Include="FX\DeferredGeometryInstancedPass_vs.hlsl">
       <Filter>FX\HLSL</Filter>
     </None>
+    <None Include="..\README.md" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\stdafx.h">

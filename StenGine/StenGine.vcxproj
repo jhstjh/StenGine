@@ -105,9 +105,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="StenGine.rc" />
   </ItemGroup>
   <ItemGroup>
@@ -126,6 +123,7 @@
     <Image Include="StenGine.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\README.md" />
     <None Include="FX\Blur_ps.glsl" />
     <None Include="FX\DebugLine_ps.glsl" />
     <None Include="FX\DebugLine_vs.glsl" />

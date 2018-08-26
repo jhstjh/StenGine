@@ -36,11 +36,11 @@
 			"Name" : "ThirdPersonCamera", 
 			"Components" : {
 				"Transform" : { 
-					"Parent" : "EF2E23ED-C844-4B72-9CC4-4483EBC23C04", 
+					"Parent" : "00000000-0000-0000-0000-000000000000", 
 					"Translation" : { 
-						"x" : 0.0, 
-						"y" : 25.0, 
-						"z" : -30.0 
+						"x" : 7.0, 
+						"y" : 0.5, 
+						"z" : -1.5 
 					}, 
 					"Rotation" : { 
 						"x" : 0.0, 
@@ -48,9 +48,9 @@
 						"z" : 0.0 
 					}, 
 					"Scale" : { 
-						"x" : 2.5, 
-						"y" : 2.5, 
-						"z" : 2.5 
+						"x" : 1.0, 
+						"y" : 1.0, 
+						"z" : 1.0 
 					} 
 				},
 				"Camera" : {
@@ -59,7 +59,7 @@
 					"FarPlane" : 1000
 				}
 			}
-		}, 
+		},
 		{ 
 			"ObjectType" : "Box", 
 			"UUID" : "E07B5012-320F-45B2-8EB0-6ADD00277038", 
