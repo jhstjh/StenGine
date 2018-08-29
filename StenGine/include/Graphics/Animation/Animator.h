@@ -27,6 +27,7 @@ public:
 	bool HasCurrentClip() { return mBledingClips.size() != 0; }
 	void SetCurrentClip(const std::string &name, float blendTime = 0.f);
 	void SetPositionDrivenNodeName(const std::string &name) { mPositionDrivenNodeName = name; }
+	void SetPlaySpeed(float speed) { mPlaySpeed = speed; }
 
 	void DrawMenu() override;
 
@@ -87,6 +88,7 @@ private:
 
 	std::string	   mPositionDrivenNodeName;
 	bool		   mValidDriven{ false };
+	float		   mPlaySpeed{ 1.0f };
 };
 
 }

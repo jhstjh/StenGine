@@ -80,6 +80,12 @@ void Zombie::Update()
 
 		auto target = GetTransform()->GetPosition() + realDir;
 		GetTransform()->LookAt(target, { 0.f, 1.f, 0.f });
+
+		mWalkSpeed = sqrt(LX * LX + LY * LY);
+		if (mWalkSpeed == 0.f)
+		{
+			mWalkSpeed = 1.f;
+		}
 	}
 
 	switch (mState)
@@ -128,6 +134,8 @@ void Zombie::processWALK()
 		float height = terrainComponent->GetHeight(pos.x() - terrainPos.x(), pos.z() - terrainPos.z());
 		transform->SetPosY(height);
 	}
+
+	GetFirstComponentByType<Animator>()->SetPlaySpeed(mWalkSpeed);
 }
 
 bool SGGame::Zombie::canWalk()

@@ -65,13 +65,14 @@ void Animator::SetCurrentClip(const std::string & name, float blendTime /*= 0.f*
 		}
 
 		mValidDriven = false;
+		mPlaySpeed = 1.f; // reset playspeed for new clip
 	}
 }
 
 void Animator::UpdateClip(const AnimationClip* clip, Timer::Seconds &playbackTime, TransformTSQMap &transformTSQMap, Vec3 &prevDrivenNodePos, bool &validDriven, Vec3 &drivenNodePosDiff)
 {
 	auto dt = Timer::GetDeltaTime();
-	playbackTime += dt;
+	playbackTime += dt * mPlaySpeed;
 	bool warpAround = false;
 	if (playbackTime > (clip->endFrame - clip->startFrame) / mAnimation->GetFrameRate())
 	{

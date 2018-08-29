@@ -27,7 +27,7 @@ private:
 		WALK,
 	} mState { State::IDLE };
 
-	Vec3 mTargetDir;
+	float mWalkSpeed{1.f};
 };
 
 }
