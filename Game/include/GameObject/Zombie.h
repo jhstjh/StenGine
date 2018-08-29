@@ -19,11 +19,15 @@ private:
 	void processIDLE();
 	void processWALK();
 
+	bool canWalk();
+
 	enum class State
 	{
 		IDLE,
 		WALK,
 	} mState { State::IDLE };
+
+	Vec3 mTargetDir;
 };
 
 }

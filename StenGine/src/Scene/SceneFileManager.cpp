@@ -40,7 +40,8 @@ public:
 			const char* name = itr->FindMember("Name")->value.GetString();
 			UUID uuid, parentUuid;
 			UuidFromStringA((RPC_CSTR)(itr->FindMember("UUID")->value.GetString()), &uuid);
-			
+			auto enabled = itr->FindMember("Enabled");
+
 			auto components = itr->FindMember("Components");
 
 			// Special component Transform
@@ -60,7 +61,7 @@ public:
 			float scaleZ = scale->value.FindMember("z")->value.GetFloat();
 
 			GameObject* gameObject = GameObjectManager::Instance()->Instantiate(objectType, uuid, name, parentUuid, transX, transY, transZ, rotX, rotY, rotZ, scaleX, scaleY, scaleZ);
-
+			gameObject->SetEnabled(enabled->value.GetBool());
 			// other components
 			{
 				for (auto compIter = components->value.MemberBegin(); compIter != components->value.MemberEnd(); ++compIter)

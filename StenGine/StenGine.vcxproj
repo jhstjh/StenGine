@@ -364,7 +364,9 @@
     <ClInclude Include="include\Graphics\OpenGL\GLTexture.h" />
     <ClInclude Include="include\Graphics\OpenGL\GLUAVBinding.h" />
     <ClInclude Include="include\Graphics\UI\ImGuiMenu.h" />
+    <ClInclude Include="include\Input\GamepadXinput.h" />
     <ClInclude Include="include\Input\InputManager.h" />
+    <ClInclude Include="include\Input\Keyboard.h" />
     <ClInclude Include="include\Math\MathHelper.h" />
     <ClInclude Include="include\Math\MathDefs.h" />
     <ClInclude Include="include\Mesh\Mesh.h" />
@@ -401,6 +403,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Graphics\D3D11\D3D11Buffer.h" />
+    <ClCompile Include="include\Input\GamepadXinput.cpp" />
     <ClCompile Include="src\Engine\Console.cpp" />
     <ClCompile Include="src\Engine\EngineBase.cpp" />
     <ClCompile Include="src\Engine\EventSystem.cpp" />
@@ -427,6 +430,7 @@
     <ClCompile Include="src\Graphics\UI\GLImGuiMenu.cpp" />
     <ClCompile Include="src\Graphics\UI\ImGuiMenu.cpp" />
     <ClCompile Include="src\Input\InputManager.cpp" />
+    <ClCompile Include="src\Input\Keyboard.cpp" />
     <ClCompile Include="src\Mesh\Mesh.cpp" />
     <ClCompile Include="src\Mesh\MeshRenderer.cpp" />
     <ClCompile Include="src\Mesh\SkinnedMesh.cpp" />

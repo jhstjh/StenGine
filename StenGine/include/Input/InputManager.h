@@ -1,29 +1,15 @@
 #ifndef __INPUT_MANAGER__
 #define __INPUT_MANAGER__
-//#include <Xinput.h>
+#include "GamepadXinput.h"
+#include "Keyboard.h"
 #include "Graphics/D3DIncludes.h"
 #include "System/SingletonClass.h"
-#include <bitset>
 
 namespace StenGine
 {
 
 class InputManager : public SingletonClass<InputManager>
 {
-private:
-
-	//  	struct CONTROLLER_STATE
-	//  	{
-	//  		XINPUT_STATE lastState;
-	//  		XINPUT_STATE state;
-	//  		DWORD dwResult;
-	//  		bool bLockVibration;
-	//  		XINPUT_VIBRATION vibration;
-	//  	} m_controller;
-
-	std::bitset<256> m_keyState;
-	std::bitset<256> m_lastKeyState;
-
 public:
 	InputManager();
 	~InputManager();
@@ -32,6 +18,16 @@ public:
 	bool GetKeyDown(char key);
 	bool GetKeyUp(char key);
 	bool GetKeyHold(char key);
+
+	bool GetButtonDown(uint32_t index, GamepadXinput::GamepadButton button);
+	bool GetButtonUp(uint32_t index, GamepadXinput::GamepadButton button);
+	bool GetButtonHold(uint32_t index, GamepadXinput::GamepadButton button);
+
+	float GetAxisValue(uint32_t index, GamepadXinput::GamepadAxis axis);
+
+private:
+	Keyboard mKeyboard;
+	GamepadXinput mGamepad;
 };
 
 }

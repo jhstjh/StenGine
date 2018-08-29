@@ -6,6 +6,7 @@
 #include "Resource/ResourceManager.h"
 #include "Scene/GameObjectManager.h"
 
+static const float WALK_THRESHOLD = 0.1f;
 
 namespace SGGame
 {
@@ -32,6 +33,55 @@ Zombie::Zombie()
 
 void Zombie::Update()
 {
+	Vec3 dir{ 0, 0, 0 };
+
+	if (InputManager::Instance()->GetKeyHold('W'))
+	{
+		dir += { 0, 0, 1 };
+	}
+	if (InputManager::Instance()->GetKeyHold('S'))
+	{
+		dir -= { 0, 0, 1 };
+	}
+	if (InputManager::Instance()->GetKeyHold('A'))
+	{
+		dir -= { 1, 0, 0 };
+	}
+	if (InputManager::Instance()->GetKeyHold('D'))
+	{
+		dir += { 1, 0, 0 };
+	}
+
+	float LX = InputManager::Instance()->GetAxisValue(0, GamepadXinput::GamepadAxis::PadLX);
+	float LY = InputManager::Instance()->GetAxisValue(0, GamepadXinput::GamepadAxis::PadLY);
+
+	if (fabs(LX) < WALK_THRESHOLD) LX = 0.f;
+	if (fabs(LY) < WALK_THRESHOLD) LY = 0.f;
+
+	dir += { LX, 0.f, LY};
+
+	if (dir != Vec3{0, 0, 0})
+	{
+		dir.Normalize();
+
+		auto camera = GameObjectManager::Instance()->FindGameObjectByName("ThirdPersonCamera");
+		assert(camera);
+
+		auto forward = GetTransform()->GetPosition() - camera->GetTransform()->GetPosition();
+		forward.y() = 0.f;
+		forward.Normalize();
+
+		Vec3 right = Vec3::CrossProduct({ 0.f, 1.f, 0.f }, forward).Normalized();
+		Vec3 realUp = Vec3::CrossProduct(forward, right).Normalized();
+
+		Mat3 rot = Mat3(right, realUp, forward);
+
+		Vec3 realDir = rot * dir;
+
+		auto target = GetTransform()->GetPosition() + realDir;
+		GetTransform()->LookAt(target, { 0.f, 1.f, 0.f });
+	}
+
 	switch (mState)
 	{
 	case State::IDLE:
@@ -47,7 +97,7 @@ void Zombie::Update()
 
 void Zombie::processIDLE()
 {
-	if (InputManager::Instance()->GetKeyHold('I'))
+	if (canWalk())
 	{
 		GetFirstComponentByType<Animator>()->SetCurrentClip("Walk", 0.5);
 		mState = State::WALK;
@@ -58,7 +108,7 @@ void Zombie::processIDLE()
 void Zombie::processWALK()
 {
 	auto dt = Timer::GetDeltaTime();
-	if (!InputManager::Instance()->GetKeyHold('I'))
+	if (!canWalk())
 	{
 		GetFirstComponentByType<Animator>()->SetCurrentClip("Idle", 0.5);
 		mState = State::IDLE;
@@ -66,15 +116,6 @@ void Zombie::processWALK()
 	}
 
 	auto transform = GetTransform();
-	if (InputManager::Instance()->GetKeyHold('J'))
-	{
-		transform->Rotate(-120.f / 180.f * PI * dt, {0.f, 1.f, 0.f}, false);
-	}
-
-	if (InputManager::Instance()->GetKeyHold('L'))
-	{
-		transform->Rotate(120.f / 180.f * PI * dt, { 0.f, 1.f, 0.f }, false);
-	}
 
 	GameObject* terrain = GameObjectManager::Instance()->FindGameObjectByName("Terrain"); // todo cache it
 	if (terrain)
@@ -87,6 +128,17 @@ void Zombie::processWALK()
 		float height = terrainComponent->GetHeight(pos.x() - terrainPos.x(), pos.z() - terrainPos.z());
 		transform->SetPosY(height);
 	}
+}
+
+bool SGGame::Zombie::canWalk()
+{
+	return 
+		InputManager::Instance()->GetKeyHold('W') ||
+		InputManager::Instance()->GetKeyHold('S') ||
+		InputManager::Instance()->GetKeyHold('A') ||
+		InputManager::Instance()->GetKeyHold('D') ||
+		fabs(InputManager::Instance()->GetAxisValue(0, GamepadXinput::GamepadAxis::PadLX)) > WALK_THRESHOLD ||
+		fabs(InputManager::Instance()->GetAxisValue(0, GamepadXinput::GamepadAxis::PadLY)) > WALK_THRESHOLD;
 }
 
 }

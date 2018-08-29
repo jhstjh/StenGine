@@ -20,6 +20,7 @@ void GameObject::AddComponent(UniqueComponent c) {
 void GameObject::DrawMenu()
 {
 	ImGui::Text(m_name.c_str());
+	ImGui::Checkbox("Enabled", &m_enabled);
 
 	for (auto& component : m_components)
 	{

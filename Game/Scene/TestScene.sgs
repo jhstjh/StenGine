@@ -4,7 +4,8 @@
 			"ObjectType" : "DebugCamera", 
 			"UUID" : "B34E3451-623F-4F4E-AD78-2E82A8F22A32", 
 			"Name" : "DebugCamera", 
-			"Components" : {
+			"Enabled" :  false,
+      "Components" : {
 				"Transform" : { 
 					"Parent" : "00000000-0000-0000-0000-000000000000", 
 					"Translation" : { 
@@ -34,7 +35,8 @@
 			"ObjectType" : "ThirdPersonCamera", 
 			"UUID" : "B9CE3451-623F-453E-AD78-2E82A8F27A32", 
 			"Name" : "ThirdPersonCamera", 
-			"Components" : {
+			"Enabled" :  true,
+      "Components" : {
 				"Transform" : { 
 					"Parent" : "00000000-0000-0000-0000-000000000000", 
 					"Translation" : { 
@@ -64,7 +66,8 @@
 			"ObjectType" : "Box", 
 			"UUID" : "E07B5012-320F-45B2-8EB0-6ADD00277038", 
 			"Name" : "box0", 
-			"Components" : {
+			"Enabled" :  true,
+      "Components" : {
 				"Transform" : { 
 					"Parent" : "00000000-0000-0000-0000-000000000000", 
 					"Translation" : { 
@@ -89,7 +92,8 @@
 			"ObjectType" : "Sphere", 
 			"UUID" : "938FC005-8455-4483-923A-7F1BDF3A9E57", 
 			"Name" : "sphere", 
-			"Components" : {
+			"Enabled" :  true,
+      "Components" : {
 				"Transform" : { 
 					"Parent" : "E07B5012-320F-45B2-8EB0-6ADD00277038", 
 					"Translation" : { 
@@ -114,7 +118,8 @@
 			"ObjectType" : "Zombie", 
 			"UUID" : "EF2E23ED-C844-4B72-9CC4-4483EBC23C04", 
 			"Name" : "Zombie", 
-			"Components" : {
+			"Enabled" :  true,
+      "Components" : {
 				"Transform" : { 
 					"Parent" : "00000000-0000-0000-0000-000000000000", 
 					"Translation" : { 

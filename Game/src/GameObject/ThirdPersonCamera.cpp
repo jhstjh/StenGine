@@ -5,6 +5,8 @@
 #include "Input/InputManager.h"
 #include "Math/MathHelper.h"
 
+static const float CAMERA_MOVE_THRESHOLD = 0.15f;
+
 namespace SGGame
 {
 	ThirdPersonCamera::ThirdPersonCamera()
@@ -97,6 +99,14 @@ namespace SGGame
 		{
 			diffTheta -= rotSpeed * dt;
 		}
+
+		float RX = InputManager::Instance()->GetAxisValue(0, GamepadXinput::GamepadAxis::PadRX);
+		if (fabs(RX) < CAMERA_MOVE_THRESHOLD) RX = 0.0f;
+		diffTheta -= rotSpeed * dt * RX;
+
+		float RY = InputManager::Instance()->GetAxisValue(0, GamepadXinput::GamepadAxis::PadRY);
+		if (fabs(RY) < CAMERA_MOVE_THRESHOLD) RY = 0.0f;
+		diffPhi += rotSpeed * dt * RY;
 
 		if (diffTheta != 0.f || diffPhi != 0.f)
 		{

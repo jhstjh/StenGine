@@ -16,30 +16,40 @@ InputManager::~InputManager() {
 }
 
 void InputManager::Update() {
-	m_lastKeyState = m_keyState;
-	for (int x = 0; x < 256; x++)
-		m_keyState[x] = ((USHORT)(GetAsyncKeyState(x)) >> 15) > 0;
+	mKeyboard.Update();
+	mGamepad.Update();
 }
 
 bool InputManager::GetKeyDown(char key) {
-	if (m_keyState[(int)key] && !m_lastKeyState[(int)key]) {
-		return true;
-	}
-	return false;
+	return mKeyboard.GetKeyDown(key);
 }
 
 bool InputManager::GetKeyUp(char key) {
-	if (m_lastKeyState[(int)key] && !m_keyState[(int)key]) {
-		return true;
-	}
-	return false;
+	return mKeyboard.GetKeyUp(key);
 }
 
 bool InputManager::GetKeyHold(char key) {
-	if (m_keyState[(int)key] && m_lastKeyState[(int)key]) {
-		return true;
-	}
-	return false;
+	return mKeyboard.GetKeyHold(key);
+}
+
+bool InputManager::GetButtonDown(uint32_t index, GamepadXinput::GamepadButton button)
+{
+	return mGamepad.GetButtonDown(index, button);
+}
+
+bool InputManager::GetButtonUp(uint32_t index, GamepadXinput::GamepadButton button)
+{
+	return mGamepad.GetButtonUp(index, button);
+}
+
+bool InputManager::GetButtonHold(uint32_t index, GamepadXinput::GamepadButton button)
+{
+	return mGamepad.GetButtonHold(index, button);
+}
+
+float InputManager::GetAxisValue(uint32_t index, GamepadXinput::GamepadAxis axis)
+{
+	return mGamepad.GetAxisValue(index, axis);
 }
 
 }
