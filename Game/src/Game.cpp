@@ -1,5 +1,6 @@
+#include "Scene/GameObjectManager.h"
+
 #include "Game.h"
-#include <memory>
 
 #include "GameObject/box.h"
 #include "GameObject/sphere.h"

@@ -3,7 +3,6 @@
 #include <unordered_map>
 #include <vector>
 #include "Scene/Transform.h"
-#include "Math/MathDefs.h"
 #include "Math/MathHelper.h"
 
 namespace StenGine

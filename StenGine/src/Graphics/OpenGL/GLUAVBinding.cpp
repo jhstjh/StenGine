@@ -15,7 +15,7 @@ GLUAVBinding::GLUAVBinding()
 
 void GLUAVBinding::AddUAV(void* UAV, uint32_t index)
 {
-	m_UAVs[index] = reinterpret_cast<GLuint>(UAV);
+	m_UAVs[index] = static_cast<GLuint>(reinterpret_cast<intptr_t>(UAV));
 }
 
 void GLUAVBinding::Bind()

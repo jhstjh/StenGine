@@ -1,12 +1,10 @@
 #include "stdafx.h"
 
-#include <stdint.h>
 #include "imgui.h"
 #include "Graphics/UI/ImGuiMenu.h"
 #include "Graphics/Abstraction/ContextState.h"
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Graphics/Effect/EffectsManager.h"
-#include "Math/MathDefs.h"
 
 
 namespace StenGine
@@ -90,7 +88,6 @@ public:
 		for (int n = 0; n < draw_data->CmdListsCount; n++)
 		{
 			const ImDrawList* cmd_list = draw_data->CmdLists[n];
-			const ImDrawIdx* idx_buffer_offset = 0;
 
 			for (int32_t i = 0; i < cmd_list->VtxBuffer.size(); i++)
 			{

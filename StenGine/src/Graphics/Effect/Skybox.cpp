@@ -4,15 +4,12 @@
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Scene/CameraManager.h"
 #include "Mesh/MeshRenderer.h"
-#include "Math/MathDefs.h"
-#include "Math/MathHelper.h"
-
 #include "Graphics/OpenGL/GLImageLoader.h"
 
 namespace StenGine
 {
 
-Skybox::Skybox(std::wstring &cubeMapPath) {
+Skybox::Skybox(const std::wstring &cubeMapPath) {
 	switch (Renderer::GetRenderBackend())
 	{
 	case RenderBackend::D3D11:

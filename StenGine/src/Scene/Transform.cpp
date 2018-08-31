@@ -85,7 +85,7 @@ void Transform::LookAt(const Vec3 &target, const Vec3 &worldUp)
 	mDirty = true;
 }
 
-void Transform::UpdateWorldTransform(Mat4& parent, bool parentDirty)
+void Transform::UpdateWorldTransform(const Mat4& parent, bool parentDirty)
 {
 	mPrevWorldTransform = mWorldTransform;
 

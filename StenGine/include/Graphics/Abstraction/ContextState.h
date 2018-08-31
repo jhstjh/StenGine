@@ -17,6 +17,9 @@ T& operator=(T x) \
 	return *this; \
 }
 
+#pragma warning (push)
+#pragma warning (disable:4201) //  nonstandard extension used: nameless struct/union
+
 struct BlendState
 {
 	enum class Blend : uint32_t
@@ -152,6 +155,8 @@ struct RasterizerState
 };
 
 }
+
+#pragma warning (pop)
 
 namespace std
 {

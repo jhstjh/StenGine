@@ -203,7 +203,7 @@ void SkinnedMeshRenderer::GatherDrawCall()
 
 			Renderer::Instance()->AddDeferredDrawCmd(cmd);
 
-			startIndex += mSkinnedMesh->m_subMeshes[iSubMesh].m_indexBufferCPU.size();
+			startIndex += static_cast<int32_t>(mSkinnedMesh->m_subMeshes[iSubMesh].m_indexBufferCPU.size());
 		}
 	}
 }
@@ -281,7 +281,7 @@ void SkinnedMeshRenderer::GatherShadowDrawCall()
 
 			Renderer::Instance()->AddDeferredDrawCmd(cmd);
 
-			startIndex += mSkinnedMesh->m_subMeshes[iSubMesh].m_indexBufferCPU.size();
+			startIndex += static_cast<int32_t>(mSkinnedMesh->m_subMeshes[iSubMesh].m_indexBufferCPU.size());
 		}
 	}
 }

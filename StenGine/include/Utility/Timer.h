@@ -2,7 +2,6 @@
 #define __TIMER__
 
 #include "Graphics/D3DIncludes.h"
-#include <windows.h>
 
 namespace StenGine
 {

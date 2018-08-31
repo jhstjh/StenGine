@@ -1,7 +1,8 @@
 #ifndef __RESOURCE_MANAGER__
 #define __RESOURCE_MANAGER__
 
-#include <unordered_map>
+#include "stdafx.h"
+
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Mesh/Mesh.h"
 #include "Mesh/MeshRenderer.h"
@@ -12,11 +13,6 @@
 #include "Graphics/Animation/Animation.h"
 
 #include "Graphics/OpenGL/GLImageLoader.h"
-#include "glew.h"
-
-
-#include "Graphics/D3DIncludes.h"
-#include <type_traits>
 #include "Utility/FbxReaderSG.h"
 
 
@@ -94,6 +90,7 @@ public:
 				Mesh* newMesh = new Mesh(2);
 				bool result = FbxReaderSG::Read(path, newMesh);
 				assert(result);
+				UNUSED(result);
 				m_meshResourceMap[path] = newMesh;
 
 				return newMesh;
@@ -114,6 +111,7 @@ public:
 			SkinnedMesh* newMesh = new SkinnedMesh();
 			bool result = FbxReaderSG::Read(path, newMesh);
 			assert(result);
+			UNUSED(result);
 			m_meshResourceMap[path] = newMesh;
 
 			return newMesh;
@@ -133,6 +131,7 @@ public:
 			Animation* newAnimation = new Animation();
 			bool result = FbxReaderSG::Read(path, newAnimation);
 			assert(result);
+			UNUSED(result);
 
 			m_animationResourceMap[path] = newAnimation;
 

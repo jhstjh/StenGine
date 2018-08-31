@@ -18,7 +18,7 @@ TSQ AnimationNode::UpdateAnimation(Timer::Seconds playbackTime)
 		auto positionIt = std::lower_bound(timeVector.begin(), timeVector.end(), playbackFrame);
 		if (positionIt != timeVector.end())
 		{
-			index = std::distance(timeVector.begin(), positionIt);
+			index = static_cast<uint32_t>(std::distance(timeVector.begin(), positionIt));
 		}
 		return index;
 	};

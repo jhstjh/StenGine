@@ -8,9 +8,7 @@
 #include "Graphics/D3DIncludes.h"
 #include "Graphics/Effect/EffectsManager.h"
 #include "Graphics/Effect/Material.h"
-#include "Math/MathDefs.h"
 #include "Mesh/SubMesh.h"
-#include "System/API/PlatformAPIDefs.h"
 #include "Scene/Component.h"
 #include "Scene/Drawable.h"
 

@@ -1,13 +1,6 @@
 #pragma once
 #include "Graphics/Abstraction/RendererBase.h"
-#include "Graphics/Effect/EffectsManager.h"
 #include "Graphics/UI/ImGuiMenu.h"
-#include "Scene/LightManager.h"
-#include "Scene/CameraManager.h"
-#include "Scene/SceneFileManager.h"
-#include "Resource/ResourceManager.h"
-#include "Scene/GameObjectManager.h"
-#include "Input/InputManager.h"
 #include "Utility/Timer.h"
 #include "Engine/Console.h"
 #include "Engine/EventSystem.h"
@@ -17,6 +10,12 @@ namespace StenGine
 {
 
 #define MAX_LOADSTRING 100
+
+class SceneFileManager;
+class ResourceManager;
+class GameObjectManager;
+class InputManager;
+class CameraManager;
 
 class EngineBase
 {

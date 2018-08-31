@@ -1,10 +1,7 @@
 #ifndef __GAMEOBJECT__
 #define __GAMEOBJECT__
 
-#include <memory>
-#include <Rpc.h>
-#include "System/API/PlatformAPIDefs.h"
-#include "Graphics/D3DIncludes.h"
+#include "stdafx.h"
 #include "Scene/Component.h"
 #include "Scene/Transform.h"
 

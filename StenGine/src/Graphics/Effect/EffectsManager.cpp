@@ -28,7 +28,7 @@ inline std::wstring GetExt()
 	return L".fx";
 }
 
-Effect::Effect(Renderer* renderer, const std::wstring& filename)
+Effect::Effect(Renderer* renderer, const std::wstring& /*filename*/)
 	: m_renderer(renderer)
 {
 
@@ -1047,6 +1047,9 @@ DeferredGeometryTerrainPassEffect::DeferredGeometryTerrainPassEffect(Renderer* r
 		HRESULT hr = (static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
 			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
 
+		assert(hr);
+		UNUSED(hr);
+
 		m_shaderResources = new ID3D11ShaderResourceView*[8];
 
 		for (int i = 0; i < 8; i++) {
@@ -1138,6 +1141,8 @@ TerrainShadowMapEffect::TerrainShadowMapEffect(Renderer* renderer, const std::ws
 
 		HRESULT hr = (static_cast<ID3D11Device*>(m_renderer->GetDevice())->CreateInputLayout(vertexDesc, 3, m_vsBlob->GetBufferPointer(),
 			m_vsBlob->GetBufferSize(), &m_d3d11inputLayout));
+		assert(hr);
+		UNUSED(hr);
 
 		m_shaderResources = new ID3D11ShaderResourceView*[8];
 
@@ -1355,7 +1360,6 @@ BlurEffect::~BlurEffect()
 
 bool Effect::ReadShaderFile(std::wstring filename, char* shaderContent, int maxLength) {
 	std::string s(filename.begin(), filename.end());
-	const char* lFilename = s.c_str();
 	
 	HANDLE hfile;
 	LARGE_INTEGER file_size;

@@ -1,9 +1,5 @@
 #pragma once
 
-#include <functional>
-#include <unordered_map>
-#include <guiddef.h>
-
 #include "System/SingletonClass.h"
 #include "Scene/GameObject.h"
 #include "Scene/GameObjectRegistry.h"

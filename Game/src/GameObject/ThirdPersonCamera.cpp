@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "GameObject/ThirdPersonCamera.h"
 #include "Scene/CameraManager.h"
 #include "Scene/GameObject.h"

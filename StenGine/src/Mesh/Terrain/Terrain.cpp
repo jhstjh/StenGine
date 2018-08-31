@@ -212,7 +212,7 @@ void Terrain::BuildHeightMapSRV() {
 		srvDesc.Format = texDesc.Format;
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MostDetailedMip = 0;
-		srvDesc.Texture2D.MipLevels = -1;
+		srvDesc.Texture2D.MipLevels = 1;
 
 		ID3D11ShaderResourceView* heightMapSRV;
 		HR(static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateShaderResourceView(hmapTex, &srvDesc, &heightMapSRV));

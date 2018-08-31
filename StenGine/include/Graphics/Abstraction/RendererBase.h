@@ -1,14 +1,11 @@
 #ifndef __RENDERERBASE__
 #define __RENDERERBASE__
 
-#include <functional>
-
 #include "DrawCmd.h"
 #include "Graphics/Abstraction/GPUBuffer.h"
 #include "Graphics/Abstraction/RenderTarget.h"
 #include "Graphics/Abstraction/Texture.h"
 #include "Graphics/Abstraction/UAVBinding.h"
-#include "Math/MathDefs.h"
 #include "Utility/Semaphore.h"
 
 namespace StenGine

@@ -9,7 +9,7 @@ namespace StenGine
 
 class Skybox {
 public:
-	Skybox(std::wstring &cubeMapPath);
+	Skybox(const std::wstring &cubeMapPath);
 	~Skybox();
 
 	void Draw();

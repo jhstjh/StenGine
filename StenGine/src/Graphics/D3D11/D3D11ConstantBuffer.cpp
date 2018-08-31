@@ -3,9 +3,6 @@
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Graphics/D3D11/D3D11ConstantBuffer.h"
 
-#include <malloc.h>
-#include <string.h>
-
 namespace StenGine
 {
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Mesh/MeshRenderer.h"
-#include "Math/MathDefs.h"
 #include "Scene/Component.h"
 
 namespace StenGine

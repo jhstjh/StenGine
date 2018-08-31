@@ -49,6 +49,7 @@ extern "C"
 namespace StenGine
 {
 
+#if !BUILD_RELEASE
 static void APIENTRY GLErrorCallback(GLenum source​, GLenum type​, GLuint id​, GLenum severity​, GLsizei length​, const GLchar* message​, const void* userParam​)
 {
 	if (GL_DEBUG_TYPE_OTHER == type​)
@@ -93,6 +94,7 @@ static void APIENTRY GLErrorCallback(GLenum source​, GLenum type​, GLuint id
 	}
 	cout << endl << endl;
 }
+#endif
 
 class GLRenderer : public Renderer
 {
@@ -410,7 +412,7 @@ public:
 		shadowcmd.framebuffer = LightManager::Instance()->m_shadowMap->GetRenderTarget();
 		shadowcmd.viewport = { 0, 0, (float)width, (float)height, 0, 1 };
 
-		AddDeferredDrawCmd(std::move(shadowcmd));
+		AddDeferredDrawCmd(shadowcmd);
 
 		for (auto &gatherShadowDrawCall : mShadowDrawHandler)
 		{
@@ -426,7 +428,7 @@ public:
 		drawcmd.framebuffer = mDeferredGBuffers;
 		drawcmd.viewport = { 0.f, 0.f, (float)mClientWidth, (float)mClientHeight, 0.f, 1.f };
 
-		AddDeferredDrawCmd(std::move(drawcmd));
+		AddDeferredDrawCmd(drawcmd);
 
 		for (auto &gatherDrawCall : mDrawHandler)
 		{
@@ -479,7 +481,7 @@ public:
 		cmd.cbuffers.push_back(std::move(cbuffer0));
 		cmd.cbuffers.push_back(std::move(cbuffer1));
 
-		AddDeferredDrawCmd(std::move(cmd));
+		AddDeferredDrawCmd(cmd);
 	}
 
 	void DrawBlurSSAOAndCombine() final {
@@ -991,7 +993,7 @@ private:
 		cmdV.uavs->AddUAV(reinterpret_cast<void*>(blurImgSRV), 0);
 		cmdV.uavs->AddUAV(reinterpret_cast<void*>(mComputeOutput[uavSlotIdx]), 1);
 
-		AddDeferredDrawCmd(std::move(cmdV));
+		AddDeferredDrawCmd(cmdV);
 
 		// hblur
 		DrawCmd cmdH;
@@ -1008,7 +1010,7 @@ private:
 		cmdH.uavs->AddUAV(reinterpret_cast<void*>(mComputeOutput[uavSlotIdx]), 0);
 		cmdH.uavs->AddUAV(reinterpret_cast<void*>(mComputeOutput[uavSlotIdx + 1]), 1);
 
-		AddDeferredDrawCmd(std::move(cmdH));
+		AddDeferredDrawCmd(cmdH);
 	}
 
 	void GenerateColorTex(GLuint &bufferTex) 

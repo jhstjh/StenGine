@@ -2,9 +2,16 @@
 
 #include <atomic>
 #include "Engine/EngineBase.h"
+#include "Graphics/Effect/EffectsManager.h"
+#include "Input/InputManager.h"
 #include "Resource.h"
+#include "Resource/ResourceManager.h"
+#include "Scene/CameraManager.h"
+#include "Scene/GameObjectManager.h"
+#include "Scene/SceneFileManager.h"
 #include "Utility/CommandlineParser.h"
 #include "Utility/Semaphore.h"
+
 
 namespace StenGine
 {
@@ -37,6 +44,7 @@ BOOL EngineBase::CreateWindowInstance(int32_t w, int32_t h, HINSTANCE hInstance/
 	{
 		auto error = GetLastError();
 		assert(false);
+		UNUSED(error);
 		return FALSE;
 	}
 
@@ -96,6 +104,7 @@ void EngineBase::Init(HINSTANCE hInstance)
 	{
 		auto error = GetLastError();
 		assert(false);
+		UNUSED(error);
 	}
 
 	auto backend = CommandlineParser::Instance()->GetCommand("-g");

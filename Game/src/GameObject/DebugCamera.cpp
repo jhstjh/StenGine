@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "GameObject/DebugCamera.h"
 #include "Scene/CameraManager.h"
 #include "Input/InputManager.h"

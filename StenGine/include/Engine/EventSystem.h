@@ -1,8 +1,5 @@
 #pragma once
 #include "System/SingletonClass.h"
-#include <unordered_set>
-#include <vector>
-#include <functional>
 
 namespace StenGine
 {

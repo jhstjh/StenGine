@@ -88,7 +88,7 @@ public:
 		ImGuiEffect* effect = EffectsManager::Instance()->m_imguiEffect.get();
 
 		// Create and grow vertex/index buffers if needed
-		if (!m_vb || m_vbSize < draw_data->TotalVtxCount)
+		if (!m_vb || m_vbSize < static_cast<uint32_t>(draw_data->TotalVtxCount))
 		{
 			if (m_vb) { m_vb->Release(); m_vb = NULL; }
 			m_vbSize = draw_data->TotalVtxCount + 5000;
@@ -102,7 +102,7 @@ public:
 			if (static_cast<ID3D11Device*>(Renderer::Instance()->GetDevice())->CreateBuffer(&desc, NULL, &m_vb) < 0)
 				return;
 		}
-		if (!m_ib || m_ibSize < draw_data->TotalIdxCount)
+		if (!m_ib || m_ibSize < static_cast<uint32_t>(draw_data->TotalIdxCount))
 		{
 			if (m_ib) { m_ib->Release(); m_ib = NULL; }
 			m_ibSize = draw_data->TotalIdxCount + 10000;

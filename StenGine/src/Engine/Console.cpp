@@ -1,7 +1,6 @@
 #include "stdafx.h"
 
 #include "Engine/Console.h"
-#include <Windows.h>
 #include <ios>
 
 #pragma warning(disable:4996)

@@ -2,23 +2,15 @@
 #define __EFFECTS_MANAGER__
 
 #include "Graphics/Abstraction/RendererBase.h"
-#include "System/API/PlatformAPIDefs.h"
-
 #include "Scene/LightManager.h"
 #include "Graphics/Abstraction/ConstantBuffer.h"
 #include "Graphics/Abstraction/GPUBuffer.h"
 #include "Graphics/Effect/Material.h"
-#include "Math/MathDefs.h"
 #include "Mesh/MeshRenderer.h"
 #include "System/SingletonClass.h"
 #include "System/AlignedClass.h"
-
-#include <memory>
-
 #include "Graphics/OpenGL/GLBuffer.h"
-#include "glew.h"
 
-#include "Graphics/D3DIncludes.h"
 
 #define D3D_COMPILE_STANDARD_FILE_INCLUDE ((ID3DInclude*)(UINT_PTR)1)
 

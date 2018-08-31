@@ -192,7 +192,7 @@ void TerrainGrass::GatherDrawCall()
 	cmd.vertexBuffer.push_back((void*)mInstanceBuffer->GetBuffer());
 	cmd.vertexStride.push_back(sizeof(Vertex::InstanceVertex));
 	cmd.vertexOffset.push_back(offset);
-	cmd.instanceCount = mInstances.size();
+	cmd.instanceCount = static_cast<uint32_t>(mInstances.size());
 	cmd.effect = effect;
 	cmd.elementCount = subMesh.m_indexBufferCPU.size();
 	cmd.cbuffers.push_back(std::move(cbuffer0));
@@ -200,7 +200,7 @@ void TerrainGrass::GatherDrawCall()
 
 	Renderer::Instance()->AddDeferredDrawCmd(cmd);
 
-	startIndex += subMesh.m_indexBufferCPU.size();
+	startIndex += static_cast<int32_t>(subMesh.m_indexBufferCPU.size());
 
 
 	DrawCmd enableCullCmd;

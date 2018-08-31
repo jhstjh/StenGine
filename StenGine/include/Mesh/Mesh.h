@@ -1,6 +1,5 @@
 #pragma once
-#include <memory>
-#include "Math/MathDefs.h"
+
 #include "Mesh/SubMesh.h"
 
 namespace StenGine

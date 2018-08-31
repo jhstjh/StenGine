@@ -17,7 +17,7 @@ extern "C" {
 
 extern std::unique_ptr<StenGine::EngineBase> CreateGame();
 
-int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int /*nCmdShow*/)
 {
 	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_WNDW);
 

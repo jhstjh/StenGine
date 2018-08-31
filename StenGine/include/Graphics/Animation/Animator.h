@@ -2,7 +2,6 @@
 
 #include <unordered_map>
 #include "Graphics/Animation/Animation.h"
-#include "Math/MathDefs.h"
 #include "Scene/Component.h"
 
 namespace StenGine

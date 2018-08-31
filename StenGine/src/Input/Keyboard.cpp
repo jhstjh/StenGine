@@ -1,6 +1,5 @@
 #include "stdafx.h"
 
-#include <Windows.h>
 #include "Input/Keyboard.h"
 
 namespace StenGine

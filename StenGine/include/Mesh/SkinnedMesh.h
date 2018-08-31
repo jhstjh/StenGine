@@ -1,6 +1,4 @@
 #pragma once
-#include <memory>
-#include "Math/MathDefs.h"
 #include "Mesh/Mesh.h"
 #include "Mesh/SubMesh.h"
 

@@ -113,7 +113,6 @@ void Zombie::processIDLE()
 
 void Zombie::processWALK()
 {
-	auto dt = Timer::GetDeltaTime();
 	if (!canWalk())
 	{
 		GetFirstComponentByType<Animator>()->SetCurrentClip("Idle", 0.5);

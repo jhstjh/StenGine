@@ -32,6 +32,7 @@ public:
 
 		assert(!ret);
 		assert(sceneDoc.IsObject());
+		UNUSED(ret);
 
 		const Value& gameObjects = sceneDoc["GameObjects"];
 		assert(gameObjects.IsArray());

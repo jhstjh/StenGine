@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "GameObject/box.h"
 #include "Mesh/MeshRenderer.h"
 #include "Resource/ResourceManager.h"

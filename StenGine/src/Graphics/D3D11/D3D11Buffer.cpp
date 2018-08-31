@@ -45,7 +45,7 @@ D3D11Buffer::D3D11Buffer(size_t size, BufferUsage usage, void* data, BufferType 
 
 	D3D11_BUFFER_DESC desc;
 	desc.Usage = (D3D11_USAGE)m_usage;
-	desc.ByteWidth = size;
+	desc.ByteWidth = (UINT)size;
 	desc.BindFlags = (UINT)d3d11BufferBindFlag[(uint32_t)type];
 	desc.CPUAccessFlags = m_flags;
 	desc.MiscFlags = misc;

@@ -355,14 +355,14 @@ public:
 		srvNormalDesc.Format = gNormalBufferDesc.Format;
 		srvNormalDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srvNormalDesc.Texture2D.MostDetailedMip = 0;
-		srvNormalDesc.Texture2D.MipLevels = -1;
+		srvNormalDesc.Texture2D.MipLevels = 1;
 
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 		srvDesc.Format = gBufferDesc.Format;
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MostDetailedMip = 0;
-		srvDesc.Texture2D.MipLevels = -1;
+		srvDesc.Texture2D.MipLevels = 1;
 
 		HR(mD3d11Device->CreateShaderResourceView(gBufferDTex, &srvDesc, &mDiffuseBufferSRV));
 		HR(mD3d11Device->CreateShaderResourceView(gBufferNTex, &srvNormalDesc, &mNormalBufferSRV));
@@ -542,8 +542,9 @@ public:
 			bsDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_MAX;
 			bsDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-			HRESULT hr = mD3d11Device->CreateBlendState(&bsDesc, &mAdditiveAlphaAddBS);
+			hr = mD3d11Device->CreateBlendState(&bsDesc, &mAdditiveAlphaAddBS);
 			assert(SUCCEEDED(hr));
+			UNUSED(hr);
 		}
 
 		mGBuffer = CreateRenderTarget();
@@ -605,7 +606,6 @@ public:
 			ID3D11Texture2D* blurredTex = 0;
 			HR(mD3d11Device->CreateTexture2D(&blurredTexDesc, 0, &blurredTex));
 
-			D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 			srvDesc.Format = blurredTexDesc.Format;
 			srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 			srvDesc.Texture2D.MostDetailedMip = 0;
@@ -781,7 +781,6 @@ public:
 	}
 
 	void DrawBlurSSAOAndCombine() final {
-		ID3D11ShaderResourceView* nullSRV[16] = { 0 };
 		ID3D11SamplerState* samplerState[] = { mSamplerState, mShadowSamplerState };
 		// -------compute shader blur ----------//
 		mD3d11DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
@@ -792,7 +791,7 @@ public:
 
 		clearRTcmd.framebuffer = mDefaultRTNoDepth;
 
-		AddDeferredDrawCmd(std::move(clearRTcmd));
+		AddDeferredDrawCmd(clearRTcmd);
 
 		doCSBlur(mSSAOSRV, 0);
 		doCSBlur(mDeferredShadingSRV, 2);
@@ -824,7 +823,7 @@ public:
 		cmd.srvs.AddSRV(blurredSSAOSRV/*m_SSAOSRV*/, 1);
 		cmd.srvs.AddSRV(blurredSRV, 2);
 
-		AddDeferredDrawCmd(std::move(cmd));
+		AddDeferredDrawCmd(cmd);
 	}
 
 	void DrawDebug() final {
@@ -1114,7 +1113,7 @@ private:
 		cmdV.uavs = CreateUAVBinding();
 		cmdV.uavs->AddUAV(mUnorderedAccessViews[uavSlotIdx], 0);
 
-		AddDeferredDrawCmd(std::move(cmdV));
+		AddDeferredDrawCmd(cmdV);
 
 		// hblur
 		DrawCmd cmdH;
@@ -1131,7 +1130,7 @@ private:
 		cmdH.uavs = CreateUAVBinding();
 		cmdH.uavs->AddUAV(mUnorderedAccessViews[uavSlotIdx + 1], 0);
 
-		AddDeferredDrawCmd(std::move(cmdH));
+		AddDeferredDrawCmd(cmdH);
 	}
 
 	ID3D11BlendState* GetBlendState(BlendState& blendState)

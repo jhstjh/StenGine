@@ -2,9 +2,6 @@
 
 #include "glew.h"
 #include "Graphics/OpenGL/GLConstantBuffer.h"
-#include <malloc.h>
-#include <string.h>
-#include <assert.h>
 
 #pragma warning(disable: 4311  4302)
 

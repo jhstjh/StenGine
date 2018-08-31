@@ -1,8 +1,6 @@
 #pragma once
 
-#include <vector>
 #include "Math/MathDefs.h"
-#include "Graphics/D3DIncludes.h"
 #include "Scene/Component.h"
 #include "System/AlignedClass.h"
 
@@ -25,7 +23,7 @@ public:
 	void SetPosZ(float z);
 	void RotateAroundY(float radius);
 	void LookAt(const Vec3 &target, const Vec3 &worldUp);
-	void UpdateWorldTransform(Mat4& parent, bool parentDirty);
+	void UpdateWorldTransform(const Mat4& parent, bool parentDirty);
 	void AddChild(Transform* child) { mChildren.push_back(child); }
 
 	void MoveForward(float distance);

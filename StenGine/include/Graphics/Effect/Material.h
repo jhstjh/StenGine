@@ -2,9 +2,6 @@
 #define __MATERIAL__
 
 #include "Graphics/Abstraction/Texture.h"
-#include "Graphics/D3DIncludes.h"
-#include "Math/MathDefs.h"
-#include "System/API/PlatformAPIDefs.h"
 
 namespace StenGine
 {

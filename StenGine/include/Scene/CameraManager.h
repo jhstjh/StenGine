@@ -1,10 +1,8 @@
 #ifndef __CAMERA_MANAGER__
 #define __CAMERA_MANAGER__
 
-#include "Math/MathDefs.h"
 #include "Scene/Component.h"
 #include "System/AlignedClass.h"
-#include "System/API/PlatformAPIDefs.h"
 #include "System/SingletonClass.h"
 
 namespace StenGine

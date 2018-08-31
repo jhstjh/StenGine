@@ -1,9 +1,7 @@
 #pragma once
 #include "Graphics/Abstraction/GPUBuffer.h"
 #include "Graphics/Abstraction/Texture.h"
-#include "Graphics/D3DIncludes.h"
 #include "Graphics/Effect/Material.h"
-#include "Math/MathDefs.h"
 #include "Scene/Component.h"
 #include "Scene/Drawable.h"
 #include "TerrainGrass.h"

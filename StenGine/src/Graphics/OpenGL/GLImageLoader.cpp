@@ -3,7 +3,11 @@
 #pragma warning(disable: 4996)
 
 #include "Graphics/OpenGL/GLImageLoader.h"
+
+#pragma warning(push)
+#pragma warning(disable: 4310 4458 4100 4201)
 #include "gli/gli.hpp"
+#pragma warning(pop)
 
 namespace StenGine
 {
@@ -79,7 +83,7 @@ GLuint CreateGLTextureFromFile(const char* filename, uint32_t* width, uint32_t* 
 			for (std::size_t Level = 0; Level < Texture.levels(); ++Level)
 			{
 				GLsizei const LayerGL = static_cast<GLsizei>(Layer);
-				glm::tvec3<GLsizei> Extent(Texture.extent(Level));
+				glm::tvec3<GLsizei> LayerExtent(Texture.extent(Level));
 				Target = gli::is_target_cube(Texture.target())
 					? static_cast<GLenum>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + Face)
 					: Target;
@@ -89,12 +93,12 @@ GLuint CreateGLTextureFromFile(const char* filename, uint32_t* width, uint32_t* 
 				case gli::TARGET_1D:
 					if (gli::is_compressed(Texture.format()))
 						glCompressedTextureSubImage1D(
-							TextureName, static_cast<GLint>(Level), 0, Extent.x,
+							TextureName, static_cast<GLint>(Level), 0, LayerExtent.x,
 							Format.Internal, static_cast<GLsizei>(Texture.size(Level)),
 							(void*)pboSize);
 					else
 						glTextureSubImage1D(
-							TextureName, static_cast<GLint>(Level), 0, Extent.x,
+							TextureName, static_cast<GLint>(Level), 0, LayerExtent.x,
 							Format.External, Format.Type,
 							(void*)pboSize);
 					break;
@@ -105,16 +109,16 @@ GLuint CreateGLTextureFromFile(const char* filename, uint32_t* width, uint32_t* 
 						glCompressedTextureSubImage2D(
 							TextureName, static_cast<GLint>(Level),
 							0, 0,
-							Extent.x,
-							Texture.target() == gli::TARGET_1D_ARRAY ? LayerGL : Extent.y,
+							LayerExtent.x,
+							Texture.target() == gli::TARGET_1D_ARRAY ? LayerGL : LayerExtent.y,
 							Format.Internal, static_cast<GLsizei>(Texture.size(Level)),
 							(void*)pboSize);
 					else
 						glTextureSubImage2D(
 							TextureName, static_cast<GLint>(Level),
 							0, 0,
-							Extent.x,
-							Texture.target() == gli::TARGET_1D_ARRAY ? LayerGL : Extent.y,
+							LayerExtent.x,
+							Texture.target() == gli::TARGET_1D_ARRAY ? LayerGL : LayerExtent.y,
 							Format.External, Format.Type,
 							(void*)pboSize);
 					break;
@@ -125,24 +129,24 @@ GLuint CreateGLTextureFromFile(const char* filename, uint32_t* width, uint32_t* 
 					if (gli::is_compressed(Texture.format()))
 						glCompressedTextureSubImage3D(
 							TextureName, static_cast<GLint>(Level),
-							0, 0, Texture.target() == gli::TARGET_CUBE ? Face : 0,
-							Extent.x, Extent.y,
-							(Texture.target() == gli::TARGET_3D || Texture.target() == gli::TARGET_CUBE) ? Extent.z : LayerGL,
+							0, 0, Texture.target() == gli::TARGET_CUBE ? static_cast<GLint>(Face) : 0,
+							LayerExtent.x, LayerExtent.y,
+							(Texture.target() == gli::TARGET_3D || Texture.target() == gli::TARGET_CUBE) ? LayerExtent.z : LayerGL,
 							Format.Internal, static_cast<GLsizei>(Texture.size(Level)),
 							(void*)pboSize);
 					else
 						glTextureSubImage3D(
 							TextureName, static_cast<GLint>(Level),
-							0, 0, Texture.target() == gli::TARGET_CUBE ? Face : 0,
-							Extent.x, Extent.y,
-							(Texture.target() == gli::TARGET_3D || Texture.target() == gli::TARGET_CUBE) ? Extent.z : LayerGL,
+							0, 0, Texture.target() == gli::TARGET_CUBE ? static_cast<GLint>(Face) : 0,
+							LayerExtent.x, LayerExtent.y,
+							(Texture.target() == gli::TARGET_3D || Texture.target() == gli::TARGET_CUBE) ? LayerExtent.z : LayerGL,
 							Format.External, Format.Type,
 							(void*)pboSize);
 					break;
 				default: assert(0); break;
 				}
 
-				pboSize += Texture.size(Level);
+				pboSize += static_cast<uint32_t>(Texture.size(Level));
 			}
 		}
 	}
@@ -163,7 +167,7 @@ GLuint CreateGLTextureArrayFromFiles(std::vector<std::wstring>& filenames, uint3
 	for (uint32_t i = 0; i < filenames.size(); ++i)
 	{
 		gli::texture tex = gli::load(std::string(filenames[i].begin(), filenames[i].end()));
-		totalSize += tex.size();
+		totalSize += static_cast<uint32_t>(tex.size());
 		Textures.push_back(std::move(tex));
 	}
 
@@ -175,7 +179,7 @@ GLuint CreateGLTextureArrayFromFiles(std::vector<std::wstring>& filenames, uint3
 
 	GLuint texArray = 0;
 	glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &texArray);
-	glTextureStorage3D(texArray, static_cast<GLint>(Textures[0].levels()), Format.Internal, Extent.x, Extent.y, Textures.size());
+	glTextureStorage3D(texArray, static_cast<GLint>(Textures[0].levels()), Format.Internal, Extent.x, Extent.y, static_cast<GLsizei>(Textures.size()));
 	glTextureParameteri(texArray, GL_TEXTURE_SWIZZLE_R, Format.Swizzles[0]);
 	glTextureParameteri(texArray, GL_TEXTURE_SWIZZLE_G, Format.Swizzles[1]);
 	glTextureParameteri(texArray, GL_TEXTURE_SWIZZLE_B, Format.Swizzles[2]);
@@ -191,7 +195,7 @@ GLuint CreateGLTextureArrayFromFiles(std::vector<std::wstring>& filenames, uint3
 	for (uint32_t i = 0; i < Textures.size(); ++i)
 	{
 		memcpy(pboData + pboOffset, Textures[i].data(0, 0, 0),  Textures[i].size(0));
-		pboOffset += Textures[i].size(0);
+		pboOffset += static_cast<uint32_t>(Textures[i].size(0));
 	}
 
 	glUnmapNamedBuffer(pbo);
@@ -217,9 +221,9 @@ GLuint CreateGLTextureArrayFromFiles(std::vector<std::wstring>& filenames, uint3
 				{
 					glTextureSubImage3D(
 						texArray, 0/*static_cast<GLint>(Level)*/,
-						0, 0, Textures[0].target() == gli::TARGET_CUBE ? Face : 0,
+						0, 0, Textures[0].target() == gli::TARGET_CUBE ? static_cast<GLint>(Face) : 0,
 						Extent.x, Extent.y,
-						Textures.size(),
+						static_cast<GLsizei>(Textures.size()),
 						Format.External, Format.Type,
 						(void*)pboOffset);
 				}

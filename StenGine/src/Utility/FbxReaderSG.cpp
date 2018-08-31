@@ -1,12 +1,9 @@
 #include "stdafx.h"
-#include <Windows.h>
 
 #include "Utility/FbxReaderSG.h"
-#include <algorithm>
 #include "Resource/ResourceManager.h"
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Graphics/Animation/Animation.h"
-#include "Math/MathDefs.h"
 #include "Mesh/SkinnedMeshRenderer.h"
 #include "Shlwapi.h"
 #include <sys/stat.h>
@@ -117,7 +114,6 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 	for (uint32_t i = 0; i < scene->mNumMeshes; ++i)
 	{
 		auto &fMesh = scene->mMeshes[i];
-		uint32_t triangleCount = fMesh->mNumFaces; // assume it is a triangle
 
 		mesh->m_subMeshes[i].m_matIndex = fMesh->mMaterialIndex;
 
@@ -171,8 +167,6 @@ bool FbxReaderSG::Read(const std::wstring& filename, Mesh* mesh) {
 				skinnedMesh->m_jointWeightsBufferCPU[j].resize(4, 0.f); 
 				skinnedMesh->m_jointIndicesBufferCPU[j].resize(4, 0.f);
 			}
-
-			auto assimp_node = scene->mRootNode;
 
 			skinnedMesh->m_jointPreRotationBufferCPU.resize(fMesh->mNumBones, Mat4::Identity());
 			std::function<void(aiNode*, int32_t)> IndexJoint;

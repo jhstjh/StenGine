@@ -1,10 +1,8 @@
 #ifndef __SHADOW_MAP__
 #define __SHADOW_MAP__
 
-#include "Graphics/D3DIncludes.h"
 #include "Graphics/Abstraction/RenderTarget.h"
 #include "Graphics/Abstraction/Texture.h"
-#include "Math/MathDefs.h"
 
 #include "glew.h"
 

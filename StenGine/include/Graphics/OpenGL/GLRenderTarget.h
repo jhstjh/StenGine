@@ -10,7 +10,7 @@ class GLRenderTarget : public RenderTargetImpl
 {
 	GLuint mFramebuffer;
 
-	void SetRenderTarget(void* deviceContext) final
+	void SetRenderTarget(void* /*deviceContext*/) final
 	{
 	}
 
