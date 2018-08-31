@@ -21,7 +21,7 @@ Zombie::Zombie()
 	auto zombieAnimator = std::make_unique<Animator>();
 	zombieAnimator->SetAnimation(animation);
 	zombieAnimator->CreateClip(2, 120, "Idle");
-	zombieAnimator->CreateClip(603, 633, "Walk");
+	zombieAnimator->CreateClip(603, 632, "Walk");
 
 	zombieAnimator->SetPositionDrivenNodeName("Hips");
 	zombieAnimator->SetCurrentClip("Idle");
