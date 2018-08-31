@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Graphics/Effect/Skybox.h"
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Scene/CameraManager.h"

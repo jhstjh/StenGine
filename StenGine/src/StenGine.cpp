@@ -1,5 +1,8 @@
 // StenGine.cpp : Defines the entry point for the application.
 //
+
+#include "stdafx.h"
+
 #include <stdio.h>
 #include "windowsX.h"
 #include "stdafx.h"

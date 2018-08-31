@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include <atomic>
 #include "Engine/EngineBase.h"
 #include "Resource.h"

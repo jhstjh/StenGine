@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "GamepadXinput.h"
 
 #define XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE  7849

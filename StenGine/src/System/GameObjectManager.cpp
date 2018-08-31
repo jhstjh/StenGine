@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Scene/GameObjectManager.h"
 #include "System/API/PlatformAPIDefs.h"
 #include "Mesh/MeshRenderer.h"

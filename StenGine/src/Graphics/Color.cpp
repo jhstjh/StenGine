@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Graphics/Color.h"
 
 namespace StenGine

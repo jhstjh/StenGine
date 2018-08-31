@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #pragma warning(disable: 4996)
 
 #include "Graphics/OpenGL/GLImageLoader.h"

@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Graphics/OpenGL/GLTexture.h"
 
 namespace StenGine

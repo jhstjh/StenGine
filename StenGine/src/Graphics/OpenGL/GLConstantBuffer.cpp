@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "glew.h"
 #include "Graphics/OpenGL/GLConstantBuffer.h"
 #include <malloc.h>

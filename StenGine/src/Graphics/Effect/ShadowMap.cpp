@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Graphics/Effect/ShadowMap.h"
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Graphics/Effect/EffectsManager.h"

@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Graphics/Abstraction/RendererBase.h"
 
 namespace StenGine

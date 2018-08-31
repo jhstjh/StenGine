@@ -1,4 +1,6 @@
-﻿#include "Graphics/Effect/EffectsManager.h"
+﻿#include "stdafx.h"
+
+#include "Graphics/Effect/EffectsManager.h"
 #include "Graphics/Abstraction/RendererBase.h"
 #include "D3DCompiler.h"
 #include "imgui.h"

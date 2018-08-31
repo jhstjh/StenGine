@@ -1,4 +1,6 @@
-﻿#include <vector>
+﻿#include "stdafx.h"
+
+#include <vector>
 #include <memory>
 #include <iostream>
 #include <unordered_map>

@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Graphics/D3D11/D3D11UAVBinding.h"
 #include "Graphics/Abstraction/RendererBase.h"
 

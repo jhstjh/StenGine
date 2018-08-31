@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Graphics/OpenGL/GLUAVBinding.h"
 #include "Graphics/Abstraction/RendererBase.h"
 

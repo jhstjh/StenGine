@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Utility/Timer.h"
 
 namespace StenGine

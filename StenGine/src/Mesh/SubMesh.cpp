@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Mesh/SubMesh.h"
 #include "Graphics/D3DIncludes.h"
 #include "Graphics/Abstraction/RendererBase.h"

@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Graphics/OpenGL/GLBuffer.h"
 #include <assert.h>
 

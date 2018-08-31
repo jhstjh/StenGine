@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Scene/LightManager.h"
 
 #include "Graphics/Effect/ShadowMap.h"

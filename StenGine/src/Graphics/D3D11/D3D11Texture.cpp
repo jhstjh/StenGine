@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Graphics/D3D11/D3D11Texture.h"
 
 namespace StenGine

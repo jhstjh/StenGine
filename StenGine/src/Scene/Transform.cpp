@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Scene/GameObject.h"
 #include "Scene/Transform.h"
 #include "imgui.h"

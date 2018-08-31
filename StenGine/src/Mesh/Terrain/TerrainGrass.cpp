@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include <random>
 #include "Graphics/Effect/EffectsManager.h"
 #include "Graphics/Effect/ShadowMap.h"

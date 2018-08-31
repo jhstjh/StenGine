@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Scene/Drawable.h"
 #include "Graphics/Abstraction/RendererBase.h"
 

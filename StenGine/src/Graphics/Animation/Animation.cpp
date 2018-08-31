@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Graphics/Animation/Animation.h"
 #include "Engine/EventSystem.h"
 

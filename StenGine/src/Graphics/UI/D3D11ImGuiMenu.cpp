@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include <stdint.h>
 #include "imgui.h"
 #include "Graphics/UI/ImGuiMenu.h"

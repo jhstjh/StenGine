@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Graphics/UI/ImGuiMenu.h"
 #include "Graphics/Abstraction/RendererBase.h"
 

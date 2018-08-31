@@ -625,9 +625,6 @@
     <ClCompile Include="src\Scene\Drawable.cpp">
       <Filter>src\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="src\System\GameObjectManager.cpp">
-      <Filter>src\Scene</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\UI\D3D11ImGuiMenu.cpp">
       <Filter>src\Graphics\UI</Filter>
     </ClCompile>
@@ -714,6 +711,9 @@
     </ClCompile>
     <ClCompile Include="include\Input\GamepadXinput.cpp">
       <Filter>src\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\System\GameObjectManager.cpp">
+      <Filter>src\System</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

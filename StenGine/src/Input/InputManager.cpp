@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Input/InputManager.h"
 #include "Engine/EventSystem.h"
 

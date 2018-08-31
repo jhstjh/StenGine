@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Resource/ResourceManager.h"
 
 namespace StenGine

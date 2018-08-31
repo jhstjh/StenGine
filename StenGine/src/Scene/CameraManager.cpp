@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Engine/EventSystem.h"
 #include "Graphics/Abstraction/RendererBase.h"
 #include "Input/InputManager.h"

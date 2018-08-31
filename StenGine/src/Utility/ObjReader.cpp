@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Utility/ObjReader.h"
 
 #if 0

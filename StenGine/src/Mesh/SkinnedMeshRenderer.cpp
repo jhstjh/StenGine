@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include <imgui.h>
 #include "Math/MathHelper.h"
 #include "Mesh/SkinnedMesh.h"

@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include <Windows.h>
 
 #include "Utility/FbxReaderSG.h"

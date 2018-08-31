@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "Utility/CommandlineParser.h"
 #include <string>
 #include <vector>
