@@ -1,6 +1,8 @@
 #include "Graphics/Animation/Animation.h"
 #include "Engine/EventSystem.h"
 
+#define INTERPOLATE_ANIMATION 0
+
 namespace StenGine
 {
 
@@ -27,6 +29,7 @@ TSQ AnimationNode::UpdateAnimation(Timer::Seconds playbackTime)
 	auto rot = rotation[rotationIndex];
 	auto scal = scale[scaleIndex];
 
+#if INTERPOLATE_ANIMATION
 	if (positionIndex < position.size() - 1)
 	{
 		float percent = (playbackFrame - positionTime[positionIndex]) / (positionTime[positionIndex + 1] - positionTime[positionIndex]);
@@ -44,6 +47,7 @@ TSQ AnimationNode::UpdateAnimation(Timer::Seconds playbackTime)
 		float percent = (playbackFrame - scaleTime[scaleIndex]) / (scaleTime[scaleIndex + 1] - scaleTime[scaleIndex]);
 		scal = Vec3::Lerp(scal, scale[scaleIndex + 1], percent);
 	}
+#endif
 
 	return { pos, rot, scal };
 }
