@@ -5,6 +5,7 @@
 #include "Mesh/Terrain/Terrain.h"
 #include "Resource/ResourceManager.h"
 #include "Scene/GameObjectManager.h"
+#include "Math/MathHelper.h"
 
 static const float WALK_THRESHOLD = 0.1f;
 
@@ -33,6 +34,7 @@ Zombie::Zombie()
 
 void Zombie::Update()
 {
+	auto dt = Timer::GetDeltaTime();
 	Vec3 dir{ 0, 0, 0 };
 
 	if (InputManager::Instance()->GetKeyHold('W'))
@@ -78,7 +80,21 @@ void Zombie::Update()
 
 		Vec3 realDir = rot * dir;
 
-		auto target = GetTransform()->GetPosition() + realDir;
+		auto currentForward = MatrixHelper::GetForward(GetTransform()->GetWorldTransform());
+		if (realDir == -currentForward)
+		{
+			realDir.x() += 0.001f;
+			realDir.Normalize();
+		}
+
+		auto cross = Vec3::CrossProduct(realDir, currentForward);
+		auto dot = Vec3::DotProduct(realDir, currentForward);
+		float angle = atan2f(cross.Length(), dot);
+		float turnDir = cross.y() < 0 ? 1.f : -1.f;
+
+		auto rotMat = Mat4::RotationY(std::min(toRadian(360.f * dt), angle) * turnDir);
+		auto target = GetTransform()->GetPosition() + rotMat * currentForward;
+
 		GetTransform()->LookAt(target, { 0.f, 1.f, 0.f });
 
 		mWalkSpeed = sqrt(LX * LX + LY * LY);

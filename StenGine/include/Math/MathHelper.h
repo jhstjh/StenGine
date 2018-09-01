@@ -51,5 +51,15 @@ public:
 	}
 };
 
+inline float toDegree(float radian)
+{
+	return radian / PI * 180.f;
+}
+
+inline float toRadian(float degree)
+{
+	return degree / 180.f * PI;
+}
+
 }
 #endif // !__MATH_HELPER__
